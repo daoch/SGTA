@@ -69,7 +69,18 @@ interface Stats {
   lastDeliverable: string
 }
 
+// Interface simple para etapas formativas
+interface EtapaFormativaSimple {
+  id: number;
+  etapaFormativaNombre: string;
+  cicloNombre: string;
+}
 
+// Datos hardcodeados de etapas formativas
+const etapasFormativasHardcodeadas: EtapaFormativaSimple[] = [
+  { id: 1, etapaFormativaNombre: "Tesis 1", cicloNombre: "2024-1" },
+  { id: 2, etapaFormativaNombre: "Tesis 2", cicloNombre: "2024-2" },
+]
 
 export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisProps) {
   const [selectedStage, setSelectedStage] = useState("current")
@@ -99,14 +110,18 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
         }))
       }
     } else {
-      const stageData = gradesData.stages.find((s) => s.id === selectedStage)
-      if (stageData) {
-        allDeliverables = stageData.deliverables.map((d, deliverableIndex) => ({
-          ...d,
-          stageName: stageData.name,
-          stageId: stageData.id,
-          globalIndex: deliverableIndex,
-        }))
+      // Filtrar por etapa formativa específica usando el ID
+      const etapaSeleccionada = etapasFormativasHardcodeadas.find(etapa => etapa.id.toString() === selectedStage)
+      if (etapaSeleccionada) {
+        const stageData = gradesData.stages.find((s) => s.id === etapaSeleccionada.id.toString())
+        if (stageData) {
+          allDeliverables = stageData.deliverables.map((d, deliverableIndex) => ({
+            ...d,
+            stageName: stageData.name,
+            stageId: stageData.id,
+            globalIndex: deliverableIndex,
+          }))
+        }
       }
     }
 
@@ -206,8 +221,11 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
           <SelectContent>
             <SelectItem value="current">Etapa Actual</SelectItem>
             <SelectItem value="all">Todas las Etapas</SelectItem>
-            <SelectItem value="stage1">Tesis 1</SelectItem>
-            <SelectItem value="stage2">Tesis 2</SelectItem>
+            {etapasFormativasHardcodeadas.map((etapa) => (
+              <SelectItem key={etapa.id} value={etapa.id.toString()}>
+                {etapa.etapaFormativaNombre} - {etapa.cicloNombre}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -231,15 +249,24 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                     const data = payload[0].payload
                     return (
                       <div className="bg-white p-3 border rounded-lg shadow-lg">
-                        <p className="font-medium">Entregable {data.entregableNumber}</p>
+                        <p className="font-medium">{data.name}</p>
                         <p className="text-sm text-gray-600">{data.stage}</p>
                         <div className="mt-2 space-y-1">
                           <p className="text-sm">
                             <span className="font-medium text-blue-600">Nota Final:</span> {data.notaFinal}
                           </p>
-                          <p className="text-sm">
-                            <span className="font-medium text-green-600">Nota Exposición:</span> {data.notaExposicion}
-                          </p>
+                          {data.criterios && data.criterios.length > 0 ? (
+                            <div className="mt-2">
+                              <p className="text-sm font-medium text-gray-700 mb-1">Criterios:</p>
+                              {data.criterios.map((criterio: DeliverableCriteria, index: number) => (
+                                <p key={index} className="text-xs text-gray-600">
+                                  • {criterio.name}: {criterio.grade}
+                                </p>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-500 mt-1">No hay criterios disponibles</p>
+                          )}
                         </div>
                       </div>
                     )

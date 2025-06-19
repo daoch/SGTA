@@ -19,11 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { User } from "@/features/auth/types/auth.types";
-import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
+import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado, getEntregablesConCriterios } from "@/features/reportes/services/report-services";
 import { addDays, format, isBefore, parseISO } from "date-fns";
 import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnalisisAcademico, GradesData, StudentData } from "./analisis-academico";
+import type { EntregableCriteriosDetalle } from "@/features/reportes/types/Entregable.type";
 
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
@@ -84,9 +85,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
   const [isCriteriosModalOpen, setIsCriteriosModalOpen] = useState(false);
   const [selectedCriterios, setSelectedCriterios] = useState<Criterio[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-
   
+  // Estados para análisis académico
+  const [academicData, setAcademicData] = useState<{
+    studentData: StudentData;
+    gradesData: GradesData;
+  } | null>(null);
+  const [isLoadingAcademic, setIsLoadingAcademic] = useState(false);
 
   useEffect(() => {
     const fetchEntregables = async () => {
@@ -178,6 +183,87 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     fetchEntregables();
   }, [user, selectedStudentId]);
 
+  // Nuevo useEffect para cargar datos de análisis académico
+  useEffect(() => {
+    const fetchAcademicData = async () => {
+      if (activeTab !== "analisis") return;
+      
+      setIsLoadingAcademic(true);
+      try {
+        const entregablesData = await getEntregablesConCriterios();
+        
+        // Transformar datos de la API al formato esperado por AnalisisAcademico
+        const transformedData = transformEntregablesToAcademicData(entregablesData);
+        setAcademicData(transformedData);
+      } catch (error) {
+        console.error("Error al obtener datos de análisis académico:", error);
+      } finally {
+        setIsLoadingAcademic(false);
+      }
+    };
+
+    fetchAcademicData();
+  }, [activeTab]);
+
+  // Función para transformar los datos de la API
+  const transformEntregablesToAcademicData = (entregables: EntregableCriteriosDetalle[]): {
+    studentData: StudentData;
+    gradesData: GradesData;
+  } => {
+    // Agrupar entregables por etapa formativa
+    const entregablesPorEtapa = new Map<number, EntregableCriteriosDetalle[]>();
+    
+    entregables.forEach(entregable => {
+      if (entregable.etapaFormativaXCicloId) {
+        const etapaId = entregable.etapaFormativaXCicloId;
+        if (!entregablesPorEtapa.has(etapaId)) {
+          entregablesPorEtapa.set(etapaId, []);
+        }
+        entregablesPorEtapa.get(etapaId)!.push(entregable);
+      }
+    });
+
+    // Crear stages para el análisis académico
+    const stages = Array.from(entregablesPorEtapa.entries()).map(([etapaId, entregablesEtapa]) => {
+      const deliverables = entregablesEtapa.map(entregable => {
+        // Transformar criterios al formato esperado
+        const criteria = entregable.criterios.map(criterio => ({
+          name: criterio.criterioNombre,
+          grade: criterio.notaCriterio || 0
+        }));
+
+        return {
+          id: entregable.entregableId.toString(),
+          name: entregable.entregableNombre,
+          date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "yyyy-MM-dd") : "Sin fecha",
+          criteria,
+          expositionGrade: 0, // No tenemos datos de exposición en la API actual
+          finalGrade: entregable.notaGlobal || 0
+        };
+      });
+
+      return {
+        id: etapaId.toString(),
+        name: `Etapa ${etapaId}`, // Podríamos obtener el nombre real de la etapa si la API lo proporciona
+        period: "2024-1", // Podríamos obtener el período real si la API lo proporciona
+        deliverables
+      };
+    });
+
+    // Crear datos del estudiante
+    const studentData: StudentData = {
+      name: user?.name ? `${user.name}` : "Estudiante",
+      currentStage: stages.length > 0 ? stages[0].name : "Sin etapa asignada",
+      totalStages: stages.length
+    };
+
+    // Crear datos de calificaciones
+    const gradesData: GradesData = {
+      stages
+    };
+
+    return { studentData, gradesData };
+  };
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
@@ -221,50 +307,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     setSelectedCriterios(criterios);
     setIsCriteriosModalOpen(true);
   };
-
-
-//Constantes de prueba -- luego borrrarlas
-  // Ejemplo hardcodeado de studentData
-  const studentData: StudentData = {
-    name: "Ana Martínez",
-    currentStage: "Proyecto de Fin de Carrera 2",
-    totalStages: 2,
-  };
-
-  const gradesData: GradesData = {
-    stages: [
-      {
-        id: "PFC2",
-        name: "Proyecto de Fin de Carrera 2",
-        period: "2024-1",
-        deliverables: [
-          {
-            id: "1",
-            name: "Implementación del sistema",
-            date: "2024-03-15",
-            criteria: [
-              { name: "Calidad del código", grade: 18 },
-              { name: "Documentación", grade: 17 },
-            ],
-            expositionGrade: 17,
-            finalGrade: 18,
-          },
-          {
-            id: "2",
-            name: "Resultados preliminares",
-            date: "2024-04-10",
-            criteria: [
-              { name: "Análisis de resultados", grade: 16 },
-              { name: "Presentación", grade: 15 },
-            ],
-            expositionGrade: 16,
-            finalGrade: 16,
-          },
-        ],
-      },
-    ],
-  };
-
 
   return (
     <>
@@ -490,46 +532,54 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
             <CardTitle className="text-lg">Análisis Académico</CardTitle>
           </CardHeader>
           <CardContent>
-            <AnalisisAcademico studentData={studentData} gradesData={gradesData}/>
+            {isLoadingAcademic ? (
+              <div className="text-center py-8 text-gray-500">
+                Cargando análisis académico...
+              </div>
+            ) : academicData ? (
+              <AnalisisAcademico studentData={academicData.studentData} gradesData={academicData.gradesData}/>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No se pudieron cargar los datos de análisis académico
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
-
-
 
       {/* Modal de Criterios */}
       <Dialog open={isCriteriosModalOpen} onOpenChange={setIsCriteriosModalOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-lg">Criterios del Entregable</DialogTitle>
-          <DialogDescription>
-            A continuación se muestran los criterios, la nota máxima, la descripción y la nota asignada.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="mt-4 space-y-3 max-h-80 overflow-y-auto">
-          {selectedCriterios.length > 0 ? (
-            selectedCriterios.map((c) => (
-              <div key={c.id} className="border rounded-md p-3 bg-white">
-                <p className="font-medium text-sm">{c.nombre}</p>
-                <p className="text-xs text-gray-600">Nota máxima: {c.notaMaxima}</p>
-                <p className="text-xs text-gray-500 mt-1">{c.descripcion}</p>
-                <p className="text-xs mt-1">
-                  <span className="font-medium">Nota asignada: </span>
-                  {c.nota != null ? c.nota : "Sin nota"}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No hay criterios asignados.</p>
-          )}
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button className="mt-4 w-full">Cerrar</Button>
-          </DialogClose>
-        </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+            <DialogDescription>
+              A continuación se muestran los criterios, la nota máxima, la descripción y la nota asignada.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-3 max-h-80 overflow-y-auto">
+            {selectedCriterios.length > 0 ? (
+              selectedCriterios.map((c) => (
+                <div key={c.id} className="border rounded-md p-3 bg-white">
+                  <p className="font-medium text-sm">{c.nombre}</p>
+                  <p className="text-xs text-gray-600">Nota máxima: {c.notaMaxima}</p>
+                  <p className="text-xs text-gray-500 mt-1">{c.descripcion}</p>
+                  <p className="text-xs mt-1">
+                    <span className="font-medium">Nota asignada: </span>
+                    {c.nota != null ? c.nota : "Sin nota"}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500">No hay criterios asignados.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button className="mt-4 w-full">Cerrar</Button>
+            </DialogClose>
+          </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
 }

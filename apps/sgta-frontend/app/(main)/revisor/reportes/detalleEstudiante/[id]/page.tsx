@@ -8,7 +8,6 @@ import { AlertCircle, ArrowLeft, Check, Clock, User } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 
-import { ConsolidatedView } from "@/features/reportes/components/consolidated-view";
 import { LineaTiempoReporte } from "@/features/reportes/components/general/linea-tiempo";
 import { findStudentsForReviewer } from "@/features/reportes/services/report-services";
 import { AlumnoReviewer } from "@/features/reportes/types/Alumno.type";
@@ -200,9 +199,7 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                   />
                 )}
             </TabsContent>
-            <TabsContent value="consolidated">
-              <ConsolidatedView studentId={selectedStudentData?.usuarioId} />
-            </TabsContent>
+            
           </Tabs>
         </CardContent>
       </Card>

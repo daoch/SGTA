@@ -12,4 +12,6 @@ export interface EntregableCriteriosDetalle {
     notaGlobal: number | null;
     estadoEntrega: string;
     criterios: CriterioEntregableDetalle[];
+    etapaFormativaXCicloId: number | null;
+    esEvaluable: boolean | null;
 } 
