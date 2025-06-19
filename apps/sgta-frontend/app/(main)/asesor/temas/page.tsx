@@ -232,6 +232,8 @@ const Page = () => {
                     error={error}
                     asesor={asesorData}
                     onTemaInscrito={fetchTemas}
+                    areasDisponibles={areasDisponibles}
+                    carreras={carrera}
                   />
                 </CardContent>
               </Card>

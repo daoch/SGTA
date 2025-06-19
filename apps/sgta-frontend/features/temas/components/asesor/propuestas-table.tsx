@@ -348,7 +348,11 @@ export function PropuestasTable({
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(propuesta.fechaLimite).toLocaleDateString()}
+                        {propuesta.fechaLimite ? (
+                          new Date(propuesta.fechaLimite).toLocaleDateString()
+                        ) : (
+                          <p className="text-gray-500">Sin fecha</p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge

@@ -509,7 +509,22 @@ VALUES (
         TRUE,
         NOW(),
         NOW()
-    );
+    ),
+  	(
+  		'Cese de asesoria (por alumno)',
+  		'Solicitud del asesor para dar por concluida la asesoría actual de un tema.',
+  		TRUE,
+  		NOW(),
+  		NOW()
+  	),
+  	(
+  		'Cese de tema',
+  		'Solicitud por parte del alumno para retirar su tema o dejar de trabajar su tema actual.',
+  		TRUE,
+  		NOW(),
+  		NOW()
+  	)
+    ;
 
 -- 11) Tipo de notificación
 
@@ -634,7 +649,15 @@ VALUES (
         TRUE,
         NOW(),
         NOW()
-    );
+    )
+	(
+		'ESTUDIANTE_AFECTADO',
+		'Estudiante al que en cese de tema (asesor) se quedará sin asesor',
+		TRUE,
+		NOW(),
+		NOW()
+	)
+    ;
 
 INSERT INTO
     accion_solicitud (
@@ -701,7 +724,22 @@ VALUES (
         TRUE,
         NOW(),
         NOW()
-    );
+    ),
+    (
+    	'PENDIENTE_ACEPTACION_ASESOR',
+    	'La solicitud ha sido aceptada',
+    	TRUE,
+    	NOW()
+    	NOW()
+    ),
+    (
+    'ACEPTACION_AUTOMATICA',
+    'La solicitud ha sido aceptada automaticamente',
+    TRUE,
+    NOW(),
+    NOW()
+    )
+    ;
 
 INSERT INTO
     usuario (

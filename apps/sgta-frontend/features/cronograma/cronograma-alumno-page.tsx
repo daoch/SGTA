@@ -167,7 +167,6 @@ const MiCronogramaPage = () => {
   
     fetchEventos();
   }, []);
-  
 
   const eventosParaCalendario = events.map((event) => ({
     ...event,

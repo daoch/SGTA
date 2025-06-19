@@ -17,7 +17,9 @@ import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
 import pucp.edu.pe.sgta.service.inter.SubAreaConocimientoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
@@ -214,5 +216,18 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 				.map(InfoSubAreaConocimientoMapper::toDto)
 				.toList();
 	}
+
+	public List<SubAreaConocimientoDto> findAllByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+		return subAreaConocimientoRepository.findAllById(ids).stream()
+			.map(ent -> SubAreaConocimientoDto.builder()
+				.id(ent.getId())
+				.nombre(ent.getNombre())
+				.build()
+			)
+			.collect(Collectors.toList());
+    }
 
 }

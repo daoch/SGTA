@@ -10,6 +10,7 @@ import { CheckCircle, AlertCircle, XCircle, ClipboardList } from "lucide-react";
 import {
   SolicitudTema,
   SolicitudState,
+  SolicitudType,
 } from "@/features/temas/types/solicitudes/entities";
 import { Card, CardHeader } from "@/components/ui/card";
 import { cva } from "class-variance-authority";
@@ -28,7 +29,7 @@ interface DialogSolicitudesProps {
 
 const labelTexts = {
   red: "Requiere atención",
-  green: "Tema listo para aprobar",
+  green: null,
   neutro: null,
 };
 
@@ -44,6 +45,13 @@ const solStateVariant: Record<SolicitudState, VariantColor> = {
   RECHAZADA: "neutro",
 };
 
+const dialogTexts = {
+  aprobarButton: {
+    aprobado: "Aceptada",
+    porAprobar: "Marcar como aceptada",
+  },
+};
+
 export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   solicitudes,
   estadoTema,
@@ -51,10 +59,10 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
   setListoSolicitudes,
 }) => {
   const [open, setOpen] = useState(false);
-  const [atendidas, setAtendidas] = useState<Record<number, boolean>>({});
+  const [aprobadas, setAprobadas] = useState<Record<number, boolean>>({}); // Solicitudes aprobadas
 
   const handleToggleAtendida = (id: number) => {
-    setAtendidas((prev) => {
+    setAprobadas((prev) => {
       const nueva = { ...prev, [id]: !prev[id] };
       const okCount = Object.values(nueva).filter(Boolean).length;
       setListoSolicitudes(okCount >= counts.PENDIENTE);
@@ -74,8 +82,7 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
     counts[s.estado_solicitud]++;
   });
 
-  const requiereAtencion =
-    estadoTema !== EstadoTemaNombre.REGISTRADO && counts.PENDIENTE > 0;
+  const requiereAtencion = counts.PENDIENTE > 0;
 
   let variant: VariantColor;
   if (requiereAtencion) {
@@ -88,13 +95,16 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
     <VariantCard color={variant}>
       <CardHeader>
         <div className="flex items-center gap-6">
+          {/* Icon */}
           <div className={iconBgStyles({ color: variant })}>
             <ClipboardList className="w-5 h-5 text-black-700" />
           </div>
           <div className="flex-1">
+            {/* Title */}
             <div className="font-semibold text-lg text-[#042354]">
               {texts.title}
             </div>
+            {/* Summary */}
             <div className="flex items-end gap-2">
               {!sinSolicitudes && (
                 <span className="text-3xl font-extrabold text-[#042354]">
@@ -107,20 +117,21 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
                   : texts.description_sinSolicitudes}
               </span>
             </div>
-            {requiereAtencion && (
+            {/* Label */}
+            {labelTexts[variant] && (
               <Badge className={badgeEstadoStyles({ color: variant })}>
                 {labelTexts[variant]}
               </Badge>
             )}
           </div>
-          {/* Counts */}
+          {/* Counts Labels */}
           {!sinSolicitudes && (
             <div className="flex flex-col gap-1 items-start">
-              <div className="flex items-center gap-1 text-green-600 text-sm">
-                <CheckCircle className="w-4 h-4" /> {counts.ACEPTADA}
-              </div>
               <div className="flex items-center gap-1 text-red-500 text-sm">
                 <AlertCircle className="w-4 h-4" /> {counts.PENDIENTE}
+              </div>
+              <div className="flex items-center gap-1 text-green-600 text-sm">
+                <CheckCircle className="w-4 h-4" /> {counts.ACEPTADA}
               </div>
               <div className="flex items-center gap-1 text-gray-500 text-sm">
                 <XCircle className="w-4 h-4" /> {counts.RECHAZADA}
@@ -132,6 +143,12 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
     </VariantCard>
   );
 
+  const tiposAprobacion = [
+    SolicitudType.APROBACION_TEMA,
+    SolicitudType.CAMBIO_RESUMEN,
+    SolicitudType.CAMBIO_TITULO,
+  ];
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{actionButton}</DialogTrigger>
@@ -141,7 +158,7 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
         </DialogHeader>
         <div className="space-y-2">
           {solicitudes.map((sol) => {
-            const isAtendida = atendidas[sol.solicitud_id] ?? false;
+            const isAprobada = aprobadas[sol.solicitud_id] ?? false;
             return (
               <div
                 key={sol.solicitud_id}
@@ -160,29 +177,30 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
                   </Badge>
                 </div>
                 {/* Button Atender Solicitud */}
-                {[
-                  EstadoTemaNombre.OBSERVADO,
-                  EstadoTemaNombre.INSCRITO,
-                ].includes(estadoTema) &&
+                {!tiposAprobacion.includes(
+                  sol.tipo_solicitud as SolicitudType,
+                ) &&
                   sol.estado_solicitud === "PENDIENTE" && (
                     <button
                       type="button"
                       onClick={() => handleToggleAtendida(sol.solicitud_id)}
                       className={
-                        isAtendida
+                        isAprobada
                           ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
                           : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
                       }
                     >
                       <CheckCircle
                         className={
-                          isAtendida
+                          isAprobada
                             ? "w-4 h-4 text-white"
                             : "w-4 h-4 text-gray-400"
                         }
-                        fill={isAtendida ? "currentColor" : "none"}
+                        fill={isAprobada ? "currentColor" : "none"}
                       />
-                      {isAtendida ? "Atendida" : "Marcar como atendida"}
+                      {isAprobada
+                        ? dialogTexts.aprobarButton.aprobado
+                        : dialogTexts.aprobarButton.porAprobar}
                     </button>
                   )}
               </div>

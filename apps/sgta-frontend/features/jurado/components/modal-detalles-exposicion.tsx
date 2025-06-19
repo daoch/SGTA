@@ -39,23 +39,35 @@ const ModalDetallesExposicion: React.FC<{
           <DialogTitle>Detalles de la Exposición</DialogTitle>
           <div className="pt-4">
             <div className="gap-4 pb-4">
-              <Label className="text-sm font-medium text-gray-500">
+              <Label className="text-sm font-medium">
                 Título del tema
               </Label>
               <Textarea
-                value={exposicion.titulo}
+                value={exposicion.titulo }
                 disabled
                 className="bg-gray-50 resize-none"
               />
             </div>
 
-            <div className="gap-4 pb-4">
-              <Label className="text-sm font-medium text-gray-500">Curso</Label>
-              <Textarea
-                value={exposicion.nombre_etapa_formativa + " - " + exposicion.nombre_exposicion}
-                disabled
-                className="bg-gray-50 resize-none"
-              />
+            <div className="grid grid-cols-2 gap-4 pb-4">
+              <div>
+                <Label className="text-sm font-medium">Curso</Label>
+                <Textarea
+                  value={exposicion.nombre_etapa_formativa}
+                  disabled
+                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Exposicion</Label>
+                <Textarea
+                  value={ exposicion.nombre_exposicion}
+                  disabled
+                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
+                />
+
+              </div>
+              
             </div>
 
             {estudiantes.length > 0 && (
@@ -67,10 +79,10 @@ const ModalDetallesExposicion: React.FC<{
                         <User className="h-6 w-6 text-gray-500" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-800">
+                        <div className="text-sm font-medium">
                           Estudiante {index + 1}
                         </div>
-                        <div className="text-sm">{miembro.nombre}</div>
+                        <div className="text-sm text-gray-500 ">{miembro.nombre}</div>
                       </div>
                     </div>
                   </div>
@@ -85,10 +97,10 @@ const ModalDetallesExposicion: React.FC<{
                     <User className="h-6 w-6 text-gray-500" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-800">
+                    <div className="text-sm font-medium">
                       Asesor
                     </div>
-                    <div className="text-sm">{asesor.nombre}</div>
+                    <div className="text-sm text-gray-500 ">{asesor.nombre}</div>
                   </div>
                 </div>
               </div>
@@ -106,7 +118,7 @@ const ModalDetallesExposicion: React.FC<{
                         <div className="text-sm font-medium text-gray-800">
                           Jurado {index + 1}
                         </div>
-                        <div className="text-sm">{jurado.nombre}</div>
+                        <div className="text-sm text-gray-500 ">{jurado.nombre}</div>
                       </div>
                     </div>
                   </div>
@@ -114,19 +126,19 @@ const ModalDetallesExposicion: React.FC<{
               </div>
             )}
 
-            <div className="grid grid-cols-4 gap-4 pb-4">
+            <div className="grid grid-cols-3 gap-4 pb-4">
               <div>
-                <Label className="text-sm font-medium text-gray-500">
+                <Label className="text-sm font-medium">
                   Fecha
                 </Label>
                 <Input
                   value={format(exposicion.fechahora, "dd/MM/yyyy")}
                   disabled
-                  className="bg-gray-50"
+                  className="bg-gray-70"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-500">
+                <Label className="text-sm font-medium">
                   Hora
                 </Label>
                 <Input
@@ -136,7 +148,7 @@ const ModalDetallesExposicion: React.FC<{
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-500">
+                <Label className="text-sm font-medium">
                   Sala
                 </Label>
                 <Input
@@ -150,36 +162,38 @@ const ModalDetallesExposicion: React.FC<{
             {/*ENLACES*/}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500 block mb-2">
+                  <label className="text-sm font-medium block mb-2">
                     Enlace de la Exposición
                   </label>
-                  <a
-                    href={exposicion.enlace_sesion}
-                    target="_blank"
-                    className={"text-sm " + (
-                      exposicion.enlace_sesion
-                        ? "text-blue-500 hover:underline"
-                        : "text-gray-500"
-                    )}
+                 {exposicion.enlace_sesion ? (
+                  <Button
+                   // variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => window.open(exposicion.enlace_sesion, "_blank")}
                   >
-                    {exposicion.enlace_sesion || "No disponible"}
-                  </a>
+                    Abrir enlace
+                  </Button>
+                ) : (
+                  <span className="text-sm text-gray-500">No disponible</span>
+                )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500 block mb-2">
+                  <label className="text-sm font-medium block mb-2">
                     Enlace de la Grabación
                   </label>
-                  <a
-                    href={exposicion.enlace_grabacion}
-                    target="_blank"
-                    className={"text-sm " + (
-                      exposicion.enlace_grabacion
-                        ? "text-blue-500 hover:underline"
-                        : "text-gray-500"
-                    )}
-                  >
-                    {exposicion.enlace_grabacion || "No disponible"}
-                  </a>
+                  {exposicion.enlace_grabacion ? (
+                    <Button
+                     // variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => window.open(exposicion.enlace_grabacion, "_blank")}
+                    >
+                      Abrir grabación
+                    </Button>
+                  ) : (
+                    <span className="text-sm text-gray-500">No disponible</span>
+                  )}
                 </div>
               </div>
           </div>

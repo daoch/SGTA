@@ -102,6 +102,34 @@ export function CoordinatorReports() {
   const [areaFilter, setAreaFilter] = useState<string[]>([]);
   const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
 
+  // Nuevos estados para filtros de desempeño
+  const [performanceSearchFilter, setPerformanceSearchFilter] = useState<string[]>([]);
+  const [performanceAreaFilter, setPerformanceAreaFilter] = useState<string[]>([]);
+  const [isPerformanceAreaDropdownOpen, setIsPerformanceAreaDropdownOpen] = useState(false);
+  const [isPerformanceAdvisorDropdownOpen, setIsPerformanceAdvisorDropdownOpen] = useState(false);
+
+  // Función para normalizar texto sin tildes
+  const normalizeText = (text: string) => {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
+
+  // Lógica de filtrado para el desempeño de asesores
+  const uniquePerformanceAreas = Array.from(new Set(advisorPerformance.map(advisor => advisor.department))).sort();
+  const uniquePerformanceAdvisors = Array.from(new Set(advisorPerformance.map(advisor => advisor.name))).sort();
+  
+  const filteredAdvisors = advisorPerformance.filter(advisor => {
+    const matchesSearch = performanceSearchFilter.length === 0 || 
+      performanceSearchFilter.includes(advisor.name);
+    
+    const matchesArea = performanceAreaFilter.length === 0 || 
+      performanceAreaFilter.includes(advisor.department);
+
+    return matchesSearch && matchesArea;
+  });
+
   // Colores para el gráfico de pastel
   const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
@@ -138,14 +166,6 @@ export function CoordinatorReports() {
     return Array.from(areas).sort();
   };
 
-  // Función para normalizar texto sin tildes
-  const normalizeText = (text: string) => {
-    return text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-  };
-
   // Función para manejar cambios en filtro de área (checkbox)
   const handleAreaFilterChange = (area: string, checked: boolean) => {
     if (checked) {
@@ -161,18 +181,24 @@ export function CoordinatorReports() {
     setAreaFilter([]);
   };
 
-  // Efecto para cerrar dropdown al hacer clic fuera
+  // Efecto para cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (isAreaDropdownOpen && !target.closest("[data-area-dropdown]")) {
         setIsAreaDropdownOpen(false);
       }
+      if (isPerformanceAreaDropdownOpen && !target.closest("[data-performance-area-dropdown]")) {
+        setIsPerformanceAreaDropdownOpen(false);
+      }
+      if (isPerformanceAdvisorDropdownOpen && !target.closest("[data-performance-advisor-dropdown]")) {
+        setIsPerformanceAdvisorDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isAreaDropdownOpen]);
+  }, [isAreaDropdownOpen, isPerformanceAreaDropdownOpen, isPerformanceAdvisorDropdownOpen]);
 
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
@@ -742,27 +768,130 @@ export function CoordinatorReports() {
     }
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
-        {advisorPerformance.map((advisor) => (
-          <div key={`${advisor.name}-${advisor.department}`} className="space-y-1">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-base font-medium">{toTitleCase(advisor.name)}</h3>
-                <p className="text-sm text-gray-500">{toTitleCase(advisor.department)}</p>
+      <>
+        {/* Filtros */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1" data-performance-advisor-dropdown>
+            <button
+              type="button"
+              onClick={() => setIsPerformanceAdvisorDropdownOpen(!isPerformanceAdvisorDropdownOpen)}
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <span className="text-gray-700">
+                {performanceSearchFilter.length === 0 
+                  ? "Seleccionar asesores" 
+                  : `${performanceSearchFilter.length} asesor${performanceSearchFilter.length > 1 ? "es" : ""} seleccionado${performanceSearchFilter.length > 1 ? "s" : ""}`
+                }
+              </span>
+              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isPerformanceAdvisorDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isPerformanceAdvisorDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                <div className="p-3">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar asesores:</div>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {uniquePerformanceAdvisors.map((advisor) => (
+                      <label key={advisor} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={performanceSearchFilter.includes(advisor)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPerformanceSearchFilter(prev => [...prev, advisor]);
+                            } else {
+                              setPerformanceSearchFilter(prev => prev.filter(a => a !== advisor));
+                            }
+                          }}
+                          className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{toTitleCase(advisor)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-lg font-bold">{advisor.progress}%</span>
-                <span className="text-sm text-gray-500 ml-1">({advisor.students} tesistas)</span>
-              </div>
-            </div>
-            <Progress
-              value={advisor.progress}
-              className="h-3 bg-gray-200"
-              indicatorClassName="bg-[#002855]"
-            />
+            )}
           </div>
-        ))}
-      </div>
+          <div className="relative" style={{ width: "280px", minWidth: "280px", maxWidth: "280px" }} data-performance-area-dropdown>
+            <button
+              type="button"
+              onClick={() => setIsPerformanceAreaDropdownOpen(!isPerformanceAreaDropdownOpen)}
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <span className="text-gray-700">
+                {performanceAreaFilter.length === 0 
+                  ? "Filtrar por áreas" 
+                  : `${performanceAreaFilter.length} área${performanceAreaFilter.length > 1 ? "s" : ""} seleccionada${performanceAreaFilter.length > 1 ? "s" : ""}`
+                }
+              </span>
+              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isPerformanceAreaDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isPerformanceAreaDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                <div className="p-3">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar áreas:</div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {uniquePerformanceAreas.map((area) => (
+                      <label key={area} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={performanceAreaFilter.includes(area)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPerformanceAreaFilter(prev => [...prev, area]);
+                            } else {
+                              setPerformanceAreaFilter(prev => prev.filter(a => a !== area));
+                            }
+                          }}
+                          className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{toTitleCase(area)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {(performanceSearchFilter.length > 0 || performanceAreaFilter.length > 0) && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                setPerformanceSearchFilter([]);
+                setPerformanceAreaFilter([]);
+              }}
+              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-full flex items-center gap-1"
+            >
+              <X className="h-3 w-3" />
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+
+        {/* Grid de tarjetas de desempeño */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+          {filteredAdvisors.map((advisor) => (
+            <div key={`${advisor.name}-${advisor.department}`} className="space-y-1">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-medium">{toTitleCase(advisor.name)}</h3>
+                  <p className="text-sm text-gray-500">{toTitleCase(advisor.department)}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-bold">{advisor.progress}%</span>
+                  <span className="text-sm text-gray-500 ml-1">({advisor.students} tesistas)</span>
+                </div>
+              </div>
+              <Progress
+                value={advisor.progress}
+                className="h-3 bg-gray-200"
+                indicatorClassName="bg-[#002855]"
+              />
+            </div>
+          ))}
+        </div>
+      </>
     );
   };
 
@@ -900,8 +1029,8 @@ export function CoordinatorReports() {
                   <div className="px-6">
                     <h3 className="text-base font-medium mb-6">Comparativa de Eficiencia</h3>
                   </div>
-                  <ResponsiveContainer width="100%" height={Math.max(450, advisorPerformance.length * 60 + 50)}>
-                    <RechartsBarChart layout="vertical" data={advisorPerformance} margin={{top: 20, right: 30, left: 30, bottom: 60}}>
+                  <ResponsiveContainer width="100%" height={Math.max(450, filteredAdvisors.length * 60 + 50)}>
+                    <RechartsBarChart layout="vertical" data={filteredAdvisors} margin={{top: 20, right: 30, left: 30, bottom: 60}}>
                       <CartesianGrid strokeDasharray="3 3"/>
                       <XAxis xAxisId="left" type="number" orientation="bottom" stroke="#002855" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Progreso (%)", position: "insideBottom", offset: -10, style: { textAnchor: "middle", fontSize: "14px", fill: "#002855" } }}/>
                       <XAxis xAxisId="right" type="number" orientation="top" stroke="#006699" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Número de Tesistas", position: "insideTop", offset: -15, style: { textAnchor: "middle", fontSize: "14px", fill: "#006699" } }}/>
