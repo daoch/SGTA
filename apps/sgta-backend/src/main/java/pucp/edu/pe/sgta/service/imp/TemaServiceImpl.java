@@ -3568,6 +3568,24 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
+	public EstadoTemaEnum obtenerEstadoFromString(String valor) {
+		EstadoTemaEnum estado;
+		try {
+			estado = EstadoTemaEnum.valueOf(valor);
+		} catch (IllegalArgumentException | NullPointerException e) {
+			throw new RuntimeException("No se encontró un estadoTema de nombre " + valor);
+		}
+		if(! estadoTemaRepository.existsByNombre(estado.name())){
+			throw new RuntimeException("No se registró un estadoTema de nombre" + estado.name());
+		}
+		return estado;
+	}
+
+	public Tema validarTemaConEstado(Integer temaId, EstadoTemaEnum estado){
+		return temaRepository
+				.findTemaByIdAndEstadoTema_Nombre(temaId,estado.name())
+				.orElseThrow( () -> new RuntimeException("No se encontró el tema"));
+	}
 	@Override
 	@Transactional()
 	public String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit) {

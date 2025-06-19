@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import pucp.edu.pe.sgta.model.EstadoSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
@@ -93,6 +94,28 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
             TipoSolicitud tipoSolicitud,
             EstadoSolicitud estadoSolicitud
     );
+
+    @Query(value = "SELECT * FROM obtener_solicitudes_cese_tema_resumen(:idUsuario, cast(:roles as TEXT[]))",
+    nativeQuery = true)
+    List<Object[]> listarResumenSolicitudCeseTemaUsuario(@Param("idUsuario") Integer idUsuario,
+                                                        @Param("roles") String roles);
+
+    @Query(value = "SELECT * FROM obtener_detalle_solicitud_cese(:idSolicitud)",
+            nativeQuery = true)
+    List<Object[]> listarDetalleSolicitudCeseTema(@Param("idSolicitud") Integer idSolicitud);
+
+    @Query(value = "SELECT * FROM obtener_perfil_asesor_cese(:idUsuario)",
+            nativeQuery = true)
+    List<Object[]> obtenerPerfilAsesorCese(@Param("idUsuario") Integer idUsuario);
+
+
+    @Modifying
+    @Query(value = "CALL procesar_estado_tema_retiro_alumno(:idUsuario, :idTema, :idCreador)",
+            nativeQuery = true)
+    void procesarRetiroAlumnoAutomatico(@Param("idUsuario") Integer idUsuario,
+                                                  @Param("idTema") Integer idTema,
+                                                  @Param("idCreador") Integer idCreador);
+
 
     // Para buscar las invitaciones pendientes para un asesor (usado para la lista del Asesor B)
     Page<Solicitud> findByEstadoSolicitudAndIdInAndActivoTrue(
