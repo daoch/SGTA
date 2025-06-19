@@ -169,13 +169,14 @@ export async function buscarTema(idTema: number) {
   }
 }
 
-export async function obtenerObservacionesTema(idTema: number) {
+export async function obtenerObservacionesTema() {
   try {
     const response = await fetch(
-      `${baseUrl}/solicitudes/listSolicitudesByTema/${idTema}`,
+      `${baseUrl}/temas/listarSolicitudesPendientesTemaAlumnos`,
       {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
         },
       },

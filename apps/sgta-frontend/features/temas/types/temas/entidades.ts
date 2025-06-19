@@ -182,12 +182,25 @@ export interface Solicitud {
 }
 
 export interface Observacion {
-  campo: "título" | "descripción";
-  detalle: string;
-  autor: string;
-  fecha: string;
+  solicitud_id: number;
+  descripcion: string;
+  tipo_solicitud: string;
+  estado_solicitud: string;
+  tema_id: number;
+  fecha_creacion: string;
+  usuarios: Remitente[];
 }
 
+export interface Remitente {
+  usuario_solicitud_id: number;
+  usuario_id: number;
+  nombres: string;
+  primer_apellido: string;
+  segundo_apellido: string;
+  codigo: string;
+  accion_solicitud: string; // "REMITENTE" o "DESTINATARIO"
+  rol_solicitud: string;
+}
 export interface ObservacionV2 {
   solicitud_id: number;
   descripcion: string;
@@ -206,7 +219,6 @@ export interface RemitenteV2 {
   segundo_apellido: string;
   codigo: string;
 }
-
 
 export interface TemaSimilitud {
   tema: {
@@ -263,4 +275,7 @@ export type Historial = {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string;
+  subareasSnapshot: string;
+  asesoresSnapshot: string;
+  tesistasSnapshot: string;
 };

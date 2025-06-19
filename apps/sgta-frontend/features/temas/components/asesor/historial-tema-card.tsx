@@ -93,15 +93,30 @@ export default function HistorialTemaCard({ idTema }: PropsHistorialTema) {
                         <span className="font-medium capitalize">
                           Descripción:
                         </span>
+                        <span className="text-muted-foreground">
+                          {historial.resumen}
+                        </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="font-medium capitalize">
                           Subáreas:
                         </span>
+                        <span className="text-muted-foreground">
+                          {historial.subareasSnapshot
+                            .split(";")
+                            .map((p) => p.split("|")[1])
+                            .join(", ")}
+                        </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="font-medium capitalize">
-                          Asesores:
+                          Asesores/Coasesores:
+                        </span>
+                        <span className="text-muted-foreground">
+                          {historial.asesoresSnapshot
+                            .split(";")
+                            .map((p) => p.split("|")[1])
+                            .join(", ")}
                         </span>
                       </div>
                     </div>
