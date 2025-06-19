@@ -3631,8 +3631,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, "PENDIENTE_ACEPTACION_ASESOR");
 		
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
-			.findByNombre("ASESOR_NUEVO")
-			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_NUEVO' no encontrado."));
+			.findByNombre("ASESOR_ENTRADA")
+			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_ENTRADA' no encontrado."));
 
 		UsuarioXSolicitud usAsesorNuevo = new UsuarioXSolicitud();
             usAsesorNuevo.setSolicitud(solicitudDeCese);
