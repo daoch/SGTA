@@ -3500,4 +3500,25 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
+	@Override
+	@Transactional()
+	public String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit) {
+		// Si tu función espera un INTEGER para p_usuario_id, convierte o parsea según tu modelo:
+
+		UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
+		if (usuDto == null) {
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Usuario no encontrado con Cognito ID: " + usuarioId);
+		}
+		Integer uid = usuDto.getId();
+		Object result = entityManager.createNativeQuery(
+						"SELECT listar_solicitudes_pendientes_tema_alumnos(:uid, :off, :lim)")
+				.setParameter("uid", uid)
+				.setParameter("off", offset)
+				.setParameter("lim", limit)
+				.getSingleResult();
+		return result != null ? result.toString() : "[]";
+	}
+
 }
