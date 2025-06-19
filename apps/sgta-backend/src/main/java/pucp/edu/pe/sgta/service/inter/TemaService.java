@@ -239,4 +239,7 @@ public interface TemaService {
 	Tema actualizarTemaYHistorial(Integer temaId,
 								  String nuevoEstadoNombre,
 								  String comentario);
+
+	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
+
 }

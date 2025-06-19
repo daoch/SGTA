@@ -835,6 +835,22 @@ public class TemaController {
         }
     }
 
+	@GetMapping("/listarSolicitudesPendientesTemaAlumnos")
+	public ResponseEntity<String> listarSolicitudesPendientesTemaAlumnos(
+			@RequestParam(value = "offset", defaultValue = "0") int offset,
+			@RequestParam(value = "limit",  defaultValue = "10") int limit,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			String json = temaService.listarSolicitudesPendientesTemaAlumnos(usuarioId, offset, limit);
+			return ResponseEntity.ok(json);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"No autorizado para listar pendientes: " + e.getMessage());
+		}
+	}
+
 }
 
 
