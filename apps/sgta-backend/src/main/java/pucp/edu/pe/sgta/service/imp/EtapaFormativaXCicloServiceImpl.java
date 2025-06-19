@@ -15,7 +15,7 @@ import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
-
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -175,6 +175,29 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             etapa.setId((Integer) row[6]);
         }
         return etapa;
+    }
+
+    @Override
+    public List<EtapaFormativaXCicloTesistaDto> listarEtapasFormativasXCicloTesista(String idCognito) {
+        Integer usuarioId = usuarioService.findByCognitoId(idCognito).getId();
+
+        List<Object[]> result = etapaFormativaXCicloRepository.listarEtapasFormativasXCicloTesista(usuarioId);
+        List<EtapaFormativaXCicloTesistaDto> etapas = new ArrayList<>();
+
+        for(Object[] row: result){
+            EtapaFormativaXCicloTesistaDto etapa = new EtapaFormativaXCicloTesistaDto();
+            etapa.setId((Integer) row[0]);//PRIMERO EL ID DEL LA ETAPAFORMATICA X CICLO
+            etapa.setEtapaFormativaId((Integer) row[1]);
+            etapa.setEtapaFormativaNombre((String) row[2]);
+            etapa.setCicloId((Integer) row[3]);
+            etapa.setCicloNombre((String) row[4]);
+            etapa.setCarreraId((Integer) row[5]);
+            etapa.setCarreraNombre((String) row[6]);
+            etapa.setActivo((Boolean) row[7]);
+            etapa.setEstado((String) row[8]);
+            etapas.add(etapa);
+        }
+        return etapas;
     }
 
 }

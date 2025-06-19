@@ -2,7 +2,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge, BarChart3, CheckCircle, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     CartesianGrid,
     Legend,
@@ -15,17 +15,40 @@ import {
     YAxis,
 } from "recharts";
 import { EtapaFormativaSimple, AcademicAnalysisProps, ChartDeliverable, Deliverable, DeliverableCriteria } from "../../types/Entregable.type";
-
-
-// Datos hardcodeados de etapas formativas
-const etapasFormativasHardcodeadas: EtapaFormativaSimple[] = [
-  { id: 1, etapaFormativaNombre: "Tesis 1", cicloNombre: "2024-1" },
-  { id: 2, etapaFormativaNombre: "Tesis 2", cicloNombre: "2024-2" },
-];
+import { etapaFormativaCicloService, EtapaFormativaXCicloTesista } from "@/features/configuracion/services/etapa-formativa-ciclo";
 
 export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisProps) {
   const [selectedStage, setSelectedStage] = useState("current");
   const [selectedDeliverableIndex, setSelectedDeliverableIndex] = useState<number | null>(null);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaXCicloTesista[]>([]);
+  const [isLoadingEtapas, setIsLoadingEtapas] = useState(false);
+  const [currentStageName, setCurrentStageName] = useState(studentData.currentStage);
+
+  // Cargar etapas formativas al montar el componente
+  useEffect(() => {
+    const loadEtapasFormativas = async () => {
+      setIsLoadingEtapas(true);
+      try {
+        const etapas = await etapaFormativaCicloService.getByTesista();
+        setEtapasFormativas(etapas);
+        
+        // Obtener el nombre real de la etapa actual
+        if (studentData.currentStage && studentData.currentStage.startsWith("Etapa ")) {
+          const etapaId = parseInt(studentData.currentStage.replace("Etapa ", ""));
+          const etapaActual = etapas.find(etapa => etapa.id === etapaId);
+          if (etapaActual) {
+            setCurrentStageName(etapaActual.etapaFormativaNombre);
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar etapas formativas:", error);
+      } finally {
+        setIsLoadingEtapas(false);
+      }
+    };
+
+    loadEtapasFormativas();
+  }, [studentData.currentStage]);
 
   // Procesar datos para el gráfico de tendencia
   const processGradesForChart = (): ChartDeliverable[] => {
@@ -52,7 +75,7 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       }
     } else {
       // Filtrar por etapa formativa específica usando el ID
-      const etapaSeleccionada = etapasFormativasHardcodeadas.find(etapa => etapa.id.toString() === selectedStage);
+      const etapaSeleccionada = etapasFormativas.find(etapa => etapa.id.toString() === selectedStage);
       if (etapaSeleccionada) {
         const stageData = gradesData.stages.find((s) => s.id === etapaSeleccionada.id.toString());
         if (stageData) {
@@ -147,7 +170,7 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
             <Badge className="h-4 w-4 text-orange-600" />
             <span className="text-sm font-medium text-orange-900">Etapa Actual</span>
           </div>
-          <div className="text-lg font-bold text-orange-700 mb-1">{studentData.currentStage}</div>
+          <div className="text-lg font-bold text-orange-700 mb-1">{currentStageName}</div>
           <div className="text-xs text-orange-600">{studentData.totalStages} etapas totales</div>
         </div>
       </div>
@@ -156,13 +179,13 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <h3 className="text-base font-medium">Evolución de Notas por Entregable</h3>
         <Select value={selectedStage} onValueChange={setSelectedStage}>
-          <SelectTrigger className="w-full lg:w-[200px]">
+          <SelectTrigger className="w-full lg:w-[400px]">
             <SelectValue placeholder="Seleccionar etapa" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-[400px]">
             <SelectItem value="current">Etapa Actual</SelectItem>
             <SelectItem value="all">Todas las Etapas</SelectItem>
-            {etapasFormativasHardcodeadas.map((etapa) => (
+            {etapasFormativas.map((etapa) => (
               <SelectItem key={etapa.id} value={etapa.id.toString()}>
                 {etapa.etapaFormativaNombre} - {etapa.cicloNombre}
               </SelectItem>
