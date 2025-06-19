@@ -2801,7 +2801,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			// =================================================================
 
 			// 0: tema_id
-			dto.setId(((Number) r[0]).intValue());
+			dto.setId(((Integer) r[0]).intValue());
 			// 1: codigo
 			dto.setCodigo((String) r[1]);
 			// 2: titulo
@@ -2913,12 +2913,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					UsuarioDto u = new UsuarioDto();
 					u.setId(tesistaIdsArr[i]);
 					u.setNombres(tesistaNombresArr[i]);
-					//Optional<UsuarioXTema> ut = usuarioTemaRepository.findByUsuario_IdAndTema_Id(u.getId(),
-					//		dto.getId());
-					//u.setRechazado(ut.get().getRechazado());
 					u.setAsignado(tesistasAsignados[i]);
-					//u.setActivo(ut.get().getActivo());
-					//u.setCreador(ut.get().getCreador());
 					listaTesistas.add(u);
 				}
 			}
