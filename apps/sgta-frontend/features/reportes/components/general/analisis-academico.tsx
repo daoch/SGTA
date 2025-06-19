@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge, BarChart3, CheckCircle, TrendingUp } from "lucide-react"
-import { useState } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge, BarChart3, CheckCircle, TrendingUp } from "lucide-react";
+import { useState } from "react";
 import {
     CartesianGrid,
     Legend,
@@ -13,23 +13,23 @@ import {
     Tooltip,
     XAxis,
     YAxis,
-} from "recharts"
-import { EtapaFormativaSimple, AcademicAnalysisProps, ChartDeliverable, Deliverable, DeliverableCriteria } from "../../types/Entregable.type"
+} from "recharts";
+import { EtapaFormativaSimple, AcademicAnalysisProps, ChartDeliverable, Deliverable, DeliverableCriteria } from "../../types/Entregable.type";
 
 
 // Datos hardcodeados de etapas formativas
 const etapasFormativasHardcodeadas: EtapaFormativaSimple[] = [
   { id: 1, etapaFormativaNombre: "Tesis 1", cicloNombre: "2024-1" },
   { id: 2, etapaFormativaNombre: "Tesis 2", cicloNombre: "2024-2" },
-]
+];
 
 export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisProps) {
-  const [selectedStage, setSelectedStage] = useState("current")
-  const [selectedDeliverableIndex, setSelectedDeliverableIndex] = useState<number | null>(null)
+  const [selectedStage, setSelectedStage] = useState("current");
+  const [selectedDeliverableIndex, setSelectedDeliverableIndex] = useState<number | null>(null);
 
   // Procesar datos para el gráfico de tendencia
   const processGradesForChart = (): ChartDeliverable[] => {
-    let allDeliverables: (Deliverable & { stageName: string; stageId: string; globalIndex: number })[] = []
+    let allDeliverables: (Deliverable & { stageName: string; stageId: string; globalIndex: number })[] = [];
 
     if (selectedStage === "all") {
       allDeliverables = gradesData.stages.flatMap((stage, stageIndex) =>
@@ -39,29 +39,29 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
           stageId: stage.id,
           globalIndex: stageIndex * 10 + deliverableIndex,
         })),
-      )
+      );
     } else if (selectedStage === "current") {
-      const currentStageData = gradesData.stages.find((s) => s.name === studentData.currentStage)
+      const currentStageData = gradesData.stages.find((s) => s.name === studentData.currentStage);
       if (currentStageData) {
         allDeliverables = currentStageData.deliverables.map((d, deliverableIndex) => ({
           ...d,
           stageName: currentStageData.name,
           stageId: currentStageData.id,
           globalIndex: deliverableIndex,
-        }))
+        }));
       }
     } else {
       // Filtrar por etapa formativa específica usando el ID
-      const etapaSeleccionada = etapasFormativasHardcodeadas.find(etapa => etapa.id.toString() === selectedStage)
+      const etapaSeleccionada = etapasFormativasHardcodeadas.find(etapa => etapa.id.toString() === selectedStage);
       if (etapaSeleccionada) {
-        const stageData = gradesData.stages.find((s) => s.id === etapaSeleccionada.id.toString())
+        const stageData = gradesData.stages.find((s) => s.id === etapaSeleccionada.id.toString());
         if (stageData) {
           allDeliverables = stageData.deliverables.map((d, deliverableIndex) => ({
             ...d,
             stageName: stageData.name,
             stageId: stageData.id,
             globalIndex: deliverableIndex,
-          }))
+          }));
         }
       }
     }
@@ -75,39 +75,39 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       stage: deliverable.stageName,
       criterios: deliverable.criteria,
       globalIndex: deliverable.globalIndex,
-    }))
-  }
+    }));
+  };
 
-  const chartData = processGradesForChart()
+  const chartData = processGradesForChart();
 
   // Calcular estadísticas
   const calculateStats = () => {
-    if (chartData.length === 0) return { average: 0, trend: "stable", lastGrade: 0, lastDeliverable: "" }
+    if (chartData.length === 0) return { average: 0, trend: "stable", lastGrade: 0, lastDeliverable: "" };
 
-    const average = Math.round(chartData.reduce((sum, item) => sum + item.notaFinal, 0) / chartData.length)
+    const average = Math.round(chartData.reduce((sum, item) => sum + item.notaFinal, 0) / chartData.length);
 
-    const lastGrade = chartData[chartData.length - 1]?.notaFinal || 0
-    const lastDeliverable = chartData[chartData.length - 1]?.name || ""
-    const firstGrade = chartData[0]?.notaFinal || 0
+    const lastGrade = chartData[chartData.length - 1]?.notaFinal || 0;
+    const lastDeliverable = chartData[chartData.length - 1]?.name || "";
+    const firstGrade = chartData[0]?.notaFinal || 0;
 
-    let trend = "stable"
-    if (lastGrade > firstGrade + 1) trend = "improving"
-    else if (lastGrade < firstGrade - 1) trend = "declining"
+    let trend = "stable";
+    if (lastGrade > firstGrade + 1) trend = "improving";
+    else if (lastGrade < firstGrade - 1) trend = "declining";
 
-    return { average, trend, lastGrade, lastDeliverable }
-  }
+    return { average, trend, lastGrade, lastDeliverable };
+  };
 
-  const stats = calculateStats()
+  const stats = calculateStats();
 
   // Obtener datos del entregable seleccionado
   const getSelectedDeliverableData = () => {
     if (selectedDeliverableIndex === null || !chartData[selectedDeliverableIndex]) {
-      return null
+      return null;
     }
-    return chartData[selectedDeliverableIndex]
-  }
+    return chartData[selectedDeliverableIndex];
+  };
 
-  const selectedDeliverableData = getSelectedDeliverableData()
+  const selectedDeliverableData = getSelectedDeliverableData();
 
   return (
     <div className="space-y-6">
@@ -185,9 +185,9 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
               />
               <YAxis domain={[0, 20]} tick={{ fontSize: 12 }} axisLine={{ stroke: "#e0e0e0" }} />
               <Tooltip
-                content={({ active, payload, label }) => {
+                content={({ active, payload }) => {
                   if (active && payload && payload.length) {
-                    const data = payload[0].payload
+                    const data = payload[0].payload;
                     return (
                       <div className="bg-white p-3 border rounded-lg shadow-lg">
                         <p className="font-medium">{data.name}</p>
@@ -210,9 +210,9 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                           )}
                         </div>
                       </div>
-                    )
+                    );
                   }
-                  return null
+                  return null;
                 }}
               />
               <Legend />
@@ -243,10 +243,9 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                     stroke: "#2563eb",
                     strokeWidth: 2,
                     onClick: (event: React.MouseEvent<SVGElement, MouseEvent>) => {
-                        // @ts-ignore: recharts passes extra props, but we only care about index
-                        const index = (event as any).index;
-                        if (typeof index === "number") {
-                            setSelectedDeliverableIndex(index);
+                        const target = event.target as SVGElement & { index?: number };
+                        if (typeof target.index === "number") {
+                            setSelectedDeliverableIndex(target.index);
                         }
                     },
                 }}
@@ -259,10 +258,9 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                     stroke: "#16a34a",
                     strokeWidth: 2,
                     onClick: (event: React.MouseEvent<SVGElement, MouseEvent>) => {
-                        // @ts-ignore: recharts passes extra props, but we only care about index
-                        const index = (event as any).index;
-                        if (typeof index === "number") {
-                            setSelectedDeliverableIndex(index);
+                        const target = event.target as SVGElement & { index?: number };
+                        if (typeof target.index === "number") {
+                            setSelectedDeliverableIndex(target.index);
                         }
                     },
                 }}
@@ -286,13 +284,13 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
           <h4 className="font-medium text-gray-900 mb-4">Resumen de Rendimiento - {selectedDeliverableData.name}</h4>
           <div className="space-y-3">
             {selectedDeliverableData.criterios.map((criteria, index) => {
-              const percentage = (criteria.grade / 20) * 100
+              const percentage = (criteria.grade / 20) * 100;
               const getColor = (grade: number) => {
-                if (grade >= 16) return "bg-green-500"
-                if (grade >= 14) return "bg-yellow-500"
-                if (grade >= 11) return "bg-orange-500"
-                return "bg-red-500"
-              }
+                if (grade >= 16) return "bg-green-500";
+                if (grade >= 14) return "bg-yellow-500";
+                if (grade >= 11) return "bg-orange-500";
+                return "bg-red-500";
+              };
 
               return (
                 <div key={index} className="flex items-center gap-3">
@@ -305,7 +303,7 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                   </div>
                   <div className="w-16 text-sm font-bold text-right">{criteria.grade}/20</div>
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -343,5 +341,5 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
         </div>
       )}
     </div>
-  )
+  );
 }

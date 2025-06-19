@@ -79,7 +79,7 @@ export const getEntregablesConCriterios = async (): Promise<EntregableCriteriosD
   try {
     const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
-      `/reports/entregables-criterios`,
+      "/reports/entregables-criterios",
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
