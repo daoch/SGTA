@@ -74,7 +74,7 @@ export type RolSolicitud = "DESTINATARIO" | "REMITENTE";
 
 export type SolicitudState = "PENDIENTE" | "RECHAZADA" | "ACEPTADA";
 
-interface User {
+export interface User {
   usuario_solicitud_id: number;
   usuario_id: number;
   nombres: string;
