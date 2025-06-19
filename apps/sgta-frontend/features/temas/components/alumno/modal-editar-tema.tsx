@@ -18,15 +18,22 @@ interface TemaData {
   titulo: string;
   resumen: string;
   objetivos: string;
-  area: { id: number; nombre: string };
-  asesor: { id: string; nombre: string };
+  area: {
+    id: number;
+    nombre: string;
+  };
+  asesor: {
+    id: string;
+    nombre: string;
+  };
 }
+
 
 interface EditTemaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tema: TemaData;
-  onTemaUpdated?: (updatedTema: any) => void; // ✅ Agrega esta línea
+  onTemaUpdated?: (updatedTema: TemaData) => void; 
 }
 
 export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) {
@@ -138,7 +145,7 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
 
   const submitAllChanges = async () => {
     // Marca errores en los campos que faltan justificación
-    let newErrores: Record<string, boolean> = {};
+    const newErrores: Record<string, boolean> = {};
     let hasError = false;
     editingFields.forEach((field) => {
       if (!justificaciones[field]?.trim()) {
