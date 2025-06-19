@@ -654,9 +654,7 @@ export const actualizarCalificacionFinalExposicionTema = async (
       exposicionId,
     );
     console.log("Calificaciones finales:", exposicionId);
-    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion", {
-      id: exposicionId,
-    });
+    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion/" + exposicionId);
 
     return response.status === 200;
   } catch (error) {
