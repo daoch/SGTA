@@ -587,13 +587,24 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setTipoSolicitud(tipoSol);
         solicitud.setDescripcion(registroDto.getMotivo());
         solicitud.setEstadoSolicitud(estadoSolicitud);
+        //Si el tema es inscrito la aprobación es automática
+        if(estado == EstadoTemaEnum.INSCRITO){
+            solicitud.setFechaResolucion(OffsetDateTime.now(ZoneId.of("America/Lima")));
+        }
+
         //Guardamos la solicitud
         solicitud = solicitudRepository.save(solicitud);
+        registroDto.setSolicitudId(solicitud.getId());
 
         //Agregar al usuario remitente
         Usuario alumno = usuarioServiceImpl.buscarUsuarioPorCognito(cognitoId, "Usuario no encontrado");
         usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(alumno, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.REMITENTE);
-        return null;
+
+        //Si el tema es incrito luego de registrar se procede al retiro
+        if(estado == EstadoTemaEnum.INSCRITO){
+            solicitudRepository.procesarRetiroAlumnoAutomatico(alumno.getId(), registroDto.getTemaId(), registroDto.getCreadorId());
+        }
+        return registroDto;
     }
 
     @Override

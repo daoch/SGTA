@@ -105,5 +105,13 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
     @Query(value = "SELECT * FROM obtener_perfil_asesor_cese(:idUsuario)",
             nativeQuery = true)
     List<Object[]> obtenerPerfilAsesorCese(@Param("idUsuario") Integer idUsuario);
+
+
+    @Query(value = "CALL procesar_estado_tema_retiro_alumno(:idAlumno, :idTema, :idCreador)",
+            nativeQuery = true)
+    void procesarRetiroAlumnoAutomatico(@Param("idUsuario") Integer idUsuario,
+                                                  @Param("idTema") Integer idTema,
+                                                  @Param("idCreador") Integer idCreador);
+
 }
 
