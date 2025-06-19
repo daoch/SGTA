@@ -32,6 +32,9 @@ public class HistorialTemaMapper {
             .activo(historialTema.getActivo())
             .fechaCreacion(historialTema.getFechaCreacion())
             .fechaModificacion(historialTema.getFechaModificacion())
+            .subareasSnapshot(historialTema.getSubareasSnapshot())
+            .asesoresSnapshot(historialTema.getAsesoresSnapshot())
+            .tesistasSnapshot(historialTema.getTesistasSnapshot())
             .build();
             if (historialTema.getEstadoTema() != null) {
             dto.setEstadoTemaNombre(historialTema.getEstadoTema().getNombre());
@@ -66,6 +69,9 @@ public class HistorialTemaMapper {
     //         entity.setEstadoTema(et);
     //     }
         //entity.setCarrera(dto.getCarrera() != null ? CarreraMapper.toEntity(dto.getCarrera()) : null);
+        entity.setSubareasSnapshot(dto.getSubareasSnapshot());
+        entity.setAsesoresSnapshot(dto.getAsesoresSnapshot());
+        entity.setTesistasSnapshot(dto.getTesistasSnapshot());
         entity.setFechaLimite(dto.getFechaLimite());
         entity.setFechaFinalizacion(dto.getFechaFinalizacion());
         entity.setActivo(dto.getActivo());
