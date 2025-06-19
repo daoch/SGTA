@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import pucp.edu.pe.sgta.model.EstadoSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
@@ -108,6 +109,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
     List<Object[]> obtenerPerfilAsesorCese(@Param("idUsuario") Integer idUsuario);
 
 
+    @Modifying
     @Query(value = "CALL procesar_estado_tema_retiro_alumno(:idUsuario, :idTema, :idCreador)",
             nativeQuery = true)
     void procesarRetiroAlumnoAutomatico(@Param("idUsuario") Integer idUsuario,
