@@ -116,13 +116,19 @@ export default function RegistrarSolicitudCeseTemaAlumno() {
     }
 
     try {
+      const param = {
+        creadorId: creadorId,
+        temaId: temaActual.id,
+        estadoTema: temaActual.estadoTema ?? "VENCIDO",
+        motivo,
+      };
       const resultado = await registrarSolicitudCeseTema({
         creadorId: creadorId,
         temaId: temaActual.id,
         estadoTema: temaActual.estadoTema ?? "VENCIDO",
         motivo,
       });
-
+      console.log("Parametros: ", param);
       if (resultado.success) {
         const estadoTema = temaActual.estadoTema?.toLowerCase();
 

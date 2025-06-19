@@ -1748,6 +1748,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
     }
 
+    public Usuario buscarUsuarioPorCognito(String idCognito, String onErrorMsg){
+        Integer idUsuario = obtenerIdUsuarioPorCognito(idCognito);
+        return buscarUsuarioPorId(idUsuario, onErrorMsg);
+    }
+
     public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
         List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
         List<InfoAreaConocimientoDto> dtos = new ArrayList<>();
@@ -1790,5 +1795,21 @@ public class UsuarioServiceImpl implements UsuarioService {
             revisores.add(dto);
         }
         return revisores;
+    }
+
+
+    public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return usuarioRepository.findAllById(ids).stream()
+            .map(u -> UsuarioDto.builder()
+                .id(u.getId())
+                .nombres(u.getNombres())
+                .primerApellido(u.getPrimerApellido())
+                .segundoApellido(u.getSegundoApellido())
+                .build()
+            )
+            .collect(Collectors.toList());
     }
 }

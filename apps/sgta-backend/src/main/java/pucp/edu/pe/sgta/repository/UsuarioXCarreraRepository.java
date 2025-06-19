@@ -27,4 +27,6 @@ public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera
 
     @Query("SELECT uc FROM UsuarioXCarrera uc WHERE uc.usuario.id = :usuarioId AND uc.esCoordinador = true")
     UsuarioXCarrera getCarreraPrincipalCoordinador(@Param("usuarioId") Integer usuarioId);
+
+    boolean existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
 }

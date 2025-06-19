@@ -32,6 +32,12 @@ public class EntregableXTema {
     @JoinColumn(name = "tema_id", foreignKey = @ForeignKey(name = "fk_entregable_x_tema_tema"))
     private Tema tema;
 
+    @Column(name = "entregable_id", insertable = false, updatable = false)
+    private Integer entregableId;
+
+    @Column(name = "tema_id", insertable = false, updatable = false)
+    private Integer temaId;
+
     @Column(name = "fecha_envio", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaEnvio;
 

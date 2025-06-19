@@ -14,20 +14,36 @@ public class EntregableEstudianteDto {
     private Double nota;
     private Boolean esEvaluable;
     private List<CriterioEntregableDto> criterios;
+    private Integer entregableId; 
+    private Integer temaId;
+    private Integer entregableXTemaId;
+
+    private Integer revisionDocumentoId;
+    private String estadoRevision;
+
 
     public EntregableEstudianteDto() {
         // Constructor vacío requerido por Jackson
     }
 
      public EntregableEstudianteDto(
+            Integer entregableXTemaId,
+            Integer entregableId,
+            Integer temaId,
             String nombreEntregable,
             String estadoEntregable,
             String estadoXTema,
             LocalDateTime fechaEnvio,
             Double nota,
             Boolean esEvaluable,
-            List<CriterioEntregableDto> criterios
+            List<CriterioEntregableDto> criterios,
+            Integer revisionDocumentoId,
+            String estadoRevision
+            
     ) {
+        this.entregableXTemaId = entregableXTemaId;
+        this.entregableId = entregableId;
+        this.temaId = temaId;
         this.nombreEntregable = nombreEntregable;
         this.estadoEntregable = estadoEntregable;
         this.estadoXTema = estadoXTema;
@@ -35,6 +51,8 @@ public class EntregableEstudianteDto {
         this.nota = nota;
         this.esEvaluable = esEvaluable;
         this.criterios = criterios;
+        this.revisionDocumentoId = revisionDocumentoId;
+        this.estadoRevision = estadoRevision;
     }
 
     public String getNombreEntregable() {
@@ -92,5 +110,48 @@ public class EntregableEstudianteDto {
     public void setCriterios(List<CriterioEntregableDto> criterios) {
         this.criterios = criterios;
     }
+
+    public Integer getEntregableId() {
+        return entregableId;
+    }
+
+    public void setEntregableId(Integer entregableId) {
+        this.entregableId = entregableId;
+    }
+
+    public Integer getTemaId() {
+        return temaId;
+    }
+
+    public void setTemaId(Integer temaId) {
+        this.temaId = temaId;
+    }
+
+    public Integer getEntregableXTemaId() {
+        return entregableXTemaId;
+    }
+
+    public void setEntregableXTemaId(Integer entregableXTemaId) {
+        this.entregableXTemaId = entregableXTemaId;
+    }
+
+    public Integer getRevisionDocumentoId() {
+        return revisionDocumentoId;
+    }
+
+    public void setRevisionDocumentoId(Integer revisionDocumentoId) {
+        this.revisionDocumentoId = revisionDocumentoId;
+    }
+
+    public String getEstadoRevision() {
+        return estadoRevision;
+    }
+
+    public void setEstadoRevision(String estadoRevision) {
+        this.estadoRevision = estadoRevision;
+    }
+
+
+
 
 }

@@ -151,16 +151,22 @@ const EntregablesAlumnoPage = () => {
         </div>
       </div>
 
-      {/* Mostrar el nombre del tema asociado a la etapa formativa seleccionada */}
       <div className="text-lg font-medium text-[#042354]">
         {(() => {
-          // Busca la etapa formativa seleccionada según el ciclo
           const etapa = etapasFormativas.find(
             (e) => e.cicloNombre === cicloSeleccionado,
           );
-          return etapa?.temaTitulo
-            ? `Tema: ${etapa.temaTitulo}`
-            : "No hay tema asociado";
+          return (
+            <>
+              {etapa?.temaTitulo
+                ? `Curso: ${etapa.etapaFormativaNombre}`
+                : "No hay curso asociado"}
+              <br /> 
+              {etapa?.temaTitulo
+                ? `Tema: ${etapa.temaTitulo}`
+                : "No hay tema asociado"}
+            </>
+          );
         })()}
       </div>
 
