@@ -36,6 +36,8 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
     @Autowired
     private UsuarioXTemaRepository usuarioXTemaRepository;
     @Autowired
+    private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
+    @Autowired
     private RolRepository rolRepository;
 
     @Autowired
@@ -49,6 +51,12 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
 
     @Autowired
     private NotificacionService notificacionService; // Para enviar notificaciones
+
+    @Autowired
+    private RolSolicitudRepository rolSolicitudRepository;
+
+    @Autowired
+    private EstadoSolicitudRepository estadoSolicitudRepository;
 
     private static final String ROL_NOMBRE_ASESOR = "Asesor";
     private static final String TIPO_USUARIO_PROFESOR = "Profesor";
@@ -220,66 +228,89 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         return new PageImpl<>(asesoresDtos, pageable, totalAsesores);
     }
 
-    // @Override
-    // @Transactional(readOnly = true)
-    // public Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable) {
-    //     log.info("Buscando invitaciones de asesoría pendientes para asesor CognitoSub: {}", asesorCognitoSub);
+    @Override
+    @Transactional(readOnly = true)
+    public Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable) {
+        log.info("Buscando invitaciones de asesoría pendientes para asesor CognitoSub: {}", asesorCognitoSub);
 
-    //     Usuario asesorPropuesto = usuarioRepository.findByIdCognito(asesorCognitoSub)
-    //             .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (propuesto) no encontrado con CognitoSub: " + asesorCognitoSub));
+        Usuario asesorPropuesto = usuarioRepository.findByIdCognito(asesorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (propuesto) no encontrado con CognitoSub: " + asesorCognitoSub));
 
-    //     // Buscar las solicitudes donde este asesor es el propuesto y el estado de reasignación es PENDIENTE_ACEPTACION_ASESOR
-    //     // Necesitamos un método en SolicitudRepository
-    //     //--------------------------- Me quede aqui, se necesita cambiar a usuarioXSolicitud para obtener la solicitud asociada al asesor propuesto.
-    //     Page<Solicitud> solicitudesPropuestas = solicitudRepository.findByAsesorPropuestoReasignacionAndEstadoReasignacionAndActivoTrue(
-    //             asesorPropuesto,
-    //             SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ASESOR, // "PENDIENTE_ACEPTACION_ASESOR"
-    //             pageable
-    //     );
+        // Buscar las solicitudes donde este asesor es el propuesto y el estado de reasignación es PENDIENTE_ACEPTACION_ASESOR
+        // Necesitamos un método en SolicitudRepository
+        
+        List<UsuarioXSolicitud> usuarioXSolicitud = usuarioXSolicitudRepository.findByUsuarioAndRolSolicitud_NombreAndActivoTrue(
+            asesorPropuesto, "ASESOR_ENTRADA"
+        );
 
-    //     if (solicitudesPropuestas.isEmpty()) {
-    //         log.info("No hay invitaciones de asesoría pendientes para asesor ID {}", asesorPropuesto.getId());
-    //         return Page.empty(pageable);
-    //     }
+        if (usuarioXSolicitud.isEmpty()) {
+            log.info("Asesor ID {} no tiene solicitudes de asesoría pendientes.", asesorPropuesto.getId());
+            return Page.empty(pageable);
+        }
 
-    //     Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA)
-    //             .orElseThrow(() -> new ResourceNotFoundException("Rol 'Tesista' no encontrado."));
+        // Obtener los IDs de las solicitudes asociadas
+        List<Integer> solicitudIds = usuarioXSolicitud.stream()
+                .map(uxs -> uxs.getSolicitud().getId())
+                .collect(Collectors.toList());
 
-    //     List<InvitacionAsesoriaDto> dtos = solicitudesPropuestas.getContent().stream()
-    //             .map(solicitud -> {
-    //                 Tema tema = solicitud.getTema();
-    //                 Usuario asesorOriginal = solicitud.getUsuarioCreador(); // El que solicitó el cese
+        EstadoSolicitud estadoPendiente = estadoSolicitudRepository.findByNombre("PENDIENTE_ACEPTACION_ASESOR")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado 'PENDIENTE_ACEPTACION_ASESOR' no encontrado."));
+        // Buscar solo las solicitudes propuestas que estén en la lista de IDs
 
-    //                 List<EstudianteSimpleDto> estudiantesDto = Collections.emptyList();
-    //                 if (tema != null) {
-    //                     List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
-    //                     estudiantesDto = tesistasDelTema.stream()
-    //                             .map(ut -> ut.getUsuario())
-    //                             .filter(u -> u != null)
-    //                             .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
-    //                             .collect(Collectors.toList());
-    //                 }
+        Page<Solicitud> solicitudesPropuestas = solicitudRepository.findByEstadoSolicitudAndIdInAndActivoTrue(
+                estadoPendiente,
+                solicitudIds,
+                pageable
+        );
 
-    //                 String asesorOriginalNombres = (asesorOriginal != null) ? asesorOriginal.getNombres() : "N/A";
-    //                 String asesorOriginalApellidos = (asesorOriginal != null) ? asesorOriginal.getPrimerApellido() + (asesorOriginal.getSegundoApellido() != null ? " " + asesorOriginal.getSegundoApellido() : "") : "";
+        if (solicitudesPropuestas.isEmpty()) {
+            log.info("No hay invitaciones de asesoría pendientes para asesor ID {}", asesorPropuesto.getId());
+            return Page.empty(pageable);
+        }
+
+        Rol rolTesista = rolRepository.findByNombre("Tesista")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'Tesista' no encontrado."));
+
+        List<InvitacionAsesoriaDto> dtos = solicitudesPropuestas.getContent().stream()
+                .map(solicitud -> {
+                    Tema tema = solicitud.getTema();
+                    RolSolicitud rolAsesorEntrada = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
+                            .orElseThrow(() -> new ResourceNotFoundException("Rol 'ASESOR_ENTRADA' no encontrado."));
+
+                    UsuarioXSolicitud usAsesorEntrada = usuarioXSolicitudRepository.findFirstBySolicitudAndRolSolicitudAndActivoTrue(solicitud, rolAsesorEntrada);
+                    
+                    Usuario asesorOriginal = usAsesorEntrada.getUsuario(); // El que solicitó el cese
+
+                    List<EstudianteSimpleDto> estudiantesDto = Collections.emptyList();
+                    if (tema != null) {
+                        List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(tema.getId(), rolTesista.getId());
+                        estudiantesDto = tesistasDelTema.stream()
+                                .map(ut -> ut.getUsuario())
+                                .filter(u -> u != null)
+                                .map(u -> new EstudianteSimpleDto(u.getId(), u.getNombres(), u.getPrimerApellido(), u.getSegundoApellido()))
+                                .collect(Collectors.toList());
+                    }
+
+                    String asesorOriginalNombres = (asesorOriginal != null) ? asesorOriginal.getNombres() : "N/A";
+                    String asesorOriginalApellidos = (asesorOriginal != null) ? asesorOriginal.getPrimerApellido() + (asesorOriginal.getSegundoApellido() != null ? " " + asesorOriginal.getSegundoApellido() : "") : "";
 
 
-    //                 return new InvitacionAsesoriaDto(
-    //                         solicitud.getId(), // ID de la solicitud de cese original
-    //                         (tema != null) ? tema.getId() : null,
-    //                         (tema != null) ? tema.getTitulo() : "Tema no disponible",
-    //                         (tema != null) ? tema.getResumen() : null,
-    //                         estudiantesDto,
-    //                         asesorOriginalNombres,
-    //                         asesorOriginalApellidos,
-    //                         solicitud.getFechaModificacion(), // Fecha en que se hizo la propuesta (cuando se actualizó asesor_propuesto)
-    //                         solicitud.getDescripcion() // Motivo del cese original
-    //                 );
-    //             })
-    //             .collect(Collectors.toList());
+                    return new InvitacionAsesoriaDto(
+                            solicitud.getId(), // ID de la solicitud de cese original
+                            (tema != null) ? tema.getId() : null,
+                            (tema != null) ? tema.getTitulo() : "Tema no disponible",
+                            (tema != null) ? tema.getResumen() : null,
+                            estudiantesDto,
+                            asesorOriginalNombres,
+                            asesorOriginalApellidos,
+                            solicitud.getFechaModificacion(), // Fecha en que se hizo la propuesta (cuando se actualizó asesor_propuesto)
+                            solicitud.getDescripcion() // Motivo del cese original
+                    );
+                })
+                .collect(Collectors.toList());
 
-    //     return new PageImpl<>(dtos, pageable, solicitudesPropuestas.getTotalElements());
-    // }
+        return new PageImpl<>(dtos, pageable, solicitudesPropuestas.getTotalElements());
+    }
 
 //     @Override
 //     @Transactional
@@ -360,130 +391,159 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
 //         }
 //     }
 
-//     @Override
-//     @Transactional
-//     public void aceptarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub) {
-//         log.info("Asesor CognitoSub {} aceptando invitación de asesoría para Solicitud ID: {}",
-//                 asesorCognitoSub, solicitudOriginalId);
+    @Override
+    @Transactional
+    public void aceptarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub) {
+        log.info("Asesor CognitoSub {} aceptando invitación de asesoría para Solicitud ID: {}",
+                asesorCognitoSub, solicitudOriginalId);
 
-//         Usuario asesorQueAcepta = usuarioRepository.findByIdCognito(asesorCognitoSub)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (que acepta) no encontrado con CognitoSub: " + asesorCognitoSub));
+        Usuario asesorQueAcepta = usuarioRepository.findByIdCognito(asesorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (que acepta) no encontrado con CognitoSub: " + asesorCognitoSub));
 
-//         Solicitud solicitudOriginal = solicitudRepository.findById(solicitudOriginalId)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud original no encontrada con ID: " + solicitudOriginalId));
+        Solicitud solicitudOriginal = solicitudRepository.findById(solicitudOriginalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud original no encontrada con ID: " + solicitudOriginalId));
 
-//         // 1. Validar que el asesor que acepta es el mismo que fue propuesto
-//         if (solicitudOriginal.getAsesorPropuestoReasignacion() == null ||
-//                 !solicitudOriginal.getAsesorPropuestoReasignacion().getId().equals(asesorQueAcepta.getId())) {
-//             log.warn("Asesor ID {} (CognitoSub {}) intentó aceptar una propuesta de la Solicitud ID {} que no era para él. Asesor propuesto actual: {}",
-//                     asesorQueAcepta.getId(), asesorCognitoSub, solicitudOriginalId,
-//                     (solicitudOriginal.getAsesorPropuestoReasignacion() != null ? solicitudOriginal.getAsesorPropuestoReasignacion().getId() : "Nadie"));
-//             throw new AccessDeniedException("No tiene permiso para aceptar esta propuesta de asesoría.");
-//         }
+        // 1. Validar que el asesor que acepta es el mismo que fue propuesto
+        RolSolicitud rolAsesorEntrada = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'ASESOR_ENTRADA' no encontrado."));
 
-//         // 2. Validar que el estado de reasignación sea el correcto ("PENDIENTE_ACEPTACION_ASESOR")
-//         /*if (!SgtaConstants.ESTADO_REASIGNacion_PENDIENTE_ACEPTACION_ASESOR.equals(solicitudOriginal.getEstadoReasignacion())) {
-//             log.warn("Intento de aceptar propuesta para Solicitud ID {} que no está en estado PENDIENTE_ACEPTACION_ASESOR. Estado actual: {}",
-//                     solicitudOriginalId, solicitudOriginal.getEstadoReasignacion());
-//             throw new BusinessRuleException("Esta propuesta de asesoría ya no está pendiente de su decisión o ya fue procesada.");
-//         }*/
+        UsuarioXSolicitud usAsesorEntrada = usuarioXSolicitudRepository.findFirstBySolicitudAndRolSolicitudAndActivoTrue(
+                solicitudOriginal, rolAsesorEntrada
+        );
 
-//         Tema temaAReasignar = solicitudOriginal.getTema();
-//         if (temaAReasignar == null) {
-//             throw new IllegalStateException("La solicitud ID " + solicitudOriginalId + " no tiene un tema asociado. No se puede reasignar.");
-//         }
+        if (usAsesorEntrada.getUsuario() == null ||
+                !usAsesorEntrada.getUsuario().getId().equals(asesorQueAcepta.getId())) {
+            log.warn("Asesor ID {} (CognitoSub {}) intentó aceptar una propuesta de la Solicitud ID {} que no era para él. Asesor propuesto actual: {}",
+                    asesorQueAcepta.getId(), asesorCognitoSub, solicitudOriginalId,
+                    (usAsesorEntrada.getUsuario() != null ? usAsesorEntrada.getUsuario().getId() : "Nadie"));
+            throw new AccessDeniedException("No tiene permiso para aceptar esta propuesta de asesoría.");
+        }
 
-//         Usuario asesorOriginalQueCeso = solicitudOriginal.getUsuarioCreador(); // El que solicitó el cese
-//         if (asesorOriginalQueCeso == null) {
-//             // Esto no debería pasar si el flujo de creación de solicitud es correcto
-//             log.error("La Solicitud ID {} no tiene un usuario creador (asesor original). No se puede determinar a quién desvincular.", solicitudOriginalId);
-//             throw new IllegalStateException("Falta información del asesor original en la solicitud.");
-//         }
+        // 2. Validar que el estado de reasignación sea el correcto ("PENDIENTE_ACEPTACION_ASESOR")
+        /*if (!SgtaConstants.ESTADO_REASIGNacion_PENDIENTE_ACEPTACION_ASESOR.equals(solicitudOriginal.getEstadoReasignacion())) {
+            log.warn("Intento de aceptar propuesta para Solicitud ID {} que no está en estado PENDIENTE_ACEPTACION_ASESOR. Estado actual: {}",
+                    solicitudOriginalId, solicitudOriginal.getEstadoReasignacion());
+            throw new BusinessRuleException("Esta propuesta de asesoría ya no está pendiente de su decisión o ya fue procesada.");
+        }*/
+        Tema temaAReasignar = solicitudOriginal.getTema();
+        if (temaAReasignar == null) {
+            throw new IllegalStateException("La solicitud ID " + solicitudOriginalId + " no tiene un tema asociado. No se puede reasignar.");
+        }
 
-//         Rol rolAsesor = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_ASESOR)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Rol 'Asesor' no encontrado."));
+        RolSolicitud rolAsesorActual = rolSolicitudRepository.findByNombre("ASESOR_ACTUAL")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'ASESOR_ACTUAL' no encontrado."));
 
-//         // 3. Desvincular al asesor original del tema (marcar como inactiva su relación UsuarioXTema)
-//         List<UsuarioXTema> relacionesAntiguas = usuarioXTemaRepository.findByTema_IdAndUsuario_IdAndRol_IdAndActivoTrue(
-//                 temaAReasignar.getId(), asesorOriginalQueCeso.getId(), rolAsesor.getId()
-//         );
-//         if (relacionesAntiguas.isEmpty()) {
-//             log.warn("No se encontró una relación activa para el asesor original ID {} y tema ID {} para desactivar.",
-//                     asesorOriginalQueCeso.getId(), temaAReasignar.getId());
-//             // Continuar de todas formas, puede que ya estuviera inactivo o se haya borrado por otro proceso.
-//         }
-//         for (UsuarioXTema relacionAntigua : relacionesAntiguas) {
-//             relacionAntigua.setActivo(false);
-//             relacionAntigua.setFechaModificacion(OffsetDateTime.now());
-//             // Podrías añadir un comentario: "Cese aprobado y tema reasignado a Prof. X"
-//             // relacionAntigua.setComentario("Reasignado a " + asesorQueAcepta.getNombres() + " " + asesorQueAcepta.getPrimerApellido());
-//             usuarioXTemaRepository.save(relacionAntigua);
-//             log.info("Relación UsuarioXTema ID {} (Asesor original ID {}, Tema ID {}) marcada como inactiva.",
-//                     relacionAntigua.getId(), asesorOriginalQueCeso.getId(), temaAReasignar.getId());
-//         }
+        UsuarioXSolicitud usAsesorActual = usuarioXSolicitudRepository.findFirstBySolicitudAndRolSolicitudAndActivoTrue(
+                solicitudOriginal, rolAsesorActual
+        );
+        Usuario asesorOriginalQueCeso = usAsesorActual.getUsuario(); // El que solicitó el cese
+        if (asesorOriginalQueCeso == null) {
+            // Esto no debería pasar si el flujo de creación de solicitud es correcto
+            log.error("La Solicitud ID {} no tiene un usuario creador (asesor original). No se puede determinar a quién desvincular.", solicitudOriginalId);
+            throw new IllegalStateException("Falta información del asesor original en la solicitud.");
+        }
 
-//         // 4. Vincular al nuevo asesor (Asesor B - asesorQueAcepta) con el tema
-//         // Verificar si ya existe una relación (quizás inactiva) y reactivarla, o crear una nueva.
-//         UsuarioXTema relacionNuevaAsesor = usuarioXTemaRepository
-//                 .findFirstByTema_IdAndUsuario_IdAndRol_IdOrderByFechaCreacionDesc(temaAReasignar.getId(), asesorQueAcepta.getId(), rolAsesor.getId())
-//                 .orElse(new UsuarioXTema()); // Crea una nueva si no existe
+        Rol rolAsesor = rolRepository.findByNombre("Asesor")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'Asesor' no encontrado."));
 
-//         relacionNuevaAsesor.setTema(temaAReasignar);
-//         relacionNuevaAsesor.setUsuario(asesorQueAcepta);
-//         relacionNuevaAsesor.setRol(rolAsesor);
-//         relacionNuevaAsesor.setAsignado(true);
-//         relacionNuevaAsesor.setActivo(true);
-//         relacionNuevaAsesor.setCreador(false); // No es el creador del tema, fue asignado
-//         // relacionNuevaAsesor.setComentario("Asesoría aceptada tras propuesta de reasignación.");
-//         // fechaCreacion se setea en @PrePersist si es nueva, fechaModificacion en @PreUpdate
-//         usuarioXTemaRepository.save(relacionNuevaAsesor);
-//         log.info("Relación UsuarioXTema para nuevo asesor ID {} y tema ID {} creada/actualizada a activa.",
-//                 asesorQueAcepta.getId(), temaAReasignar.getId());
+        // 3. Desvincular al asesor original del tema (marcar como inactiva su relación UsuarioXTema)
+        List<UsuarioXTema> relacionesAntiguas = usuarioXTemaRepository.findByTema_IdAndUsuario_IdAndRol_IdAndActivoTrue(
+                temaAReasignar.getId(), asesorOriginalQueCeso.getId(), rolAsesor.getId()
+        );
+        if (relacionesAntiguas.isEmpty()) {
+            log.warn("No se encontró una relación activa para el asesor original ID {} y tema ID {} para desactivar.",
+                    asesorOriginalQueCeso.getId(), temaAReasignar.getId());
+            // Continuar de todas formas, puede que ya estuviera inactivo o se haya borrado por otro proceso.
+        }
+        for (UsuarioXTema relacionAntigua : relacionesAntiguas) {
+            relacionAntigua.setActivo(false);
+            relacionAntigua.setFechaModificacion(OffsetDateTime.now());
+            // Podrías añadir un comentario: "Cese aprobado y tema reasignado a Prof. X"
+            // relacionAntigua.setComentario("Reasignado a " + asesorQueAcepta.getNombres() + " " + asesorQueAcepta.getPrimerApellido());
+            usuarioXTemaRepository.save(relacionAntigua);
+            log.info("Relación UsuarioXTema ID {} (Asesor original ID {}, Tema ID {}) marcada como inactiva.",
+                    relacionAntigua.getId(), asesorOriginalQueCeso.getId(), temaAReasignar.getId());
+        }
 
-//         // 5. Actualizar la solicitud original
-//         solicitudOriginal.setEstadoReasignacion(SgtaConstants.ESTADO_REASIGNACION_COMPLETADA);
-//         // asesorPropuestoReasignacion ya es el asesorQueAcepta, se mantiene.
-//         solicitudOriginal.setRespuesta( // Actualizar la respuesta de la solicitud de cese
-//                 (solicitudOriginal.getRespuesta() != null ? solicitudOriginal.getRespuesta() + "\n" : "") +
-//                         "Reasignación completada. Nuevo asesor: Prof. " + asesorQueAcepta.getNombres() + " " + asesorQueAcepta.getPrimerApellido() + "."
-//         );
-//         solicitudOriginal.setFechaModificacion(OffsetDateTime.now());
-//         // Considera si fechaResolucion de la solicitud original también debe actualizarse aquí,
-//         // o si ya se actualizó cuando el coordinador aprobó el cese.
-//         // Si esta aceptación es la "resolución final" del proceso de cese, actualízala.
-//         // solicitudOriginal.setFechaResolucion(OffsetDateTime.now());
+        // 4. Vincular al nuevo asesor (Asesor B - asesorQueAcepta) con el tema
+        // Verificar si ya existe una relación (quizás inactiva) y reactivarla, o crear una nueva.
+        UsuarioXTema relacionNuevaAsesor = usuarioXTemaRepository
+                .findFirstByTema_IdAndUsuario_IdAndRol_IdOrderByFechaCreacionDesc(temaAReasignar.getId(), asesorQueAcepta.getId(), rolAsesor.getId())
+                .orElse(new UsuarioXTema()); // Crea una nueva si no existe
 
-//         solicitudRepository.save(solicitudOriginal);
-//         log.info("Solicitud ID {} actualizada a ESTADO_REASIGNACION_COMPLETADA.", solicitudOriginalId);
+        relacionNuevaAsesor.setTema(temaAReasignar);
+        relacionNuevaAsesor.setUsuario(asesorQueAcepta);
+        relacionNuevaAsesor.setRol(rolAsesor);
+        relacionNuevaAsesor.setAsignado(true);
+        relacionNuevaAsesor.setActivo(true);
+        relacionNuevaAsesor.setCreador(false); // No es el creador del tema, fue asignado
+        // relacionNuevaAsesor.setComentario("Asesoría aceptada tras propuesta de reasignación.");
+        // fechaCreacion se setea en @PrePersist si es nueva, fechaModificacion en @PreUpdate
+        usuarioXTemaRepository.save(relacionNuevaAsesor);
+        log.info("Relación UsuarioXTema para nuevo asesor ID {} y tema ID {} creada/actualizada a activa.",
+                asesorQueAcepta.getId(), temaAReasignar.getId());
 
-//         // 6. Notificar a todas las partes
-//         // a. Coordinador
-//         List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
-//                 temaAReasignar.getCarrera().getId(), SgtaConstants.TIPO_USUARIO_COORDINADOR);
-//         String msgCoord = String.format("El Prof. %s %s ha ACEPTADO la propuesta de asesoría para el tema '%s' (Solicitud Cese ID: %d). La reasignación está completa.",
-//                 asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
-//         String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
-//         for (Usuario coord : coordinadores) {
-//             notificacionService.crearNotificacionParaUsuario(coord.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
-//         }
+        // Actualizar relaciones de usuarioXsolicitud, desactivar al asesor Actual y colocar al asesor Entrada como Actual
+        usAsesorActual.setActivo(false);
+        usAsesorActual.setFechaModificacion(OffsetDateTime.now());
+        usuarioXSolicitudRepository.save(usAsesorActual);
+        log.info("Relación UsuarioXSolicitud ID {} (Asesor Actual ID {}, Solicitud ID {}) marcada como inactiva.",
+                usAsesorActual.getId(), asesorOriginalQueCeso.getId(), solicitudOriginalId);
 
-//         // b. Estudiantes
-//         Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null);
-//         if (rolTesista != null) {
-//             List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(temaAReasignar.getId(), rolTesista.getId());
-//             String msgEst = String.format("Se ha asignado un nuevo asesor para su tema '%s'. Su nuevo asesor es el Prof. %s %s.",
-//                     temaAReasignar.getTitulo(), asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
-//             String enlaceEst = String.format("/alumno/mis-temas/%d", temaAReasignar.getId());
-//             for (UsuarioXTema ut : tesistasDelTema) {
-//                 notificacionService.crearNotificacionParaUsuario(ut.getUsuario().getId(), SgtaConstants.MODULO_ASESORIA_TEMA, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgEst, "SISTEMA", enlaceEst);
-//             }
-//         }
+        usAsesorEntrada.setRolSolicitud(rolAsesorActual);
+        usAsesorEntrada.setActivo(true);
+        usAsesorEntrada.setFechaModificacion(OffsetDateTime.now());
+        usuarioXSolicitudRepository.save(usAsesorEntrada);
+        log.info("Relación UsuarioXSolicitud ID {} actualizada a Asesor Actual (ID: {}).",
+                usAsesorEntrada.getId(), asesorQueAcepta.getId());
 
-//         // c. Asesor Original (que cesó)
-//         if (asesorOriginalQueCeso != null) {
-//             String msgAsesorOrig = String.format("La reasignación para su cese del tema '%s' (Solicitud ID: %d) ha sido completada. El nuevo asesor es el Prof. %s %s.",
-//                     temaAReasignar.getTitulo(), solicitudOriginalId, asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
-//             notificacionService.crearNotificacionParaUsuario(asesorOriginalQueCeso.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
-//         }
-//     }
+        // 5. Actualizar la solicitud original
+        EstadoSolicitud estadoAceptada = estadoSolicitudRepository.findByNombre("ACEPTADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado 'ACEPTADA' no encontrado."));
+        
+        solicitudOriginal.setEstadoSolicitud(estadoAceptada);
+        // asesorPropuestoReasignacion ya es el asesorQueAcepta, se mantiene.
+        solicitudOriginal.setRespuesta( // Actualizar la respuesta de la solicitud de cese
+                (solicitudOriginal.getRespuesta() != null ? solicitudOriginal.getRespuesta() + "\n" : "") +
+                        "Reasignación completada. Nuevo asesor: Prof. " + asesorQueAcepta.getNombres() + " " + asesorQueAcepta.getPrimerApellido() + "."
+        );
+        solicitudOriginal.setFechaModificacion(OffsetDateTime.now());
+        // Considera si fechaResolucion de la solicitud original también debe actualizarse aquí,
+        // o si ya se actualizó cuando el coordinador aprobó el cese.
+        // Si esta aceptación es la "resolución final" del proceso de cese, actualízala.
+        // solicitudOriginal.setFechaResolucion(OffsetDateTime.now());
+
+        solicitudRepository.save(solicitudOriginal);
+        log.info("Solicitud ID {} actualizada a ESTADO_REASIGNACION_COMPLETADA.", solicitudOriginalId);
+
+        // 6. Notificar a todas las partes
+        // a. Coordinador
+        // List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
+        //         temaAReasignar.getCarrera().getId(), SgtaConstants.TIPO_USUARIO_COORDINADOR);
+        // String msgCoord = String.format("El Prof. %s %s ha ACEPTADO la propuesta de asesoría para el tema '%s' (Solicitud Cese ID: %d). La reasignación está completa.",
+        //         asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
+        // String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
+        // for (Usuario coord : coordinadores) {
+        //     notificacionService.crearNotificacionParaUsuario(coord.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
+        // }
+
+        // // b. Estudiantes
+        // Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null);
+        // if (rolTesista != null) {
+        //     List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(temaAReasignar.getId(), rolTesista.getId());
+        //     String msgEst = String.format("Se ha asignado un nuevo asesor para su tema '%s'. Su nuevo asesor es el Prof. %s %s.",
+        //             temaAReasignar.getTitulo(), asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
+        //     String enlaceEst = String.format("/alumno/mis-temas/%d", temaAReasignar.getId());
+        //     for (UsuarioXTema ut : tesistasDelTema) {
+        //         notificacionService.crearNotificacionParaUsuario(ut.getUsuario().getId(), SgtaConstants.MODULO_ASESORIA_TEMA, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgEst, "SISTEMA", enlaceEst);
+        //     }
+        // }
+
+        // // c. Asesor Original (que cesó)
+        // if (asesorOriginalQueCeso != null) {
+        //     String msgAsesorOrig = String.format("La reasignación para su cese del tema '%s' (Solicitud ID: %d) ha sido completada. El nuevo asesor es el Prof. %s %s.",
+        //             temaAReasignar.getTitulo(), solicitudOriginalId, asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
+        //     notificacionService.crearNotificacionParaUsuario(asesorOriginalQueCeso.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
+        // }
+    }
 }
