@@ -17,6 +17,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DetalleTema } from "../components/asesor/detalle-tema-card";
 import HistorialTemaCard from "../components/asesor/historial-tema-card";
 import { ObservacionesCard } from "../components/asesor/observaciones-tema-card";
 import { Observacion, Tema } from "../types/temas/entidades";
@@ -90,7 +91,6 @@ export default function InformacionTemaAsesor({
     }
   }, [tema]);
 
-  console.log({ observaciones });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-center gap-4">
@@ -106,9 +106,13 @@ export default function InformacionTemaAsesor({
       </div>
       <Tabs defaultValue={"Comentarios"} className="w-full">
         <TabsList>
+          <TabsTrigger value={"Detalle"}>Detalles del tema</TabsTrigger>
           <TabsTrigger value={"Comentarios"}>Comentario(s)</TabsTrigger>
           <TabsTrigger value={"Historial"}>Historial de cambio</TabsTrigger>
         </TabsList>
+        <TabsContent value={"Detalle"}>
+          {tema && <DetalleTema tema={tema} />}
+        </TabsContent>
         <TabsContent value={"Comentarios"}>
           {(() => {
             if (loading) {
