@@ -18,9 +18,11 @@ public interface SolicitudAsesorService {
             Pageable pageable
     );
 
-    // Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable);
+    Page<InvitacionAsesoriaDto> findInvitacionesAsesoriaPendientesByAsesor(String asesorCognitoSub, Pageable pageable);
 
     // void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo);
 
-    // void aceptarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub);
+    void aceptarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub);
+
+    void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo);
 }

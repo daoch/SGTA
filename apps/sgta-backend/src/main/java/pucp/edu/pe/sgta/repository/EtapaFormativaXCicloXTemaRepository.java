@@ -10,6 +10,5 @@ import java.util.Set;
 @Repository
 public interface EtapaFormativaXCicloXTemaRepository extends JpaRepository<EtapaFormativaXCicloXTema,Integer> {
     List<EtapaFormativaXCicloXTema> findByTemaIdAndActivoTrue(Integer temaId);
-
     List<EtapaFormativaXCicloXTema> findByTema_IdIn(Set<Integer> temaIds);
 }

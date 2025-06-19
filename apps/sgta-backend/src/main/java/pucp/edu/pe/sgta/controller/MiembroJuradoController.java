@@ -255,5 +255,4 @@ public class MiembroJuradoController {
     public ResponseEntity<?> actualizarNotaRevisionFinal(@RequestBody ExposicionNotaRevisionRequest request) {
         return juradoService.actualizarNotaRevisionFinal(request);
     }
-
 }

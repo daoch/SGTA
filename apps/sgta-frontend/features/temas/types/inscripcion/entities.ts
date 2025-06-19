@@ -22,6 +22,7 @@ export interface Tema {
   requisitos: string; //agregado
   area: AreaConocimiento[];
   cantPostulaciones: number;
+  areaConocimiento: AreaConocimiento[];
 }
 
 export interface TemaForm {
@@ -102,6 +103,7 @@ export interface Coasesor {
   activo: boolean;
   fechaCreacion: string;
   fechaModificacion: string | null;
+  nombreCompleto?: string; // Agregado para mostrar en el selector
 }
 
 export interface AreaDeInvestigacion {
@@ -123,4 +125,3 @@ export interface AreaConocimiento {
   fechaModificacion: string;
   idCarrera: number;
 }
-

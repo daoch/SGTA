@@ -165,4 +165,5 @@ export interface CalificacionesJurado {
   observaciones_finales: string;
   criterios: CriterioEvaluacion[];
   calificado: boolean;
+  calificacion_final: number | null;
 }

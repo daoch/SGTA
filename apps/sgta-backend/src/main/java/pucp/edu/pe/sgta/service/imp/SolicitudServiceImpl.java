@@ -26,6 +26,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter; // De local
+
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException; // De local
 import org.springframework.web.server.ResponseStatusException;
 
@@ -98,6 +101,10 @@ public class SolicitudServiceImpl implements SolicitudService {
     private RolRepository rolRepository;
 
     private static final String ROL_NOMBRE_TESISTA = "Tesista";
+    @Autowired
+    private TemaServiceImpl temaServiceImpl;
+    @Autowired
+    private UsuarioXSolicitudServiceImp usuarioXSolicitudServiceImp;
 
     public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
@@ -566,6 +573,93 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     @Override
+    public RegistroCeseTemaDto registrarSolicitudCeseTema(RegistroCeseTemaDto registroDto, String cognitoId) {
+        //Revisamos que el estado tema llegue valido y corroboramos en la BD
+        EstadoTemaEnum estado = temaServiceImpl.obtenerEstadoFromString(registroDto.getEstadoTema());
+        //Validamos que el tema tenga el estado que llegó
+        Tema tema = temaServiceImpl.validarTemaConEstado(registroDto.getTemaId(), estado);
+        //Obtenemos el tipo de solicutud
+        TipoSolicitud tipoSol =  tipoSolicitudRepository.findByNombre("Cese de tema")
+                                        .orElseThrow(()-> new RuntimeException("No se encontró el tipo de solicitud"));
+        //Obtenemos el estado de la solicitud
+        EstadoSolicitud estadoSolicitud;
+        if(estado == EstadoTemaEnum.INSCRITO){
+            //Cuando el estado es inscrito la solicitud se auto aprueba
+            estadoSolicitud = estadoSolicitudRepository
+                    .findByNombre(EstadoSolicitudEnum.ACEPTACION_AUTOMATICA.name())
+                    .orElseThrow(()->new RuntimeException("No se encontró el estadoSolictud"));
+        }else{
+            estadoSolicitud = estadoSolicitudRepository
+                    .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                    .orElseThrow(()->new RuntimeException("No se encontró el estadoSolictud"));
+        }
+
+        //Creamos la base de la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setTema(tema);
+        solicitud.setTipoSolicitud(tipoSol);
+        solicitud.setDescripcion(registroDto.getMotivo());
+        solicitud.setEstadoSolicitud(estadoSolicitud);
+        //Si el tema es inscrito la aprobación es automática
+        if(estado == EstadoTemaEnum.INSCRITO){
+            solicitud.setFechaResolucion(OffsetDateTime.now(ZoneId.of("America/Lima")));
+        }
+
+        //Guardamos la solicitud
+        solicitud = solicitudRepository.save(solicitud);
+        registroDto.setSolicitudId(solicitud.getId());
+
+        //Agregar al usuario remitente
+        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorCognito(cognitoId, "Usuario no encontrado");
+        usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(alumno, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.REMITENTE);
+
+        //Si el tema es incrito luego de registrar se procede al retiro
+        if(estado == EstadoTemaEnum.INSCRITO){
+            solicitudRepository.procesarRetiroAlumnoAutomatico(alumno.getId(), registroDto.getTemaId(), registroDto.getCreadorId());
+        }
+        return registroDto;
+    }
+
+    @Override
+    public List<SolicitudCeseTemaResumenDto> listarResumenSolicitudCeseTemaUsuario(String cognitoId, List<String> roles) {
+        Integer usuarioId = usuarioServiceImpl.obtenerIdUsuarioPorCognito(cognitoId);
+
+        List<Object[]> queryRes = solicitudRepository.listarResumenSolicitudCeseTemaUsuario(usuarioId, Utils.convertListToPostgresArray(roles));
+
+        List<SolicitudCeseTemaResumenDto> solicitudes = new ArrayList<>();
+        for(Object[] res : queryRes){
+            SolicitudCeseTemaResumenDto sol = SolicitudCeseTemaResumenDto.fromQuery(res);
+            solicitudes.add(sol);
+        }
+
+        return solicitudes;
+    }
+
+    @Override
+    public DetalleSolicitudCeseTema listarDetalleSolicitudCeseTema(Integer idSolicitud) {
+        List<Object[]> queryRes = solicitudRepository.listarDetalleSolicitudCeseTema(idSolicitud);
+        Object[] result = queryRes.get(0);
+        if(result == null) return null;
+        DetalleSolicitudCeseTema detalle = DetalleSolicitudCeseTema.fromQuery(result);
+        Integer idRemitente = (Integer) result[7];
+        UsuarioSolicitudCambioAsesorDto remitente = getUsuarioSolicitudFromId(idRemitente, idSolicitud, RolSolicitudEnum.REMITENTE);
+        Integer idDestinatario = (Integer) result[8];
+        UsuarioSolicitudCambioAsesorDto destinatario = null;
+        if (idDestinatario != null) {
+            destinatario = getUsuarioSolicitudFromId(idDestinatario, idSolicitud, RolSolicitudEnum.DESTINATARIO);
+        }
+        Integer idAsesor = (Integer) result[9];
+        AsesorSolicitudCeseDto asesor = getAsesorCeseFromId(idAsesor);
+
+        detalle.setSolicitante(remitente);
+        detalle.setAsesorActual(asesor);
+        detalle.setCoordinador(destinatario);
+
+        return detalle;
+    }
+
+
+    @Override
     public DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud) {
         List<Object[]> queryResult = solicitudRepository.listarDetalleSolicitudCambioAsesor(idSolicitud);
         if (queryResult.isEmpty())
@@ -629,6 +723,12 @@ public class SolicitudServiceImpl implements SolicitudService {
                 idSolicitud, rol.name());
         Object[] result = queryResult.get(0);
         return UsuarioSolicitudCambioAsesorDto.fromQueryResult(result);
+    }
+
+    private AsesorSolicitudCeseDto getAsesorCeseFromId(int idUsuario){
+        List<Object[]> queryResult = solicitudRepository.obtenerPerfilAsesorCese(idUsuario);
+        Object[] result = queryResult.get(0);
+        return AsesorSolicitudCeseDto.fromQueryResult(result);
     }
 
     private boolean determinarSolicitudCompletadaFromData(Integer estado) {
@@ -932,10 +1032,10 @@ public class SolicitudServiceImpl implements SolicitudService {
             if ("pending".equalsIgnoreCase(status)) {
                 targetStatusNames.add("PENDIENTE");
             } else if ("history".equalsIgnoreCase(status)) {
-                targetStatusNames.add("APROBADA");
+                targetStatusNames.add("ACEPTADA");
                 targetStatusNames.add("RECHAZADA");
             } else if ("approved".equalsIgnoreCase(status)) {
-                targetStatusNames.add("APROBADA");
+                targetStatusNames.add("ACEPTADA");
             } else if ("rejected".equalsIgnoreCase(status)) {
                 targetStatusNames.add("RECHAZADA");
             }
@@ -1243,8 +1343,8 @@ public class SolicitudServiceImpl implements SolicitudService {
         TipoSolicitud tipoCese = tipoSolicitudRepository.findByNombre("Cese de Asesoria (por alumno)")
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de solicitud '" + "Cese de Asesoria (por alumno)" + "' no encontrado."));
 
-        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("APROBADA")
-                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "APROBADA" + "' no encontrado."));
+        EstadoSolicitud estadoAprobada = estadoSolicitudRepository.findByNombre("ACEPTADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado de solicitud '" + "ACEPTADA" + "' no encontrado."));
 
         // Lista de estados de reasignación que indican acción pendiente por el coordinador
         List<String> estadosReasignacionPendienteCoord = Arrays.asList(
@@ -1358,8 +1458,8 @@ public class SolicitudServiceImpl implements SolicitudService {
                             .findFirstBySolicitudIdAndRolSolicitud(solicitud.getId(), rolAsesorNuevoCese)
                             .orElse(null);
 
+                    if (asesorNuevo != null) {
                     Usuario asesorPropuesto = asesorNuevo.getUsuario();
-                    if (asesorPropuesto != null) {
                         dto.setAsesorPropuestoId(asesorPropuesto.getId());
                         dto.setAsesorPropuestoNombres(asesorPropuesto.getNombres());
                         dto.setAsesorPropuestoPrimerApellido(asesorPropuesto.getPrimerApellido());
