@@ -180,13 +180,15 @@ public class ReportsController {
 
 
 
-    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
-    @GetMapping("/entregables-criterios/{idUsuario}")
+    /** RF9: entregables con criterios de un tesista*/
+    @GetMapping("/entregables-criterios")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-           @PathVariable Integer  idUsuario) {
+           HttpServletRequest request) {
+        String idUsuario = jwtService.extractSubFromRequest(request);
         List<EntregableCriteriosDetalleDto> list =
             reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
+
     }
 
     /** RF10: Obtener estado de revisión de entregable */
