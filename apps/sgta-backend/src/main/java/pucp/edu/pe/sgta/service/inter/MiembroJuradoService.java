@@ -17,56 +17,57 @@ import java.util.Optional;
 
 public interface MiembroJuradoService {
 
-    public List<MiembroJuradoDto> obtenerUsuarioTemaInfo();
+        public List<MiembroJuradoDto> obtenerUsuarioTemaInfo();
 
-    public List<Object[]> findAreaConocimientoByUsuarioId(Integer usuarioId);
+        public List<Object[]> findAreaConocimientoByUsuarioId(Integer usuarioId);
 
-    public List<MiembroJuradoDto> obtenerUsuariosPorEstado(Boolean activoParam);
+        public List<MiembroJuradoDto> obtenerUsuariosPorEstado(Boolean activoParam);
 
-    public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
+        public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
 
-    public Optional<Map<String, Object>> deleteUserJurado(Integer usuarioId);
+        public Optional<Map<String, Object>> deleteUserJurado(Integer usuarioId);
 
-    public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
+        public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
 
-    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
+        ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
 
-    List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
+        List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
 
-    List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
+        List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
 
-    List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
+        List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
 
-    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
+        ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
 
-    // Va para temas pero lo he colocado aquí
-    public DetalleTemaDto obtenerDetalleTema(Integer temaId);
+        // Va para temas pero lo he colocado aquí
+        public DetalleTemaDto obtenerDetalleTema(Integer temaId);
 
-    ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
+        ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
-    // Detalle exposición Jurado
-    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
+        // Detalle exposición Jurado
+        List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
 
-    ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
+        ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
-    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request, String juradoId);
+        ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request, String juradoId);
 
-    List<EstadoExposicionDto> listarEstados();
+        List<EstadoExposicionDto> listarEstados();
 
-    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-            ExposicionCalificacionRequest exposicionCalificacionRequest, String juradoId);
+        ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
+                        ExposicionCalificacionRequest exposicionCalificacionRequest, String juradoId);
 
-    ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
+        ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
 
-    ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
+        ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
 
-    public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
-            ExposicionCalificacionRequest exposicionCalificacionRequest);
+        List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
 
-    List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
+        List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
 
-    List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
+        ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
 
+        public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
+                        ExposicionCalificacionRequest exposicionCalificacionRequest);
 
-    ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
+        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
 }

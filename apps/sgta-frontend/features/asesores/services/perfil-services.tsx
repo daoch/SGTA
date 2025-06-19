@@ -8,6 +8,7 @@ import type {
 } from "@/features/asesores/types/perfil/entidades";
 import axiosInstance from "@/lib/axios/axios-instance";
 import axios from "axios";
+import { asignarPlataformas } from "../components/perfil/plataforma-icons";
 
 export async function getPerfilAsesor(id: number) {
   try {
@@ -30,6 +31,7 @@ export async function getPerfilAsesorEnlaces(id: number) {
     });
 
     console.log("Respuesta de la API:", response.data);
+    asignarPlataformas(response.data.enlaces);
     return response.data as AsesorPerfil;
   } catch (error) {
     console.error("Error al obtener perfil del asesor:", error);
