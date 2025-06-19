@@ -43,6 +43,7 @@ import java.time.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Service
@@ -101,6 +102,10 @@ public class TemaServiceImpl implements TemaService {
 
 	private CarreraXParametroConfiguracionService carreraXParametroConfiguracionService;
 
+	private SubAreaConocimientoXTemaRepository sactRepo;
+
+	private SubAreaConocimientoService subAreaService;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -123,7 +128,8 @@ public class TemaServiceImpl implements TemaService {
 			EstadoSolicitudRepository estadoSolicitudRepository, RolSolicitudRepository rolSolicitudRepository,
 			AccionSolicitudRepository accionSolicitudRepository,
 			TemaSimilarRepository temaSimilarRepository,
-						   CarreraXParametroConfiguracionService carreraXParametroConfiguracionService) {
+						   CarreraXParametroConfiguracionService carreraXParametroConfiguracionService,
+						   SubAreaConocimientoXTemaRepository sactRepo, SubAreaConocimientoService subAreaService) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -149,6 +155,8 @@ public class TemaServiceImpl implements TemaService {
 		this.accionSolicitudRepository = accionSolicitudRepository;
 		this.temaSimilarRepository = temaSimilarRepository;
 		this.carreraXParametroConfiguracionService = carreraXParametroConfiguracionService;
+		this.sactRepo = sactRepo;
+		this.subAreaService = subAreaService;
 	}
 
 	@Override
@@ -169,6 +177,7 @@ public class TemaServiceImpl implements TemaService {
 		return null;
 	}
 
+	
 
 	private void saveHistorialTemaChange(Tema tema, String titulo, String resumen, String description) {
 		HistorialTemaDto historialTemaDto = new HistorialTemaDto();
@@ -195,6 +204,43 @@ public class TemaServiceImpl implements TemaService {
 		historialTemaDto.setFechaCreacion(OffsetDateTime.now());
 		historialTemaDto.setFechaModificacion(OffsetDateTime.now());
 		historialTemaDto.setActivo(true);
+
+		// 1) Sub-áreas
+        List<Integer> subIds = sactRepo.findSubAreaIdsByTemaId(tema.getId());
+        String subareasSnapshot = subAreaService.findAllByIds(subIds).stream()
+            .map(s -> s.getId() + "|" + s.getNombre())
+            .collect(Collectors.joining(";"));
+        historialTemaDto.setSubareasSnapshot(subareasSnapshot);
+
+        // 2) Asesores/Coasesores
+        List<Integer> asesorIds = usuarioTemaRepository.findAsesorIdsByTemaId(tema.getId());
+        Map<Integer,UsuarioDto> mapaAses = usuarioService.findAllByIds(asesorIds).stream()
+            .collect(Collectors.toMap(UsuarioDto::getId, Function.identity()));
+        String asesoresSnapshot = asesorIds.stream()
+            .map(id -> {
+                UsuarioDto u = mapaAses.get(id);
+                return id + "|" +
+                       u.getNombres() + " " +
+                       u.getPrimerApellido() + " " +
+                       u.getSegundoApellido();
+            })
+            .collect(Collectors.joining(";"));
+        historialTemaDto.setAsesoresSnapshot(asesoresSnapshot);
+
+        // 3) Tesistas
+        List<Integer> tesIds = usuarioTemaRepository.findTesistaIdsByTemaId(tema.getId());
+        Map<Integer,UsuarioDto> mapaTes = usuarioService.findAllByIds(tesIds).stream()
+            .collect(Collectors.toMap(UsuarioDto::getId, Function.identity()));
+        String tesistasSnapshot = tesIds.stream()
+            .map(id -> {
+                UsuarioDto u = mapaTes.get(id);
+                return id + "|" +
+                       u.getNombres() + " " +
+                       u.getPrimerApellido() + " " +
+                       u.getSegundoApellido();
+            })
+            .collect(Collectors.joining(";"));
+        historialTemaDto.setTesistasSnapshot(tesistasSnapshot);
 		historialTemaService.save(historialTemaDto);
 	}
 
@@ -684,7 +730,6 @@ public class TemaServiceImpl implements TemaService {
 			temaRepository.save(tema);
 
 			// Historial del cambio
-			saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
 			temaId = tema.getId();
 			Integer[] subareaIds = dto.getSubareas().stream()
 					.map(SubAreaConocimientoDto::getId)
@@ -714,6 +759,7 @@ public class TemaServiceImpl implements TemaService {
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
 		// 6) Generar y enviar la solicitud de aprobación
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Inscripción de tema");
 		crearSolicitudAprobacionTemaV2(tema);
 		return temaId; // return tema id
 	}

@@ -3894,20 +3894,62 @@ BEGIN
 END;
 $$;
 
--- Función para listar el historial completo de un tema
-CREATE OR REPLACE FUNCTION listar_historial_tema(p_tema_id INTEGER)
-  RETURNS SETOF historial_tema
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-    SELECT *
-      FROM historial_tema
-     WHERE tema_id = p_tema_id
-     AND activo = TRUE
-     ORDER BY fecha_creacion;  -- o por fecha_modificacion, según tu preferencia
-END;
-$$;
+
+
+CREATE OR REPLACE FUNCTION listar_historial_tema_completo(p_tema_id INTEGER)
+  RETURNS TABLE(
+    historial_tema_id    INTEGER,
+    tema_id              INTEGER,
+    codigo               TEXT,
+    titulo               TEXT,
+    resumen              TEXT,
+    metodologia           TEXT,
+    objetivos            TEXT,
+    descripcion_cambio   TEXT,
+    portafolio_url       TEXT,
+    estado_tema_nombre   TEXT,
+    proyecto_id          INTEGER,
+    carrera_id           INTEGER,
+    subareas_snapshot    TEXT,
+    asesores_snapshot    TEXT,
+    tesistas_snapshot    TEXT,
+    activo               BOOLEAN,
+    fecha_limite         TIMESTAMPTZ,
+    fecha_finalizacion   TIMESTAMPTZ,
+    fecha_creacion       TIMESTAMPTZ,
+    fecha_modificacion   TIMESTAMPTZ
+  )
+LANGUAGE SQL
+AS $func$
+  SELECT
+    ht.historial_tema_id,
+    ht.tema_id,
+    ht.codigo,
+    ht.titulo,
+    ht.resumen,
+    ht.metodologia,
+    ht.objetivos,
+    ht.descripcion_cambio,
+    ht.portafolio_url,
+    et.nombre        AS estado_tema_nombre,
+    ht.proyecto_id,
+    ht.carrera_id,
+    ht.subareas_snapshot,
+    ht.asesores_snapshot,
+    ht.tesistas_snapshot,
+    ht.activo,
+    ht.fecha_limite,
+    ht.fecha_finalizacion,
+    ht.fecha_creacion,
+    ht.fecha_modificacion
+  FROM historial_tema ht
+  LEFT JOIN estado_tema et
+    ON et.estado_tema_id = ht.estado_tema_id
+  WHERE ht.tema_id = p_tema_id
+    AND ht.activo = TRUE
+  ORDER BY ht.fecha_creacion DESC;
+$func$;
+
 
 CREATE OR REPLACE FUNCTION validar_parametro_por_nombre_carrera(
     p_nombre_parametro TEXT,

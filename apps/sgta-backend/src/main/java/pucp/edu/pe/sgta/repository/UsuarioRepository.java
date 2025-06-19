@@ -114,4 +114,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT obtener_usuario_id_por_cognito_id(:idCognito)", nativeQuery = true)
     Integer findUsuarioIdByIdCognito(@Param("idCognito")String idCognito);
+
+    List<Usuario> findAllById(Iterable<Integer> ids);
+
 }

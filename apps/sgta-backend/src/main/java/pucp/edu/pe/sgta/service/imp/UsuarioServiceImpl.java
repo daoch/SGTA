@@ -1707,4 +1707,20 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         return revisores;
     }
+
+
+    public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return usuarioRepository.findAllById(ids).stream()
+            .map(u -> UsuarioDto.builder()
+                .id(u.getId())
+                .nombres(u.getNombres())
+                .primerApellido(u.getPrimerApellido())
+                .segundoApellido(u.getSegundoApellido())
+                .build()
+            )
+            .collect(Collectors.toList());
+    }
 }
