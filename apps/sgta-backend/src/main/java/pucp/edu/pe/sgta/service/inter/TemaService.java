@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -175,7 +176,7 @@ public interface TemaService {
 
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
-	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario);
+	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
 
@@ -235,4 +236,7 @@ public interface TemaService {
 			String coordinadorCognitoSub
 	);
 
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
 }

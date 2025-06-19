@@ -15,7 +15,6 @@ import pucp.edu.pe.sgta.model.UsuarioXReunion;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXReunionRepository;
-import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.EventoService;
 import pucp.edu.pe.sgta.util.TipoEventoEnum;
 

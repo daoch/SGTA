@@ -224,10 +224,9 @@ export default function DetalleSolicitudesCoordinadorPage({
         solicitud.estado,
       ),
       disabled:
-        (!listoSolicitudes &&
-          solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
-        tipoSolicitud !== "no-enviar" ||
-        loading,
+        // (!listoSolicitudes &&
+        //   solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
+        tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -256,7 +255,7 @@ export default function DetalleSolicitudesCoordinadorPage({
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
-          {/* #1 - Column */}
+          {/* #1 */}
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
@@ -266,10 +265,10 @@ export default function DetalleSolicitudesCoordinadorPage({
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
-          {/* #2 - Column */}
+          {/* # 2 */}
           <div className="flex flex-col gap-4 md:w-2/5">
-            {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
-              moduloSolicitudes}
+            {/* Similitudes */}
+            {moduloSolicitudes}
 
             {/* Comentarios del Comité y selección del tipo de solicitud */}
             {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(

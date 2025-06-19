@@ -90,7 +90,7 @@ public class TemaController {
 			HttpServletRequest request
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador, false);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -323,7 +323,7 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemaActivoConAsesor/{idAlumno}")
-	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno) {
+	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno, HttpServletRequest request) {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}

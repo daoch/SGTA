@@ -56,6 +56,7 @@ export default function SolicitudDetalle({
   const [solicitudData, setSolicitudData] =
     useState<DetalleSolicitudCambioAsesor | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingActions, setLoadingActions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participantesWorkflow, setParticipantesWorkflow] = useState<
     UsuarioSolicitud[]
@@ -67,20 +68,8 @@ export default function SolicitudDetalle({
   const [comentario, setComentario] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  const getRolSolicitud = (rol: string): string => {
-    switch (rol) {
-      case "alumno":
-        return "REMITENTE";
-      case "coordinador":
-        return "DESTINATARIO";
-      case "asesor":
-        return "ASESOR_ENTRADA";
-      default:
-        return "/";
-    }
-  };
-  const rolSolicitud = getRolSolicitud(rol);
+  const [rolSolicitud, setRolSolicitud] = useState<string | null>(null);
+  const [accionActual, setAccionActual] = useState<string | null>(null);
 
   const loadUsuarioId = async () => {
     if (!user) return;
@@ -112,8 +101,41 @@ export default function SolicitudDetalle({
     }
   }, [user]);
 
+  useEffect(() => {
+    if (userId && solicitudData) {
+      try {
+        if (rol !== "coordinador")
+          if (userId === solicitudData.coordinador.id) {
+            setRolSolicitud(solicitudData.coordinador.rolSolicitud);
+            setAccionActual(solicitudData.coordinador.accionSolicitud);
+          } else if (userId === solicitudData.asesorNuevo.id) {
+            setRolSolicitud(solicitudData.asesorNuevo.rolSolicitud);
+            setAccionActual(solicitudData.asesorNuevo.accionSolicitud);
+          } else if (userId === solicitudData.asesorActual.id) {
+            setRolSolicitud(solicitudData.asesorActual.rolSolicitud);
+            setAccionActual(solicitudData.asesorActual.accionSolicitud);
+          } else {
+            setRolSolicitud(null); // o "DESCONOCIDO" si prefieres
+            setAccionActual("SIN_ACCION");
+          }
+        else {
+          setRolSolicitud("DESTINATARIO");
+          setAccionActual("PENDIENTE_ACCION");
+        }
+      } catch (error) {
+        console.error("Error al determinar el rol de la solicitud:", error);
+        setRolSolicitud(null);
+      } finally {
+        setLoadingActions(false);
+      }
+    }
+  }, [userId, solicitudData]);
+
+  console.log("Rol de solicitud:", rolSolicitud);
+
   const fetchDataDetalle = async () => {
     setLoading(true);
+    setLoadingActions(true);
     setError(null);
     if (!idSolicitud) {
       setError("ID de solicitud no proporcionado");
@@ -122,6 +144,7 @@ export default function SolicitudDetalle({
     }
     try {
       const data = await getDetalleSolicitudCambioAsesor(idSolicitud);
+      console.log("Datos de la solicitud:", data);
       procesarParticipantesWorkflow(data);
       console.log("Datos de la solicitud obtenidos:", data);
     } catch (err) {
@@ -130,6 +153,8 @@ export default function SolicitudDetalle({
       setLoading(false);
     }
   };
+
+  console.log("desde la vista: ", rol);
 
   function procesarParticipantesWorkflow(
     solicitudData: DetalleSolicitudCambioAsesor | null,
@@ -141,10 +166,13 @@ export default function SolicitudDetalle({
       return;
     }
 
-    const participantes: UsuarioSolicitud[] = [
-      solicitudData.solicitante,
-      solicitudData.asesorNuevo,
-    ];
+    const participantes: UsuarioSolicitud[] = [solicitudData.solicitante];
+
+    if (solicitudData.asesorActual.accionSolicitud !== "SIN_ACCION") {
+      participantes.push(solicitudData.asesorActual);
+    }
+
+    participantes.push(solicitudData.asesorNuevo);
 
     let coordinador = solicitudData.coordinador;
 
@@ -212,6 +240,8 @@ export default function SolicitudDetalle({
     }
   };
 
+  console.log("accion: ", accionActual);
+
   const getStatusIcon = (estado: string, rolSolicitud: string) => {
     const baseClasses =
       "w-5 h-5 rounded border-2 flex items-center justify-center";
@@ -278,7 +308,7 @@ export default function SolicitudDetalle({
         return "Alumno";
       case "DESTINATARIO":
         return "Coordinador";
-      case "ASESOR_SALIDA":
+      case "ASESOR_ACTUAL":
         return "Asesor actual";
       case "ASESOR_ENTRADA":
         return "Nuevo asesor";
@@ -344,15 +374,25 @@ export default function SolicitudDetalle({
         return;
       }
 
+      console.log(rolSolicitud);
+
       if (modalType === "aprobar") {
         if (rol === "asesor")
-          await aceptarSolicitudPorAsesor(idSolicitud, comentario);
+          await aceptarSolicitudPorAsesor(
+            idSolicitud,
+            rolSolicitud,
+            comentario,
+          );
         if (rol === "coordinador") {
           await aceptarSolicitudPorCoordinador(idSolicitud, comentario);
         }
       } else if (modalType === "rechazar") {
         if (rol === "asesor")
-          await rechazarSolicitudPorAsesor(idSolicitud, comentario);
+          await rechazarSolicitudPorAsesor(
+            idSolicitud,
+            rolSolicitud,
+            comentario,
+          );
         if (rol === "coordinador")
           await rechazarSolicitudPorCoordinador(idSolicitud, comentario);
       }
@@ -369,7 +409,7 @@ export default function SolicitudDetalle({
     console.log("Recordatorio enviado");
   };
 
-  if (loading)
+  if (loading && loadingActions)
     return (
       <div className="flex items-center justify-center h-screen w-full flex-col gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -599,14 +639,12 @@ export default function SolicitudDetalle({
 
         {/* Acciones Disponibles */}
         <AccionesDisponiblesSolicitud
-          rol={rol}
-          estadoCoordinador={
-            solicitudData?.coordinador.accionSolicitud ?? "SIN_ACCION"
-          }
-          estadoNuevoAsesor={
-            solicitudData?.asesorNuevo.accionSolicitud ?? "SIN_ACCION"
-          }
-          nombreNuevoAsesor={solicitudData?.asesorNuevo.nombres || ""}
+          rol={rolSolicitud}
+          accionActual={accionActual}
+          coordinador={solicitudData?.coordinador}
+          nuevoAsesor={solicitudData?.asesorNuevo}
+          anteriorAsesor={solicitudData?.asesorActual}
+          estadoGlobal={solicitudData?.estadoGlobal ?? "PENDIENTE"}
           handleAprobar={handleAprobar}
           handleRechazar={handleRechazar}
           onEnviarRecordatorio={handleEnviarRecordatorio}

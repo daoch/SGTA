@@ -360,90 +360,66 @@ public class SolicitudServiceImpl implements SolicitudService {
      */
     @Override
     @Transactional
-    public void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida) {
+    public void atenderSolicitudTemaInscrito(SolicitudTemaDto solicitudAtendida, String usuarioId) {
         if (solicitudAtendida == null || solicitudAtendida.getChangeRequests() == null
                 || solicitudAtendida.getChangeRequests().isEmpty()) {
             throw new RuntimeException("Request doesn't contain valid information");
         }
+        boolean allAttended = true;
+        Integer temaId = null;
 
         for (SolicitudTemaDto.RequestChange requestChange : solicitudAtendida.getChangeRequests()) {
             if (requestChange == null || requestChange.getId() == null) {
-                throw new RuntimeException("Invalid request change data");
+                allAttended = false;
+                break;
             }
 
-            // Get the request ID
             Integer solicitudId = requestChange.getId();
-
-            // Get the response message if available
             String response = requestChange.getResponse();
 
-            // Retrieve the full solicitud to determine its type
             Solicitud solicitud = solicitudRepository.findById(solicitudId)
                     .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-            // Get the tipo de solicitud to determine if it's a title or summary change
-            // request
             String tipoSolicitudNombre = solicitud.getTipoSolicitud().getNombre();
 
-            // Handle the solicitud based on its type
-            if ("Solicitud de cambio de título".equals(tipoSolicitudNombre)) {
-                // Get title from DTO
-                String title = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    title = requestChange.getStudents().get(0).getTopic().getTitulo();
-
-                    // Handle empty string
-                    if (title != null && title.isEmpty()) {
-                        title = null;
+            try {
+                if ("Solicitud de cambio de título".equals(tipoSolicitudNombre)) {
+                    String title = null;
+                    if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
+                            requestChange.getStudents().get(0).getTopic() != null) {
+                        title = requestChange.getStudents().get(0).getTopic().getTitulo();
+                        if (title != null && title.isEmpty()) title = null;
                     }
-                }
-
-                // Call TemaService to update the title and handle the solicitud
-                temaService.updateTituloTemaSolicitud(solicitudId, title, response);
-
-            }
-
-            else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
-                // Get summary from DTO
-                String summary = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    summary = requestChange.getStudents().get(0).getTopic().getResumen();
-
-                    // Handle empty string
-                    if (summary != null && summary.isEmpty()) {
-                        summary = null;
+                    temaService.updateTituloTemaSolicitud(solicitudId, title, response);
+                } else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
+                    String summary = null;
+                    if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
+                            requestChange.getStudents().get(0).getTopic() != null) {
+                        summary = requestChange.getStudents().get(0).getTopic().getResumen();
+                        if (summary != null && summary.isEmpty()) summary = null;
                     }
+                    temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
+                } else {
+                    log.warn("Unhandled solicitud type: {}", tipoSolicitudNombre);
+                    allAttended = false;
+                    break;
                 }
-
-                // Call TemaService to update the summary and handle the solicitud
-                temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
-
-            }
-            else if ("Solicitud de cambio de resumen".equals(tipoSolicitudNombre)) {
-                // Get summary from DTO
-                String summary = null;
-                if (requestChange.getStudents() != null && !requestChange.getStudents().isEmpty() &&
-                        requestChange.getStudents().get(0).getTopic() != null) {
-                    summary = requestChange.getStudents().get(0).getTopic().getResumen();
-
-                    // Handle empty string
-                    if (summary != null && summary.isEmpty()) {
-                        summary = null;
-                    }
+                if (temaId == null) {
+                    temaId = solicitud.getTema().getId();
                 }
-
-                // Call TemaService to update the summary and handle the solicitud
-                temaService.updateResumenTemaSolicitud(solicitudId, summary, response);
-
+                log.info("Processed request {}", solicitudId);
+            } catch (Exception e) {
+                allAttended = false;
+                log.error("Failed to process request {}: {}", solicitudId, e.getMessage());
+                break;
             }
-            else {
-                log.warn("Unhandled solicitud type: {}", tipoSolicitudNombre);
-                throw new RuntimeException("Unsupported request type: " + tipoSolicitudNombre);
-            }
+        }
 
-            log.info("Processed request {}", solicitudId);
+        if (allAttended && temaId != null) { //Only update to INSCRITO if all observations were attended
+            TemaDto dto = new TemaDto();
+            dto.setId(temaId);
+            temaService.createInscripcionTemaV2(dto, usuarioId, true);
+            temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
         }
 
     }
@@ -451,7 +427,11 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Transactional
     @Override
     public pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto registrarSolicitudCambioAsesor(
-            pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud) {
+            pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorDto solicitud,
+            String cognitoId) {
+        //Obtener el Id del alumno //Si no existe ya tiene una validación interna
+        Integer idAlumno = usuarioServiceImpl.obtenerIdUsuarioPorCognito(cognitoId);
+
         //validar que no se cambie un asesor por el mismo
         if(Objects.equals(solicitud.getAsesorActualId(), solicitud.getNuevoAsesorId()))
             throw new RuntimeException("El asesor a cambiar no puede ser igual al asesor actual");
@@ -470,8 +450,6 @@ public class SolicitudServiceImpl implements SolicitudService {
                         usuarioXRolRepository.esProfesorAsesor(solicitud.getAsesorActualId())));
         if (!validacion)
             throw new RuntimeException("Asesor elegido no valido para cambio de asesor");
-
-        //Ya no validamos el alumno, cómo es él quien llama al api, es una validación previa
 
         //Ya no se obtiene el usuario del coordinador, cómo pueden haber varios coordinadores le puede llegar a cualquiera
         //Cambiando validación a obtenerIdCoordinadorPorUsuario -> obtenerCantidadDeCoordinadoresPorTema
@@ -508,7 +486,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         // Tabla UsuarioSolicitud
             //Primero los usuarios
-        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAlumnoId(), "Alumno no encontrado");
+        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorId(idAlumno, "Alumno no encontrado");
         Usuario asesorActual = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getAsesorActualId(), "Asesor actual no encontrado");
         Usuario asesorNuevo = usuarioServiceImpl.buscarUsuarioPorId(solicitud.getNuevoAsesorId(), "Asesor entrante no encontrado");
             //Luego las acciones
@@ -536,7 +514,13 @@ public class SolicitudServiceImpl implements SolicitudService {
         UsuarioXSolicitud actualAsesor = new UsuarioXSolicitud();
         actualAsesor.setUsuario(asesorActual);
         actualAsesor.setSolicitud(nuevaSolicitud);
-        actualAsesor.setAccionSolicitud(sinAccion);
+        //Si el asesor que quiero cambiar es el creador de la tesis entonces necesitamos su validación
+        if(solicitud.getCreadorId().equals(solicitud.getAsesorActualId())){
+            actualAsesor.setAccionSolicitud(accionPendiente);
+        }else{
+            actualAsesor.setAccionSolicitud(sinAccion);
+
+        }
         actualAsesor.setRolSolicitud(rolAsesorActual);
         actualAsesor.setDestinatario(false);
 
@@ -551,8 +535,16 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     public List<SolicitudCambioAsesorResumenDto> listarResumenSolicitudCambioAsesorUsuario(Integer idUsuario,
                                                                                            String rolSolicitud) {
+        //si el rolSolicitud es AsesorEntrada, entonces los roles a buscar es asesorEntrada y asesor actual, si array único
+        List<String> roles = new ArrayList<>();
+        if(Objects.equals(rolSolicitud, RolSolicitudEnum.ASESOR_ENTRADA.name())){
+            roles.add(RolSolicitudEnum.ASESOR_ENTRADA.name());
+            roles.add(RolSolicitudEnum.ASESOR_ACTUAL.name());
+        }else{
+            roles.add(RolSolicitudEnum.REMITENTE.name());
+        }
         List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCambioAsesorUsuario(idUsuario,
-                rolSolicitud);
+                Utils.convertListToPostgresArray(roles));
         List<SolicitudCambioAsesorResumenDto> solicitudes = new ArrayList<>();
         for (Object[] row : queryResult) {
             SolicitudCambioAsesorResumenDto solicitud = SolicitudCambioAsesorResumenDto.fromResultQuery(row);
@@ -603,7 +595,7 @@ public class SolicitudServiceImpl implements SolicitudService {
 
     @Transactional
     @Override
-    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, String comentario, boolean aprobar){
+    public void aprobarRechazarSolicitudCambioAsesorAsesor(Integer idSolicitud, String idCognito, String comentario,String rol, boolean aprobar){
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
@@ -611,9 +603,9 @@ public class SolicitudServiceImpl implements SolicitudService {
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
         if(aprobar){
-            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
+            usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
         }else{
-            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario);
+            usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
         }
     }
     @Transactional
