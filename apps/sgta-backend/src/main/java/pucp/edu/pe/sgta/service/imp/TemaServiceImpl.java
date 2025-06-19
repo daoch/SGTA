@@ -165,7 +165,15 @@ public class TemaServiceImpl implements TemaService {
 		Tema tema = temaRepository.findById(id).orElse(null);
 		if (tema != null) {
 			TemaDto dto = TemaMapper.toDto(tema);
-
+			dto.setCoasesores(new ArrayList<>());
+			dto.setTesistas(new ArrayList<>());
+			listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Tesista.name())
+					.forEach(tesista -> dto.getTesistas().add(tesista));
+			listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Asesor.name())
+					.forEach(tesista -> dto.getCoasesores().add(tesista));
+			listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name())
+					.forEach(tesista -> dto.getCoasesores().add(tesista));
+			return dto;
 		}
 		return null;
 	}
