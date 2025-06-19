@@ -23,4 +23,6 @@ public interface SolicitudAsesorService {
     // void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo);
 
     void aceptarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub);
+
+    void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo);
 }
