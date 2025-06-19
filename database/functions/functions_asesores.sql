@@ -1607,4 +1607,88 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
+CREATE OR REPLACE FUNCTION obtener_solicitudes_cese_tema_resumen(
+    p_usuario_id INTEGER,
+    p_roles TEXT[]
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    tema_id INTEGER,
+    titulo TEXT,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_solicitud TEXT,
+    alumno_nombres TEXT,
+    alumno_apellido TEXT,
+    alumno_correo TEXT,
+    asesor_nombres TEXT,
+    asesor_apellido TEXT,
+    nombre_accion TEXT
+) AS
+$$
+BEGIN
+  RETURN QUERY
+  WITH temas_involucrado AS (
+    SELECT ut.tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON ut.rol_id = r.rol_id
+    WHERE ut.usuario_id = p_usuario_id
+      AND ut.activo = true
+      AND r.nombre = ANY(p_roles)
+  )
+  SELECT 
+    s.solicitud_id,
+    t.tema_id,
+    t.titulo::text,
+    s.fecha_creacion,
+    es.nombre::text AS estado_solicitud,
+    us_remitente.nombres::text AS alumno_nombres,
+    us_remitente.primer_apellido::text AS alumno_apellido,
+    us_remitente.correo_electronico::text AS alumno_correo,
+    us_asesor_actual.nombres::text AS asesor_nombres,
+    us_asesor_actual.primer_apellido::text AS asesor_apellido,
+    COALESCE(us_usuario_propio.nombre::text, 'SIN_ACCION') AS nombre_accion
+  FROM
+    usuario_solicitud us
+    JOIN solicitud s ON s.solicitud_id = us.solicitud_id
+    JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+    JOIN tema t ON t.tema_id = s.tema_id
+    JOIN temas_involucrado ti ON t.tema_id = ti.tema_id
+
+    LEFT JOIN LATERAL (
+        SELECT u.nombres, u.correo_electronico, u.primer_apellido
+        FROM usuario_solicitud us2
+        JOIN usuario u ON u.usuario_id = us2.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us2.rol_solicitud
+        WHERE us2.solicitud_id = s.solicitud_id
+          AND rs.nombre = 'REMITENTE'
+        LIMIT 1
+    ) us_remitente ON true
+
+    LEFT JOIN LATERAL (
+        SELECT u.nombres, u.primer_apellido
+        FROM usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.activo = true
+          AND ut.asignado = true
+          AND r.nombre = 'Asesor'
+          AND ut.tema_id = t.tema_id
+        LIMIT 1
+    ) us_asesor_actual ON true
+
+    LEFT JOIN LATERAL (
+        SELECT as2.nombre
+        FROM usuario_solicitud us3
+        JOIN accion_solicitud as2 ON as2.accion_solicitud_id = us3.accion_solicitud
+        WHERE us3.usuario_id = p_usuario_id
+          AND us3.solicitud_id = s.solicitud_id
+        LIMIT 1
+    ) us_usuario_propio ON true
+
+  WHERE
+    ts.nombre = 'Cese de tema';
+END;
+$$ LANGUAGE plpgsql;
+
 

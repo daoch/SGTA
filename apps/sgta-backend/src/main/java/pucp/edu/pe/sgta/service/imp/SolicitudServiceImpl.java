@@ -26,6 +26,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter; // De local
+
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException; // De local
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,12 +37,6 @@ import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambi
 import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
 import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
 import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
-import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
@@ -91,6 +88,10 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private RolRepository rolRepository;
+    @Autowired
+    private TemaServiceImpl temaServiceImpl;
+    @Autowired
+    private UsuarioXSolicitudServiceImp usuarioXSolicitudServiceImp;
 
     public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
         List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
@@ -557,6 +558,59 @@ public class SolicitudServiceImpl implements SolicitudService {
         }
         return solicitudes;
     }
+
+    @Override
+    public RegistroCeseTemaDto registrarSolicitudCeseTema(RegistroCeseTemaDto registroDto, String cognitoId) {
+        //Revisamos que el estado tema llegue valido y corroboramos en la BD
+        EstadoTemaEnum estado = temaServiceImpl.obtenerEstadoFromString(registroDto.getEstadoTema());
+        //Validamos que el tema tenga el estado que llegó
+        Tema tema = temaServiceImpl.validarTemaConEstado(registroDto.getTemaId(), estado);
+        //Obtenemos el tipo de solicutud
+        TipoSolicitud tipoSol =  tipoSolicitudRepository.findByNombre("Cese de tema")
+                                        .orElseThrow(()-> new RuntimeException("No se encontró el tipo de solicitud"));
+        //Obtenemos el estado de la solicitud
+        EstadoSolicitud estadoSolicitud;
+        if(estado == EstadoTemaEnum.INSCRITO){
+            //Cuando el estado es inscrito la solicitud se auto aprueba
+            estadoSolicitud = estadoSolicitudRepository
+                    .findByNombre(EstadoSolicitudEnum.ACEPTACION_AUTOMATICA.name())
+                    .orElseThrow(()->new RuntimeException("No se encontró el estadoSolictud"));
+        }else{
+            estadoSolicitud = estadoSolicitudRepository
+                    .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
+                    .orElseThrow(()->new RuntimeException("No se encontró el estadoSolictud"));
+        }
+
+        //Creamos la base de la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setTema(tema);
+        solicitud.setTipoSolicitud(tipoSol);
+        solicitud.setDescripcion(registroDto.getMotivo());
+        solicitud.setEstadoSolicitud(estadoSolicitud);
+        //Guardamos la solicitud
+        solicitud = solicitudRepository.save(solicitud);
+
+        //Agregar al usuario remitente
+        Usuario alumno = usuarioServiceImpl.buscarUsuarioPorCognito(cognitoId, "Usuario no encontrado");
+        usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(alumno, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.REMITENTE);
+        return null;
+    }
+
+    @Override
+    public List<SolicitudCeseTemaResumenDto> listarResumenSolicitudCeseTemaUsuario(String cognitoId, List<String> roles) {
+        Integer usuarioId = usuarioServiceImpl.obtenerIdUsuarioPorCognito(cognitoId);
+
+        List<Object[]> queryRes = solicitudRepository.listarResumenSolicitudCeseTemaUsuario(usuarioId, Utils.convertListToPostgresArray(roles));
+
+        List<SolicitudCeseTemaResumenDto> solicitudes = new ArrayList<>();
+        for(Object[] res : queryRes){
+            SolicitudCeseTemaResumenDto sol = SolicitudCeseTemaResumenDto.fromQuery(res);
+            solicitudes.add(sol);
+        }
+
+        return solicitudes;
+    }
+
 
     @Override
     public DetalleSolicitudCambioAsesorDto listarDetalleSolicitudCambioAsesorUsuario(Integer idSolicitud) {
