@@ -27,101 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-
-// Mock data
-const MOCK_SOLICITUDES = [
-  {
-    solicitudId: 1,
-    fechaEnvio: "2024-01-15T10:30:00Z",
-    estadoGlobal: "PENDIENTE",
-    estadoAccion: "ESPERANDO_REVISION",
-    temaId: 101,
-    temaTitulo:
-      "Desarrollo de Sistema de Gestión Académica con React y Node.js",
-    nombreSolicitante: "María González Pérez",
-    correoSolicitante: "maria.gonzalez@universidad.edu",
-    nombreAsesorActual: "Dr. Carlos Mendoza",
-  },
-  {
-    solicitudId: 2,
-    fechaEnvio: "2024-01-10T14:20:00Z",
-    estadoGlobal: "ACEPTADA",
-    estadoAccion: "APROBADA",
-    temaId: 102,
-    temaTitulo:
-      "Análisis de Algoritmos de Machine Learning para Predicción de Ventas",
-    nombreSolicitante: "Juan Carlos Rodríguez",
-    correoSolicitante: "juan.rodriguez@universidad.edu",
-    nombreAsesorActual: "Dra. Ana Martínez",
-  },
-  {
-    solicitudId: 3,
-    fechaEnvio: "2024-01-08T09:15:00Z",
-    estadoGlobal: "RECHAZADA",
-    estadoAccion: "RECHAZADA_COORDINADOR",
-    temaId: 103,
-    temaTitulo:
-      "Implementación de Blockchain en Sistemas de Votación Electrónica",
-    nombreSolicitante: "Laura Fernández Silva",
-    correoSolicitante: "laura.fernandez@universidad.edu",
-    nombreAsesorActual: "Dr. Roberto Jiménez",
-  },
-  {
-    solicitudId: 4,
-    fechaEnvio: "2024-01-12T16:45:00Z",
-    estadoGlobal: "PENDIENTE",
-    estadoAccion: "ESPERANDO_ASESOR",
-    temaId: 104,
-    temaTitulo: "Desarrollo de Aplicación Móvil para Gestión de Inventarios",
-    nombreSolicitante: "Pedro Sánchez López",
-    correoSolicitante: "pedro.sanchez@universidad.edu",
-    nombreAsesorActual: "Dr. Miguel Torres",
-  },
-  {
-    solicitudId: 5,
-    fechaEnvio: "2024-01-05T11:30:00Z",
-    estadoGlobal: "ACEPTADA",
-    estadoAccion: "APROBADA",
-    temaId: 105,
-    temaTitulo: "Sistema de Recomendación Basado en Inteligencia Artificial",
-    nombreSolicitante: "Carmen Ruiz Morales",
-    correoSolicitante: "carmen.ruiz@universidad.edu",
-    nombreAsesorActual: "Dra. Patricia Vega",
-  },
-  {
-    solicitudId: 6,
-    fechaEnvio: "2024-01-18T13:20:00Z",
-    estadoGlobal: "PENDIENTE",
-    estadoAccion: "ESPERANDO_REVISION",
-    temaId: 106,
-    temaTitulo: "Análisis de Seguridad en Aplicaciones Web Modernas",
-    nombreSolicitante: "Diego Herrera Castro",
-    correoSolicitante: "diego.herrera@universidad.edu",
-    nombreAsesorActual: "Dr. Fernando Aguilar",
-  },
-  {
-    solicitudId: 7,
-    fechaEnvio: "2024-01-03T08:45:00Z",
-    estadoGlobal: "RECHAZADA",
-    estadoAccion: "RECHAZADA_ASESOR",
-    temaId: 107,
-    temaTitulo: "Optimización de Bases de Datos NoSQL para Big Data",
-    nombreSolicitante: "Sofía Moreno Díaz",
-    correoSolicitante: "sofia.moreno@universidad.edu",
-    nombreAsesorActual: "Dr. Alejandro Vargas",
-  },
-  {
-    solicitudId: 8,
-    fechaEnvio: "2024-01-20T15:10:00Z",
-    estadoGlobal: "PENDIENTE",
-    estadoAccion: "ESPERANDO_COORDINADOR",
-    temaId: 108,
-    temaTitulo: "Desarrollo de API REST para Sistema de Gestión Hospitalaria",
-    nombreSolicitante: "Andrés Castillo Ramos",
-    correoSolicitante: "andres.castillo@universidad.edu",
-    nombreAsesorActual: "Dra. Lucía Herrera",
-  },
-];
+import { getResumenesSolicitudCeseTema } from "../services/cese-tema-services";
 
 interface SolicitudCeseTemaResumen {
   solicitudId: number;
@@ -145,36 +51,6 @@ const formatFecha = (fecha: string | Date): string => {
     hour: "2-digit",
     minute: "2-digit",
   });
-};
-
-// Función para simular delay de API
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Función mock para simular la API
-const getMockSolicitudes = async (
-  rol: string,
-): Promise<SolicitudCeseTemaResumen[]> => {
-  await delay(1500); // Simula delay de red
-
-  // Simula diferentes datos según el rol
-  switch (rol) {
-    case "alumno":
-      return MOCK_SOLICITUDES.filter(
-        (s) =>
-          s.nombreSolicitante.includes("María") ||
-          s.nombreSolicitante.includes("Juan"),
-      );
-    case "asesor":
-      return MOCK_SOLICITUDES.filter(
-        (s) =>
-          s.nombreAsesorActual.includes("Dr. Carlos") ||
-          s.nombreAsesorActual.includes("Dra. Ana"),
-      );
-    case "coordinador":
-      return MOCK_SOLICITUDES;
-    default:
-      return MOCK_SOLICITUDES;
-  }
 };
 
 // Componente de filtros inline
@@ -353,8 +229,19 @@ export default function ListadoSolicitudesCeseTema({
       setLoading(true);
       setError(null);
 
+      const rolesUsuario = [];
+
+      switch (rol) {
+        case "alumno":
+          rolesUsuario.push("Tesista");
+        case "asesor":
+          rolesUsuario.push("Asesor");
+          rolesUsuario.push("Coasesor");
+          break;
+      }
+
       try {
-        const data = await getMockSolicitudes(rol);
+        const data = await getResumenesSolicitudCeseTema(rolesUsuario);
         setSolicitudes(data);
       } catch (err) {
         setError("No se pudieron cargar las solicitudes.");
@@ -365,10 +252,6 @@ export default function ListadoSolicitudesCeseTema({
 
     fetchSolicitudes();
   }, [rol]);
-
-  const clearFullNameEmailPage = () => {
-    setBusqueda("");
-  };
 
   const descripcion =
     rol === "alumno"
