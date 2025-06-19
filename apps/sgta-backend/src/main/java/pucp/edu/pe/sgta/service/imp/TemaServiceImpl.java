@@ -3393,6 +3393,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		try {
 			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
 
+			Optional<Tema> temaAux = temaRepository.findById(temaId);
+
+
 			String solicitudesJson = objectMapper.writeValueAsString(solicitudes); // Convierte la lista a JSON
 
 			Query query = entityManager.createNativeQuery(
@@ -3402,6 +3405,14 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			query.setParameter("usuarioId", usuDto.getId());
 			query.setParameter("solicitudes", solicitudesJson);
 			query.getSingleResult();
+
+			for (Map<String, Object> solicitud : solicitudes) {
+				Integer tipoSolicitudId = Integer.parseInt(solicitud.get("tipo_solicitud_id").toString());
+				Optional<TipoSolicitud> tipoAux = tipoSolicitudRepository.findById(tipoSolicitudId);
+				
+				saveHistorialTemaChange(temaAux.get(),temaAux.get().getTitulo(),temaAux.get().getResumen(),tipoAux.get().getNombre());
+			}
+
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
 		}
