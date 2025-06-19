@@ -31,8 +31,11 @@ public class ControlExposicionUsuarioTema {
     @JoinColumn(name = "usuario_x_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ceu_usuario_x_tema"))
     private UsuarioXTema usuario;
 
-    @Column(nullable = false, columnDefinition = "TEXT",name = "observaciones_finales_exposicion")
+    @Column(nullable = false, columnDefinition = "TEXT", name = "observaciones_finales_exposicion")
     private String observacionesFinalesExposicion;
+
+    @Column(nullable = true, precision = 6, scale = 2, name = "nota_revision")
+    private BigDecimal notaRevision;
 
     @Column(nullable = false)
     private Boolean asistio = true;

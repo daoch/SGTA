@@ -216,6 +216,15 @@ public class MiembroJuradoController {
         return juradoService.obtenerCalificacionExposicionJurado(request);
     }
 
+    @PutMapping("actualizar-nota-final-exposicion/{exposicionTemaId}")
+    public ResponseEntity<?> actualizarNotaFinalExposicion(@PathVariable Integer exposicionTemaId) {
+        try {
+            return juradoService.actualizarNotaFinalExposicion(exposicionTemaId);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
     @GetMapping("/etapas-formativas")
     public ResponseEntity<?> obtenerEtapasFormativas(HttpServletRequest request){
         try {

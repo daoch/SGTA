@@ -5,6 +5,9 @@ export interface Tesis {
   anio: string;
   nivel: string;
   estado: "en_proceso" | "finalizada" | null;
+  ciclo: string;
+  idProyecto: number | null;
+  tituloProyecto: string | null;
 }
 
 export interface Proyecto {
@@ -42,6 +45,7 @@ export interface Asesor {
   temasIntereses: TemaInteres[];
   estado: boolean | null;
   foto?: string | null;
+  rol?: string | null;
 }
 
 export interface Enlace {
@@ -79,4 +83,5 @@ export interface AsesorPerfil {
   temasIntereses: TemaInteres[];
   estado: boolean | null;
   foto?: string | null;
+  alumno?: boolean;
 }

@@ -184,6 +184,9 @@ CREATE TABLE IF NOT EXISTS historial_tema (
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    subareas_snapshot      TEXT   DEFAULT '',
+    asesores_snapshot      TEXT   DEFAULT '',
+    tesistas_snapshot      TEXT   DEFAULT '',
     CONSTRAINT fk_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
 );
 
@@ -849,6 +852,7 @@ CREATE TABLE IF NOT EXISTS exposicion_x_tema (
     link_grabacion TEXT,
     estado_exposicion enum_estado_exposicion NOT NULL DEFAULT 'sin_programar', --enum_estado_exposicion | VARCHAR(255)
     nota_final NUMERIC(6, 2),
+    fecha_limite_revision DATE,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

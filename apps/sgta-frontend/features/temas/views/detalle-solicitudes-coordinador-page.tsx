@@ -75,6 +75,9 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
+  const [listoSolicitudes, setListoSolicitudes] = useState(
+    solicitud.estado !== EstadoTemaNombre.OBSERVADO,
+  );
 
   const errorTexts = {
     tipoSolicitud: "Ingresar el tipo de solicitud.",
@@ -184,8 +187,16 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   async function getSolicitudes() {
     try {
-      const data = await fetchSolicitudesDeTema(solicitud.tema.id);
+      const data: SolicitudTema[] | [] = await fetchSolicitudesDeTema(
+        solicitud.tema.id,
+      );
       setSolicitudes(data);
+      setListoSolicitudes(
+        data.reduce(
+          (acc, curr) => acc && curr.estado_solicitud !== "PENDIENTE",
+          true,
+        ),
+      );
     } catch (error) {
       console.error("Error al obtener las solicitudes del tema:", error);
       setSolicitudes([]);
@@ -212,7 +223,10 @@ export default function DetalleSolicitudesCoordinadorPage({
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
         solicitud.estado,
       ),
-      disabled: tipoSolicitud !== "no-enviar" || loading,
+      disabled:
+        // (!listoSolicitudes &&
+        //   solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
+        tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
       show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -227,14 +241,21 @@ export default function DetalleSolicitudesCoordinadorPage({
     <AnalisisSimilitudTema similares={similares} />
   );
 
-  const moduloSolicitudes = <DialogSolicitudes solicitudes={solicitudes} />;
+  const moduloSolicitudes = (
+    <DialogSolicitudes
+      solicitudes={solicitudes}
+      estadoTema={solicitud.estado}
+      listoSolicitudes={listoSolicitudes}
+      setListoSolicitudes={setListoSolicitudes}
+    />
+  );
 
   return (
     <>
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
-          {/* #1 - Column */}
+          {/* #1 */}
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
@@ -244,15 +265,10 @@ export default function DetalleSolicitudesCoordinadorPage({
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
-          {/* #2 - Column */}
+          {/* # 2 */}
           <div className="flex flex-col gap-4 md:w-2/5">
-            {/* Similitud */}
-            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
-              solicitud.estado,
-            ) && moduloAnalisisSimilitud}
-
-            {EstadoTemaNombre.INSCRITO !== solicitud.estado &&
-              moduloSolicitudes}
+            {/* Similitudes */}
+            {moduloSolicitudes}
 
             {/* Comentarios del Comité y selección del tipo de solicitud */}
             {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
@@ -268,6 +284,11 @@ export default function DetalleSolicitudesCoordinadorPage({
                 comentarioOpcional={tipoSolicitud === "no-enviar"}
               />
             )}
+
+            {/* Similitud */}
+            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
+              solicitud.estado,
+            ) && moduloAnalisisSimilitud}
 
             {/* Actions */}
             <AccionesDetalleSoliTema
