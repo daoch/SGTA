@@ -46,7 +46,10 @@ public class VersionXDocumento {
             columnDefinition = "TIMESTAMP WITH TIME ZONE",insertable = false)
     private OffsetDateTime fechaModificacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "entregable_x_tema_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "entregable_x_tema_id")
     private EntregableXTema entregableXTema;
+    
+
+
 }
