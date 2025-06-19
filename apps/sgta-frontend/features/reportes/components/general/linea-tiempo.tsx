@@ -26,8 +26,6 @@ import { Eye } from "lucide-react";
 import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado  } from "@/features/reportes/services/report-services";
 import type { User } from "@/features/auth/types/auth.types";
 
-import { useAuthStore } from "@/features/auth/store/auth-store";
-
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
   raw
@@ -35,27 +33,14 @@ const humanize = (raw: string) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
-const ESTADOS_ENTREGABLE = ["no_iniciado", "en_proceso", "terminado"] as const;
-const ESTADOS_X_TEMA    = ["no_enviado", "enviado_a_tiempo", "enviado_tarde"] as const;
-
-// Etiquetas para el menú
-const STATUS_LABELS: Record<string, string> = {
-  no_iniciado:       "No Iniciado",
-  en_proceso:        "En Proceso",
-  terminado:         "Terminado",
-  no_enviado:        "No Enviado",
-  enviado_a_tiempo:  "Enviado a Tiempo",
-  enviado_tarde:     "Enviado Tarde",
-  all:               "Todos",
-};
 
 
 const currentDate = new Date();
 
 type TimeFilter = "all" | "past" | "upcoming30" | "upcoming90";
-type StatusFilter = "all"
-  | typeof ESTADOS_ENTREGABLE[number]
-  | typeof ESTADOS_X_TEMA[number];
+type StatusFilter = "all" | "no_iniciado" | "en_proceso" | "terminado" | "no_enviado" | "enviado_a_tiempo" | "enviado_tarde";
+type FiltroEstado = "no_iniciado" | "en_proceso" | "terminado" | "no_enviado" | "enviado_a_tiempo" | "enviado_tarde";
+
 
 interface Criterio {
   id: number;
@@ -128,7 +113,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         const rawData = data as RawEntregable[];
         const eventosTransformados: TimelineEvent[] = rawData
           //.filter((item) => item.fechaEnvio !== null)
-          .map((item) => {
+          .map((item: RawEntregable) => {
             if (item.fechaEnvio) {
 
               const eventDate = parseISO(item.fechaEnvio!);
@@ -320,7 +305,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                             size="sm"
                             className="w-full justify-start"
                             onClick={() => {
-                              setStatusFilter(filter as any);
+                              setStatusFilter(filter as StatusFilter);
                               setShowStatusFilter(false);
                             }}
                           >
@@ -341,7 +326,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                             size="sm"
                             className="w-full justify-start"
                             onClick={() => {
-                              setStatusFilter(filter as any);
+                              setStatusFilter(filter as FiltroEstado);
                               setShowStatusFilter(false);
                             }}
                           >

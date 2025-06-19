@@ -14,55 +14,17 @@ import { findStudentsForReviewer } from "@/features/reportes/services/report-ser
 import { AlumnoReviewer } from "@/features/reportes/types/Alumno.type";
 import { getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
 
+interface Entregable {
+  esEvaluable: boolean;
+  estadoEntregable: string;
+  estadoXTema: string;
+}
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Completado":
-    case "Aprobado":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "En progreso":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    case "Retrasado":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "En riesgo":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "Aprobado con observaciones":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "En revisión":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "Completado":
-    case "Aprobado":
-      return <Check className="h-3 w-3" />;
-    case "En progreso":
-    case "En revisión":
-      return <Clock className="h-3 w-3" />;
-    case "Retrasado":
-    case "En riesgo":
-    case "Aprobado con observaciones":
-      return <AlertCircle className="h-3 w-3" />;
-    default:
-      return null;
-  }
-};
-
-const courseInfo = {
-  PFC1: { name: "Proyecto de Fin de Carrera 1", deliverables: 4 },
-  PFC2: { name: "Proyecto de Fin de Carrera 2", deliverables: 3 },
-};
 
 //export function ReviewerStudentDetails({ studentId }: { studentId: number }) {
 //export function ReviewerStudentDetails(){
 export default function ReviewerStudentDetails({ params }: { params: Promise<{ id: string }> }) {
-  const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
-  const [student, setStudent] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [entregablesEvaluables, setEntregablesEvaluables] = useState<number>(0);
   const [loadingEntregablesEvaluables, setLoadingEntregablesEvaluables] = useState<boolean>(true);
@@ -108,12 +70,12 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
         );
 
         // 1. Nos quedamos solo con los evaluables
-        const evaluables = entregables.filter((e: any) => e.esEvaluable === true);
+        const evaluables = (entregables as Entregable[]).filter((e) => e.esEvaluable === true);
         setEntregablesEvaluables(evaluables.length);
 
         // 2. Conteo por estadoEntregable y estadoXTema
         const counts: Record<string, number> = {};
-        evaluables.forEach((e: any) => {
+        evaluables.forEach((e) => {
           counts[e.estadoEntregable] = (counts[e.estadoEntregable] || 0) + 1;
           counts[e.estadoXTema]     = (counts[e.estadoXTema]     || 0) + 1;
         });
