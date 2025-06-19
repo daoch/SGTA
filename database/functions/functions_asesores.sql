@@ -1776,3 +1776,68 @@ AS $$
     WHERE u.usuario_id = p_usuario_id;
 $$;
 
+CREATE OR REPLACE PROCEDURE procesar_estado_tema_retiro_alumno(
+    p_id_alumno INTEGER,
+    p_id_tema INTEGER,
+    p_id_creador INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_id INTEGER;
+    v_num_alumnos INTEGER;
+BEGIN
+    -- Contar cuántos alumnos/tesistas hay en el tema
+    SELECT COUNT(*) INTO v_num_alumnos
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.tema_id = p_id_tema
+      AND r.nombre IN ('Tesista', 'Alumno')
+      AND ut.activo = true
+	  AND ut.asignado = true
+;
+
+    -- CASO 1: único alumno y NO es creador
+    IF v_num_alumnos = 1 AND p_id_alumno != p_id_creador THEN
+        SELECT estado_tema_id INTO v_estado_id
+        FROM estado_tema WHERE nombre = 'PROPUESTO_LIBRE';
+
+        UPDATE tema
+        SET estado_tema_id = v_estado_id,
+            fecha_modificacion = CURRENT_TIMESTAMP
+        WHERE tema_id = p_id_tema;
+
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 2: único alumno y ES creador
+    ELSIF v_num_alumnos = 1 AND p_id_alumno = p_id_creador THEN
+        SELECT estado_tema_id INTO v_estado_id
+        FROM estado_tema WHERE nombre = 'VENCIDO';
+
+        UPDATE tema
+        SET estado_tema_id = v_estado_id,
+            fecha_modificacion = CURRENT_TIMESTAMP
+        WHERE tema_id = p_id_tema;
+
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id != p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 3: varios alumnos y NO es creador
+    ELSIF v_num_alumnos > 1 AND p_id_alumno != p_id_creador THEN
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 4: varios alumnos y ES creador
+    ELSIF v_num_alumnos > 1 AND p_id_alumno = p_id_creador THEN
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+    END IF;
+END;
+$$;
+
+
