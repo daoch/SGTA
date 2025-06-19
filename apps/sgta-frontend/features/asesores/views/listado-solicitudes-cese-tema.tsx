@@ -178,9 +178,6 @@ function TablaSolicitudesCeseTema({
                   >
                     {solicitud.temaTitulo}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    ID: {solicitud.temaId}
-                  </div>
                 </div>
               </TableCell>
               <TableCell>
@@ -269,6 +266,22 @@ export default function ListadoSolicitudesCeseTema({
         return "/asesor/temas/cese-tema/detalle/";
       default:
         return "/";
+    }
+  };
+
+  const getEstado = (
+    estadoGlobal: string,
+  ): "pending" | "approved" | "rejected" => {
+    switch (estadoGlobal) {
+      case "PENDIENTE":
+        return "pending";
+      case "ACEPTADA":
+      case "ACEPTACION_AUTOMATICA":
+        return "approved";
+      case "RECHAZADA":
+        return "rejected";
+      default:
+        return "pending";
     }
   };
 
