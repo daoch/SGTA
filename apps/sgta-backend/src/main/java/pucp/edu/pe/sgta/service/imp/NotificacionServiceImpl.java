@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ public class NotificacionServiceImpl implements NotificacionService {
     private final EntregableRepository entregableRepository;
     private final EntregableXTemaRepository entregableXTemaRepository;
     private final UsuarioXTemaRepository usuarioXTemaRepository;
+    private final ConfiguracionRecordatorioRepository configRepo;
 
     private static final String MODULO_REPORTES = "Reportes";
     private static final String TIPO_RECORDATORIO = "recordatorio";
@@ -182,52 +184,71 @@ public class NotificacionServiceImpl implements NotificacionService {
         
         crearNotificacion(usuarioId, TIPO_ERROR, mensaje);
     }
-
+    
+    //Generar recordatorios automáticos
     @Override
     @Transactional
     public void generarRecordatoriosAutomaticos() {
-        log.info("Iniciando generación de recordatorios automáticos");
-        OffsetDateTime ahora = OffsetDateTime.now();
-        
-        // Recordatorios para 7, 3 y 1 día antes
-        int[] diasAntes = {7, 3, 1};
-        
-        for (int dias : diasAntes) {
-            OffsetDateTime fechaInicio = ahora.plusDays(dias).truncatedTo(ChronoUnit.DAYS);
-            OffsetDateTime fechaFin = fechaInicio.plusDays(1).minusSeconds(1);
-            
-            List<Entregable> entregables = entregableRepository.findByFechaFinBetween(fechaInicio, fechaFin);
-            log.info("Encontrados {} entregables que vencen en {} días", entregables.size(), dias);
-            
-            for (Entregable entregable : entregables) {
-                // Buscar todos los EntregableXTema para este entregable que no han sido enviados
-                List<EntregableXTema> entregablesNoEnviados = 
-                        entregableXTemaRepository.findNoEnviadosByEntregableId(entregable.getId());
-                
-                for (EntregableXTema ext : entregablesNoEnviados) {
-                    // Obtener el usuario tesista del tema
-                    List<UsuarioXTema> usuariosDelTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ext.getTema().getId());
-                    Optional<UsuarioXTema> tesistaOpt = usuariosDelTema.stream()
-                            .filter(ut -> ut.getRol().getNombre().equals("Tesista"))
-                            .findFirst();
-                    
-                    if (tesistaOpt.isPresent()) {
-                        Integer usuarioId = tesistaOpt.get().getUsuario().getId();
-                        
-                        // Verificar si ya existe una notificación de recordatorio hoy para este usuario
-                        if (!yaExisteNotificacionHoy(usuarioId, TIPO_RECORDATORIO)) {
-                            String fechaFormateada = entregable.getFechaFin().format(
-                                    DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                            crearNotificacionRecordatorio(usuarioId, entregable.getNombre(), 
-                                                        fechaFormateada, dias);
-                            log.info("Recordatorio creado para usuario {} - entregable {} ({} días)", 
-                                    usuarioId, entregable.getNombre(), dias);
+        OffsetDateTime ahora = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+
+        // 1. Buscar todos los entregables próximos a vencer (por ejemplo, en los próximos 8 días)
+        List<Entregable> entregables = entregableRepository.findByFechaFinBetween(
+            ahora, ahora.plusDays(8)
+        );
+
+        for (Entregable entregable : entregables) {
+            // 2. Buscar todos los EntregableXTema no enviados para este entregable
+            List<EntregableXTema> entregablesNoEnviados = entregableXTemaRepository.findNoEnviadosByEntregableId(entregable.getId());
+
+            for (EntregableXTema ext : entregablesNoEnviados) {
+                // 3. Obtener el usuario tesista del tema
+                List<UsuarioXTema> usuariosDelTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ext.getTema().getId());
+                Optional<UsuarioXTema> tesistaOpt = usuariosDelTema.stream()
+                    .filter(ut -> ut.getRol().getNombre().equals("Tesista"))
+                    .findFirst();
+
+                if (tesistaOpt.isPresent()) {
+                    Integer usuarioId = tesistaOpt.get().getUsuario().getId();
+
+                    // 4. Obtener configuración de recordatorio del usuario
+                    ConfiguracionRecordatorio config = configRepo.findByUsuarioId(usuarioId)
+                        .orElseGet(() -> getDefaultConfig(usuarioId)); // Usa valores por defecto si no hay
+
+                    if (Boolean.FALSE.equals(config.getActivo())) continue; // Si está desactivado, saltar
+
+                    // 5. Calcular días de anticipación
+                    long diasRestantes = ChronoUnit.DAYS.between(ahora, entregable.getFechaFin().truncatedTo(ChronoUnit.DAYS));
+                    if (Arrays.asList(config.getDiasAnticipacion()).contains((int) diasRestantes)) {
+                        // 6. Enviar notificación por los canales elegidos
+                        String fechaFormateada = entregable.getFechaFin().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        String mensaje = String.format("En %d %s vence tu entregable \"%s\" (fecha: %s).",
+                            diasRestantes,
+                            diasRestantes == 1 ? "día" : "días",
+                            entregable.getNombre(),
+                            fechaFormateada
+                        );
+
+                        if (Boolean.TRUE.equals(config.getCanalSistema())) {
+                            crearNotificacion(usuarioId, mensaje, "UI");
                         }
+                        /*if (Boolean.TRUE.equals(config.getCanalCorreo())) {
+                            enviarCorreo(usuarioId, mensaje);
+                        }*/
                     }
                 }
             }
         }
-        log.info("Finalizada generación de recordatorios automáticos");
+    }
+
+    // Método auxiliar para valores por defecto
+    private ConfiguracionRecordatorio getDefaultConfig(Integer usuarioId) {
+        ConfiguracionRecordatorio config = new ConfiguracionRecordatorio();
+        config.setUsuario(usuarioRepository.findById(usuarioId).orElseThrow());
+        config.setActivo(true);
+        config.setDiasAnticipacion(new Integer[]{7, 3, 1, 0});
+        config.setCanalCorreo(true);
+        config.setCanalSistema(true);
+        return config;
     }
 
     @Override
