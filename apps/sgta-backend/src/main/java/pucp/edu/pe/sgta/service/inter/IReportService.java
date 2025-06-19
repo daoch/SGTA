@@ -82,7 +82,7 @@ public interface IReportService {
     /**
      * Entregables con criterios de un estudiante.
      */
-    List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario);
+    List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String idUsuario);
 
 }
 
