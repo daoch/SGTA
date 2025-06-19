@@ -3387,7 +3387,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 			Optional<Tema> auxTema = temaRepository.findById(dto.getId());
             auxTema.ifPresent(tema -> saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(),
-                    "Solicitud de Modificación del tema"));
+                    "Actualizacion del tema"));
 
 			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
 		} catch (Exception e) {
