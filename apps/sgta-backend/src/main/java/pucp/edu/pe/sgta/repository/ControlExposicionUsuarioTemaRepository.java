@@ -22,6 +22,8 @@ public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<Co
 
     @Modifying
     @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)
-    void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
-            @Param("p_exposicion_id") Integer etapaFormativa);
+    default void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
+                                                 @Param("p_exposicion_id") Integer etapaFormativa) {
+
+    }
 }
