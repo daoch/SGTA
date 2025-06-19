@@ -315,34 +315,36 @@ END;
 
 $ function $;
 
-CREATE
-OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
+DROP FUNCTION IF EXISTS obtener_detalles_entregable_y_tema;
+CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
 ) RETURNS TABLE (
     nombre_tema VARCHAR,
     nombre_entregable VARCHAR,
-    estado enum_estado_entrega,
+    estado enum_estado_revision,
     fecha_envio TIMESTAMPTZ,
     fecha_fin TIMESTAMPTZ
-) AS $ $ BEGIN RETURN QUERY
-SELECT
-    t.titulo AS nombre_tema,
-    e.nombre AS nombre_entregable,
-    ext.estado,
-    ext.fecha_envio,
-    e.fecha_fin
-FROM
-    entregable_x_tema ext
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.titulo AS nombre_tema,
+        e.nombre AS nombre_entregable,
+        rd.estado_revision AS estado,  -- Obtener el estado desde revision_documento
+        ext.fecha_envio,
+        e.fecha_fin
+    FROM
+        entregable_x_tema ext
     JOIN tema t ON t.tema_id = ext.tema_id
     JOIN entregable e ON e.entregable_id = ext.entregable_id
-WHERE
-    ext.entregable_id = p_entregable_id
-    AND ext.tema_id = p_tema_id;
-
+    LEFT JOIN version_documento vd ON vd.entregable_x_tema_id = ext.entregable_x_tema_id  -- Corrección aquí
+    LEFT JOIN revision_documento rd ON rd.version_documento_id = vd.version_documento_id
+    WHERE
+        ext.entregable_id = p_entregable_id
+        AND ext.tema_id = p_tema_id;
 END;
-
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE
 OR REPLACE FUNCTION obtener_alumnos_por_revision(revision_id INTEGER) RETURNS TABLE (
