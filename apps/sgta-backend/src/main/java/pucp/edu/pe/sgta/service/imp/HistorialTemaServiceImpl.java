@@ -10,6 +10,7 @@ import pucp.edu.pe.sgta.model.EstadoTema;
 import pucp.edu.pe.sgta.model.HistorialTema;
 import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
 import pucp.edu.pe.sgta.repository.HistorialTemaRepository;
+import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
 
 import java.time.OffsetDateTime;
@@ -28,14 +29,18 @@ public class HistorialTemaServiceImpl implements HistorialTemaService {
 
     private final EstadoTemaRepository estadoTemaRepository;
 
+    private final CarreraService carreraService;
+
     @PersistenceContext
     private EntityManager em;
 
 
     public HistorialTemaServiceImpl(HistorialTemaRepository historialTemaRepository,
-                                    EstadoTemaRepository estadoTemaRepository) {
+                                    EstadoTemaRepository estadoTemaRepository,
+                                    CarreraService carreraService) {
         this.historialTemaRepository = historialTemaRepository;
         this.estadoTemaRepository = estadoTemaRepository;
+        this.carreraService = carreraService;
     }
 
     @Override
@@ -108,8 +113,12 @@ public class HistorialTemaServiceImpl implements HistorialTemaService {
                 dto.setPortafolioUrl((String) r[8]);
                 dto.setEstadoTemaNombre((String) r[9]);
                 dto.setProyectoId(r[10] != null ? ((Number) r[10]).intValue() : null);
-                // CarreraDto si lo necesitas:
-                dto.setCarrera(null);
+                Integer carreraId = (r[11] != null) ? ((Number) r[11]).intValue() : null;
+                dto.setCarrera(
+                    carreraId != null
+                    ? carreraService.findById(carreraId)
+                    : null
+                );
                 dto.setSubareasSnapshot((String) r[12]);
                 dto.setAsesoresSnapshot((String) r[13]);
                 dto.setTesistasSnapshot((String) r[14]);
