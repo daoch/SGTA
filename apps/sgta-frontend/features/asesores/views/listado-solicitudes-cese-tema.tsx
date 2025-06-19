@@ -270,9 +270,9 @@ export default function ListadoSolicitudesCeseTema({
       case "alumno":
         return "/alumno/solicitudes-academicas/cese-tema/mis-solicitudes/detalle/";
       case "coordinador":
-        return "/coordinador/temas/cese-tema/detalle/";
+        return "/coordinador/asesores/cese-tema/detalle/";
       case "asesor":
-        return "/asesor/temas/cese-tema/detalle/";
+        return "/asesor/asesores/cese-tema/detalle/";
       default:
         return "/";
     }
