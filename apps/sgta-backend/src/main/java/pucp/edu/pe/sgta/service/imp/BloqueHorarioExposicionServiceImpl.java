@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.service.imp;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,7 @@ import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.repository.ControlExposicionUsuarioTemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
+import pucp.edu.pe.sgta.service.inter.GoogleCalendarService.GoogleCalendarService;
 
 @Service
 public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposicionService {
@@ -33,9 +35,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
 
-    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository) {
+    private final GoogleCalendarService googleCalendarService;
+
+    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,GoogleCalendarService googleCalendarService) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
+        this.googleCalendarService = googleCalendarService;
     }
 
     @Override
@@ -260,8 +265,24 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     public boolean finishPlanning(Integer exposicionId) {
 
         try {
-            Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
-            return Boolean.TRUE.equals(result);
+            //Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
+            GoogleCalendarEvent event = new GoogleCalendarEvent();
+
+            event.setSummary("HOLA CESAR");
+            event.setDescription("PRUEBA");
+            // Crear OffsetDateTime del 25 de junio 2025
+            OffsetDateTime start = OffsetDateTime.of(2025, 6, 24, 16, 0, 0, 0, ZoneOffset.of("-05:00"));
+
+            OffsetDateTime end = OffsetDateTime.of(2025, 6, 24, 17, 0, 0, 0, ZoneOffset.of("-05:00"));
+            event.setStartDateTime(start);
+            event.setEndDateTime(end);
+            event.setAttendess(new ArrayList<>());
+            String correo = "a20191810@pucp.edu.pe";
+            event.getAttendess().add(correo);
+
+            googleCalendarService.createEvent(event);
+            return true;
+            //return Boolean.TRUE.equals(result);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

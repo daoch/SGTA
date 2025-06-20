@@ -1,7 +1,5 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,12 +19,15 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "@/features/auth";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const { logout, redirectToLogin } = useAuth();
   const router = useRouter();
+
+ 
 
   console.log("user", user);
 
@@ -89,7 +90,9 @@ export function NavUser({ user }: { user: User }) {
                 Perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />            <DropdownMenuItem
+            <DropdownMenuSeparator />   
+                      
+            <DropdownMenuItem
               onClick={() => {
                 // First logout to clear all tokens and state
                 logout();

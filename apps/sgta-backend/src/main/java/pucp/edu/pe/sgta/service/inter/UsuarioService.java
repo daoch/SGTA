@@ -117,4 +117,6 @@ public interface UsuarioService {
 
     List<UsuarioDto> findAllByIds(Collection<Integer> ids);
 
+
+
 }

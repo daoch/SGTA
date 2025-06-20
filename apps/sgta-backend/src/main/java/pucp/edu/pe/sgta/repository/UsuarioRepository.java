@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -116,5 +117,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Integer findUsuarioIdByIdCognito(@Param("idCognito")String idCognito);
 
     List<Usuario> findAllById(Iterable<Integer> ids);
+
+    @Modifying
+     @Query(value = "call set_refresh_token(:p_id_usuario,:p_refresh_token)",nativeQuery = true)
+    void setRefreshToken(@Param("p_id_usuario")Integer idUsuario,@Param("p_refresh_token")String refreshToken);
 
 }
