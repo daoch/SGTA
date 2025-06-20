@@ -1,12 +1,12 @@
-'use client'
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuthStore } from "@/features/auth/store/auth-store"
-import { Calendar, Info, Mail, Settings } from "lucide-react"
-import { useState } from "react"
+"use client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/features/auth/store/auth-store";
+import { Calendar, Info, Mail, Settings } from "lucide-react";
+import { useState } from "react";
 export default function ServiciosGoogle() {
     const { idToken } = useAuthStore.getState();
     const [correo, setCorreo] = useState("");
@@ -26,12 +26,12 @@ export default function ServiciosGoogle() {
           };
         const state = encodeURIComponent(JSON.stringify(stateObj));
         const authUrl =
-        `https://accounts.google.com/o/oauth2/auth?` +
-        `response_type=code&client_id=${clientId}` +
+        "https://accounts.google.com/o/oauth2/auth?" +
+        "response_type=code&client_id=${clientId}" +
         `&redirect_uri=${redirectUri}` +
         `&scope=${scope}` +
-        `&access_type=offline` +
-        `&prompt=consent` +
+        "&access_type=offline" +
+        "&prompt=consent" +
         `&state=${state}` +
         `&login_hint=${encodeURIComponent(correo)}`;
             console.log(authUrl);
@@ -161,5 +161,5 @@ export default function ServiciosGoogle() {
         </div>
       </div>
     </div>
-  )
+  );
 }
