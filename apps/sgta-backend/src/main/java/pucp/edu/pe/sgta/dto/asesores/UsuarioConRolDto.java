@@ -11,5 +11,6 @@ import pucp.edu.pe.sgta.dto.UsuarioDto;
 public class UsuarioConRolDto {
 	private UsuarioDto usuario;   // Composición, no herencia
 	private String rolesConcat;
-	private Integer tesisCount;
+	private Integer tesisAsesorCount; // Tesis donde es Asesor o Co-Asesor
+	private Integer tesisJuradoCount; // Tesis donde es Jurado
 }
