@@ -149,13 +149,16 @@ export async function fetchTemasAPI(rol: string, estado: string) {
 
 export async function buscarTema(idTema: number) {
   try {
-    console.log(`${baseUrl}/temas/findById?idTema=${idTema}`);
-    const response = await fetch(`${baseUrl}/temas/findById?idTema=${idTema}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    console.log(`${baseUrl}/temas/buscarTemaPorId?idTema=${idTema}`);
+    const response = await fetch(
+      `${baseUrl}/temas/buscarTemaPorId?idTema=${idTema}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error("Error al obtener el tema");

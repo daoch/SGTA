@@ -9,4 +9,6 @@ public interface S3DownloadService {
     void upload(String filename, MultipartFile file) throws java.io.IOException;
     String getUrlFromCloudFront(String key) throws Exception;
     byte[] downloadFromCloudFront(String key) throws Exception;
+    boolean existsInS3(String key); // Uncomment if needed
+    void guardarJsonEnS3(String key, String json);
 }

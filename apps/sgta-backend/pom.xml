@@ -191,6 +191,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-quartz</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
@@ -204,18 +205,19 @@
 		<dependency>
 			<groupId>com.google.apis</groupId>
 			<artifactId>google-api-services-calendar</artifactId>
-			<version>v3-rev20250404-2.0.0</version> <!-- Revisa en Maven Central si hay más actual -->
+			<version>v3-rev20250404-2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.http-client</groupId>
 			<artifactId>google-http-client-jackson2</artifactId>
-			<version>1.47.0</version> <!-- Usa la última estable -->
+			<version>1.47.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
 			<version>4.2.1</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -143,6 +143,7 @@ public class MiembroJuradoController {
         DetalleTemaDto detalle = juradoService.obtenerDetalleTema(idTema);
         return ResponseEntity.ok(detalle);
     }
+
     // Jurado-Asesor
     @GetMapping("/exposiciones")
     public ResponseEntity<List<ExposicionTemaMiembrosDto>> listarExposicionesPorJurado(
@@ -155,6 +156,7 @@ public class MiembroJuradoController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
+
     // Jurado-Asesor
     @PutMapping("/conformidad")
     public ResponseEntity<?> actualizarEstadoExposicion(@RequestBody EstadoExposicionJuradoRequest request) {
@@ -207,6 +209,7 @@ public class MiembroJuradoController {
     public ResponseEntity<?> actualizarObservacionFinal(@RequestBody ExposicionObservacionRequest request) {
         return juradoService.actualizarObservacionFinal(request);
     }
+
     // Jurado-Asesor
     @GetMapping("/calificacion-exposicion")
     public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicion(
@@ -214,6 +217,18 @@ public class MiembroJuradoController {
         ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
         request.setExposicion_tema_id(exposicionTemaId);
         return juradoService.obtenerCalificacionExposicionJurado(request);
+    }
+
+    @GetMapping("/etapas-formativas")
+    public ResponseEntity<?> obtenerEtapasFormativas(HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<EtapasFormativasDto> etapas = juradoService.obtenerEtapasFormativasPorUsuario(usuarioId);
+            Map<String, Object> response = Map.of("etapas_formativas", etapas);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
     @PutMapping("actualizar-nota-final-exposicion/{exposicionTemaId}")
@@ -225,25 +240,13 @@ public class MiembroJuradoController {
         }
     }
 
-    @GetMapping("/etapas-formativas")
-    public ResponseEntity<?> obtenerEtapasFormativas(HttpServletRequest request){
-        try {
-            String usuarioId = jwtService.extractSubFromRequest(request);
-            List<EtapasFormativasDto> etapas = juradoService.obtenerEtapasFormativasPorUsuario(usuarioId);
-            Map<String, Object> response = Map.of("etapas_formativas", etapas);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        }
-    }
-
     @GetMapping("/exposiciones-coordinador")
-    public ResponseEntity<?> listarExposicionesPorCoordinador(HttpServletRequest request){
-        try{
+    public ResponseEntity<?> listarExposicionesPorCoordinador(HttpServletRequest request) {
+        try {
             String usuarioId = jwtService.extractSubFromRequest(request);
             List<ExposicionCoordinadorDto> exposiciones = juradoService.listarExposicionesPorCoordinador(usuarioId);
             return ResponseEntity.ok(exposiciones);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }

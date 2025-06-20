@@ -169,7 +169,7 @@ export function TemasTable({
             }
             return (
               <Badge variant="outline" className={badgeClass}>
-                {titleCase(tema?.estadoTemaNombre ?? "")}
+                {titleCase((tema?.estadoTemaNombre ?? "").replace(/_/g, " "))}
               </Badge>
             );
           })()}

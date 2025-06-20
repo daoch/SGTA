@@ -75,10 +75,16 @@ export const getEntregablesAlumno = async () => {
 };
 
 
-export const getEntregablesConCriterios = async (usuarioId: number): Promise<EntregableCriteriosDetalle[]> => {
+export const getEntregablesConCriterios = async (): Promise<EntregableCriteriosDetalle[]> => {
   try {
+    const { idToken } = useAuthStore.getState();
     const response = await axiosInstance.get<EntregableCriteriosDetalle[]>(
-      `/reports/entregables-criterios/${usuarioId}`
+      "/reports/entregables-criterios",
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {

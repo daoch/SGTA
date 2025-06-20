@@ -175,12 +175,12 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
             };
           case "objetivos":
             return {
-              tipo_solicitud_id: 5,
+              tipo_solicitud_id: 7,
               objetivos_nuevos: `${formData.objetivos}|@@|${justificaciones[field]}`,
             };
           case "area":
             return {
-              tipo_solicitud_id: 6,
+              tipo_solicitud_id: 8,
               area_nueva: formData.area_id,
             };
           default:

@@ -189,13 +189,6 @@ public class EntregableServiceImpl implements EntregableService {
         return entregables;
     }
 
-    @Transactional
-    @Override
-    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
-        entregableRepository.entregarEntregable(entregableXTemaId,
-                entregableDto.getComentario(),
-                entregableDto.getEstado());
-    }
     @Override
     public EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId) {
         List<Object[]> resultados = entregableRepository.obtenerDetalleXTema(entregableId, temaId);

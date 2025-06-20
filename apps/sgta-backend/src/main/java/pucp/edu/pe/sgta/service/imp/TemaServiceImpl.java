@@ -1576,11 +1576,11 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		entityManager.flush();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " START");
-		String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
+		//String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
 
-		entityManager.createNativeQuery(queryRechazo)
-				.setParameter("uid", idTesista)
-				.getSingleResult();
+		//entityManager.createNativeQuery(queryRechazo)
+		//		.setParameter("uid", idTesista)
+		//		.getSingleResult();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
 		logger.info("Eliminando postulaciones de usuario: " + idTesista);
 
@@ -3568,6 +3568,24 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
+	public EstadoTemaEnum obtenerEstadoFromString(String valor) {
+		EstadoTemaEnum estado;
+		try {
+			estado = EstadoTemaEnum.valueOf(valor);
+		} catch (IllegalArgumentException | NullPointerException e) {
+			throw new RuntimeException("No se encontró un estadoTema de nombre " + valor);
+		}
+		if(! estadoTemaRepository.existsByNombre(estado.name())){
+			throw new RuntimeException("No se registró un estadoTema de nombre" + estado.name());
+		}
+		return estado;
+	}
+
+	public Tema validarTemaConEstado(Integer temaId, EstadoTemaEnum estado){
+		return temaRepository
+				.findTemaByIdAndEstadoTema_Nombre(temaId,estado.name())
+				.orElseThrow( () -> new RuntimeException("No se encontró el tema"));
+	}
 	@Override
 	@Transactional()
 	public String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit) {

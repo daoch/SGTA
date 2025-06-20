@@ -312,84 +312,45 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         return new PageImpl<>(dtos, pageable, solicitudesPropuestas.getTotalElements());
     }
 
-//     @Override
-//     @Transactional
-//     public void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo) {
-//         log.info("Asesor CognitoSub {} rechazando invitación de asesoría para Solicitud ID {} con motivo: '{}'",
-//                 asesorCognitoSub, solicitudOriginalId, motivoRechazo);
+        @Override
+        @Transactional
+        public void rechazarInvitacionDeAsesoria(Integer solicitudOriginalId, String asesorCognitoSub, String motivoRechazo) {
+        log.info("Asesor CognitoSub {} rechazando invitación de asesoría para Solicitud ID {} con motivo: '{}'",
+                asesorCognitoSub, solicitudOriginalId, motivoRechazo);
 
-//         Usuario asesorQueRechaza = usuarioRepository.findByIdCognito(asesorCognitoSub)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor (que rechaza) no encontrado con CognitoSub: " + asesorCognitoSub));
+        Usuario asesor = usuarioRepository.findByIdCognito(asesorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario asesor no encontrado: " + asesorCognitoSub));
 
-//         Solicitud solicitudOriginal = solicitudRepository.findById(solicitudOriginalId)
-//                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud original no encontrada con ID: " + solicitudOriginalId));
+        Solicitud solicitud = solicitudRepository.findById(solicitudOriginalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada: " + solicitudOriginalId));
 
-//         // Validar que el asesor que rechaza es el mismo que fue propuesto
-//         if (solicitudOriginal.getAsesorPropuestoReasignacion() == null ||
-//                 !solicitudOriginal.getAsesorPropuestoReasignacion().getId().equals(asesorQueRechaza.getId())) {
-//             log.warn("Asesor ID {} (CognitoSub {}) intentó rechazar una propuesta de la Solicitud ID {} que no era para él. Asesor propuesto actual: {}",
-//                     asesorQueRechaza.getId(), asesorCognitoSub, solicitudOriginalId,
-//                     (solicitudOriginal.getAsesorPropuestoReasignacion() != null ? solicitudOriginal.getAsesorPropuestoReasignacion().getId() : "Nadie"));
-//             throw new AccessDeniedException("No tiene permiso para rechazar esta propuesta de asesoría.");
-//         }
+        RolSolicitud rolEntrada = rolSolicitudRepository.findByNombre("ASESOR_ENTRADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'ASESOR_ENTRADA' no encontrado."));
+        UsuarioXSolicitud uxs = usuarioXSolicitudRepository
+                .findFirstBySolicitudAndRolSolicitudAndActivoTrue(solicitud, rolEntrada);
+        if (uxs == null || uxs.getUsuario() == null || !uxs.getUsuario().getId().equals(asesor.getId())) {
+                throw new AccessDeniedException("No tiene permiso para rechazar esta invitación.");
+        }
 
-//         // Validar que el estado de reasignación sea el correcto ("PENDIENTE_ACEPTACION_ASESOR")
-//         if (!SgtaConstants.ESTADO_REASIGNACION_PENDIENTE_ACEPTACION_ASESOR.equals(solicitudOriginal.getEstadoReasignacion())) {
-//             log.warn("Intento de rechazar propuesta para Solicitud ID {} que no está en estado PENDIENTE_ACEPTACION_ASESOR. Estado actual: {}",
-//                     solicitudOriginalId, solicitudOriginal.getEstadoReasignacion());
-//             throw new BusinessRuleException("Esta propuesta de asesoría ya no está pendiente de su decisión o no puede ser rechazada en este momento.");
-//         }
+        // 1) Desactivar registro de invitación
+        uxs.setActivo(false);
+        uxs.setAprobado(false);
+        uxs.setComentario(motivoRechazo);
+        uxs.setFechaAccion(OffsetDateTime.now());
+        usuarioXSolicitudRepository.save(uxs);
+        log.info("UsuarioXSolicitud ID {} marcado como rechazado.", uxs.getId());
 
-//         // Actualizar la solicitud original
-//         solicitudOriginal.setEstadoReasignacion(SgtaConstants.ESTADO_REASIGNACION_RECHAZADA_POR_ASESOR);
-//         //solicitudOriginal.setAsesorPropuestoReasignacion(null); // Limpiar el asesor propuesto
-//         // Podrías añadir el motivo del rechazo a la solicitud si tienes un campo para ello,
-//         // o simplemente se loguea y se notifica al coordinador.
-//         // solicitudOriginal.setRespuestaReasignacion(motivoRechazo); // Si tuvieras un campo así
-//         solicitudOriginal.setFechaModificacion(OffsetDateTime.now()); // Actualizar la fecha de modificación
+        // 2) Volver estado de solicitud a PREACEPTADA
+        EstadoSolicitud preAceptada = estadoSolicitudRepository.findByNombre("PREACEPTADA")
+                .orElseThrow(() -> new ResourceNotFoundException("Estado 'PREACEPTADA' no encontrado."));
+        solicitud.setEstadoSolicitud(preAceptada);
+        solicitud.setFechaModificacion(OffsetDateTime.now());
+        solicitudRepository.save(solicitud);
+        log.info("Solicitud ID {} restablecida a estado PREACEPTADA.", solicitudOriginalId);
 
-//         solicitudRepository.save(solicitudOriginal);
-//         log.info("Invitación de asesoría para Solicitud ID {} ha sido RECHAZADA por Asesor ID {}. Estado de reasignación actualizado.",
-//                 solicitudOriginalId, asesorQueRechaza.getId());
-
-//         // Notificar al Coordinador(es) de la carrera del tema
-//         // Necesitamos encontrar al coordinador original o a los coordinadores de la carrera del tema
-//         Tema temaDeLaSolicitud = solicitudOriginal.getTema();
-//         if (temaDeLaSolicitud != null && temaDeLaSolicitud.getCarrera() != null) {
-//             List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
-//                     temaDeLaSolicitud.getCarrera().getId(),
-//                     SgtaConstants.TIPO_USUARIO_COORDINADOR // Usar constante
-//             );
-
-//             String mensajeNotificacionCoordinador = String.format(
-//                     "El profesor %s %s ha RECHAZADO la propuesta de asesoría para el tema '%s' (Solicitud de Cese ID: %d). Motivo: %s. Por favor, proponga un nuevo asesor.",
-//                     asesorQueRechaza.getNombres(),
-//                     asesorQueRechaza.getPrimerApellido(),
-//                     temaDeLaSolicitud.getTitulo(),
-//                     solicitudOriginalId,
-//                     motivoRechazo
-//             );
-//             String enlaceCoordinador = String.format("/coordinador/solicitudes-cese?id=%d&action=propose", solicitudOriginalId); // Llevarlo a la solicitud para reproponer
-
-//             for (Usuario coordinador : coordinadores) {
-//                 try {
-//                     notificacionService.crearNotificacionParaUsuario(
-//                             coordinador.getId(),
-//                             SgtaConstants.MODULO_SOLICITUDES_CESE, // O un módulo más específico
-//                             SgtaConstants.TIPO_NOTIF_ADVERTENCIA,  // O un tipo específico "PropuestaRechazada"
-//                             mensajeNotificacionCoordinador,
-//                             "SISTEMA",
-//                             enlaceCoordinador
-//                     );
-//                     log.info("Notificación de rechazo de propuesta enviada a coordinador ID {}", coordinador.getId());
-//                 } catch (Exception e) {
-//                     log.error("Error al crear notificación de rechazo para coordinador ID {}: {}", coordinador.getId(), e.getMessage(), e);
-//                 }
-//             }
-//         } else {
-//             log.warn("No se pudo notificar a coordinadores porque el tema o la carrera de la Solicitud ID {} no está definida.", solicitudOriginalId);
-//         }
-//     }
+        // 3) (Opcional) Notificar al coordinador para nueva propuesta
+        // TODO: implementar notificaciones usando notificacionService
+        }
 
     @Override
     @Transactional
