@@ -2609,7 +2609,19 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
 		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
 
-
+		try {
+			// llamamos a la función con un array de 1 elemento
+			Integer[] tesistaArray = new Integer[]{ idTesista };
+			entityManager.createNativeQuery(
+				"SELECT validar_tesistas_sin_tema_asignado(:tesistas, :carreraId)")
+			.setParameter("tesistas", tesistaArray)
+			.setParameter("carreraId", tema.getCarrera().getId())
+			.getSingleResult();
+		} catch (PersistenceException ex) {
+			// extraemos mensaje y lo convertimos en excepción de negocio
+			String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+			throw new CustomException(msg);
+		}
 		// boolean yaAsignado = usuarioXTemaRepository
 		// 		.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
 		// 				idTesista,
