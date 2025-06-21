@@ -73,6 +73,7 @@ public class ConfiguracionRecordatorioController {
         }
     }
 
+    /* 
     @GetMapping("/default")
     public ResponseEntity<ConfiguracionRecordatorioDto> getDefaultConfig(HttpServletRequest request) {
         try {
@@ -85,7 +86,9 @@ public class ConfiguracionRecordatorioController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    */
 
+    
     @PostMapping("/reset")
     public ResponseEntity<Map<String, String>> resetToDefault(HttpServletRequest request) {
         try {
