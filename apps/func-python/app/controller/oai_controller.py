@@ -151,18 +151,22 @@ def get_all_oai_records(
         logger.error(f"Controller error in get_all_oai_records: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-# Endpoint to get records for a specific OAI set
+# Endpoint to get records for a specific OAI set with pagination
 def get_oai_records_by_set(
     set_spec: str = Query(..., description="The setSpec of the OAI set to harvest records from."),
-    max_records: Optional[int] = Query(None, description="Maximum records to fetch from this set. Fetches all if None."),
+    limit: Optional[int] = Query(None, description="Maximum records to fetch (pagination limit)."),
+    offset: Optional[int] = Query(None, description="Number of records to skip (pagination offset)."),
+    include_total_count: bool = Query(False, description="Include total count in response (slower operation)."),
     metadata_prefix: str = Query("oai_dc", description="The metadata prefix (e.g., 'oai_dc').")
 ) -> OAIResponse:
     oai_service = get_oai_service_instance()
     try:
-        logger.info(f"Controller: Getting records for set: {set_spec}, Max records: {max_records}, Prefix: {metadata_prefix}")
+        logger.info(f"Controller: Getting records for set: {set_spec}, Limit: {limit}, Offset: {offset}, Include count: {include_total_count}, Prefix: {metadata_prefix}")
         result = oai_service.get_records_by_set(
             set_spec=set_spec,
-            max_records=max_records,
+            max_records=limit,
+            offset=offset,
+            include_total_count=include_total_count,
             metadata_prefix=metadata_prefix
         )
         if not result.success:
@@ -192,6 +196,35 @@ def get_oai_single_record(
     except Exception as e:
         logger.error(f"Error getting single OAI record {identifier}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get record {identifier}: {str(e)}")
+
+# Endpoint to get record count for a specific set (for pagination)
+def get_oai_records_count(
+    set_spec: str = Query(..., description="The setSpec of the OAI set to count records from."),
+    metadata_prefix: str = Query("oai_dc", description="The metadata prefix (e.g., 'oai_dc')."),
+    force_refresh: bool = Query(False, description="Force a fresh count (bypasses cache).")
+) -> Dict[str, Any]:
+    oai_service = get_oai_service_instance()
+    try:
+        logger.info(f"Controller: Getting record count for set: {set_spec}, Prefix: {metadata_prefix}, Force refresh: {force_refresh}")
+        count = oai_service.get_records_count_cached(
+            set_spec=set_spec,
+            metadata_prefix=metadata_prefix,
+            force_refresh=force_refresh
+        )
+        return {
+            "success": True,
+            "message": f"Successfully retrieved count for set {set_spec}.",
+            "set_spec": set_spec,
+            "total_count": count,
+            "metadata_prefix": metadata_prefix
+        }
+    except Exception as e:
+        logger.error(f"Error getting record count for set {set_spec}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get record count for set {set_spec}: {str(e)}")
+
+# Note: Async import functionality is handled by the Java backend
+# The Python microservice only provides OAI data fetching capabilities
+# Database operations and tema creation are managed by Java/Spring Boot
 
 # Deprecated DSpace-specific functions (can be removed or commented out)
 # def set_dspace_authentication(request: DSpaceAuthRequest) -> Dict[str, Any]: ...
