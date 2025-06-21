@@ -4582,3 +4582,38 @@ BEGIN
     RAISE NOTICE 'Se ha eliminado el tema % y todas sus dependencias.', p_tema_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION validar_tesistas_sin_tema_asignado(
+    p_tesistas   INTEGER[],
+    p_carrera_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    tesista_id   INTEGER;
+    conflicto    INTEGER;
+BEGIN
+    FOREACH tesista_id IN ARRAY p_tesistas LOOP
+        -- Contamos los registros que violan las reglas
+        SELECT COUNT(*) INTO conflicto
+        FROM usuario_tema ut
+        JOIN tema t
+          ON ut.tema_id = t.tema_id
+        JOIN estado_tema et
+          ON t.estado_tema_id = et.estado_tema_id
+        WHERE ut.usuario_id   = tesista_id
+          AND ut.activo       = TRUE
+          AND ut.asignado     = TRUE
+          AND t.activo        = TRUE
+          AND t.carrera_id    = p_carrera_id
+          AND et.nombre       NOT IN ('FINALIZADO','VENCIDO','PAUSADO');
+
+        IF conflicto > 0 THEN
+            RAISE EXCEPTION
+                'El tesista % ya está asignado a un tema en otra carrera y en estado no permitido',
+                tesista_id;
+        END IF;
+    END LOOP;
+END;
+$$;

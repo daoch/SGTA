@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 
@@ -409,19 +410,24 @@ public class TemaServiceImpl implements TemaService {
 		}
 	}
 
-	private void validarTesistasSinTemaAsignado(List<UsuarioDto> tesistas) {
-		for (UsuarioDto t : tesistas) {
-			Integer tesistaId = t.getId();
-			boolean yaAsignado = usuarioXTemaRepository
-					.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
-							tesistaId,
-							"Tesista" // o el nombre exacto de tu rol
-					);
-			if (yaAsignado) {
-				throw new CustomException(
-						"El tesista con id " + tesistaId +
-								" ya tiene un tema asignado");
-			}
+	private void validarTesistasSinTemaAsignado(List<UsuarioDto> tesistas, Integer carreraId) {
+		// Prepara el array de IDs
+		Integer[] tesistaIds = tesistas.stream()
+									.map(UsuarioDto::getId)
+									.toArray(Integer[]::new);
+		try {
+			entityManager.createNativeQuery(
+					"SELECT validar_tesistas_sin_tema_asignado(:tesistas, :carreraId)")
+				.setParameter("tesistas", tesistaIds)
+				.setParameter("carreraId", carreraId)
+				.getSingleResult();
+		} catch (PersistenceException ex) {
+			// Extrae el mensaje de PG (o del cause)
+			String pgMessage = ex.getCause() != null
+				? ex.getCause().getMessage()
+				: ex.getMessage();
+			// Lánzala como tu excepción de negocio
+			throw new CustomException(pgMessage);
 		}
 	}
 
@@ -472,7 +478,7 @@ public class TemaServiceImpl implements TemaService {
 		// validarTipoUsurio(u.getId(), TipoUsuarioEnum.profesor.name()); // validar que
 		// los coasesores sean profesores
 		// }
-		validarTesistasSinTemaAsignado(dto.getTesistas()); // validar que los tesistas no tengan tema asignado
+		validarTesistasSinTemaAsignado(dto.getTesistas(), dto.getCarrera().getId()); // validar que los tesistas no tengan tema asignado
 	}
 
 	@Override
@@ -734,14 +740,14 @@ public class TemaServiceImpl implements TemaService {
 		// Prepara y guarda el tema con estado INSCRITO
 		if (!reinscribir) {
 			tema = prepareNewTema(dto, EstadoTemaEnum.INSCRITO);
-			var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
-			if (relaciones.isEmpty()) {
-				throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
-			}
-			Integer carreraId = relaciones.get(0).getCarrera().getId();
-			Carrera carrera = carreraRepository.findById(carreraId)
-					.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
-			tema.setCarrera(carrera);
+			// var relaciones = usuarioCarreraRepository.findByUsuarioIdAndActivoTrue(idUsuarioCreador);
+			// if (relaciones.isEmpty()) {
+			// 	throw new RuntimeException("El usuario no tiene ninguna carrera activa.");
+			// }
+			// Integer carreraId = relaciones.get(0).getCarrera().getId();
+			// Carrera carrera = carreraRepository.findById(carreraId)
+			// 		.orElseThrow(() -> new RuntimeException("Carrera no encontrada con id " + carreraId));
+			// tema.setCarrera(carrera);
 
 			temaRepository.save(tema);
 
@@ -2603,17 +2609,30 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		// 2) Validar que el tema esté en el estado correcto para aceptar postulaciones
 		Tema tema = validarEstadoTema(temaId, EstadoTemaEnum.PROPUESTO_LIBRE.name());
 
-
-		boolean yaAsignado = usuarioXTemaRepository
-				.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
-						idTesista,
-						"Tesista" // o el nombre exacto de tu rol
-				);
-		if (yaAsignado) {
-			throw new CustomException(
-					"El tesista con id " + idTesista + " ya tiene un tema asignado");
+		try {
+			// llamamos a la función con un array de 1 elemento
+			Integer[] tesistaArray = new Integer[]{ idTesista };
+			entityManager.createNativeQuery(
+				"SELECT validar_tesistas_sin_tema_asignado(:tesistas, :carreraId)")
+			.setParameter("tesistas", tesistaArray)
+			.setParameter("carreraId", tema.getCarrera().getId())
+			.getSingleResult();
+		} catch (PersistenceException ex) {
+			// extraemos mensaje y lo convertimos en excepción de negocio
+			String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+			throw new CustomException(msg);
 		}
+		// boolean yaAsignado = usuarioXTemaRepository
+		// 		.existsByUsuarioIdAndRolNombreAndActivoTrueAndAsignadoTrue(
+		// 				idTesista,
+		// 				"Tesista" // o el nombre exacto de tu rol
+		// 		);
+		// if (yaAsignado) {
+		// 	throw new CustomException(
+		// 			"El tesista con id " + idTesista + " ya tiene un tema asignado");
+		// }
 
+		
 		// 3) Buscar el registro de UsuarioXTema para ese tesista y tema
 		UsuarioXTema usuarioXTema = usuarioXTemaRepository
 				.findByTemaIdAndUsuarioIdAndActivoTrue(temaId, idTesista)
