@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
+import pucp.edu.pe.sgta.service.inter.EmailService;
 
 @Slf4j
 @RestController
@@ -26,6 +27,7 @@ public class NotificacionController {
     private final NotificacionService notificacionService;
     private final JwtService          jwtService;
     private final UsuarioService      usuarioService;
+    private final EmailService        emailService;
 
     /**
      * Obtiene todas las notificaciones no leídas del usuario autenticado
@@ -195,6 +197,42 @@ public class NotificacionController {
             log.error("Error al generar recordatorios de prueba: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
                                   .body(Map.of("error", "Error al generar recordatorios"));
+        }
+    }
+
+    /**
+     * Endpoint para testing - envía un correo de prueba al usuario autenticado
+     * POST /notifications/test/send-email
+     */
+    @PostMapping("/test/send-email")
+    public ResponseEntity<Map<String, String>> testSendEmail(HttpServletRequest request) {
+        try {
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+            
+            // Obtener datos del usuario
+            var usuario = usuarioService.findByCognitoId(cognitoSub);
+            String correoElectronico = usuario.getCorreoElectronico();
+            String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido();
+            
+            // Enviar correo de prueba
+            emailService.enviarRecordatorioEntregable(
+                correoElectronico,
+                nombreCompleto,
+                "Entregable de Prueba",
+                "31/12/2024",
+                3
+            );
+            
+            log.info("Correo de prueba enviado exitosamente a {}", correoElectronico);
+            return ResponseEntity.ok(Map.of(
+                "message", "Correo de prueba enviado exitosamente",
+                "destinatario", correoElectronico
+            ));
+        } catch (Exception e) {
+            log.error("Error al enviar correo de prueba: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                                  .body(Map.of("error", "Error al enviar correo de prueba: " + e.getMessage()));
         }
     }
 }

@@ -9,6 +9,7 @@ import pucp.edu.pe.sgta.dto.OverdueAlertDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
+import pucp.edu.pe.sgta.service.inter.EmailService;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +32,7 @@ public class NotificacionServiceImpl implements NotificacionService {
     private final EntregableXTemaRepository entregableXTemaRepository;
     private final UsuarioXTemaRepository usuarioXTemaRepository;
     private final ConfiguracionRecordatorioRepository configRepo;
+    private final EmailService emailService;
 
     private static final String MODULO_REPORTES = "Reportes";
     private static final String TIPO_RECORDATORIO = "recordatorio";
@@ -245,9 +247,27 @@ public class NotificacionServiceImpl implements NotificacionService {
                                         usuarioId, entregable.getNombre(), diasRestantes);
                             }
                             
-                            // TODO: Implementar envío por correo cuando esté disponible
+                            // Enviar por correo si está configurado
                             if (Boolean.TRUE.equals(config.getCanalCorreo())) {
-                                log.debug("Canal de correo activo para usuario {} - implementación pendiente", usuarioId);
+                                try {
+                                    Usuario usuario = tesistaOpt.get().getUsuario();
+                                    String nombreCompleto = usuario.getNombreDisplay();
+                                    String correoElectronico = usuario.getCorreoElectronico();
+                                    
+                                    emailService.enviarRecordatorioEntregable(
+                                        correoElectronico,
+                                        nombreCompleto,
+                                        entregable.getNombre(),
+                                        fechaFormateada,
+                                        (int) diasRestantes
+                                    );
+                                    
+                                    log.info("Recordatorio enviado por correo a {} para entregable {}", 
+                                            correoElectronico, entregable.getNombre());
+                                } catch (Exception e) {
+                                    log.error("Error al enviar recordatorio por correo para usuario {}: {}", 
+                                            usuarioId, e.getMessage(), e);
+                                }
                             }
                         } else {
                             log.debug("Ya existe recordatorio hoy para usuario {} y entregable {}", 
@@ -301,6 +321,33 @@ public class NotificacionServiceImpl implements NotificacionService {
                     
                     crearNotificacionError(usuarioId, entregable.getNombre(), 
                                          fechaFormateada, (int) diasAtraso);
+                    
+                    // Enviar alerta por correo si el usuario tiene configurado el canal de correo
+                    try {
+                        ConfiguracionRecordatorio config = configRepo.findByUsuarioId(usuarioId)
+                            .orElseGet(() -> getDefaultConfig(usuarioId));
+                        
+                        if (Boolean.TRUE.equals(config.getCanalCorreo())) {
+                            Usuario usuario = tesistaOpt.get().getUsuario();
+                            String nombreCompleto = usuario.getNombreDisplay();
+                            String correoElectronico = usuario.getCorreoElectronico();
+                            
+                            emailService.enviarAlertaEntregableVencido(
+                                correoElectronico,
+                                nombreCompleto,
+                                entregable.getNombre(),
+                                fechaFormateada,
+                                (int) diasAtraso
+                            );
+                            
+                            log.info("Alerta de vencimiento enviada por correo a {} para entregable {}", 
+                                    correoElectronico, entregable.getNombre());
+                        }
+                    } catch (Exception e) {
+                        log.error("Error al enviar alerta por correo para usuario {}: {}", 
+                                usuarioId, e.getMessage(), e);
+                    }
+                    
                     alertasCreadas++;
                     log.info("Alerta de vencimiento creada para usuario {} - entregable {} ({} días de atraso)", 
                             usuarioId, entregable.getNombre(), diasAtraso);
