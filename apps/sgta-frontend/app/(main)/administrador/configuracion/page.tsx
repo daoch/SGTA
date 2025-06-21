@@ -62,7 +62,7 @@ export default function ConfiguracionAdminPage() {
           <div>
             <h2 className="font-semibold text-lg mb-1">Gestión de Temas</h2>
             <p className="text-gray-500 text-sm">
-              Administre los temas de proyectos de fin de carrera y sus similitudes con propuestas existentes.
+              Configure embeddings, integraciones OAI y herramientas para la gestión de temas de proyectos de fin de carrera.
             </p>
           </div>
         </Link>

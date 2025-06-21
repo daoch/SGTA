@@ -354,8 +354,7 @@ public class OAIServiceImpl implements OAIService {
             
             String responseBody = response.getBody();
             return response.getStatusCode().is2xxSuccessful() && 
-                   responseBody != null && 
-                   responseBody.contains(OAI_PMH_IDENTIFIER);
+                   responseBody != null;
                    
         } catch (Exception e) {
             logger.warning("Invalid OAI endpoint " + endpoint + ": " + e.getMessage());
