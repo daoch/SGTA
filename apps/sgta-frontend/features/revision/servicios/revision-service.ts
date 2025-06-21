@@ -53,9 +53,9 @@ export interface PlagioApiResponse {
   // Agrega aquí otros campos relevantes si los necesitas
 }
 
-export async function analizarPlagioArchivoS3(key: string): Promise<PlagioApiResponse> {
+export async function analizarPlagioArchivoS3(revisionId: number): Promise<PlagioApiResponse> {
   const response = await axiosInstance.get(
-    `/plagiarism/check/${encodeURIComponent(key)}`
+    `/plagiarism/check/${revisionId}`
   );
   // El backend devuelve un string JSON, así que lo parseamos
   return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
@@ -191,4 +191,13 @@ export async function getStudentsByRevisor(id: string): Promise<UsuarioDto[]> {
 export async function obtenerUrlCloudFrontPorRevision(revisionId: number): Promise<string> {
   const response = await axiosInstance.get<string>(`/s3/archivos/getUrlFromCloudFrontByRevision/${revisionId}`);
   return response.data; // Aquí recibes la URL de CloudFront como string
+}
+export async function existePlagioJsonF(revisionId: number): Promise<boolean> {
+  const response = await axiosInstance.get<boolean>(`/s3/archivos/existe-plagio-json/${revisionId}`);
+  return response.data;
+}
+export async function getJsonPlagio(revisionId: number): Promise<PlagioApiResponse> {
+  const response = await axiosInstance.get(`/s3/archivos/get-plagio-json/${revisionId}`);
+  return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
+
 }

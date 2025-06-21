@@ -10,7 +10,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { useAuthStore } from "@/features/auth/store/auth-store";
-import { BookOpen, Eye, Users } from "lucide-react";
+import { BookOpen, Eye, Info, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -247,8 +247,15 @@ export function TemaCard() {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        {(tesisData.estadoActual === "Observado") && (
+      <CardFooter className="flex gap-2 justify-between md:justify-start">
+        {/* Botón Ver detalle SIEMPRE visible */}
+        <Link href={`/alumno/temas/${tesisData.id}/detalle`}>
+          <Button variant="outline">
+            <Info className="mr-2 h-4 w-4" /> Ver detalle
+          </Button>
+        </Link>
+        {/* Botón Ver observaciones SOLO si está observado */}
+        {tesisData.estadoActual === "Observado" && (
           <Link href={`/alumno/temas/${tesisData.id}`}>
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" /> Ver observaciones

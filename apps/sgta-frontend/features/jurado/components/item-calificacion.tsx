@@ -32,7 +32,7 @@ export function CalificacionItem({
   const handleCalificacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    if (inputValue !== "" && !/^(\d*\.?\d*)$/.test(inputValue)) {
+    if (inputValue !== "" && !/^(\d*\.?\d{0,2})$/.test(inputValue)) {
       return; // No actualizar si no es un formato de número válido
     }
     
