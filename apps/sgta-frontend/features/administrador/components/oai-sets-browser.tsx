@@ -60,7 +60,7 @@ export function OAISetsBrowser() {
       setIsLoadingRecords(true);
       setSelectedSet(set);
       const recordsData = await getOAIRecordsBySet(set.setSpec);
-      setRecords(recordsData);
+      setRecords(recordsData.records || []);
     } catch (error) {
       toast({
         title: "Error",

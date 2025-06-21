@@ -22,7 +22,7 @@ export default function OAISetsPage() {
       setIsLoading(true);
       const setsData = await getOAISets();
       setSets(setsData);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "No se pudieron cargar los sets OAI",
@@ -38,8 +38,8 @@ export default function OAISetsPage() {
     try {
       const endpoint = await getCurrentOAIEndpoint();
       setCurrentEndpoint(endpoint);
-    } catch (error) {
-      console.error("Error fetching endpoint:", error);
+    } catch {
+      console.error("Error fetching endpoint");
     }
   }, []);
 
@@ -69,10 +69,10 @@ export default function OAISetsPage() {
     
     const query = searchQuery.toLowerCase();
     return sets.filter(set => {
-      const safeStringify = (value: any): string => {
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'string') return value;
-        if (typeof value === 'object') return JSON.stringify(value);
+      const safeStringify = (value: unknown): string => {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "string") return value;
+        if (typeof value === "object") return JSON.stringify(value);
         return String(value);
       };
       
@@ -113,7 +113,7 @@ export default function OAISetsPage() {
           size="sm"
           disabled={isRefreshing}
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
           Actualizar
         </Button>
       </div>
@@ -170,12 +170,12 @@ export default function OAISetsPage() {
             <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium mb-2">No se encontraron sets</h3>
             <p className="text-sm">
-              No hay sets que coincidan con "{searchQuery}"
+              No hay sets que coincidan con &quot;{searchQuery}&quot;
             </p>
           </div>
         ) : (
           <div className="divide-y">
-            {filteredSets.map((set, index) => (
+            {filteredSets.map((set) => (
               <Link
                 key={set.setSpec}
                 href={`/administrador/configuracion/similitud-temas/oai-sets/${encodeURIComponent(set.setSpec)}`}
@@ -213,7 +213,7 @@ export default function OAISetsPage() {
           <p>
             {searchQuery 
               ? `Mostrando ${filteredSets.length} de ${sets.length} sets` 
-              : `Se encontraron ${sets.length} set${sets.length !== 1 ? 's' : ''} disponible${sets.length !== 1 ? 's' : ''}`
+              : `Se encontraron ${sets.length} set${sets.length !== 1 ? "s" : ""} disponible${sets.length !== 1 ? "s" : ""}`
             }
           </p>
         </div>

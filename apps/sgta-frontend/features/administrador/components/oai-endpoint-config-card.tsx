@@ -28,7 +28,7 @@ export function OAIEndpointConfigCard() {
       setCurrentEndpoint(endpoint);
       setEditingEndpoint(endpoint);
     } catch (error: unknown) {
-      console.error('Error fetching OAI endpoint:', error);
+      console.error("Error fetching OAI endpoint:", error);
       toast({
         title: "Error",
         description: "No se pudo cargar la configuración del endpoint OAI",
