@@ -3708,4 +3708,48 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			throw new AccessDeniedException("No tiene permisos para gestionar esta solicitud ya que no pertenece a sus carreras.");
 		}
 	}
+
+
+	@Override
+	public void updateSolicitudesCoordinador(String usuarioId, Integer solicitudId,String respuesta) {
+
+		Usuario coordinador = usuarioRepository.findByIdCognito(usuarioId)
+				.orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + usuarioId));
+
+		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+				.orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + solicitudId));
+
+		TipoSolicitud tipo = tipoSolicitudRepository.findById(solicitud.getTipoSolicitud().getId())
+				.orElseThrow(() -> new RuntimeException("Tipo de solicitud no encontrada con ID: " + solicitud.getTipoSolicitud().getId()));
+		;
+		try {
+			String query = switch (tipo.getNombre()) {
+                case "Solicitud de cambio de resumen" ->
+                        "SELECT atender_solicitud_alumno_resumen(:solicitudId,:coordinadorId,:respuesta)";
+                case "Solicitud de cambio de título" ->
+                        "SELECT atender_solicitud_alumno_titulo(:solicitudId,:coordinadorId,:titulo,:respuesta)";
+                case "Solicitud de cambio de objetivos" -> "SELECT atender_solicitud_alumno_objetivos(:solicitudId,:coordinadorId,:respuesta)";
+                default -> throw new RuntimeException("Tipo de solicitud no reconocido: " + tipo);
+            }; 
+
+            Query nativeQuery = entityManager.createNativeQuery(query)
+					.setParameter("solicitudId", solicitudId)
+					.setParameter("coordinadorId", coordinador.getId())
+					.setParameter("respuesta", respuesta);
+
+
+
+            Number result = (Number) nativeQuery.getSingleResult();
+
+
+		} catch (Exception e) {
+			Logger.getLogger(TemaServiceImpl.class.getName())
+					.severe("Error procesando solicitud tipo " + solicitudId + ": " + e.getMessage());
+			throw new RuntimeException("Error al procesar la solicitud", e);
+		}
+	}
+
+
+
+
 }
