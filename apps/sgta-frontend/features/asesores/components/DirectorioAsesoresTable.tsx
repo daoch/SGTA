@@ -78,7 +78,7 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                 <th className="p-4">Nombre</th>
                 <th className="p-4">Código PUCP</th>
                 <th className="p-4 text-center">Roles Asignados</th>
-                <th className="p-4 text-center">Tesis Activas</th>
+                <th className="p-4 text-center">Tesis Asignadas</th>
                 <th className="p-4 text-center">Acciones</th>
               </tr>
             </thead>
@@ -112,7 +112,16 @@ export default function DirectorioAsesoresTable({ profesores, onUpdateRoles }: P
                       </Badge>
                     </div>
                   </td>
-                  <td className="p-4 text-center">{p.tesisActivas}</td>
+                  <td className="p-4 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="text-xs">
+                        Asesor: <span className="font-semibold">{p.tesisAsesor}</span>
+                      </div>
+                      <div className="text-xs">
+                        Jurado: <span className="font-semibold">{p.tesisJurado}</span>
+                      </div>
+                    </div>
+                  </td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <TooltipProvider>

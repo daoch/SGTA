@@ -359,7 +359,7 @@ export default function ModalAsignarMiembroJurado({
           </div>
 
           {profesoresSeleccionados.length > 0 ? (
-            <div className="flex flex-col gap-4 mt-2 flex-grow">
+            <div className="flex flex-col gap-4 mt-2 flex-grow overflow-y-auto">
               {currentItems.map((profesor) => {
                 const isSelected = selectedProfesores.includes(profesor);
                 const isDisabled =

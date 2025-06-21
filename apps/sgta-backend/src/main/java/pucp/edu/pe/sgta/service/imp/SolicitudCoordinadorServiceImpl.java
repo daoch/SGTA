@@ -22,6 +22,10 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import pucp.edu.pe.sgta.dto.asesores.MiSolicitudCeseItemDto;
+
 @Service
 public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorService {
 
@@ -39,7 +43,8 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
     @Autowired private RolSolicitudRepository rolSolicitudRepository;
     @Autowired private AccionSolicitudRepository accionSolicitudRepository;
     @Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository;
-
+    @Autowired
+    private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
     // Otros Servicios
     @Autowired private NotificacionService notificacionService;
 
@@ -365,5 +370,37 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
             throw new AccessDeniedException("No tiene permisos para gestionar esta solicitud ya que no pertenece a su carrera.");
         }
     }
+
+        @Override
+        @Transactional(readOnly = true)
+        public Page<MiSolicitudCeseItemDto> findSolicitudesCeseByAsesor(
+                String asesorCognitoSub,
+                String searchTerm,
+                Pageable pageable
+        ) {
+        // 1. Carga al asesor y encuentra el rol “REMITENTE”
+        Usuario asesor = usuarioRepository.findByIdCognito(asesorCognitoSub)
+                .orElseThrow(() -> new ResourceNotFoundException("Asesor no encontrado."));
+        RolSolicitud rolRemitente = rolSolicitudRepository.findByNombre("REMITENTE")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol REMITENTE no existe."));
+
+        // 2. Trae la página de UsuarioXSolicitud
+        Page<UsuarioXSolicitud> page = usuarioXSolicitudRepository
+                .findByUsuarioAndRolSolicitudAndActivoTrue(asesor, rolRemitente, pageable);
+
+        // 3. Mapéala directamente a DTOs
+        return page.map(uxs -> {
+                Solicitud s = uxs.getSolicitud();
+                Tema t = s.getTema();
+                return new MiSolicitudCeseItemDto(
+                        s.getId(),                                // solicitudId
+                        t != null ? t.getTitulo() : "<sin tema>", // temaTitulo
+                        s.getFechaCreacion(),                     // fechaSolicitud
+                        s.getEstadoSolicitud().getNombre(),       // estadoSolicitud
+                        s.getRespuesta(),                         // respuestaCoordinador
+                        s.getFechaResolucion()                    // fechaDecision
+                );
+        });
+        }
 
 }

@@ -13,6 +13,8 @@ import {
   getExposicionCalificarJurado,
   actualizarComentarioFinalJurado,
   actualizarCriteriosEvaluacion,
+  actualizarCalificacionFinalJurado,
+  actualizarCalificacionFinalExposicionTema
 } from "../../services/jurado-service";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -158,6 +160,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
       const exposicionId = evaluacion.criterios[0].id;
 
       try {
+        // 1. Guardar observaciones finales
         const resultadoObservaciones = await actualizarComentarioFinalJurado(
           exposicionId,
           observacionesFinales,
@@ -166,6 +169,41 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         if (resultadoObservaciones) {
           successMessage += "Observaciones finales guardadas correctamente. ";
         }
+
+        // 2. Guardar la calificación final (nuevo)
+        const notaFinal = evaluacion.criterios.reduce(
+          (sum, criterio) => sum + (criterio.calificacion || 0), 
+          0
+        );
+        
+        const resultadoCalificacionFinal = await actualizarCalificacionFinalJurado(
+          exposicionId,
+          parseFloat(notaFinal.toFixed(2))
+        );
+
+        if (resultadoCalificacionFinal) {
+          successMessage += "Nota final guardada correctamente. ";
+        }
+
+        // 3. Actualizar la calificación final de la exposición (consolidada de todos los jurados)
+        try {
+          // Convertir id_exposicion a número si viene como string
+          const exposicionTemaId = typeof id_exposicion === "string" ? 
+            parseInt(id_exposicion) : id_exposicion;
+            
+          const resultadoCalificacionFinalExposicion = await actualizarCalificacionFinalExposicionTema(
+            exposicionTemaId
+          );
+          
+          if (resultadoCalificacionFinalExposicion) {
+            successMessage += "Nota final de la exposición actualizada correctamente. ";
+          }
+        } catch (error) {
+          console.error("Error al actualizar la nota final de la exposición:", error);
+          hasError = true;
+        }
+        
+
       } catch (error) {
         console.error("Error al guardar observaciones finales:", error);
         hasError = true;
@@ -279,13 +317,43 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
           />
         ))}
       </div>
-      <div className="border rounded-2xl p-4 space-y-2 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="border rounded-2xl p-4 space-y-2 shadow-sm md:col-span-2">
         <Label className="text-lg font-semibold">Observaciones Finales</Label>
         <Textarea
           placeholder="Escribe tus observaciones aquí"
           value={observacionesFinales}
           onChange={(e) => setObservacionesFinales(e.target.value)}
+          className="min-h-32"
         />
+      </div>
+
+      <div className="border rounded-2xl p-4 space-y-2 shadow-sm flex flex-col justify-center items-center">
+        <Label className="text-lg font-semibold">Nota Final</Label>
+        <div className="flex flex-col items-center justify-center h-full">
+          <div className="text-5xl font-bold">
+            <span className="text-gray-600">
+              {evaluacion.criterios.reduce((sum, criterio) => sum + (criterio.calificacion || 0), 0).toFixed(2)}
+            </span>
+            <span className="text-gray-500">/</span>
+            <span className="text-gray-600">
+              {evaluacion.criterios.reduce((sum, criterio) => sum + criterio.nota_maxima, 0)}
+            </span>
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            {hayCamposVacios() ? (
+              <span className="text-red-500">
+                * Completa todas las calificaciones para confirmar la nota final
+              </span>
+            ) : (
+              <span className="text-blue-500">
+                Todas las calificaciones completadas
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
       </div>
       <div className="flex justify-center gap-4">
         <Button variant="destructive" onClick={handleCancel}>

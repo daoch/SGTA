@@ -88,7 +88,7 @@ public class SolicitudCeseController {
             dto.setEstadoSolicitudNombre(solicitud.getEstadoSolicitud().getNombre());
         } else if (solicitud.getEstado() != null) { // Fallback al campo antiguo si el nuevo es null
             switch (solicitud.getEstado()) { // Mapear el entero a un string legible
-                case 0: dto.setEstadoSolicitudNombre("APROBADA"); break; // O el string que uses
+                case 0: dto.setEstadoSolicitudNombre("ACEPTADA"); break; // O el string que uses
                 case 1: dto.setEstadoSolicitudNombre("PENDIENTE"); break;
                 case 2: dto.setEstadoSolicitudNombre("RECHAZADA"); break;
                 default: dto.setEstadoSolicitudNombre("DESCONOCIDO");
