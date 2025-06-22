@@ -402,29 +402,46 @@ BEGIN
         at.area_name,
         at.tema_id,
         COUNT(et.entregable_x_tema_id) AS total_deliverables,
-        COUNT(*) FILTER (WHERE et.estado::text != 'no_enviado') AS submitted_deliverables
+        -- ahora contamos cuántos entregables tienen al menos una revisión con estado 'revisado'
+        COUNT(DISTINCT et.entregable_x_tema_id)
+          FILTER (
+            WHERE EXISTS (
+              SELECT 1
+                FROM version_documento vd
+                JOIN revision_documento rd
+                  ON rd.version_documento_id = vd.version_documento_id
+               WHERE vd.entregable_x_tema_id = et.entregable_x_tema_id
+                 AND vd.activo = TRUE
+                 AND rd.activo = TRUE
+                 AND rd.estado_revision = 'revisado'
+            )
+          ) AS reviewed_deliverables
       FROM advisor_topics AS at
-      -- Entregables del tema
-      LEFT JOIN entregable_x_tema et ON et.tema_id = at.tema_id AND et.activo = TRUE
-      LEFT JOIN entregable e ON e.entregable_id = et.entregable_id
-                             AND e.activo = TRUE
-      -- Filtrar entregables del ciclo actual
-      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                           AND efc.ciclo_id = v_ciclo_id
-                                           AND efc.activo = TRUE
+      LEFT JOIN entregable_x_tema et
+        ON et.tema_id = at.tema_id
+       AND et.activo = TRUE
+      LEFT JOIN entregable e
+        ON e.entregable_id = et.entregable_id
+       AND e.activo = TRUE
+      LEFT JOIN etapa_formativa_x_ciclo efc
+        ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+       AND efc.ciclo_id = v_ciclo_id
+       AND efc.activo = TRUE
       GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id
     )
 
+    -- en la consulta final, reemplazamos SUM(submitted_deliverables) por SUM(reviewed_deliverables)
     SELECT
       td.advisor_name,
-      td.area_name,
-      ROUND(
-        (SUM(td.submitted_deliverables)::NUMERIC
-         / NULLIF(SUM(td.total_deliverables),0)
-        ) * 100
-      , 2) AS performance_percentage,
-      CAST(COUNT(DISTINCT td.tema_id) AS INTEGER) AS total_students
-    FROM topic_deliveries AS td
+    td.area_name,
+    ROUND(
+        SUM(td.reviewed_deliverables)::NUMERIC
+        / NULLIF(SUM(td.total_deliverables),0)
+        * 100
+    , 2) AS performance_percentage,
+    COUNT(DISTINCT td.tema_id)::INTEGER AS total_students
+
+    FROM topic_deliveries td
     GROUP BY td.usuario_id, td.advisor_name, td.area_name
     ORDER BY performance_percentage DESC, total_students DESC;
 END;
