@@ -23,7 +23,7 @@ public class ConfiguracionRecordatorio {
     private Boolean activo = true;
 
     @Column(name = "dias_anticipacion", columnDefinition = "integer[]")
-private Integer[] diasAnticipacion;
+    private Integer[] diasAnticipacion; 
 
     @Column(name = "canal_correo", nullable = false)
     private Boolean canalCorreo = true;
