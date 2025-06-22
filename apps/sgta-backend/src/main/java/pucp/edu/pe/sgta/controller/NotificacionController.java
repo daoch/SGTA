@@ -208,7 +208,6 @@ public class NotificacionController {
     public ResponseEntity<Map<String, String>> testSendEmail(HttpServletRequest request) {
         try {
             String cognitoSub = jwtService.extractSubFromRequest(request);
-            Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
             
             // Obtener datos del usuario
             var usuario = usuarioService.findByCognitoId(cognitoSub);

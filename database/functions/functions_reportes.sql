@@ -306,20 +306,11 @@ END;
 $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
-    p_usuario_id     INTEGER,
-    p_ciclo_nombre   VARCHAR
-)
-  RETURNS TABLE(
-    advisor_name           VARCHAR,
-    area_name              VARCHAR,
-    performance_percentage NUMERIC,
-    total_students         INTEGER
-  )
-  LANGUAGE plpgsql
-  COST 100
-  VOLATILE PARALLEL UNSAFE
-AS $BODY$
+create function get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
+    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer)
+    language plpgsql
+as
+$$
 DECLARE
     v_carrera_id INTEGER;
     v_ciclo_id   INTEGER;
@@ -445,7 +436,7 @@ BEGIN
     GROUP BY td.usuario_id, td.advisor_name, td.area_name
     ORDER BY performance_percentage DESC, total_students DESC;
 END;
-$BODY$;
+$$;
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
     p_usuario_id     INTEGER,
@@ -595,11 +586,11 @@ CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id integer)
         primer_apellido character varying,
         segundo_apellido character varying,
         correo_electronico character varying,
-        -- NUEVAS COLUMNAS AGREGADAS
+        -- NUEVAS COLUMNAS AGREGADAS (MANTENIDAS)
         titulo_tema character varying,
         etapa_formativa_nombre text,
         carrera character varying,
-        -- COLUMNAS EXISTENTES
+        -- COLUMNAS EXISTENTES (MANTENIDAS)
         entregable_actual_id integer,
         entregable_actual_nombre character varying,
         entregable_actual_descripcion text,
@@ -614,8 +605,9 @@ AS
 $$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
+    v_limite_asignacion TIMESTAMP WITH TIME ZONE := NOW() - INTERVAL '3 months'; -- Nuevos últimos 3 meses
 BEGIN
-    -- Primera consulta: Tesistas con entregables actuales
+    -- Primera consulta: Tesistas con entregables actuales (SIN CAMBIOS)
     RETURN QUERY
         SELECT
             ut.tema_id,
@@ -678,83 +670,152 @@ BEGIN
         -- Estado del envío del entregable
         LEFT JOIN entregable_x_tema et ON et.tema_id = ut.tema_id AND et.entregable_id = e.entregable_id AND et.activo = TRUE
         WHERE ut.activo = TRUE
-        AND e.entregable_id IS NOT NULL;
+        AND t.activo = TRUE  -- NUEVO: Asegurar que el tema esté activo
+        AND u.activo = TRUE  -- NUEVO: Asegurar que el usuario esté activo
+        AND e.entregable_id IS NOT NULL
 
-    -- Segunda consulta: Tesistas sin entregables actuales pero con próximos entregables
-    RETURN QUERY
-        SELECT
-            ut.tema_id,
-            ut.usuario_id AS tesista_id,
-            u.nombres,
-            u.primer_apellido,
-            u.segundo_apellido,
-            u.correo_electronico,
-            -- NUEVAS COLUMNAS
-            t.titulo AS titulo_tema,
-            ef.nombre AS etapa_formativa_nombre,
-            COALESCE(car.nombre, 'Sin carrera') AS carrera,
-            -- Información del próximo entregable
-            e_next.entregable_id,
-            e_next.nombre,
-            e_next.descripcion,
-            e_next.fecha_inicio,
-            e_next.fecha_fin,
-            e_next.estado::VARCHAR,
-            et_next.estado::VARCHAR,
-            et_next.fecha_envio
-        FROM usuario_tema ut
-        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-        JOIN usuario u ON u.usuario_id = ut.usuario_id
-        -- JOIN para obtener datos del tema
-        JOIN tema t ON t.tema_id = ut.tema_id
-        -- JOIN para obtener la carrera del tesista
-        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
-        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
-        -- JOIN para obtener la etapa formativa
-        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
-            SELECT ef2.etapa_formativa_id
-            FROM etapa_formativa ef2
-            WHERE ef2.carrera_id = uc.carrera_id
-            AND ef2.activo = TRUE
-            ORDER BY ef2.fecha_creacion DESC
-            LIMIT 1
-        ) AND efc.activo = TRUE
-        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
-        -- Obtener el tema de los tesistas asesorados
-        JOIN (
-            SELECT ut2.tema_id
-            FROM usuario_tema ut2
-            JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
-            WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
-        ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
-        -- Verifica que no haya entregable actual
-        LEFT JOIN LATERAL (
-            SELECT e.entregable_id
-            FROM entregable e
-            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-            WHERE et.tema_id = ut.tema_id
-              AND e.fecha_inicio <= v_current_date
-              AND e.fecha_fin >= v_current_date
-              AND e.activo = TRUE
-              AND et.activo = TRUE
-            LIMIT 1
-        ) current_entregable ON TRUE
-        -- Datos del próximo entregable
-        JOIN LATERAL (
-            SELECT e.*
-            FROM entregable e
-            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-            WHERE et.tema_id = ut.tema_id
-              AND e.fecha_inicio > v_current_date
-              AND e.activo = TRUE
-              AND et.activo = TRUE
-            ORDER BY e.fecha_inicio ASC
-            LIMIT 1
-        ) e_next ON TRUE
-        -- Estado del envío del entregable
-        LEFT JOIN entregable_x_tema et_next ON et_next.tema_id = ut.tema_id AND et_next.entregable_id = e_next.entregable_id AND et_next.activo = TRUE
-        WHERE ut.activo = TRUE
-        AND current_entregable.entregable_id IS NULL;
+    UNION ALL
+
+    -- Segunda consulta: Tesistas sin entregables actuales pero con próximos entregables (SIN CAMBIOS)
+    SELECT
+        ut.tema_id,
+        ut.usuario_id AS tesista_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        -- NUEVAS COLUMNAS
+        t.titulo AS titulo_tema,
+        ef.nombre AS etapa_formativa_nombre,
+        COALESCE(car.nombre, 'Sin carrera') AS carrera,
+        -- Información del próximo entregable
+        e_next.entregable_id,
+        e_next.nombre,
+        e_next.descripcion,
+        e_next.fecha_inicio,
+        e_next.fecha_fin,
+        e_next.estado::VARCHAR,
+        et_next.estado::VARCHAR,
+        et_next.fecha_envio
+    FROM usuario_tema ut
+    JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    -- JOIN para obtener datos del tema
+    JOIN tema t ON t.tema_id = ut.tema_id
+    -- JOIN para obtener la carrera del tesista
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+    LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+    -- JOIN para obtener la etapa formativa
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+        SELECT ef2.etapa_formativa_id
+        FROM etapa_formativa ef2
+        WHERE ef2.carrera_id = uc.carrera_id
+        AND ef2.activo = TRUE
+        ORDER BY ef2.fecha_creacion DESC
+        LIMIT 1
+    ) AND efc.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    -- Obtener el tema de los tesistas asesorados
+    JOIN (
+        SELECT ut2.tema_id
+        FROM usuario_tema ut2
+        JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+        WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+    ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+    -- Verifica que no haya entregable actual
+    LEFT JOIN LATERAL (
+        SELECT e.entregable_id
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.fecha_inicio <= v_current_date
+          AND e.fecha_fin >= v_current_date
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        LIMIT 1
+    ) current_entregable ON TRUE
+    -- Datos del próximo entregable
+    JOIN LATERAL (
+        SELECT e.*
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.fecha_inicio > v_current_date
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        ORDER BY e.fecha_inicio ASC
+        LIMIT 1
+    ) e_next ON TRUE
+    -- Estado del envío del entregable
+    LEFT JOIN entregable_x_tema et_next ON et_next.tema_id = ut.tema_id AND et_next.entregable_id = e_next.entregable_id AND et_next.activo = TRUE
+    WHERE ut.activo = TRUE
+    AND t.activo = TRUE  -- NUEVO: Asegurar que el tema esté activo
+    AND u.activo = TRUE  -- NUEVO: Asegurar que el usuario esté activo
+    AND current_entregable.entregable_id IS NULL
+
+    UNION ALL
+
+    -- TERCERA CONSULTA NUEVA: Tesistas sin entregables pero asignados recientemente
+    SELECT
+        ut.tema_id,
+        ut.usuario_id AS tesista_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        -- NUEVAS COLUMNAS
+        t.titulo AS titulo_tema,
+        ef.nombre AS etapa_formativa_nombre,
+        COALESCE(car.nombre, 'Sin carrera') AS carrera,
+        -- Información de "sin entregables" manteniendo la estructura
+        NULL::integer as entregable_actual_id,
+        'Sin entregables configurados'::VARCHAR as entregable_actual_nombre,
+        'Tesista recién asignado sin entregables'::text as entregable_actual_descripcion,
+        NULL::timestamp with time zone as entregable_actual_fecha_inicio,
+        NULL::timestamp with time zone as entregable_actual_fecha_fin,
+        'sin_entregables'::VARCHAR as entregable_actual_estado,
+        'no_aplica'::VARCHAR as entregable_envio_estado,
+        NULL::timestamp with time zone as entregable_envio_fecha
+    FROM usuario_tema ut
+    JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    -- JOIN para obtener datos del tema
+    JOIN tema t ON t.tema_id = ut.tema_id
+    -- JOIN para obtener la carrera del tesista
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+    LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+    -- JOIN para obtener la etapa formativa
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+        SELECT ef2.etapa_formativa_id
+        FROM etapa_formativa ef2
+        WHERE ef2.carrera_id = uc.carrera_id
+        AND ef2.activo = TRUE
+        ORDER BY ef2.fecha_creacion DESC
+        LIMIT 1
+    ) AND efc.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    -- Obtener el tema de los tesistas asesorados
+    JOIN (
+        SELECT ut2.tema_id
+        FROM usuario_tema ut2
+        JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+        WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+    ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+    -- Verificar que NO tiene entregables
+    LEFT JOIN LATERAL (
+        SELECT e.entregable_id
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        LIMIT 1
+    ) any_entregable ON TRUE
+    WHERE ut.activo = TRUE
+    AND t.activo = TRUE                               -- NUEVO: Tema activo
+    AND u.activo = TRUE                               -- NUEVO: Usuario activo
+    AND any_entregable.entregable_id IS NULL          -- Sin entregables
+    AND ut.fecha_creacion >= v_limite_asignacion;     -- NUEVO: Asignado recientemente (últimos 3 meses)
 END;
 $$;
 
