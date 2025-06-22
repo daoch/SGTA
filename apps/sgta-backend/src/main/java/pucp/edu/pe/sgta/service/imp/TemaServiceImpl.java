@@ -3746,9 +3746,12 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
                 case "Solicitud de cambio de resumen" ->
                         "SELECT atender_solicitud_alumno_resumen(:solicitudId,:coordinadorId,:respuesta)";
                 case "Solicitud de cambio de título" ->
-                        "SELECT atender_solicitud_alumno_titulo(:solicitudId,:coordinadorId,:titulo,:respuesta)";
+                        "SELECT atender_solicitud_alumno_titulo(:solicitudId,:coordinadorId,:respuesta)";
                 case "Solicitud de cambio de objetivos" -> "SELECT atender_solicitud_alumno_objetivos(:solicitudId,:coordinadorId,:respuesta)";
-                default -> throw new RuntimeException("Tipo de solicitud no reconocido: " + tipo);
+
+				case "Solicitud de cambio de subárea academica" -> "SELECT atender_solicitud_alumno_subarea(:solicitudId,:coordinadorId,:respuesta)";
+
+				default -> throw new RuntimeException("Tipo de solicitud no reconocido: " + tipo);
             }; 
 
             Query nativeQuery = entityManager.createNativeQuery(query)
@@ -3760,6 +3763,10 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
             Number result = (Number) nativeQuery.getSingleResult();
 
+			Tema temaAux = temaRepository.findById(solicitud.getTema().getId())
+					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + solicitud.getTema().getId()));
+
+			saveHistorialTemaChange(temaAux, temaAux.getTitulo(), temaAux.getResumen(), "Solicitud de " + tipo.getNombre() + "aprobada" );
 
 		} catch (Exception e) {
 			Logger.getLogger(TemaServiceImpl.class.getName())

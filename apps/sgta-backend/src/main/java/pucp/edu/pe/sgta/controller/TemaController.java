@@ -855,7 +855,7 @@ public class TemaController {
 	}
 
 
-	@PostMapping("/updateTituloResumenTemaSolicitudCoordinadorAlumno")
+	@PostMapping("/updatesolicitudesCoordinador")
 	public void updateSolicitudesCoordinador(Integer solicitudId,String respuesta,
 		HttpServletRequest request) {
 			try {
