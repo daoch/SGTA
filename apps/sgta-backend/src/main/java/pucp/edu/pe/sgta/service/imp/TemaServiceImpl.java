@@ -2111,7 +2111,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				tema,
 				tema.getTitulo(),
 				tema.getResumen(),
-				comentario == null ? "" : comentario);
+				"El coordinador cambió el estado de tema a " + nuevoEstadoNombre);
 		return tema;
 	}
 
