@@ -511,6 +511,7 @@ public class TemaController {
 			@RequestParam(value = "estadoNombre", required = false) String estadoNombre,
 			@RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
 			@RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
+			@RequestParam(value = "rolNombre", required = false) String rolNombre,
 			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
 			@RequestParam(value = "offset", defaultValue = "0") Integer offset,
 			HttpServletRequest request
@@ -538,6 +539,7 @@ public class TemaController {
 				filtroEstado,
 				fechaDesde,
 				fechaHasta,
+				rolNombre,
 				limit,
 				offset
 		);

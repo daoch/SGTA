@@ -2576,6 +2576,7 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_f
     p_estado_nombre             TEXT    DEFAULT '',
     p_fecha_creacion_desde      DATE    DEFAULT NULL,
     p_fecha_creacion_hasta      DATE    DEFAULT NULL,
+    p_rol                        TEXT    DEFAULT '',
     p_limit                     INT     DEFAULT 10,
     p_offset                    INT     DEFAULT 0
 )
@@ -2903,6 +2904,20 @@ AS $func$
       AND (
         p_fecha_creacion_hasta IS NULL
         OR t.fecha_creacion::DATE <= p_fecha_creacion_hasta
+      )
+
+      AND (
+           p_rol = ''
+        OR EXISTS (
+            SELECT 1
+              FROM usuario_tema ut
+              JOIN rol         r  ON r.rol_id = ut.rol_id
+             WHERE ut.tema_id = t.tema_id
+               AND ut.usuario_id = p_usuario_id
+               AND ut.activo     = TRUE
+               AND ut.rechazado   = FALSE
+               AND r.nombre ILIKE p_rol
+          )
       )
 
     GROUP BY

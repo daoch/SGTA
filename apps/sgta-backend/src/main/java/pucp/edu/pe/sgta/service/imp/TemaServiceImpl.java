@@ -2807,6 +2807,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			String estadoNombre,
 			LocalDate fechaCreacionDesde,
 			LocalDate fechaCreacionHasta,
+			String rolNombre,
 			Integer limit,
 			Integer offset) {
 		// 1) Traducir Cognito ID a ID interno
@@ -2829,6 +2830,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		// 3) Normalizar cadenas para evitar null
 		String filtroTitulo = (titulo != null ? titulo : "");
 		String filtroEstado = (estadoNombre != null ? estadoNombre : "");
+		String filtroRol = (rolNombre != null ? rolNombre : "");
 
 		Integer pagLimit = (limit != null ? limit : 10);
 		Integer pagOffset = (offset != null ? offset : 0);
@@ -2842,6 +2844,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				filtroEstado,
 				sqlFechaDesde,
 				sqlFechaHasta,
+				filtroRol,
 				pagLimit,
 				pagOffset);
 
