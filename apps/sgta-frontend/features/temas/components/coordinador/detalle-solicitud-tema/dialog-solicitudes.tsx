@@ -60,6 +60,7 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [aprobadas, setAprobadas] = useState<Record<number, boolean>>({}); // Solicitudes aprobadas
+  const [dialogAbierto, setDialogAbierto] = useState<number | null>(null); // NUEVO: id de solicitud con diálogo abierto
 
   const handleToggleAtendida = (id: number) => {
     setAprobadas((prev) => {
@@ -149,6 +150,18 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
     SolicitudType.CAMBIO_TITULO,
   ];
 
+  function requiresApproval(sol: SolicitudTema): boolean {
+    return (
+      !tiposAprobacion.includes(sol.tipo_solicitud as SolicitudType) &&
+      sol.estado_solicitud === "PENDIENTE"
+    );
+  }
+
+  function handleAceptarSolicitud(solicitud_id: number) {
+    handleToggleAtendida(solicitud_id);
+    setDialogAbierto(null);
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{actionButton}</DialogTrigger>
@@ -177,32 +190,64 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
                   </Badge>
                 </div>
                 {/* Button Atender Solicitud */}
-                {!tiposAprobacion.includes(
-                  sol.tipo_solicitud as SolicitudType,
-                ) &&
-                  sol.estado_solicitud === "PENDIENTE" && (
-                    <button
-                      type="button"
-                      onClick={() => handleToggleAtendida(sol.solicitud_id)}
-                      className={
-                        isAprobada
-                          ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
-                          : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
-                      }
-                    >
-                      <CheckCircle
+                {requiresApproval(sol) && (
+                  <Dialog
+                    open={dialogAbierto === sol.solicitud_id}
+                    onOpenChange={(o) =>
+                      setDialogAbierto(o ? sol.solicitud_id : null)
+                    }
+                  >
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={isAprobada}
                         className={
                           isAprobada
-                            ? "w-4 h-4 text-white"
-                            : "w-4 h-4 text-gray-400"
+                            ? "flex items-center gap-1 px-3 py-1 rounded bg-green-600 text-white font-medium transition-colors"
+                            : "flex items-center gap-1 px-3 py-1 rounded border border-gray-200 text-[#23293B] font-medium bg-white hover:bg-gray-50 transition-colors"
                         }
-                        fill={isAprobada ? "currentColor" : "none"}
-                      />
-                      {isAprobada
-                        ? dialogTexts.aprobarButton.aprobado
-                        : dialogTexts.aprobarButton.porAprobar}
-                    </button>
-                  )}
+                      >
+                        <CheckCircle
+                          className={
+                            isAprobada
+                              ? "w-4 h-4 text-white"
+                              : "w-4 h-4 text-gray-400"
+                          }
+                          fill={isAprobada ? "currentColor" : "none"}
+                        />
+                        {isAprobada
+                          ? dialogTexts.aprobarButton.aprobado
+                          : dialogTexts.aprobarButton.porAprobar}
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirmar aceptación</DialogTitle>
+                        <div className="text-sm text-gray-500">
+                          ¿Seguro de marcar esta solicitud como aceptada?
+                        </div>
+                      </DialogHeader>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <button
+                          type="button"
+                          className="px-3 py-1 rounded border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                          onClick={() => setDialogAbierto(null)}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1 rounded bg-green-600 text-white font-medium hover:bg-green-700"
+                          onClick={() =>
+                            handleAceptarSolicitud(sol.solicitud_id)
+                          }
+                        >
+                          Confirmar
+                        </button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             );
           })}
