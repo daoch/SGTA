@@ -241,5 +241,5 @@ public interface TemaService {
 								  String comentario);
 
 	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
-
+	void updateSolicitudesCoordinador(String usuarioId,Integer solicitudId,String respuesta);
 }
