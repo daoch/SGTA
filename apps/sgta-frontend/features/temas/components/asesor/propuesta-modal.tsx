@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { CheckCircle, Send, X } from "lucide-react";
 import { useState } from "react";
 import { buscarTemasSimilaresALaPropuesta } from "../../types/propuestas/data";
 import { Proyecto_M, TemaSimilar } from "../../types/propuestas/entidades";
@@ -210,7 +210,11 @@ export function PropuestasModal({
             <div className="space-y-1">
               <Label>Fecha Límite</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
-                <p>{new Date(data.fechaLimite).toLocaleDateString()}</p>
+                {data.fechaLimite === null ? (
+                  <p className="text-gray-500"> No hay fecha límite </p>
+                ) : (
+                  <p>{new Date(data.fechaLimite).toLocaleDateString()}</p>
+                )}
               </div>
             </div>
           </div>
@@ -226,20 +230,6 @@ export function PropuestasModal({
             <Label>Objetivos</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>{data.objetivos}</p>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label>Recursos</Label>
-            <div className="p-3 bg-gray-50 rounded-md border">
-              {data.portafolioUrl && data.portafolioUrl.length > 0 ? (
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-blue-500" />
-                  <span>{data.portafolioUrl}</span>
-                </div>
-              ) : (
-                <p className="text-gray-400">No hay recursos disponibles</p>
-              )}
             </div>
           </div>
 

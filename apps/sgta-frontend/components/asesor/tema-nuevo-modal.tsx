@@ -114,6 +114,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
   const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
+
+  const areasFiltradas = areasDisponibles.filter(
+    (area) => area.idCarrera === carreraSeleccionada?.id,
+  );
   //Llenado de datos
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
@@ -475,7 +479,6 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }
   };
   console.log(areasDisponibles);
-  console.log(carreras);
   return (
     <>
       <Toaster richColors position="bottom-right" />
@@ -564,7 +567,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 <Label>Áreas de Conocimiento</Label>
                 <Select
                   onValueChange={(value) => {
-                    const areaSeleccionada = areasDisponibles.find(
+                    const areaSeleccionada = areasFiltradas.find(
                       (area) => String(area.id) === value,
                     );
                     if (areaSeleccionada) {
@@ -577,7 +580,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <SelectValue placeholder="Seleccione un área" />
                   </SelectTrigger>
                   <SelectContent>
-                    {areasDisponibles.map((area) => (
+                    {areasFiltradas.map((area) => (
                       <SelectItem key={area.id} value={String(area.id)}>
                         {area.nombre}
                       </SelectItem>
