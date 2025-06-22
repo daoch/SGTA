@@ -1546,3 +1546,42 @@ $function$;
 
 $$;
 
+
+
+CREATE OR REPLACE PROCEDURE set_refresh_token(p_id_usuario INT, p_refresh_token TEXT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    var_usuario_carrera INT;
+BEGIN
+    -- Validación inicial
+    IF p_id_usuario IS NULL THEN
+        RAISE EXCEPTION 'El ID de usuario no puede ser NULL';
+    END IF;
+
+    -- Verificar si el usuario existe
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id_usuario) THEN
+        RAISE EXCEPTION 'No existe el usuario con ID %', p_id_usuario;
+    END IF;
+
+    -- Obtener el usuario_carrera si es coordinador
+    SELECT usuario_carrera_id
+    INTO var_usuario_carrera
+    FROM usuario_carrera
+    WHERE usuario_id = p_id_usuario AND es_coordinador = true;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario no está relacionado a una carrera o no es coordinador';
+    END IF;
+
+    -- Actualizar el refresh_token
+    UPDATE usuario_carrera
+    SET refresh_token = p_refresh_token
+    WHERE usuario_carrera_id = var_usuario_carrera;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se pudo actualizar el token del usuario %', p_id_usuario;
+    END IF;
+
+END;
+$$;

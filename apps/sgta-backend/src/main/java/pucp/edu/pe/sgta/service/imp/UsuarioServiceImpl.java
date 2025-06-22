@@ -1618,8 +1618,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public PerfilUsuarioDto getPerfilUsuario(String cognitoId) {
-        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(cognitoId);
+    public PerfilUsuarioDto getPerfilUsuario(Integer usuarioId) {
+        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(usuarioId);
         if(queryResult.isEmpty()) {
             throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
         }

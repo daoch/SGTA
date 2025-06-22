@@ -426,18 +426,17 @@ $BODY$;
 
 CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
-    RETURNS TABLE(area_id integer, area_nombre text, descripcion text)
+    RETURNS TABLE(area_id integer, area_nombre text, descripcion text,carrera_area integer)
     LANGUAGE 'sql'
     COST 100
     VOLATILE PARALLEL UNSAFE
     ROWS 1000
 
 AS $BODY$
-    SELECT DISTINCT  ac.area_conocimiento_id,ac.nombre,ac.descripcion
-    FROM usuario_sub_area_conocimiento usac
-    JOIN sub_area_conocimiento sac ON usac.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-    JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
-    WHERE usac.usuario_id = p_usuario_id;
+    SELECT ac.area_conocimiento_id,ac.nombre,ac.descripcion,ac.carrera_id
+    FROM usuario_area_conocimiento usac
+    JOIN area_conocimiento ac ON usac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE usac.usuario_id = p_usuario_id and usac.activo = true;
 $BODY$;
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
@@ -2577,6 +2576,7 @@ CREATE OR REPLACE FUNCTION listar_temas_por_usuario_titulo_area_carrera_estado_f
     p_estado_nombre             TEXT    DEFAULT '',
     p_fecha_creacion_desde      DATE    DEFAULT NULL,
     p_fecha_creacion_hasta      DATE    DEFAULT NULL,
+    p_rol                        TEXT    DEFAULT '',
     p_limit                     INT     DEFAULT 10,
     p_offset                    INT     DEFAULT 0
 )
@@ -2904,6 +2904,20 @@ AS $func$
       AND (
         p_fecha_creacion_hasta IS NULL
         OR t.fecha_creacion::DATE <= p_fecha_creacion_hasta
+      )
+
+      AND (
+           p_rol = ''
+        OR EXISTS (
+            SELECT 1
+              FROM usuario_tema ut
+              JOIN rol         r  ON r.rol_id = ut.rol_id
+             WHERE ut.tema_id = t.tema_id
+               AND ut.usuario_id = p_usuario_id
+               AND ut.activo     = TRUE
+               AND ut.rechazado   = FALSE
+               AND r.nombre ILIKE p_rol
+          )
       )
 
     GROUP BY
@@ -4582,3 +4596,479 @@ BEGIN
     RAISE NOTICE 'Se ha eliminado el tema % y todas sus dependencias.', p_tema_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION validar_tesistas_sin_tema_asignado(
+    p_tesistas   INTEGER[],
+    p_carrera_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    tesista_id   INTEGER;
+    conflicto    INTEGER;
+BEGIN
+    FOREACH tesista_id IN ARRAY p_tesistas LOOP
+        -- Contamos los registros que violan las reglas
+        SELECT COUNT(*) INTO conflicto
+        FROM usuario_tema ut
+        JOIN tema t
+          ON ut.tema_id = t.tema_id
+        JOIN estado_tema et
+          ON t.estado_tema_id = et.estado_tema_id
+        WHERE ut.usuario_id   = tesista_id
+          AND ut.activo       = TRUE
+          AND ut.asignado     = TRUE
+          AND t.activo        = TRUE
+          AND t.carrera_id    = p_carrera_id
+          AND et.nombre       NOT IN ('FINALIZADO','VENCIDO','PAUSADO');
+
+        IF conflicto > 0 THEN
+            RAISE EXCEPTION
+                'El tesista % ya está asignado a un tema en otra carrera y en estado no permitido',
+                tesista_id;
+        END IF;
+    END LOOP;
+END;
+$$;
+
+
+-- DROP FUNCTION sgtadb.atender_solicitud_alumno_objetivos(int4, int4, text);
+
+CREATE OR REPLACE FUNCTION atender_solicitud_alumno_objetivos(p_solicitud_id integer, p_coordinador_id integer, p_response text)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_tema_id                INTEGER;
+    v_current_estado         INTEGER;
+    v_accion_aprobado_id     INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_estado_pendiente_id    INTEGER;
+	v_objetivos_nuevo TEXT;
+	v_estado_solicitud_aceptada  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+    -- Obtener IDs necesarios
+    SELECT accion_solicitud_id INTO v_accion_aprobado_id
+      FROM accion_solicitud WHERE nombre = 'APROBADO';
+
+    SELECT accion_solicitud_id INTO v_accion_pendiente_id
+      FROM accion_solicitud WHERE nombre = 'PENDIENTE_ACCION';
+
+    SELECT rol_solicitud_id INTO v_rol_destinatario_id
+      FROM rol_solicitud WHERE nombre = 'DESTINATARIO';
+
+    SELECT rol_solicitud_id INTO v_rol_remitente_id
+      FROM rol_solicitud WHERE nombre = 'REMITENTE';
+
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+    FROM estado_solicitud WHERE nombre = 'PENDIENTE';
+
+	SELECT estado_solicitud_id INTO v_estado_solicitud_aceptada
+    FROM estado_solicitud WHERE nombre = 'ACEPTADA';
+
+    -- Bloquear solicitud
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+      FROM solicitud
+     WHERE solicitud_id = p_solicitud_id
+       FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+
+    IF v_current_estado <> v_estado_pendiente_id THEN
+        RAISE EXCEPTION 'SOLICITUD %d no esta en estado PENDIENTE', p_solicitud_id;
+    END IF;
+
+	select split_part(comentario, '|@@|', 1) into v_objetivos_nuevo 
+	from usuario_solicitud
+	where solicitud_id = p_solicitud_id 
+	  and usuario_id = p_coordinador_id 
+	  and rol_solicitud = v_rol_destinatario_id;
+
+    -- Actualizar resumen y solicitud
+    UPDATE tema
+       SET objetivos            = v_objetivos_nuevo,
+           fecha_modificacion = NOW()
+     WHERE tema_id = v_tema_id;
+
+    UPDATE solicitud
+       SET respuesta          = p_response,
+           fecha_modificacion = NOW(),
+		   estado_solicitud = v_estado_solicitud_aceptada
+     WHERE solicitud_id = p_solicitud_id;
+
+    -- ✅ Actualizar DESTINATARIO (alumno o asesor) a APROBADO + comentario
+    UPDATE usuario_solicitud
+       SET solicitud_completada = TRUE,
+           accion_solicitud  = v_accion_aprobado_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id
+		AND usuario_id = p_coordinador_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_solicitud DESTINATARIO para solicitud %', p_solicitud_id;
+    END IF;
+
+--borramos las otras solicitudes a los otros coordinadores
+	update usuario_solicitud
+		set activo = false
+		 WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id;
+
+    -- 🔄 Actualizar REMITENTE (coordinador) a PENDIENTE_ACCION + comentario
+    UPDATE usuario_solicitud
+       SET accion_solicitud  = v_accion_pendiente_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_remitente_id;
+
+    RETURN v_current_estado;
+END;
+$function$
+;
+
+-- DROP FUNCTION sgtadb.atender_solicitud_alumno_resumen(int4, int4, text);
+
+CREATE OR REPLACE FUNCTION atender_solicitud_alumno_resumen(p_solicitud_id integer, p_coordinador_id integer, p_response text)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_tema_id                INTEGER;
+    v_current_estado         INTEGER;
+    v_accion_aprobado_id     INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_estado_pendiente_id    INTEGER;
+	v_resumen_nuevo TEXT;
+	v_estado_solicitud_aceptada  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+    -- Obtener IDs necesarios
+    SELECT accion_solicitud_id INTO v_accion_aprobado_id
+      FROM accion_solicitud WHERE nombre = 'APROBADO';
+
+    SELECT accion_solicitud_id INTO v_accion_pendiente_id
+      FROM accion_solicitud WHERE nombre = 'PENDIENTE_ACCION';
+
+    SELECT rol_solicitud_id INTO v_rol_destinatario_id
+      FROM rol_solicitud WHERE nombre = 'DESTINATARIO';
+
+    SELECT rol_solicitud_id INTO v_rol_remitente_id
+      FROM rol_solicitud WHERE nombre = 'REMITENTE';
+
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+    FROM estado_solicitud WHERE nombre = 'PENDIENTE';
+
+	SELECT estado_solicitud_id INTO v_estado_solicitud_aceptada
+    FROM estado_solicitud WHERE nombre = 'ACEPTADA';
+
+    -- Bloquear solicitud
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+      FROM solicitud
+     WHERE solicitud_id = p_solicitud_id
+       FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+
+    IF v_current_estado <> v_estado_pendiente_id THEN
+        RAISE EXCEPTION 'SOLICITUD %d no esta en estado PENDIENTE', p_solicitud_id;
+    END IF;
+
+	select split_part(comentario, '|@@|', 1) into v_resumen_nuevo 
+	from usuario_solicitud
+	where solicitud_id = p_solicitud_id 
+	  and usuario_id = p_coordinador_id 
+	  and rol_solicitud = v_rol_destinatario_id;
+
+    -- Actualizar resumen y solicitud
+    UPDATE tema
+       SET resumen            = v_resumen_nuevo,
+           fecha_modificacion = NOW()
+     WHERE tema_id = v_tema_id;
+
+    UPDATE solicitud
+       SET respuesta          = p_response,
+           fecha_modificacion = NOW(),
+		   estado_solicitud = v_estado_solicitud_aceptada
+     WHERE solicitud_id = p_solicitud_id;
+
+    -- ✅ Actualizar DESTINATARIO (alumno o asesor) a APROBADO + comentario
+    UPDATE usuario_solicitud
+       SET solicitud_completada = TRUE,
+           accion_solicitud  = v_accion_aprobado_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id
+		AND usuario_id = p_coordinador_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_solicitud DESTINATARIO para solicitud %', p_solicitud_id;
+    END IF;
+
+--borramos las otras solicitudes a los otros coordinadores
+	update usuario_solicitud
+		set activo = false
+		 WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id;
+
+    -- 🔄 Actualizar REMITENTE (coordinador) a PENDIENTE_ACCION + comentario
+    UPDATE usuario_solicitud
+       SET accion_solicitud  = v_accion_pendiente_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_remitente_id;
+
+    RETURN v_current_estado;
+END;
+$function$
+;
+
+-- DROP FUNCTION sgtadb.atender_solicitud_alumno_subarea(int4, int4, text);
+
+CREATE OR REPLACE FUNCTION atender_solicitud_alumno_subarea(p_solicitud_id integer, p_coordinador_id integer, p_response text)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_tema_id INTEGER;
+    v_current_estado INTEGER;
+    v_subareas_nuevas TEXT[];
+    v_area_actual_id INTEGER;
+    v_area_nueva_id INTEGER;
+    v_subarea_id INTEGER;
+    v_area_subarea INTEGER;
+    v_rol_destinatario_id INTEGER;
+    v_existe_subarea BOOLEAN;
+BEGIN
+    -- Validar entrada
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID no puede ser NULL';
+    END IF;
+
+    -- Obtener el tema asociado a la solicitud
+    SELECT tema_id, estado INTO v_tema_id, v_current_estado
+    FROM solicitud
+    WHERE solicitud_id = p_solicitud_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe la solicitud %', p_solicitud_id;
+    END IF;
+
+    -- Obtener ID de rol DESTINATARIO
+    SELECT rol_solicitud_id INTO v_rol_destinatario_id
+    FROM rol_solicitud
+    WHERE nombre = 'DESTINATARIO';
+
+    -- Inactivar todas las subáreas del tema
+    UPDATE sub_area_conocimiento_tema
+    SET activo = FALSE
+    WHERE tema_id = v_tema_id;
+
+    -- Obtener subáreas nuevas desde el comentario del coordinador
+    SELECT string_to_array(split_part(comentario, '|@@|', 2), ',')
+    INTO v_subareas_nuevas
+    FROM usuario_solicitud
+    WHERE solicitud_id = p_solicitud_id
+      AND usuario_id = p_coordinador_id
+      AND rol_solicitud = v_rol_destinatario_id;
+
+    IF v_subareas_nuevas IS NULL OR array_length(v_subareas_nuevas, 1) = 0 THEN
+        RAISE EXCEPTION 'No se encontraron subáreas nuevas en el comentario.';
+    END IF;
+
+    -- Procesar las subáreas nuevas
+    FOREACH v_subarea_id IN ARRAY v_subareas_nuevas LOOP
+        
+        -- Verificar si ya existe una entrada inactiva
+        SELECT EXISTS (
+            SELECT 1
+            FROM sub_area_conocimiento_tema
+            WHERE tema_id = v_tema_id AND subarea_id = v_subarea_id::INTEGER
+        ) INTO v_existe_subarea;
+
+        IF v_existe_subarea THEN
+            -- Reactivar si ya existe
+            UPDATE sub_area_conocimiento_tema
+            SET activo = TRUE,fecha_modificacion = now()
+            WHERE tema_id = v_tema_id AND subarea_id = v_subarea_id::INTEGER;
+        ELSE
+            -- Insertar nueva si no existe
+            INSERT INTO sub_area_conocimiento_tema (tema_id, subarea_id, activo,fecha_creacion,fecha_modificacion)
+            VALUES (v_tema_id, v_subarea_id::INTEGER, TRUE,now(),now());
+        END IF;
+    END LOOP;
+
+    -- Si el área cambió, actualizar el tema
+    IF v_area_nueva_id IS NOT NULL AND v_area_actual_id IS DISTINCT FROM v_area_nueva_id THEN
+        UPDATE tema
+        SET area_id = v_area_nueva_id,
+            fecha_modificacion = NOW()
+        WHERE tema_id = v_tema_id;
+    END IF;
+
+
+	 UPDATE solicitud
+       SET respuesta          = p_response,
+           fecha_modificacion = NOW(),
+		   estado_solicitud = v_estado_solicitud_aceptada
+     WHERE solicitud_id = p_solicitud_id;
+
+    -- ✅ Actualizar DESTINATARIO (alumno o asesor) a APROBADO + comentario
+    UPDATE usuario_solicitud
+       SET solicitud_completada = TRUE,
+           accion_solicitud  = v_accion_aprobado_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id
+		AND usuario_id = p_coordinador_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_solicitud DESTINATARIO para solicitud %', p_solicitud_id;
+    END IF;
+
+--borramos las otras solicitudes a los otros coordinadores
+	update usuario_solicitud
+		set activo = false
+		 WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id;
+
+    -- 🔄 Actualizar REMITENTE (coordinador) a PENDIENTE_ACCION + comentario
+    UPDATE usuario_solicitud
+       SET accion_solicitud  = v_accion_pendiente_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_remitente_id;
+
+    RETURN v_current_estado;
+END;
+$function$
+;
+
+
+-- DROP FUNCTION sgtadb.atender_solicitud_alumno_titulo(int4, int4, text);
+
+CREATE OR REPLACE FUNCTION tender_solicitud_alumno_titulo(p_solicitud_id integer, p_coordinador_id integer, p_response text)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_tema_id                INTEGER;
+    v_current_estado         INTEGER;
+    v_accion_aprobado_id     INTEGER;
+    v_accion_pendiente_id    INTEGER;
+    v_rol_destinatario_id    INTEGER;
+    v_rol_remitente_id       INTEGER;
+    v_estado_pendiente_id    INTEGER;
+	v_titulo_nuevo TEXT;
+	v_estado_solicitud_aceptada  INTEGER;
+BEGIN
+    IF p_solicitud_id IS NULL THEN
+        RAISE EXCEPTION 'Solicitud ID cannot be null';
+    END IF;
+    -- Obtener IDs necesarios
+    SELECT accion_solicitud_id INTO v_accion_aprobado_id
+      FROM accion_solicitud WHERE nombre = 'APROBADO';
+
+    SELECT accion_solicitud_id INTO v_accion_pendiente_id
+      FROM accion_solicitud WHERE nombre = 'PENDIENTE_ACCION';
+
+    SELECT rol_solicitud_id INTO v_rol_destinatario_id
+      FROM rol_solicitud WHERE nombre = 'DESTINATARIO';
+
+    SELECT rol_solicitud_id INTO v_rol_remitente_id
+      FROM rol_solicitud WHERE nombre = 'REMITENTE';
+
+    SELECT estado_solicitud_id INTO v_estado_pendiente_id
+    FROM estado_solicitud WHERE nombre = 'PENDIENTE';
+
+	SELECT estado_solicitud_id INTO v_estado_solicitud_aceptada
+    FROM estado_solicitud WHERE nombre = 'ACEPTADA';
+
+    -- Bloquear solicitud
+    SELECT tema_id, estado
+      INTO v_tema_id, v_current_estado
+      FROM solicitud
+     WHERE solicitud_id = p_solicitud_id
+       FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No existe solicitud %', p_solicitud_id;
+    END IF;
+
+    IF v_current_estado <> v_estado_pendiente_id THEN
+        RAISE EXCEPTION 'SOLICITUD %d no esta en estado PENDIENTE', p_solicitud_id;
+    END IF;
+
+	select split_part(comentario, '|@@|', 1) into v_titulo_nuevo 
+	from usuario_solicitud
+	where solicitud_id = p_solicitud_id 
+	  and usuario_id = p_coordinador_id 
+	  and rol_solicitud = v_rol_destinatario_id;
+
+    -- Actualizar resumen y solicitud
+    UPDATE tema
+       SET titulo            = v_titulo_nuevo,
+           fecha_modificacion = NOW()
+     WHERE tema_id = v_tema_id;
+
+    UPDATE solicitud
+       SET respuesta          = p_response,
+           fecha_modificacion = NOW(),
+		   estado_solicitud = v_estado_solicitud_aceptada
+     WHERE solicitud_id = p_solicitud_id;
+
+    -- ✅ Actualizar DESTINATARIO (alumno o asesor) a APROBADO + comentario
+    UPDATE usuario_solicitud
+       SET solicitud_completada = TRUE,
+           accion_solicitud  = v_accion_aprobado_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id
+		AND usuario_id = p_coordinador_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_solicitud DESTINATARIO para solicitud %', p_solicitud_id;
+    END IF;
+
+--borramos las otras solicitudes a los otros coordinadores
+	update usuario_solicitud
+		set activo = false
+		 WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_destinatario_id;
+
+    -- 🔄 Actualizar REMITENTE (coordinador) a PENDIENTE_ACCION + comentario
+    UPDATE usuario_solicitud
+       SET accion_solicitud  = v_accion_pendiente_id,
+           comentario           = p_response,
+           fecha_modificacion   = NOW()
+     WHERE solicitud_id = p_solicitud_id
+       AND rol_solicitud = v_rol_remitente_id;
+
+    RETURN v_current_estado;
+END;
+$function$
+;

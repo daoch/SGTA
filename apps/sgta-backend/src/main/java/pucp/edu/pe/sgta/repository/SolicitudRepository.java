@@ -1,6 +1,6 @@
 package pucp.edu.pe.sgta.repository;
 
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.*;
 import pucp.edu.pe.sgta.model.EstadoSolicitud;
 import pucp.edu.pe.sgta.model.Solicitud;
 import pucp.edu.pe.sgta.model.Tema;
@@ -10,11 +10,8 @@ import pucp.edu.pe.sgta.model.Usuario;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // <<--- IMPORTAR ESTO
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +22,9 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Integer>, 
     List<Solicitud> findByTipoSolicitudNombre(String tipoSolicitudNombre);
 
     Optional<Solicitud> findById(Integer id);
+
+    @EntityGraph(attributePaths = {"tipoSolicitud"})
+    Optional<Solicitud> findWithTipoSolicitudById(Integer id);
 
     @Query(value = "SELECT * FROM get_solicitudes_by_tema(:input_tema_id, :offset_val, :limit_val)", nativeQuery = true)
     List<Object[]> findSolicitudesByTemaWithProcedure(@Param("input_tema_id") Integer temaId,
