@@ -15,23 +15,23 @@ const capitalizeNames = (name: string): string => {
   if (!name) return name;
   return name
     .toLowerCase()
-    .split(' ')
+    .split(" ")
     .map(word => {
       if (word.length === 0) return word;
       // Use proper Unicode-aware capitalization
-      return word.charAt(0).toLocaleUpperCase('es-ES') + word.slice(1).toLocaleLowerCase('es-ES');
+      return word.charAt(0).toLocaleUpperCase("es-ES") + word.slice(1).toLocaleLowerCase("es-ES");
     })
-    .join(' ');
+    .join(" ");
 };
 
 // Helper function to extract first and last name, handling middle names
 const extractFirstAndLastName = (fullName: string): { firstName: string; lastName: string } => {
-  if (!fullName) return { firstName: '', lastName: '' };
+  if (!fullName) return { firstName: "", lastName: "" };
   
-  const nameParts = fullName.trim().split(' ').filter(part => part.length > 0);
+  const nameParts = fullName.trim().split(" ").filter(part => part.length > 0);
   
-  if (nameParts.length === 0) return { firstName: '', lastName: '' };
-  if (nameParts.length === 1) return { firstName: nameParts[0], lastName: '' };
+  if (nameParts.length === 0) return { firstName: "", lastName: "" };
+  if (nameParts.length === 1) return { firstName: nameParts[0], lastName: "" };
   
   // For Latin America: take first name and last surname (skip middle names)
   const firstName = nameParts[0];
