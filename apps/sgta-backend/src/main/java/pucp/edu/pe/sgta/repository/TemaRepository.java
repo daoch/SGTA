@@ -132,6 +132,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         @Param("estadoNombre")  String estadoNombre,
         @Param("fechaDesde")    java.sql.Date fechaDesde,
         @Param("fechaHasta")    java.sql.Date fechaHasta,
+        @Param("filtroRol")     String filtroRol,
         @Param("limit")         Integer limit,
         @Param("offset")        Integer offset
     );
@@ -147,6 +148,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
           :nombreUsuario,
           :primerApellidoUsuario,
           :segundoApellidoUsuario,
+          :filtroRol,
           :limit,
           :offset
         )

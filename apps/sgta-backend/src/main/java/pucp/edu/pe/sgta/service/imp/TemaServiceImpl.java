@@ -2807,6 +2807,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			String estadoNombre,
 			LocalDate fechaCreacionDesde,
 			LocalDate fechaCreacionHasta,
+			String filtroRol,
 			Integer limit,
 			Integer offset) {
 		// 1) Traducir Cognito ID a ID interno
@@ -2842,6 +2843,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				filtroEstado,
 				sqlFechaDesde,
 				sqlFechaHasta,
+				filtroRol,
 				pagLimit,
 				pagOffset);
 

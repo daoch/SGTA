@@ -151,6 +151,7 @@ public interface TemaService {
         String estadoNombre,
         LocalDate fechaCreacionDesde,
         LocalDate fechaCreacionHasta,
+		String filtroRol,
         Integer limit,
         Integer offset
     );
