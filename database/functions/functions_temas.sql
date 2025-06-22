@@ -426,18 +426,17 @@ $BODY$;
 
 CREATE OR REPLACE FUNCTION listar_areas_conocimiento_por_usuario(
 	p_usuario_id integer)
-    RETURNS TABLE(area_id integer, area_nombre text, descripcion text)
+    RETURNS TABLE(area_id integer, area_nombre text, descripcion text,carrera_area integer)
     LANGUAGE 'sql'
     COST 100
     VOLATILE PARALLEL UNSAFE
     ROWS 1000
 
 AS $BODY$
-    SELECT DISTINCT  ac.area_conocimiento_id,ac.nombre,ac.descripcion
-    FROM usuario_sub_area_conocimiento usac
-    JOIN sub_area_conocimiento sac ON usac.sub_area_conocimiento_id = sac.sub_area_conocimiento_id
-    JOIN area_conocimiento ac ON sac.area_conocimiento_id = ac.area_conocimiento_id
-    WHERE usac.usuario_id = p_usuario_id;
+    SELECT ac.area_conocimiento_id,ac.nombre,ac.descripcion,ac.carrera_id
+    FROM usuario_area_conocimiento usac
+    JOIN area_conocimiento ac ON usac.area_conocimiento_id = ac.area_conocimiento_id
+    WHERE usac.usuario_id = p_usuario_id and usac.activo = true;
 $BODY$;
 
 CREATE OR REPLACE FUNCTION obtener_sub_areas_por_usuario(
