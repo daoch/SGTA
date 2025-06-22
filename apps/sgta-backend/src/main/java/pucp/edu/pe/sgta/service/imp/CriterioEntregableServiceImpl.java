@@ -81,6 +81,10 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
         for (Object[] fila : resultados) {
             CriterioEntregableDto dto = new CriterioEntregableDto();
+            dto.setRevision_documento_id((Integer) fila[0]);
+            dto.setUsuario_revisor_id((Integer) fila[1]);
+            dto.setEntregable_id((Integer) fila[2]);
+            dto.setEntregable_descripcion((String) fila[3]);
             dto.setId((Integer)fila[4]);
             dto.setDescripcion((String)fila[5]);
             dto.setNombre((String)fila[6]);
