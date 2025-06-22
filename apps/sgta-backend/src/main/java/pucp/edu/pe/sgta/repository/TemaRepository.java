@@ -120,6 +120,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
             :estadoNombre,
             :fechaDesde,
             :fechaHasta,
+            :filtroRol,
             :limit,
             :offset
           )
@@ -148,7 +149,6 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
           :nombreUsuario,
           :primerApellidoUsuario,
           :segundoApellidoUsuario,
-          :filtroRol,
           :limit,
           :offset
         )
