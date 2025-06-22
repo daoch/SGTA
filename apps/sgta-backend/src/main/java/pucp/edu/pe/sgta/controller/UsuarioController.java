@@ -82,17 +82,8 @@ public class UsuarioController {
     //Nuevo
 
     @GetMapping("/getPerfilUsuario")
-    public PerfilUsuarioDto getPerfilUsuario(HttpServletRequest request, @RequestParam(name = "idUsuario",required = false) Integer idUsuario) {
-        String cognitoId;
-
-        if (idUsuario != null) {
-            // Si se proporciona idUsuario, obtén el cognitoId desde el servicio o ignóralo si no es necesario
-            cognitoId = usuarioService.obtenerCognitoPorId(idUsuario);
-        } else {
-            cognitoId = jwtService.extractSubFromRequest(request);
-        }
-
-        return usuarioService.getPerfilUsuario(cognitoId);
+    public PerfilUsuarioDto getPerfilUsuario(HttpServletRequest request, @RequestParam(name = "idUsuario") Integer idUsuario) {
+        return usuarioService.getPerfilUsuario(idUsuario);
     }
     @PutMapping("/updatePerfilUsuario")
     public void updatePerfilAsesor(@RequestBody PerfilUsuarioDto dto) {
