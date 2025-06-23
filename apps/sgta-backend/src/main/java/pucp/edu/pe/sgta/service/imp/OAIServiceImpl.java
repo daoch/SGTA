@@ -25,6 +25,8 @@ import pucp.edu.pe.sgta.model.EtapaFormativaXCicloXTema;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.Rol;
+import pucp.edu.pe.sgta.model.SubAreaConocimientoXTema;
+import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.repository.EstadoTemaRepository;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.SubAreaConocimientoRepository;
@@ -38,6 +40,8 @@ import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloXTemaRepository;
 import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloRepository;
 import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
 import pucp.edu.pe.sgta.repository.RolRepository;
+import pucp.edu.pe.sgta.repository.SubAreaConocimientoXTemaRepository;
+import pucp.edu.pe.sgta.repository.UsuarioXCarreraRepository;
 import pucp.edu.pe.sgta.service.inter.OAIService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.RolEnum;
@@ -80,6 +84,8 @@ public class OAIServiceImpl implements OAIService {
     private final EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;    private final EtapaFormativaRepository etapaFormativaRepository;
     private final RolRepository rolRepository;
     private final TemaRepository temaRepository;
+    private final SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository;
+    private final UsuarioXCarreraRepository usuarioXCarreraRepository;
 
     @Value("${sbert.microservice.url:http://localhost:8000}")
     private String sbertServiceUrl;
@@ -97,7 +103,9 @@ public class OAIServiceImpl implements OAIService {
                          EtapaFormativaXCicloRepository etapaFormativaXCicloRepository,
                          EtapaFormativaRepository etapaFormativaRepository,
                          RolRepository rolRepository,
-                         TemaRepository temaRepository) {
+                         TemaRepository temaRepository,
+                         SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                         UsuarioXCarreraRepository usuarioXCarreraRepository) {
         this.restTemplate = restTemplate;
         this.temaService = temaService;
         this.estadoTemaRepository = estadoTemaRepository;
@@ -112,6 +120,8 @@ public class OAIServiceImpl implements OAIService {
         this.etapaFormativaRepository = etapaFormativaRepository;
         this.rolRepository = rolRepository;
         this.temaRepository = temaRepository;
+        this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
+        this.usuarioXCarreraRepository = usuarioXCarreraRepository;
     }@Override
     public Map<String, Object> configureOAIEndpoint(String endpoint) {
         try {
@@ -650,7 +660,7 @@ public class OAIServiceImpl implements OAIService {
             // 3. Create usuarios from OAI creators (tesistas)
             if (metadata.getCreator() != null && !metadata.getCreator().isEmpty()) {
                 for (String creatorName : metadata.getCreator()) {
-                    Usuario tesista = createOrGetUsuarioFromOAIName(creatorName, "alumno");
+                    Usuario tesista = createOrGetUsuarioFromOAIName(creatorName, "alumno", carreraId);
                     if (tesista != null) {
                         createUsuarioXTemaRelation(tema, tesista, "Tesista");
                     }
@@ -663,7 +673,7 @@ public class OAIServiceImpl implements OAIService {
                     String contributorName = metadata.getContributor().get(i);
                     String roleName = (i == 0) ? "Asesor" : "Coasesor";
                     
-                    Usuario asesor = createOrGetUsuarioFromOAIName(contributorName, roleName);
+                    Usuario asesor = createOrGetUsuarioFromOAIName(contributorName, roleName, carreraId);
                     if (asesor != null) {
                         createUsuarioXTemaRelation(tema, asesor, roleName);
                     }
@@ -781,7 +791,7 @@ public class OAIServiceImpl implements OAIService {
             return null;
         }
     }
-      private Usuario createOrGetUsuarioFromOAIName(String fullName, String expectedRole) {
+      private Usuario createOrGetUsuarioFromOAIName(String fullName, String expectedRole, Integer carreraId) {
         try {
             if (fullName == null || fullName.trim().isEmpty()) {
                 return null;
@@ -795,12 +805,20 @@ public class OAIServiceImpl implements OAIService {
             
             // Check if usuario already exists by searching all users
             List<Usuario> allUsers = usuarioRepository.findAll();
+            Usuario existingUser = null;
             for (Usuario user : allUsers) {
                 if (user.getNombres().equalsIgnoreCase(nombres) && 
                     user.getPrimerApellido().equalsIgnoreCase(primerApellido) &&
                     (segundoApellido.isEmpty() || user.getSegundoApellido().equalsIgnoreCase(segundoApellido))) {
-                    return user;
+                    existingUser = user;
+                    break;
                 }
+            }
+            
+            if (existingUser != null) {
+                // Create UsuarioXCarrera relation if it doesn't exist
+                createUsuarioXCarreraRelation(existingUser, carreraId);
+                return existingUser;
             }
             
             // Get appropriate TipoUsuario for the role
@@ -820,11 +838,48 @@ public class OAIServiceImpl implements OAIService {
             nuevoUsuario.setTipoUsuario(tipoUsuarioOpt.get());
             nuevoUsuario.setActivo(true);
             
-            return usuarioRepository.save(nuevoUsuario);
+            Usuario savedUsuario = usuarioRepository.save(nuevoUsuario);
+            
+            // Create UsuarioXCarrera relation for the new user
+            createUsuarioXCarreraRelation(savedUsuario, carreraId);
+            
+            return savedUsuario;
             
         } catch (Exception e) {
             logger.warning("Error creating Usuario from OAI name " + fullName + ": " + e.getMessage());
             return null;
+        }
+    }
+    
+    private void createUsuarioXCarreraRelation(Usuario usuario, Integer carreraId) {
+        try {
+            // Check if relationship already exists
+            boolean relationExists = usuarioXCarreraRepository.existsByUsuarioIdAndCarreraIdAndActivo(
+                usuario.getId(), carreraId, true);
+            
+            if (relationExists) {
+                return; // Relation already exists
+            }
+            
+            // Get carrera entity
+            Optional<Carrera> carreraOpt = carreraRepository.findById(carreraId);
+            if (carreraOpt.isEmpty()) {
+                logger.warning("Carrera not found with ID: " + carreraId);
+                return;
+            }
+            
+            // Create new UsuarioXCarrera relation
+            UsuarioXCarrera usuarioCarrera = new UsuarioXCarrera();
+            usuarioCarrera.setUsuario(usuario);
+            usuarioCarrera.setCarrera(carreraOpt.get());
+            usuarioCarrera.setActivo(true);
+            usuarioCarrera.setEsCoordinador(false); // Users from OAI are not coordinators
+            
+            usuarioXCarreraRepository.save(usuarioCarrera);
+            logger.info("Created UsuarioXCarrera relation for usuario " + usuario.getId() + " and carrera " + carreraId);
+            
+        } catch (Exception e) {
+            logger.warning("Error creating UsuarioXCarrera relation: " + e.getMessage());
         }
     }
     
@@ -928,11 +983,25 @@ public class OAIServiceImpl implements OAIService {
     
     private void createTemaSubAreaConocimientoRelation(Tema tema, SubAreaConocimiento subArea) {
         try {
-            // This would require a TemaXSubAreaConocimiento entity and repository
-            // Since it's not clear if this exists, we'll just log for now
-            logger.info("Would create TemaXSubAreaConocimiento relation for tema " + tema.getId() + " and subarea " + subArea.getId());
+            // Check if relationship already exists
+            List<SubAreaConocimientoXTema> existingRelations = subAreaConocimientoXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+            for (SubAreaConocimientoXTema relation : existingRelations) {
+                if (relation.getSubAreaConocimientoId().equals(subArea.getId())) {
+                    return; // Already exists
+                }
+            }
+            
+            // Create new SubAreaConocimientoXTema relation
+            SubAreaConocimientoXTema relacion = new SubAreaConocimientoXTema();
+            relacion.setSubAreaConocimientoId(subArea.getId());
+            relacion.setTemaId(tema.getId());
+            relacion.setActivo(true);
+            
+            subAreaConocimientoXTemaRepository.save(relacion);
+            logger.info("Created SubAreaConocimientoXTema relation for tema " + tema.getId() + " and subarea " + subArea.getId());
+            
         } catch (Exception e) {
-            logger.warning("Error creating TemaXSubAreaConocimiento relation: " + e.getMessage());
+            logger.warning("Error creating SubAreaConocimientoXTema relation: " + e.getMessage());
         }
     }    
     
