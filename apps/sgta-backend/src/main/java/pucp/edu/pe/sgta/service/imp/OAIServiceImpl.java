@@ -650,9 +650,9 @@ public class OAIServiceImpl implements OAIService {
             // 3. Create usuarios from OAI creators (tesistas)
             if (metadata.getCreator() != null && !metadata.getCreator().isEmpty()) {
                 for (String creatorName : metadata.getCreator()) {
-                    Usuario tesista = createOrGetUsuarioFromOAIName(creatorName, "TESISTA");
+                    Usuario tesista = createOrGetUsuarioFromOAIName(creatorName, "alumno");
                     if (tesista != null) {
-                        createUsuarioXTemaRelation(tema, tesista, "TESISTA");
+                        createUsuarioXTemaRelation(tema, tesista, "Tesista");
                     }
                 }
             }
