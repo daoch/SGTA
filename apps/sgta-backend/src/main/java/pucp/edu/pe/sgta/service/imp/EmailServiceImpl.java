@@ -26,7 +26,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.name:SGTA}")
     private String nombreApp;
     
-    @Value("${app.url:http://localhost:3000}")
+    @Value("${app.url:https://dev.app.sgta.lat}")
     private String urlApp;
     
     // Patrón para validar email
