@@ -83,12 +83,13 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
             CriterioEntregableDto dto = new CriterioEntregableDto();
             dto.setRevision_documento_id((Integer) fila[0]);
             dto.setUsuario_revisor_id((Integer) fila[1]);
-            dto.setEntregable_id((Integer) fila[2]);
-            dto.setEntregable_descripcion((String) fila[3]);
-            dto.setId((Integer)fila[4]);
-            dto.setDescripcion((String)fila[5]);
-            dto.setNombre((String)fila[6]);
-            dto.setNotaMaxima((BigDecimal)fila[7]);
+            dto.setTema_x_entregable_id((Integer) fila[2]);
+            dto.setEntregable_id((Integer) fila[3]);
+            dto.setEntregable_descripcion((String) fila[4]);
+            dto.setId((Integer)fila[5]);
+            dto.setDescripcion((String)fila[6]);
+            dto.setNombre((String)fila[7]);
+            dto.setNotaMaxima((BigDecimal)fila[8]);
             listaCriterios.add(dto);
         }
 

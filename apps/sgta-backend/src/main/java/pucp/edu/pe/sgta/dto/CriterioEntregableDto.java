@@ -15,6 +15,7 @@ public class CriterioEntregableDto {
     private Double nota; // este puede quedar null o asignarlo luego
     private Integer revision_documento_id; //nullable
     private Integer usuario_revisor_id; //nullable
+    private Integer tema_x_entregable_id;//nullable
     private Integer entregable_id; //nullable
     private String entregable_descripcion; //nullable
 
