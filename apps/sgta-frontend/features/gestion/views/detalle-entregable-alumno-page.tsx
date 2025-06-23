@@ -33,7 +33,7 @@ export default function DetalleEntregableAlumnoPage() {
   const [observaciones, setObservaciones] = useState<ObservacionAlumnoDTO[]>([]);
   const [detalleEntregable, setDetalleEntregable] = useState<DetalleSimplificadoEntregable | null>(null);
   console.log("Tema ID:", temaId);
-  const [orden, setOrden] = useState("fecha");
+  const [orden, setOrden] = useState("pagina");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
   const getTipoObs = (tipo: number) =>
@@ -117,6 +117,7 @@ const totalObservaciones = observaciones.length;
 const totalResueltas = observaciones.filter((obs) => obs.corregido).length;
 const totalPendientes = totalObservaciones - totalResueltas;
 const detalle = Array.isArray(detalleEntregable) ? detalleEntregable[0] : detalleEntregable;
+console.log("Detalle del entregable:", detalle);
 const observacionesFiltradas = useMemo(() => {
     let arr = [...observacionesConRoles];
 
@@ -240,7 +241,21 @@ const observacionesFiltradas = useMemo(() => {
           <div className="text-sm space-y-2">
             <div className="flex justify-between">
               <span>Estado:</span>
-              <Badge className="bg-green-100 text-green-800">Aprobado</Badge>
+              <Badge
+                className={
+                  detalle?.entregableEstado === "aprobado"
+                    ? "bg-blue-100 text-blue-800"
+                    : detalle?.entregableEstado === "rechazado"
+                    ? "bg-red-100 text-red-800"
+                    : detalle?.entregableEstado === "revisado"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }
+              >
+                {detalle?.entregableEstado
+                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1)
+                  : "Sin estado"}
+              </Badge>
             </div>
             <div>
               <span className="block mb-1">Detección de Plagio</span>

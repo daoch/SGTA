@@ -1398,7 +1398,7 @@ SELECT
 END;
 $$ LANGUAGE plpgsql;
 --
-CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_id_cognito TEXT)
+CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
 	usuario_id INTEGER,
 	nombres TEXT,
@@ -1436,7 +1436,7 @@ BEGIN
 		JOIN carrera_parametro_configuracion cpc ON cpc.carrera_id = c.carrera_id
 		JOIN parametro_configuracion pc ON pc.parametro_configuracion_id = cpc.parametro_configuracion_id
 	WHERE
-		u.id_cognito = p_id_cognito
+		u.usuario_id = p_usuario_id
 		AND pc.nombre = 'LimXasesor'
 		AND u.activo = true
 		AND uc.activo = true
@@ -1549,13 +1549,15 @@ RETURNS TABLE (
     nombre_ciclo TEXT,
     estado_tema TEXT,
     proyecto_id INTEGER,
-    titulo_proyecto TEXT
+    titulo_proyecto TEXT,
+    rol_asesor TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
     WITH temas_del_asesor AS (
         SELECT
-            t.tema_id
+            t.tema_id,
+			upper(r.nombre) AS rol_asesor
         FROM
             tema t
             JOIN usuario_tema ut ON ut.tema_id = t.tema_id
@@ -1577,7 +1579,8 @@ BEGIN
         c.nombre::TEXT AS nombre_ciclo,
         et.nombre::TEXT AS estado_tema,
         p.proyecto_id,
-        p.titulo::TEXT AS titulo_proyecto
+        p.titulo::TEXT AS titulo_proyecto,
+		ta.rol_asesor::TEXT
     FROM
         etapa_formativa_x_ciclo_x_tema efcxt
         JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
@@ -1606,5 +1609,238 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION obtener_solicitudes_cese_tema_resumen(
+    p_usuario_id INTEGER,
+    p_roles TEXT[]
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    tema_id INTEGER,
+    titulo TEXT,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_solicitud TEXT,
+    alumno_nombres TEXT,
+    alumno_apellido TEXT,
+    alumno_correo TEXT,
+    asesor_nombres TEXT,
+    asesor_apellido TEXT,
+    nombre_accion TEXT
+) AS
+$$
+BEGIN
+  RETURN QUERY
+  WITH temas_involucrado AS (
+    SELECT ut.tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON ut.rol_id = r.rol_id
+    WHERE ut.usuario_id = p_usuario_id
+      AND ut.activo = true
+      AND r.nombre = ANY(p_roles)
+  )
+  SELECT 
+    s.solicitud_id,
+    t.tema_id,
+    t.titulo::text,
+    s.fecha_creacion,
+    es.nombre::text AS estado_solicitud,
+    us_remitente.nombres::text AS alumno_nombres,
+    us_remitente.primer_apellido::text AS alumno_apellido,
+    us_remitente.correo_electronico::text AS alumno_correo,
+    us_asesor_actual.nombres::text AS asesor_nombres,
+    us_asesor_actual.primer_apellido::text AS asesor_apellido,
+    COALESCE(us_usuario_propio.nombre::text, 'SIN_ACCION') AS nombre_accion
+  FROM
+    usuario_solicitud us
+    JOIN solicitud s ON s.solicitud_id = us.solicitud_id
+    JOIN tipo_solicitud ts ON s.tipo_solicitud_id = ts.tipo_solicitud_id
+    JOIN estado_solicitud es ON es.estado_solicitud_id = s.estado_solicitud
+    JOIN tema t ON t.tema_id = s.tema_id
+    JOIN temas_involucrado ti ON t.tema_id = ti.tema_id
+
+    LEFT JOIN LATERAL (
+        SELECT u.nombres, u.correo_electronico, u.primer_apellido
+        FROM usuario_solicitud us2
+        JOIN usuario u ON u.usuario_id = us2.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us2.rol_solicitud
+        WHERE us2.solicitud_id = s.solicitud_id
+          AND rs.nombre = 'REMITENTE'
+        LIMIT 1
+    ) us_remitente ON true
+
+    LEFT JOIN LATERAL (
+        SELECT u.nombres, u.primer_apellido
+        FROM usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.activo = true
+          AND ut.asignado = true
+          AND r.nombre = 'Asesor'
+          AND ut.tema_id = t.tema_id
+        LIMIT 1
+    ) us_asesor_actual ON true
+
+    LEFT JOIN LATERAL (
+        SELECT as2.nombre
+        FROM usuario_solicitud us3
+        JOIN accion_solicitud as2 ON as2.accion_solicitud_id = us3.accion_solicitud
+        WHERE us3.usuario_id = p_usuario_id
+          AND us3.solicitud_id = s.solicitud_id
+        LIMIT 1
+    ) us_usuario_propio ON true
+
+  WHERE
+    ts.nombre = 'Cese de tema';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION obtener_detalle_solicitud_cese(
+    p_solicitud_id INTEGER
+)
+RETURNS TABLE (
+    solicitud_id INTEGER,
+    fecha_creacion TIMESTAMP WITH TIME ZONE,
+    estado_nombre TEXT,
+    descripcion TEXT,
+    tema_id INTEGER,
+    titulo TEXT,
+    fecha_resolucion TIMESTAMP WITH TIME ZONE,
+    remitente_id INTEGER,
+    coordinador_id INTEGER,
+    asesor_actual_id INTEGER
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        s.solicitud_id,
+        s.fecha_creacion,
+        es.nombre::TEXT,
+        s.descripcion::TEXT,
+        t.tema_id,
+        t.titulo::TEXT,
+        s.fecha_resolucion,
+        remitente.usuario_id,
+        coordinador.usuario_id,
+        asesor_actual.usuario_id
+    FROM solicitud s
+    JOIN estado_solicitud es 
+        ON s.estado_solicitud = es.estado_solicitud_id
+    JOIN tema t 
+        ON t.tema_id = s.tema_id
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_solicitud us
+        JOIN usuario u ON u.usuario_id = us.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'REMITENTE'
+        LIMIT 1
+    ) remitente ON true
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_solicitud us
+        JOIN usuario u ON u.usuario_id = us.usuario_id
+        JOIN rol_solicitud rs ON rs.rol_solicitud_id = us.rol_solicitud
+        WHERE us.solicitud_id = s.solicitud_id AND rs.nombre = 'DESTINATARIO'
+        LIMIT 1
+    ) coordinador ON true
+    LEFT JOIN LATERAL (
+        SELECT u.usuario_id
+        FROM usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.activo = true
+          AND ut.asignado = true
+          AND r.nombre = 'Asesor'
+          AND ut.tema_id = t.tema_id
+        LIMIT 1
+    ) asesor_actual ON true
+    WHERE s.solicitud_id = p_solicitud_id;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_perfil_asesor_cese(
+    p_usuario_id INTEGER
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    nombres TEXT,
+    primer_apellido TEXT,
+    correo_electronico TEXT,
+    foto_perfil BYTEA
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        u.usuario_id,
+        u.nombres::TEXT,
+        u.primer_apellido::TEXT,
+        u.correo_electronico::TEXT,
+        u.foto_perfil
+    FROM usuario u
+    WHERE u.usuario_id = p_usuario_id;
+$$;
+
+CREATE OR REPLACE PROCEDURE procesar_estado_tema_retiro_alumno(
+    p_id_alumno INTEGER,
+    p_id_tema INTEGER,
+    p_id_creador INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_id INTEGER;
+    v_num_alumnos INTEGER;
+BEGIN
+    -- Contar cuántos alumnos/tesistas hay en el tema
+    SELECT COUNT(*) INTO v_num_alumnos
+    FROM usuario_tema ut
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.tema_id = p_id_tema
+      AND r.nombre IN ('Tesista', 'Alumno')
+      AND ut.activo = true
+	  AND ut.asignado = true
+;
+
+    -- CASO 1: único alumno y NO es creador
+    IF v_num_alumnos = 1 AND p_id_alumno != p_id_creador THEN
+        SELECT estado_tema_id INTO v_estado_id
+        FROM estado_tema WHERE nombre = 'PROPUESTO_LIBRE';
+
+        UPDATE tema
+        SET estado_tema_id = v_estado_id,
+            fecha_modificacion = CURRENT_TIMESTAMP
+        WHERE tema_id = p_id_tema;
+
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 2: único alumno y ES creador
+    ELSIF v_num_alumnos = 1 AND p_id_alumno = p_id_creador THEN
+        SELECT estado_tema_id INTO v_estado_id
+        FROM estado_tema WHERE nombre = 'VENCIDO';
+
+        UPDATE tema
+        SET estado_tema_id = v_estado_id,
+            fecha_modificacion = CURRENT_TIMESTAMP
+        WHERE tema_id = p_id_tema;
+
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id != p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 3: varios alumnos y NO es creador
+    ELSIF v_num_alumnos > 1 AND p_id_alumno != p_id_creador THEN
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+
+    -- CASO 4: varios alumnos y ES creador
+    ELSIF v_num_alumnos > 1 AND p_id_alumno = p_id_creador THEN
+        UPDATE usuario_tema
+        SET activo = false
+        WHERE usuario_id = p_id_alumno AND tema_id = p_id_tema;
+    END IF;
+END;
+$$;
 
 

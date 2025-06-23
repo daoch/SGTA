@@ -921,7 +921,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 u.correo_electronico,
                 u.codigo_pucp,
                 string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                -- >>> CAMBIO: Conteo separado para roles de Asesor/Co-Asesor y Jurado
+                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_asesor_count,
+                COUNT(DISTINCT CASE WHEN ut.rol_id = 2 THEN ut.tema_id END) AS tesis_jurado_count,
                 tu.tipo_usuario_id,
                 tu.nombre AS tipo_usuario_nombre
             FROM
@@ -1006,31 +1008,34 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
-                .map(row -> {
-                    TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
-                            .id((Integer) row[8])
-                            .nombre((String) row[9])
-                            .activo(true)
-                            .build();
+            .map(row -> {
+                // >>> CAMBIO: Los índices se desplazan por la nueva columna en el SELECT
+                TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
+                        .id((Integer) row[9])
+                        .nombre((String) row[10])
+                        .activo(true)
+                        .build();
 
-                    UsuarioDto usuarioBase = UsuarioDto.builder()
-                            .id((Integer) row[0])
-                            .nombres((String) row[1])
-                            .primerApellido((String) row[2])
-                            .segundoApellido((String) row[3])
-                            .correoElectronico((String) row[4])
-                            .codigoPucp((String) row[5])
-                            .tipoUsuario(tipoUsuarioDto)
-                            .activo(true)
-                            .build();
+                UsuarioDto usuarioBase = UsuarioDto.builder()
+                        .id((Integer) row[0])
+                        .nombres((String) row[1])
+                        .primerApellido((String) row[2])
+                        .segundoApellido((String) row[3])
+                        .correoElectronico((String) row[4])
+                        .codigoPucp((String) row[5])
+                        .tipoUsuario(tipoUsuarioDto)
+                        .activo(true)
+                        .build();
 
-                    return UsuarioConRolDto.builder()
-                            .usuario(usuarioBase)
-                            .rolesConcat((String) row[6])
-                            .tesisCount(((Number) row[7]).intValue())
-                            .build();
-                })
-                .collect(Collectors.toList());
+                // >>> CAMBIO: Mapear a los nuevos campos del DTO
+                return UsuarioConRolDto.builder()
+                        .usuario(usuarioBase)
+                        .rolesConcat((String) row[6])
+                        .tesisAsesorCount(((Number) row[7]).intValue())
+                        .tesisJuradoCount(((Number) row[8]).intValue())
+                        .build();
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -1613,8 +1618,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public PerfilUsuarioDto getPerfilUsuario(String cognitoId) {
-        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(cognitoId);
+    public PerfilUsuarioDto getPerfilUsuario(Integer usuarioId) {
+        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(usuarioId);
         if(queryResult.isEmpty()) {
             throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
         }
@@ -1748,6 +1753,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
     }
 
+    public Usuario buscarUsuarioPorCognito(String idCognito, String onErrorMsg){
+        Integer idUsuario = obtenerIdUsuarioPorCognito(idCognito);
+        return buscarUsuarioPorId(idUsuario, onErrorMsg);
+    }
+
     public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
         List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
         List<InfoAreaConocimientoDto> dtos = new ArrayList<>();
@@ -1790,5 +1800,21 @@ public class UsuarioServiceImpl implements UsuarioService {
             revisores.add(dto);
         }
         return revisores;
+    }
+
+
+    public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return usuarioRepository.findAllById(ids).stream()
+            .map(u -> UsuarioDto.builder()
+                .id(u.getId())
+                .nombres(u.getNombres())
+                .primerApellido(u.getPrimerApellido())
+                .segundoApellido(u.getSegundoApellido())
+                .build()
+            )
+            .collect(Collectors.toList());
     }
 }

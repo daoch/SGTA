@@ -101,7 +101,7 @@ const Exposiciones: React.FC = () => {
             <SelectTrigger className="h-[68px] w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[200px] overflow-y-auto">
               {ciclos.map((ciclo) => {
                 const value = `${ciclo.anio}-${ciclo.semestre}`;
                 return (

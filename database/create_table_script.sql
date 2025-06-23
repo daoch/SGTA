@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS tipo_usuario (
     nombre VARCHAR(100) NOT NULL UNIQUE,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT tipo_usuario_unico UNIQUE (nombre)
 );
 
 -- Tipo Dedicacion
@@ -184,6 +186,9 @@ CREATE TABLE IF NOT EXISTS historial_tema (
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    subareas_snapshot      TEXT   DEFAULT '',
+    asesores_snapshot      TEXT   DEFAULT '',
+    tesistas_snapshot      TEXT   DEFAULT '',
     CONSTRAINT fk_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
 );
 
@@ -221,7 +226,9 @@ CREATE TABLE IF NOT EXISTS rol (
     descripcion TEXT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT rol_unico UNIQUE (nombre)
 );
 
 -- 4) TIPO_SOLICITUD
@@ -548,7 +555,9 @@ CREATE TABLE IF NOT EXISTS tipo_notificacion (
     prioridad INTEGER NOT NULL DEFAULT 0,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT tipo_notificacion_unico UNIQUE (nombre)
 );
 
 -- 5) TIPO_USUARIO_PERMISO (relación M:N entre tipo_usuario y permiso)
@@ -738,7 +747,9 @@ CREATE TABLE IF NOT EXISTS ciclo (
     fecha_fin DATE NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT FALSE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT ciclo_unico UNIQUE (nombre)
 );
 
 CREATE TABLE IF NOT EXISTS estado_planificacion (
@@ -903,9 +914,11 @@ CREATE TABLE IF NOT EXISTS control_exposicion_usuario (
     estado_exposicion_usuario VARCHAR(255), --enum_estado_usuario_exposicion
     observaciones_finales_exposicion TEXT,
     asistio BOOLEAN,
+    nota_revision NUMERIC(6, 2),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_ceu_exposicion_x_tema FOREIGN KEY (exposicion_x_tema_id) REFERENCES exposicion_x_tema (exposicion_x_tema_id) ON DELETE RESTRICT,
     CONSTRAINT fk_ceu_usuario_x_tema FOREIGN KEY (usuario_x_tema_id) REFERENCES usuario_tema (usuario_tema_id) ON DELETE RESTRICT
 );
@@ -1236,9 +1249,26 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS configuracion_recordatorio (
+    configuracion_recordatorio_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuario(usuario_id) ON DELETE CASCADE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE, -- Si el usuario quiere recordatorios automáticos
+    dias_anticipacion INTEGER[] NOT NULL, -- Ejemplo: {7,3,1,0}
+    canal_correo BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir por correo
+    canal_sistema BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir en el sistema (notificación)
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unico_usuario_recordatorio UNIQUE (usuario_id)
+);
+
+
+
+
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
 --DROP CAST IF EXISTS (character varying AS enum_estado_actividad);
+
+--set search_path to sgtadb;
 
 CREATE CAST (
     CHARACTER VARYING AS enum_tipo_dato

@@ -14,4 +14,10 @@ public interface HistorialTemaRepository extends JpaRepository<HistorialTema, In
 
     @Query(value = "SELECT * FROM listar_historial_tema(:temaId)", nativeQuery = true)
     List<HistorialTema> findActivoByTemaId(@Param("temaId") Integer temaId);
+
+    @Query(
+      value = "SELECT * FROM listar_historial_tema_completo(:temaId)",
+      nativeQuery = true
+    )
+    List<HistorialTema> findCompletoByTemaId(@Param("temaId") Integer temaId);
 }
