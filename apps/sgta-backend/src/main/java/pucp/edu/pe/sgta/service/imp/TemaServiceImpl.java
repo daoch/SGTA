@@ -3731,19 +3731,18 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
-
+	@Transactional
 	@Override
 	public void updateSolicitudesCoordinador(String usuarioId, Integer solicitudId,String respuesta) {
 
 		Usuario coordinador = usuarioRepository.findByIdCognito(usuarioId)
 				.orElseThrow(() -> new ResourceNotFoundException("Coordinador no encontrado con CognitoSub: " + usuarioId));
 
-		Solicitud solicitud = solicitudRepository.findById(solicitudId)
+		Solicitud solicitud = solicitudRepository.findWithTipoSolicitudById(solicitudId)
 				.orElseThrow(() -> new RuntimeException("Solicitud no encontrada con ID: " + solicitudId));
 
-		TipoSolicitud tipo = tipoSolicitudRepository.findById(solicitud.getTipoSolicitud().getId())
-				.orElseThrow(() -> new RuntimeException("Tipo de solicitud no encontrada con ID: " + solicitud.getTipoSolicitud().getId()));
-		;
+		TipoSolicitud tipo = solicitud.getTipoSolicitud();
+
 		try {
 			String query = switch (tipo.getNombre()) {
                 case "Solicitud de cambio de resumen" ->

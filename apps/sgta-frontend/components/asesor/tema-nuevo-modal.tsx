@@ -83,6 +83,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     useState<Coasesor | null>(null);
   const [areaSeleccionada, setAreaSeleccionada] =
     useState<AreaDeInvestigacion | null>(null); // en realidad es la subarea
+  const [carreraSeleccionada, setCarreraSeleccionada] =
+    useState<Carrera | null>(null); // en realidad es la subarea
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
   const [errores, setErrores] = useState<{
@@ -93,6 +95,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     tesistas?: string;
     fechaLimite?: string;
     area?: string;
+    carrera?: string;
   }>({});
 
   const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
@@ -111,19 +114,23 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
   const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
+
+  const areasFiltradas = areasDisponibles.filter(
+    (area) => area.idCarrera === carreraSeleccionada?.id,
+  );
   //Llenado de datos
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
       try {
-        if (carreras) {
+        if (carreraSeleccionada) {
           const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id,
+            carreraSeleccionada?.id,
             "alumno",
           );
           setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
 
           const coasesoresData: Coasesor[] = await fetchUsers(
-            carreras[0].id,
+            carreraSeleccionada.id,
             "profesor",
           );
 
@@ -141,7 +148,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       }
     };
     listarEstudiantesYAsesores();
-  }, [carreras, asesor]);
+  }, [carreraSeleccionada, asesor]);
   //
 
   useEffect(() => {
@@ -251,10 +258,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!validarCampos()) return;
     try {
       setLoading(true);
-      if (carreras) {
+      if (carreraSeleccionada) {
         const response = await axiosInstance.post(
           "temas/createInscripcionV2",
-          mapTemaCreateInscription(temaData, carreras[0]),
+          mapTemaCreateInscription(temaData, carreraSeleccionada),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -324,9 +331,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardarLibre = async () => {
     if (!validarCampos()) return;
     try {
-      if (carreras) {
+      if (carreraSeleccionada) {
         setLoading(true);
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
+        await crearTemaLibre(
+          mapTemaCreateLibre(temaData, carreraSeleccionada, asesor),
+        );
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
@@ -336,6 +345,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setAreaConocimientoSeleccionada(null);
+      setCarreraSeleccionada(null);
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
@@ -349,6 +359,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleCancelar = () => {
     setTemaData(temaVacio);
     setAreaConocimientoSeleccionada(null);
+    setCarreraSeleccionada(null);
     setIsNuevoTemaDialogOpen(false);
   };
 
@@ -377,6 +388,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
   const validarCampos = () => {
     const nuevosErrores: typeof errores = {};
+
     if (!temaData.titulo || temaData.titulo.trim() === "") {
       nuevosErrores.titulo = "Debe ingresar el título del tema.";
     }
@@ -400,11 +412,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!temaData.fechaLimite || temaData.fechaLimite.trim() === "") {
       nuevosErrores.fechaLimite = "Debe ingresar fecha límite del tema.";
     }
-    //Solo para tema Libre
+    if (carreraSeleccionada === null || carreraSeleccionada === undefined) {
+      nuevosErrores.carrera = "Debe seleccionar una carrera.";
+    }
     if (
-      tipoRegistro === TipoRegistro.LIBRE &&
-      (areaConocimientoSeleccionada === null ||
-        areaConocimientoSeleccionada === undefined)
+      areaConocimientoSeleccionada === null ||
+      areaConocimientoSeleccionada === undefined
     ) {
       nuevosErrores.area = "Debe seleccionar una área.";
     }
@@ -415,19 +428,19 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardarForzado = async () => {
     if (!validarCampos()) return;
     try {
-      if (carreras) {
+      if (carreraSeleccionada) {
         setLoading(true);
         setCheckingSimilitud(true);
         if (tipoTema === TipoRegistro.LIBRE) {
           await crearTemaLibre(
-            mapTemaCreateLibre(temaData, carreras[0], asesor),
+            mapTemaCreateLibre(temaData, carreraSeleccionada, asesor),
             temaSimilitud,
             true,
           );
         } else {
           const response = await axiosInstance.post(
             "temas/createInscripcionV2",
-            mapTemaCreateInscription(temaData, carreras[0]),
+            mapTemaCreateInscription(temaData, carreraSeleccionada),
           );
           const temaCreado = response.data;
 
@@ -453,6 +466,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setAreaConocimientoSeleccionada(null);
+      setCarreraSeleccionada(null);
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
@@ -464,7 +478,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setTemaSimilitud([]);
     }
   };
-  console.log(coasesoresDisponibles);
+  console.log(areasDisponibles);
   return (
     <>
       <Toaster richColors position="bottom-right" />
@@ -504,6 +518,37 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           {/* Renderizado condicional utilizando tipoRegistro */}
           {tipoRegistro !== "" && (
             <>
+              {/* Carrera */}
+              <div className="space-y-2">
+                <Label>Carrera</Label>
+                <Select
+                  onValueChange={(value) => {
+                    const carreraSeleccionada = carreras?.find(
+                      (carrera) => String(carrera.id) === value,
+                    );
+                    if (carreraSeleccionada) {
+                      setCarreraSeleccionada(carreraSeleccionada);
+                      setAreaConocimientoSeleccionada(null);
+                      temaData.subareas = [];
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione una carrera" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {carreras?.map((carrera) => (
+                      <SelectItem key={carrera.id} value={String(carrera.id)}>
+                        {carrera.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errores.carrera && (
+                  <p className="text-red-500 text-xs mt-1">{errores.carrera}</p>
+                )}
+              </div>
+
               {/* Título del Tema */}
               <div className="space-y-2">
                 <Label>Título del Tema</Label>
@@ -522,11 +567,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 <Label>Áreas de Conocimiento</Label>
                 <Select
                   onValueChange={(value) => {
-                    const areaSeleccionada = areasDisponibles.find(
+                    const areaSeleccionada = areasFiltradas.find(
                       (area) => String(area.id) === value,
                     );
                     if (areaSeleccionada) {
                       setAreaConocimientoSeleccionada(areaSeleccionada);
+                      temaData.subareas = [];
                     }
                   }}
                 >
@@ -534,7 +580,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <SelectValue placeholder="Seleccione un área" />
                   </SelectTrigger>
                   <SelectContent>
-                    {areasDisponibles.map((area) => (
+                    {areasFiltradas.map((area) => (
                       <SelectItem key={area.id} value={String(area.id)}>
                         {area.nombre}
                       </SelectItem>

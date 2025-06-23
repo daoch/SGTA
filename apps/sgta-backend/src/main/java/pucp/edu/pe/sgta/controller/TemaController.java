@@ -867,7 +867,7 @@ public class TemaController {
 			} catch (RuntimeException e) {
 				throw new ResponseStatusException(
 						HttpStatus.UNAUTHORIZED,
-						"No autorizado para listar pendientes: " + e.getMessage());
+						"Ocurrió un error: " + e.getMessage());
 			}
 	}
 
