@@ -1324,9 +1324,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         public List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId) {
                 UsuarioDto userDto = usuarioService.findByCognitoId(coordinadorId);
 
-                Integer userId = Integer.parseInt(coordinadorId);
-
-                Usuario usuario = usuarioRepository.findById(userId)
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
                                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
                 boolean esCoordinador = usuarioXCarreraRepository
@@ -1339,26 +1337,27 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 List<UsuarioXCarrera> relaciones = usuarioXCarreraRepository
                         .findByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
 
+
                 Set<Integer> carreraIds = relaciones.stream()
                         .map(rel -> rel.getCarrera().getId())
                         .collect(Collectors.toSet());
 
                 List<Tema> temasFiltrados = temaRepository.findByCarrera_IdInAndActivoTrue(new ArrayList<>(carreraIds));
+                // 3. Obtener exposiciones por tema
                 List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
 
                 for (Tema tema : temasFiltrados) {
                         List<ExposicionXTema> exposiciones = exposicionXTemaRepository
-                                .findByTemaIdAndActivoTrue(tema.getId());
-
+                                        .findByTemaIdAndActivoTrue(tema.getId());
                         for (ExposicionXTema exposicionXTema : exposiciones) {
                                 List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository
-                                        .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
+                                                .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
 
                                 for (BloqueHorarioExposicion bloque : bloques) {
                                         OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
                                         OffsetDateTime datetimeFin = bloque.getDatetimeFin();
-                                        OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
 
+                                        OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
                                         if (fechaActual.isAfter(datetimeFin)) {
                                                 exposicionXTema.setEstadoExposicion(EstadoExposicion.COMPLETADA);
                                                 exposicionXTemaRepository.save(exposicionXTema);
@@ -1366,28 +1365,32 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                         String salaNombre = "";
                                         if (bloque.getJornadaExposicionXSala() != null &&
-                                                bloque.getJornadaExposicionXSala().getSalaExposicion() != null) {
-                                                salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion().getNombre();
+                                                        bloque.getJornadaExposicionXSala()
+                                                                        .getSalaExposicion() != null) {
+                                                salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion()
+                                                                .getNombre();
                                         }
 
                                         Exposicion exposicion = exposicionXTema.getExposicion();
-                                        EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
 
+                                        // Etapa formativa
+                                        EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
                                         Integer idEtapaFormativa = etapa.getId();
                                         String nombreEtapaFormativa = etapa.getNombre();
                                         Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
                                         Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
-                                        String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getSemestre();
+                                        String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo()
+                                                        .getSemestre();
 
+                                        // Miembros
                                         List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository
-                                                .findByTemaIdAndActivoTrue(tema.getId());
-
+                                                        .findByTemaIdAndActivoTrue(tema.getId());
                                         List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
                                                 MiembroExposicionDto miembro = new MiembroExposicionDto();
                                                 miembro.setId_persona(ut.getUsuario().getId());
-                                                miembro.setNombre(ut.getUsuario().getNombres() + " " +
-                                                        ut.getUsuario().getPrimerApellido() + " " +
-                                                        ut.getUsuario().getSegundoApellido());
+                                                miembro.setNombre(ut.getUsuario().getNombres() + " "
+                                                                + ut.getUsuario().getPrimerApellido() + " "
+                                                                + ut.getUsuario().getSegundoApellido());
                                                 miembro.setTipo(ut.getRol().getNombre());
                                                 return miembro;
                                         }).toList();
@@ -1399,6 +1402,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 .findFirst();
 
                                         Optional<ControlExposicionUsuarioTema> controlOptional = Optional.empty();
+
                                         if (usuarioXTemaOptional.isPresent()) {
                                                 controlOptional = controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(
                                                         exposicionXTema.getId(),
@@ -1406,6 +1410,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 );
                                         }
 
+                                        // Crear DTO
                                         ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
                                         dto.setId_exposicion(exposicionXTema.getId());
                                         dto.setNombre_exposicion(exposicion.getNombre());
@@ -1418,9 +1423,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         dto.setCiclo_id(idCiclo);
                                         dto.setCiclo_anio(anioCiclo);
                                         dto.setCiclo_semestre(semestreCiclo);
-                                        dto.setEstado_control(controlOptional
-                                                .map(ControlExposicionUsuarioTema::getEstadoExposicion)
-                                                .orElse(null));
+                                        dto.setEstado_control(
+                                                        controlOptional.map(
+                                                                        ControlExposicionUsuarioTema::getEstadoExposicion)
+                                                                        .orElse(null));
                                         dto.setEnlace_grabacion(exposicionXTema.getLinkGrabacion());
                                         dto.setEnlace_sesion(exposicionXTema.getLinkExposicion());
                                         dto.setMiembros(miembros);
@@ -1429,7 +1435,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 }
                         }
                 }
-
                 return resultado;
         }
 
