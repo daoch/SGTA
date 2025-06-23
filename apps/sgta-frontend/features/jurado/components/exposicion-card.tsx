@@ -270,7 +270,7 @@ export function ExposicionCard({
     >
       {/* HORA, FECHA Y SALA */}
       <div className="flex flex-col items-center space-y-2 md:min-w-[180px] justify-center">
-        <div className="text-4xl font-semibold">
+        <div className="text-3xl font-bold text-[#002855] mb-4 px-1">
           {format(exposicion.fechahora, "HH:mm")} hrs
         </div>
         <div className="flex items-center gap-1 mt-1">
@@ -279,8 +279,8 @@ export function ExposicionCard({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <MapPin className="h-6 w-6" />
-          <span className="text-2xl font-semibold">{exposicion.sala}</span>
+          <MapPin className="text-16xl font-bold text-[#002855] mb-4 px-1" />
+          <span className="text-xl font-bold text-[#002855] mb-4 px-1">{exposicion.sala}</span>
         </div>
       </div>
 
@@ -288,7 +288,7 @@ export function ExposicionCard({
         {/* TITULO Y ESTADO */}
         <div className="flex gap-2 w-full">
           <div className="flex items-start w-4/5">
-            <h3 className="text-xl font-semibold">{exposicion.titulo}</h3>
+            <h3 className="text-2xl font-bold text-[#002855] mb-4 px-1">{exposicion.titulo} - {exposicion.nombre_exposicion}</h3>
           </div>
           <div className="w-1/5 justify-end flex items-start">
             <EstadoBadge estado={determinarEstadoMostrado()} />
@@ -303,12 +303,12 @@ export function ExposicionCard({
                 key={estudiante.id_persona}
                 className="flex flex-col items-start gap-2 flex-1"
               >
-                <Label>Tesista</Label>
+                <Label className="text-[16px] leading-none font-semibold">Tesista</Label>
                 <div className="flex items-center gap-2 flex-1 justify-start">
                   <Avatar>
                     <AvatarFallback>TS</AvatarFallback>
                   </Avatar>
-                  <div className="text-base">{estudiante.nombre}</div>
+                  <div className="text-muted-foreground text-sm">{estudiante.nombre}</div>
                 </div>
               </div>
             ))}
@@ -318,12 +318,12 @@ export function ExposicionCard({
                 key={asesor.id_persona}
                 className="flex flex-col items-start gap-2 flex-1"
               >
-                <Label>{index === 0 ? "Asesor" : "Coasesor"}</Label>
+                <Label className="text-[16px] leading-none font-semibold">{index === 0 ? "Asesor" : "Coasesor"}</Label>
                 <div className="flex items-center gap-2 flex-1 justify-start">
                   <Avatar>
                     <AvatarFallback>AS</AvatarFallback>
                   </Avatar>
-                  <div className="text-base">{asesor.nombre}</div>
+                  <div className="text-muted-foreground text-sm">{asesor.nombre}</div>
                 </div>
               </div>
             ))}

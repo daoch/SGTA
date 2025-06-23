@@ -276,7 +276,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         >
           <ArrowLeft className="h-6 w-6 text-gray-600" />
         </button>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-3xl font-bold text-[#042354]">
           Registro de Observaciones del Tema de Proyecto
         </h1>
       </div>
