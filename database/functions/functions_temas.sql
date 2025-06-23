@@ -3307,6 +3307,7 @@ BEGIN
       ON t.tema_id = sact.tema_id
     WHERE t.tema_id = _tema_id;
 END;
+$BODY$;
 
 CREATE OR REPLACE FUNCTION es_coordinador_activo(
     p_usuario_id  integer,
