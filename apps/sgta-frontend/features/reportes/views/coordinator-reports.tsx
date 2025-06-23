@@ -225,6 +225,7 @@ export function CoordinatorReports() {
 
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
+  const [activeTab, setActiveTab] = useState("topics");
 
   // Descripciones para tooltips
   const topicsDescriptions = {
@@ -1012,7 +1013,7 @@ export function CoordinatorReports() {
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
-      <Tabs defaultValue="topics">
+      <Tabs defaultValue="topics" onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
           <TabsList className="text-sm sm:text-base w-full sm:w-auto">
             <TabsTrigger value="topics" className="text-xs sm:text-base flex-1 sm:flex-none">
@@ -1030,52 +1031,55 @@ export function CoordinatorReports() {
           </TabsList>
           
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Select value={selectedYear} onValueChange={(value) => {
-                setSelectedYear(value);
-                setSelectedSemester(""); // Reset semestre cuando cambia el año
-              }}>
-                <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
-                  <SelectValue placeholder={loadingCiclos ? "Cargando..." : "Año"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {availableYears.length > 0 ? (
-                    availableYears.map((year) => (
-                      <SelectItem key={year} value={year.toString()} className="text-sm sm:text-base">
-                        {year}
-                      </SelectItem>
-                    ))
-                  ) : !loadingCiclos ? (
-                    <div className="px-2 py-1 text-sm text-gray-500">
-                      No hay años disponibles
-                    </div>
-                  ) : null}
-                </SelectContent>
-              </Select>
+            {/* Ocultar dropdowns cuando está en pestaña "topics" y gráfico "trends" */}
+            {!(activeTab === "topics" && selectedTopicsChart === "trends") && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={selectedYear} onValueChange={(value) => {
+                  setSelectedYear(value);
+                  setSelectedSemester(""); // Reset semestre cuando cambia el año
+                }}>
+                  <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
+                    <SelectValue placeholder={loadingCiclos ? "Cargando..." : "Año"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {availableYears.length > 0 ? (
+                      availableYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()} className="text-sm sm:text-base">
+                          {year}
+                        </SelectItem>
+                      ))
+                    ) : !loadingCiclos ? (
+                      <div className="px-2 py-1 text-sm text-gray-500">
+                        No hay años disponibles
+                      </div>
+                    ) : null}
+                  </SelectContent>
+                </Select>
 
-              <Select 
-                value={selectedSemester} 
-                onValueChange={setSelectedSemester}
-                disabled={!selectedYear || loadingCiclos}
-              >
-                <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
-                  <SelectValue placeholder={!selectedYear ? "Año" : "Ciclo"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {availableSemesters.length > 0 ? (
-                    availableSemesters.map((semester) => (
-                      <SelectItem key={semester} value={semester} className="text-sm sm:text-base">
-                        {semester}
-                      </SelectItem>
-                    ))
-                  ) : selectedYear ? (
-                    <div className="px-2 py-1 text-sm text-gray-500">
-                      No hay semestres disponibles
-                    </div>
-                  ) : null}
-                </SelectContent>
-              </Select>
-            </div>
+                <Select 
+                  value={selectedSemester} 
+                  onValueChange={setSelectedSemester}
+                  disabled={!selectedYear || loadingCiclos}
+                >
+                  <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
+                    <SelectValue placeholder={!selectedYear ? "Año" : "Ciclo"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {availableSemesters.length > 0 ? (
+                      availableSemesters.map((semester) => (
+                        <SelectItem key={semester} value={semester} className="text-sm sm:text-base">
+                          {semester}
+                        </SelectItem>
+                      ))
+                    ) : selectedYear ? (
+                      <div className="px-2 py-1 text-sm text-gray-500">
+                        No hay semestres disponibles
+                      </div>
+                    ) : null}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <Button 
               variant="outline" 
