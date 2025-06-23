@@ -1,22 +1,18 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.persistence.Access;
+import com.google.api.services.gmail.Gmail;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.*;
@@ -25,22 +21,29 @@ import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.repository.ControlExposicionUsuarioTemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
-import pucp.edu.pe.sgta.service.inter.GoogleCalendarService.GoogleCalendarService;
+import pucp.edu.pe.sgta.service.inter.GoogleService.GoogleCalendarService;
+import pucp.edu.pe.sgta.service.inter.GoogleService.GoogleGmailService;
 
 @Service
 public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposicionService {
 
     private final BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository;
 
+    private final HttpServletRequest request;
 
     private final ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository;
 
     private final GoogleCalendarService googleCalendarService;
 
-    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,GoogleCalendarService googleCalendarService) {
+    private final GoogleGmailService googleGmailService;
+
+    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+                                              GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService, HttpServletRequest request) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
+        this.googleGmailService = googleGmailService;
+        this.request = request;
     }
 
     @Override
@@ -207,7 +210,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     @Transactional
     @Override
     public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
-
+        /*
         try {
 
             ObjectMapper mapper = new ObjectMapper();
@@ -256,7 +259,62 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return false;
+        }*/
+        HttpSession session = request.getSession(false);
+        if (session == null) throw new RuntimeException("No hay sesión activa");
+
+        String accessToken = (String) session.getAttribute("googleAccessToken");
+        if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
+
+        try {            // === CONFIGURACIÓN DE CORREO ===
+
+
+            // 1. Construir cliente Gmail
+            Gmail gmail = googleGmailService.buildGmailClient(accessToken);
+
+            // 2. Datos del correo
+            String destinatario = "a20191810@pucp.edu.pe";
+            String asunto = "SGTA - Prueba de correo automático";
+            String cuerpoHtml = """
+            <h2>Invitación a reunión 📅</h2>
+            <p>Has sido invitado a esta reunión.</p>
+            <p>Por favor, confirma tu asistencia:</p>
+        
+            <div style="margin-top: 20px;">
+                <a href="https://sgta.pucp.edu.pe/reunion/aceptar" style="
+                    padding: 10px 20px;
+                    background-color: #4CAF50;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-right: 10px;
+                    display: inline-block;
+                ">Sí</a>
+        
+                <a href="https://sgta.pucp.edu.pe/reunion/rechazar" style="
+                    padding: 10px 20px;
+                    background-color: #f44336;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    display: inline-block;
+                ">No</a>
+            </div>
+        """;
+
+
+            // 3. Enviar correo
+            googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
+
+            System.out.println("Correo enviado correctamente.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
+
+
+        return true;
+
 
     }
 

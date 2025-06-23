@@ -1,16 +1,13 @@
-package pucp.edu.pe.sgta.service.imp.GoogleCalendarService;
+package pucp.edu.pe.sgta.service.imp.GoogleService;
 
 import com.google.api.client.http.HttpRequestInitializer;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import pucp.edu.pe.sgta.dto.GoogleCalendarEvent;
-import pucp.edu.pe.sgta.service.inter.GoogleCalendarService.GoogleCalendarService;
+import pucp.edu.pe.sgta.service.inter.GoogleService.GoogleCalendarService;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;

@@ -14,10 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AsignacionBloqueDTO;
 import pucp.edu.pe.sgta.dto.DistribucionRequestDTO;
-import pucp.edu.pe.sgta.dto.GoogleCalendarEvent;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
-import pucp.edu.pe.sgta.service.inter.GoogleCalendarService.GoogleCalendarService;
 import pucp.edu.pe.sgta.util.ResponseMessage;
 
 @RestController

@@ -11,6 +11,9 @@ export async function updateBloquesNextPhase(bloquesList: TimeSlot[]) {
     const response = await axiosInstance.patch(
       "/bloqueHorarioExposicion/updateBloquesListNextPhase",
       bloquesList,
+      {
+        withCredentials: true, // 🔥 Muy importante para enviar la cookie de sesión
+      }
     );
 
     const data = response.data as { success: boolean; message: string };
@@ -40,6 +43,10 @@ export async function finishPlanning(idExposicon: number) {
   try {
     const response = await axiosInstance.patch(
       `/bloqueHorarioExposicion/finishPlanning/${idExposicon}`,
+      {},
+      {
+        withCredentials: true, // 🔥 CLAVE: para enviar JSESSIONID al backend
+      }
     );
     const data = response.data as { success: boolean; message: string };
 

@@ -1,4 +1,4 @@
-package pucp.edu.pe.sgta.service.inter.GoogleCalendarService;
+package pucp.edu.pe.sgta.service.inter.GoogleService;
 
 import pucp.edu.pe.sgta.dto.GoogleCalendarEvent;
 
