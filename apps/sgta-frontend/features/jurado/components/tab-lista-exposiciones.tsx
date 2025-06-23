@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { ExposicionJurado } from "../types/jurado.types";
 import { getExposicionesCoordinador } from "../services/jurado-service";
 import { useAuthStore } from "@/features/auth";
-import ModalDetallesExposicion from "./modal-detalles-exposicion";
+import ModalDetallesExposicionCoordinador from "./modal-detalles-exposicion-coordinador";
 import { ListExposicionCoordinadorCard } from "./list-exposicion-coordinador-card";
 import { FilterExposicionCoordinador } from "./filters-exposicion-coordinador";
 import { getCiclos } from "../services/exposicion-service";
 import { Ciclo } from "@/features/jurado/types/juradoDetalle.types";
+import { toast } from "sonner";
 
 const estados = [
   { value: "todos", label: "Todos" },
@@ -18,10 +19,41 @@ const estados = [
   { value: "calificada", label: "Calificada" },
 ];
 
+const expoTest: ExposicionJurado = {
+  id_exposicion: 3,
+  fechahora: new Date("2025-06-25T19:00:00Z"),
+  sala: "V201",
+  estado: "PROGRAMADA",
+  id_etapa_formativa: 1,
+  nombre_etapa_formativa: "Proyecto de fin de carrera 1",
+  titulo:
+    "Modelo de red neuronal convolucional para la clasificación de tipos de nubes en imágenes de webcam",
+  ciclo_id: 4,
+  estado_control: "ESPERANDO_RESPUESTA",
+  nombre_exposicion: "Exposicion parcial",
+  enlace_grabacion: "xd",
+  enlace_sesion:
+    "https://us05web.zoom.us/j/82863224408?pwd=RLr4K3nH5mABrWOuhyI8eRpwPcARkb.1",
+  criterios_calificados: false,
+  miembros: [
+    {
+      id_persona: 73,
+      nombre: "Johan Hinojosa Salazar",
+      tipo: "Tesista",
+    },
+    {
+      id_persona: 70,
+      nombre: "Luis Manuel Falcon Baca",
+      tipo: "Asesor",
+    },
+  ],
+};
+
 export const TabListaExposiciones: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [exposiciones, setExposiciones] = useState<ExposicionJurado[]>([]);
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const { control, watch, getValues, reset } = useForm({
     defaultValues: {
@@ -42,10 +74,11 @@ export const TabListaExposiciones: React.FC = () => {
         const exposicionesData = await getExposicionesCoordinador(idToken!);
         console.log("Exposiciones Data:", exposicionesData);
         const exposicionesFiltradas = exposicionesData.filter(
-          (expo) => expo.estado !== "ESPERANDO_RESPUESTA" && expo.estado !== "ESPERANDO_APROBACIÓN"
+          (expo) =>
+            expo.estado !== "ESPERANDO_RESPUESTA" &&
+            expo.estado !== "ESPERANDO_APROBACIÓN",
         );
         setExposiciones(exposicionesFiltradas);
-
       } catch (error) {
         console.error("Error al cargar exposiciones:", error);
       } finally {
@@ -166,6 +199,35 @@ export const TabListaExposiciones: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleGuardarGrabacion = async (enlaceGrabacion: string) => {
+    if (!selectedExposicion) return;
+    setSaving(true);
+    try {
+      // TODO: Llamar al endpoint para guardar el enlace de grabación
+
+      setExposiciones((prev) =>
+        prev.map((expo) =>
+          expo.id_exposicion === selectedExposicion.id_exposicion
+            ? { ...expo, enlace_grabacion: enlaceGrabacion }
+            : expo,
+        ),
+      );
+
+      // Actualiza la exposición seleccionada (para que el modal muestre el nuevo valor)
+      setSelectedExposicion((prev) =>
+        prev ? { ...prev, enlace_grabacion: enlaceGrabacion } : prev,
+      );
+
+      toast.success("Enlace de grabación guardado");
+    } catch (error) {
+      console.error("Error al guardar el enlace de grabación:", error);
+      toast.error("Error al guardar el enlace");
+    } finally {
+      setSaving(false);
+      setModalOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <FilterExposicionCoordinador control={control} onSearch={handleSearch} />
@@ -185,7 +247,12 @@ export const TabListaExposiciones: React.FC = () => {
               exposicion={exposicionTest}
               onClick={() => handleOpenModal(exposicionTest)}
             />*/}
-            
+
+            <ListExposicionCoordinadorCard
+              key="1"
+              exposicion={expoTest}
+              onClick={() => handleOpenModal(expoTest)}
+            />
 
             {filteredExposiciones.map((exposicion) => (
               <ListExposicionCoordinadorCard
@@ -195,10 +262,12 @@ export const TabListaExposiciones: React.FC = () => {
               />
             ))}
           </div>
-          <ModalDetallesExposicion
+          <ModalDetallesExposicionCoordinador
             open={modalOpen}
             onOpenChange={setModalOpen}
             exposicion={selectedExposicion}
+            handleGuardarGrabacion={handleGuardarGrabacion}
+            saving={saving}
           />
         </div>
       )}
