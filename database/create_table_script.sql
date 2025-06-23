@@ -1249,6 +1249,21 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS configuracion_recordatorio (
+    configuracion_recordatorio_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuario(usuario_id) ON DELETE CASCADE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE, -- Si el usuario quiere recordatorios automáticos
+    dias_anticipacion INTEGER[] NOT NULL, -- Ejemplo: {7,3,1,0}
+    canal_correo BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir por correo
+    canal_sistema BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir en el sistema (notificación)
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unico_usuario_recordatorio UNIQUE (usuario_id)
+);
+
+
+
+
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO
 --DROP CAST IF EXISTS (character varying AS enum_estado_actividad);

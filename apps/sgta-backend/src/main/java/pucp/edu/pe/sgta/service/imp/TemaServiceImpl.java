@@ -2673,7 +2673,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 		temaRepository.actualizarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(),
-				comentario != null ? comentario : "Aceptación de postulante");
+				"Aceptación de postulante");
 
 		// 6) (Opcional) Eliminar postulaciones previas de ese alumno a otros temas
 		eliminarPostulacionesTesista(idTesista);
