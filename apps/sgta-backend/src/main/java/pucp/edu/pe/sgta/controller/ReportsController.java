@@ -28,6 +28,11 @@ import org.springframework.http.HttpStatus;
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Map;
+
+
 @RestController
 @RequestMapping("/reports")
 public class ReportsController {
@@ -35,6 +40,7 @@ public class ReportsController {
     private final IReportService reportingService;
 
     private final JwtService      jwtService;
+    private static final Logger logger = LoggerFactory.getLogger(ReportsController.class);
 
     @Autowired
     public ReportsController(IReportService reportingService, JwtService jwtService) {
@@ -151,27 +157,53 @@ public class ReportsController {
     }
 
     @GetMapping("/entregables/{idUsuario}")
-    public ResponseEntity<List<EntregableEstudianteDto>> getEntregablesAlumnoSeleccionado(
-            @PathVariable Integer idUsuario) {
-        System.out.println(" Entró al método con ID explícito: " + idUsuario);
+    public ResponseEntity<?> getEntregablesAlumnoSeleccionado(@PathVariable Integer idUsuario) {
+        logger.info("▶ Entró al método getEntregablesAlumnoSeleccionado con ID explícito: {}", idUsuario);
         try {
-            List<EntregableEstudianteDto> entregables = reportingService.getEntregablesEstudianteById(idUsuario);
-            return ResponseEntity.ok(entregables);
+        List<EntregableEstudianteDto> entregables =
+            reportingService.getEntregablesEstudianteById(idUsuario);
+        logger.info("   ✔ Entregables encontrados: {}", entregables.size());
+        return ResponseEntity.ok(entregables);
+
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        logger.warn("   ⚠ Usuario {} sin tema asignado: {}", idUsuario, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Usuario sin tema asignado"));
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        // **Este log imprimirá la traza completa en tu consola**
+        logger.error("   💥 Error inesperado obteniendo entregables para usuario {}: ", idUsuario, e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("error", e.getMessage()));
         }
     }
 
 
 
-    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
-    @GetMapping("/entregables-criterios/{idUsuario}")
+    /** RF9: entregables con criterios de un tesista*/
+    @GetMapping("/entregables-criterios")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-           @PathVariable Integer  idUsuario) {
+           HttpServletRequest request) {
+        String idUsuario = jwtService.extractSubFromRequest(request);
         List<EntregableCriteriosDetalleDto> list =
             reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
+
     }
+
+    /** RF10: Obtener estado de revisión de entregable */
+    @GetMapping("/entregables/estado-revision")
+    public ResponseEntity<?> getEstadoRevisionPorEntregableXTema(@RequestParam Integer entregableXTemaId) {
+        try {
+            return ResponseEntity.ok(reportingService.getEstadoRevisionPorEntregable(entregableXTemaId));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of("error", "No se encontró revisión para este entregable"));
+        } catch (Exception e) {
+            logger.error("Error al obtener estado de revisión:", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
 }

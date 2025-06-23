@@ -14,5 +14,7 @@ interface ObservacionAlumnoDTO {
   roles: number[];      // Nuevo atributo: arreglo de roles como números
   fechaCreacion: string;
   activo: boolean | null;
+  corregido: boolean | null;
+  estado: string; // Ejemplo: "Pendiente", "Corregido", etc.
   // Agrega otros campos si los necesitas
 }

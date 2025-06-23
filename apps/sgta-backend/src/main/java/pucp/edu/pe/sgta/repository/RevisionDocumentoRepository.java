@@ -139,7 +139,15 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE revision_documento SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision) WHERE revision_documento_id = :revisionId", nativeQuery = true)
+    @Query(value = """
+        UPDATE revision_documento
+        SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
+        WHERE version_documento_id = (
+            SELECT version_documento_id
+            FROM revision_documento
+            WHERE revision_documento_id = :revisionId
+        )
+        """, nativeQuery = true)
     void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId,
             @Param("nuevoEstado") String nuevoEstado);
 
@@ -149,4 +157,11 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Transactional
     @Query(value = "SELECT crear_revisiones(:entregableXTemaId)", nativeQuery = true)
     void crearRevisiones(@Param("entregableXTemaId") Integer entregableXTemaId);
+
+    @Query(value = "SELECT * FROM obtener_alumnos_por_revision(:revision_id)", nativeQuery = true)
+    List<Object[]> getStudentsByRevisor(@Param("revision_id") Integer revision_id);
+
+    Optional<RevisionDocumento>
+    findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
+
 }

@@ -33,6 +33,7 @@ export function RevisionesTableAsesor({
   searchQuery = "",
   cursoFilter = "todos",
 }: RevisionesTableAsesorProps) {
+
   // Filtrar las revisiones según los criterios
   let revisionesFiltradas = data;
 
@@ -62,6 +63,28 @@ export function RevisionesTableAsesor({
     );
   }
 
+  const renderEstudiantes = (estudiantes: { nombre: string; codigo: string }[]) => {
+    if (estudiantes.length === 1) {
+      return (
+        <div>
+          <div className="font-medium">{estudiantes[0].nombre}</div>
+          <div className="text-xs text-muted-foreground">{estudiantes[0].codigo}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1">
+        <div className="font-medium">
+          {estudiantes.length} estudiante{estudiantes.length > 1 ? "s" : ""}
+        </div>
+        <div className="text-xs text-muted-foreground break-words whitespace-pre-wrap">
+          {estudiantes.map((e) => `${e.nombre} (${e.codigo})`).join(", ")}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="rounded-md border">
@@ -76,7 +99,7 @@ export function RevisionesTableAsesor({
               <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
               <TableHead>Gen. IA (%)</TableHead>
-              <TableHead>F. de Carga</TableHead>
+              <TableHead>F. de Subida</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -104,18 +127,7 @@ export function RevisionesTableAsesor({
                       <span>{revision.entregable}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {revision.estudiantes.map((estudiante, index) => (
-                        <div key={index}>
-                          <div>{estudiante.nombre}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {estudiante.codigo}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
+                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-gray-100">
                       {revision.curso}

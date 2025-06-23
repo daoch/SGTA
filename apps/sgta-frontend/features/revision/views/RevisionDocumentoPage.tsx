@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, guardarObservacion, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, existePlagioJsonF, getJsonPlagio, guardarObservacion, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -106,11 +106,53 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
   const [plagioData, setPlagioData] = useState<PlagioData | null>(null);
   const [isAnalizandoPlagio, setIsAnalizandoPlagio] = useState(false);
+  const [existePlagioJson, setExistePlagioJson] = useState<boolean | null>(null);
 
+  useEffect(() => {
+    async function checkExistePlagioJson() {
+      const exists = await existePlagioJsonF(params.id_revision);
+      setExistePlagioJson(exists);
+    }
+    checkExistePlagioJson();
+  }, [params.id_revision]);
+
+  useEffect(() => {
+    if (existePlagioJson === false && !isAnalizandoPlagio) {
+      console.log("No existe JSON de plagio, iniciando análisis...");
+      handleAnalizarPlagio();
+    } else if (existePlagioJson === true) {
+      console.log("Existe JSON de plagio, no es necesario analizar nuevamente.");
+      const fetchPlagioData = async () => {
+        const apiData = await getJsonPlagio(params.id_revision);
+        const detalles: PlagioDetalle[] = [];
+        // Aquí puedes actualizar el estado con los datos obtenidos si lo necesitas
+        // setPlagioData(apiData);
+        apiData.sources.forEach((src) => {
+          src.plagiarismFound.forEach((frag) => {
+            detalles.push({
+              pagina: 1, // Si tienes la página real, asígnala aquí
+              texto: `Coincidencia del ${src.score}% con "${src.title}"${src.author ? ` (autor: ${src.author})` : ""}: "${frag.sequence}"`,
+              url: src.url,
+              title: src.title,
+              author: src.author ?? "Desconocido",
+              fragmento: frag.sequence,
+            });
+          });
+        });
+        setPlagioData({
+          coincidencias: apiData.result.score,
+          detalles
+        });
+      };
+      fetchPlagioData();
+    }
+    // eslint-disable-next-line
+  }, [existePlagioJson]);
   const handleAnalizarPlagio = async () => {
     setIsAnalizandoPlagio(true);
     try {
-      const apiData = await analizarPlagioArchivoS3("E1.pdf");
+      const apiData = await analizarPlagioArchivoS3(params.id_revision);
+      console.log("Datos de plagio obtenidos:", apiData);
       const detalles: PlagioDetalle[] = [];
       apiData.sources.forEach((src) => {
         src.plagiarismFound.forEach((frag) => {
@@ -160,6 +202,15 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     };
   }, [params.id_revision]);
   useEffect(() => {
+    if (numPages && highlights.length > 0) {
+      setHighlights(prev =>
+        prev.filter(h =>
+          h.position.pageNumber > 0 && h.position.pageNumber <= numPages
+        )
+      );
+    }
+  }, [numPages]);
+  useEffect(() => {
     async function fetchObservaciones() {
       try {
         const data = await obtenerObservacionesRevision(params.id_revision);
@@ -174,31 +225,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
     fetchObservaciones();
   }, [params.id_revision]);
-  useEffect(() => {
-    if (numPages === null) return;
-    // Solo crea highlights en páginas válidas
-    const initialHighlights = revision.observaciones
-      .filter(obs => obs.pagina > 0 && obs.pagina <= numPages)
-      .map(obs => ({
-        id: obs.id,
-        content: { text: obs.texto },
-        position: {
-          pageNumber: obs.pagina,
-          boundingRect: {
-            x1: 50,
-            y1: 50,
-            x2: 150,
-            y2: 70,
-            width: 100,
-            height: 20
-          },
-          rects: [],
-          usePdfCoordinates: false,
-        },
-        comment: { text: obs.texto, emoji: "" },
-      }));
-    setHighlights(initialHighlights);
-  }, [revision, numPages]);
+
   const handleHighlightClick = useCallback((highlight: IHighlight) => {
     console.log("Click en highlight:", highlight.id);
     setActiveHighlight(undefined);

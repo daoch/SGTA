@@ -29,4 +29,6 @@ public interface ExposicionService {
             Integer etapaFormativaId);
 
     List<ExposicionEstudianteDTO> findExposicionesEstudianteById(Integer usuarioId);
+
+    byte[] exportarExcel(Integer usuarioId);
 }

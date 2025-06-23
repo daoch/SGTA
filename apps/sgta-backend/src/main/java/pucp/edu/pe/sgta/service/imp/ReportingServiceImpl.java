@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.*;
-import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    // ← IMPORT añadido
+import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -29,6 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pucp.edu.pe.sgta.dto.RevisionDocumentoDto;
+import pucp.edu.pe.sgta.model.RevisionDocumento;
+import pucp.edu.pe.sgta.model.VersionXDocumento;
+import pucp.edu.pe.sgta.repository.VersionXDocumentoRepository;
+import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+
 
 @Service
 public class ReportingServiceImpl implements IReportService {
@@ -37,6 +43,13 @@ public class ReportingServiceImpl implements IReportService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private VersionXDocumentoRepository versionXDocumentoRepository;
+
+    @Autowired
+    private RevisionDocumentoRepository revisionDocumentoRepository;
+
 
     private final UsuarioService usuarioService;
     private final TopicAreaStatsRepository topicAreaStatsRepository;
@@ -67,7 +80,8 @@ public class ReportingServiceImpl implements IReportService {
             EntregableXTemaRepository entregableXTemaRepository,
             RevisionCriterioEntregableRepository revisionCriterioEntregableRepository,
             CriterioEntregableService criterioEntregableService,
-            EntregablesCriteriosRepository entregablesCriteriosRepository) {
+            EntregablesCriteriosRepository entregablesCriteriosRepository,
+            VersionXDocumentoRepository versionXDocumentoRepository) {
         this.usuarioService                    = usuarioService;
         this.topicAreaStatsRepository          = topicAreaStatsRepository;
         this.advisorDistributionRepository     = advisorDistributionRepository;
@@ -82,6 +96,7 @@ public class ReportingServiceImpl implements IReportService {
         this.revisionCriterioEntregableRepository = revisionCriterioEntregableRepository;
         this.criterioEntregableService         = criterioEntregableService;
         this.entregablesCriteriosRepository    = entregablesCriteriosRepository;
+        this.versionXDocumentoRepository = versionXDocumentoRepository;
     }
 
     @Override
@@ -318,21 +333,25 @@ public class ReportingServiceImpl implements IReportService {
 
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudiante(String usuarioId) {
-
         // 1) Resolvemos el usuario interno a partir del Cognito ID
         UsuarioDto usuDto = findByCognitoId(usuarioId);
         if (usuDto == null) {
             throw new RuntimeException("Usuario no encontrado con Cognito ID: " + usuarioId);
         }
-        Integer usuarioId_interno = usuDto.getId();
+        Integer usuarioIdInterno = usuDto.getId();
 
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId_interno);
-        if (usuarioTema.isEmpty()) {
-            throw new RuntimeException("Usuario no tiene tema asignado");
+        // 2) Buscamos sólo los usuario_tema donde activo = true y asignado = true
+        List<UsuarioXTema> temas =
+            usuarioXTemaRepository.findByUsuarioIdAndActivoTrueAndAsignadoTrue(usuarioIdInterno);
+
+        if (temas.isEmpty()) {
+            throw new RuntimeException("Usuario no tiene ningún tema activo y asignado");
         }
+        // Nos quedamos con el primero (puedes ordenar antes si quieres prioridad por fecha, etc.)
+        UsuarioXTema usuarioTema = temas.get(0);
+        Integer temaId = usuarioTema.getTema().getId();
 
-        Integer temaId = usuarioTema.get().getTema().getId();
-
+        // 3) Recuperamos y mapeamos los entregables de ese tema
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
                 .map(et -> {
                     int exId = et.getEntregableXTemaId();
@@ -340,56 +359,75 @@ public class ReportingServiceImpl implements IReportService {
                             ? et.getNotaEntregable().doubleValue()
                             : null;
                     boolean esEvaluable      = et.getEntregable().isEsEvaluable();
-                    String estadoEntregable  = et.getEntregable().getEstadoStr();
-                    String estadoXTema       = et.getEstado().name();
+                    String estadoEntregable  = et.getEntregable().getEstado().name();
+                    String estadoXTema       = et.getEstado();
 
-                    List<CriterioEntregableDto> criterios = criterioEntregableService
-                            .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
-                            .stream()
-                            .map(c -> {
-                                Double nota = revisionCriterioEntregableRepository
-                                        .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
-                                        .map(BigDecimal::doubleValue)
-                                        .orElse(null);
-                                CriterioEntregableDto copy = new CriterioEntregableDto();
-                                copy.setId(c.getId());
-                                copy.setNombre(c.getNombre());
-                                copy.setDescripcion(c.getDescripcion());
-                                copy.setNotaMaxima(c.getNotaMaxima());
-                                copy.setNota(nota);
-                                return copy;
-                            })
-                            .collect(Collectors.toList());
+                List<CriterioEntregableDto> criterios = criterioEntregableService
+                        .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                        .stream()
+                        .map(c -> {
+                            Double nota = revisionCriterioEntregableRepository
+                                    .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
+                                    .map(BigDecimal::doubleValue)
+                                    .orElse(null);
+                            CriterioEntregableDto copy = new CriterioEntregableDto();
+                            copy.setId(c.getId());
+                            copy.setNombre(c.getNombre());
+                            copy.setDescripcion(c.getDescripcion());
+                            copy.setNotaMaxima(c.getNotaMaxima());
+                            copy.setNota(nota);
+                            return copy;
+                        })
+                        .collect(Collectors.toList());
+                
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
 
-                    return new EntregableEstudianteDto(
-                            et.getEntregable().getNombre(),
-                            estadoEntregable,
-                            estadoXTema,
-                            et.getFechaEnvio() != null
-                                    ? et.getFechaEnvio().toLocalDateTime()
-                                    : null,
-                            notaGlobal,
-                            esEvaluable,
-                            criterios
-                    );
-                })
-                .collect(Collectors.toList());
+
+                return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),           
+                    et.getTema().getId(), 
+                    et.getEntregable().getNombre(),
+                    estadoEntregable,
+                    estadoXTema,
+                    et.getFechaEnvio() != null
+                        ? et.getFechaEnvio().toLocalDateTime()
+                        : null,
+                    notaGlobal,
+                    esEvaluable,
+                    criterios,
+                    revisionId,                        
+                    estadoRevision   
+                );
+            })
+            .collect(Collectors.toList());
     }
+
 
     @Override
     public List<EntregableEstudianteDto> getEntregablesEstudianteById(int usuarioId) {
         System.out.println("usuarioId recibido: " + usuarioId);
 
-        Optional<UsuarioXTema> usuarioTema = usuarioXTemaRepository.findByUsuarioId(usuarioId);
-        if (usuarioTema.isEmpty()) {
-            System.out.println("MIRAMEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n");
-            System.out.println("El usuario con ID " + usuarioId + " no tiene tema asignado en usuario_tema.");
-            System.out.println("El usuario no tiene tema asignado.");
-            return Collections.emptyList();
+        // 1) devolvemos sólo la asignación activa+asignada
+        List<UsuarioXTema> asignaciones = usuarioXTemaRepository
+            .findByUsuarioIdAndActivoTrueAndAsignadoTrue(usuarioId);
+
+        if (asignaciones.isEmpty()) {
+            System.out.println("El usuario " + usuarioId + " NO tiene tema activo+asignado.");
+            throw new NoSuchElementException(
+                "No existe tema activo/asignado para el usuario " + usuarioId
+            );
         }
 
-        Integer temaId = usuarioTema.get().getTema().getId();
+        // ya es un UsuarioXTema, no Optional
+        UsuarioXTema asignacion = asignaciones.get(0);
+
+        // accedes directo:
+        Integer temaId = asignacion.getTema().getId();
         System.out.println("Tema ID del estudiante: " + temaId);
+
 
         var entregables = entregableXTemaRepository.findByTemaIdWithEntregable(temaId);
         System.out.println("Cantidad de entregables encontrados: " + entregables.size());
@@ -404,8 +442,8 @@ public class ReportingServiceImpl implements IReportService {
                     : null;
 
                 boolean esEvaluable = et.getEntregable().isEsEvaluable();
-                String estadoEntregable = et.getEntregable().getEstadoStr();
-                String estadoXTema = et.getEstado().name();
+                String estadoEntregable = et.getEntregable().getEstado().name();
+                String estadoXTema = et.getEstado();
 
                 List<CriterioEntregableDto> criterios = criterioEntregableService
                     .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
@@ -425,15 +463,22 @@ public class ReportingServiceImpl implements IReportService {
                         return copy;
                     })
                     .collect(Collectors.toList());
-
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
                 return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),
+                    et.getTema().getId(),
                     et.getEntregable().getNombre(),
                     estadoEntregable,
                     estadoXTema,
                     et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null,
                     notaGlobal,
                     esEvaluable,
-                    criterios
+                    criterios,
+                    revisionId,
+                    estadoRevision
                 );
             })
             .collect(Collectors.toList());
@@ -442,8 +487,10 @@ public class ReportingServiceImpl implements IReportService {
 
 
     @Override
-    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
-        //Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String cognitoSub) {
+
+        Integer idUsuario = usuarioService.findByCognitoId(cognitoSub).getId();
+
         List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(idUsuario);
 
         Map<Integer, EntregableCriteriosDetalleDto> map = new LinkedHashMap<>();
@@ -460,6 +507,8 @@ public class ReportingServiceImpl implements IReportService {
                             : null)
                     .estadoEntrega((String) r[4])
                     .criterios(new ArrayList<>())
+                    .etapaFormativaXCicloId(r[9] != null ? (Integer) r[9] : null)
+                    .esEvaluable(r[10] != null ? (Boolean) r[10] : null)
                     .build()
             );
             if (r[5] != null) {
@@ -480,4 +529,42 @@ public class ReportingServiceImpl implements IReportService {
         }
         return new ArrayList<>(map.values());
     }
+
+    @Override
+    public RevisionDocumentoDto getEstadoRevisionPorEntregable(Integer entregableXTemaId) {
+
+        // 1) Última versión que pertenece a este entregable-tema
+        VersionXDocumento version = versionXDocumentoRepository
+                .findTopByEntregableXTema_EntregableXTemaIdOrderByFechaCreacionDesc(entregableXTemaId)
+                .orElse(null);
+
+        if (version == null) {
+            return null;           // No hay versión o no tiene revisión ligada
+        }
+
+        // 2) Revisión asociada a esa versión
+        RevisionDocumento revision = revisionDocumentoRepository
+                .findTopByVersionDocumento_IdOrderByFechaCreacionDesc(version.getId())
+                .orElse(null);
+
+        if (revision == null) {
+            return null;
+        }
+
+        // 3) Construir y devolver el DTO
+        return new RevisionDocumentoDto(
+                revision.getId(),
+                revision.getUsuario().getId(),
+                revision.getVersionDocumento().getId(),
+                revision.getFechaLimiteRevision(),
+                revision.getFechaRevision(),
+                revision.getEstadoRevision().name().toLowerCase(),
+                revision.getLinkArchivoRevision(),
+                revision.getActivo(),
+                revision.getFechaCreacion(),
+                revision.getFechaModificacion()
+        );
+    }
+
+
 }

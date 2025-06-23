@@ -5,14 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.dto.DocumentoConVersionDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.Documento;
 import pucp.edu.pe.sgta.model.EntregableXTema;
 import pucp.edu.pe.sgta.model.VersionXDocumento;
 import pucp.edu.pe.sgta.repository.DocumentoRepository;
-import pucp.edu.pe.sgta.service.inter.DocumentoService;
-import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
-import pucp.edu.pe.sgta.service.inter.S3DownloadService;
-import pucp.edu.pe.sgta.service.inter.VersionXDocumentoService;
+import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.service.inter.*;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -26,15 +25,20 @@ public class DocumentoServiceImpl implements DocumentoService {
     private final VersionXDocumentoService versionXDocumentoService;
     private final S3DownloadService s3DownloadService;
     private final RevisionDocumentoService revisionDocumentoService;
+    private final UsuarioService usuarioService;
+    private final EntregableRepository entregableRepository;
     
     private static final String S3_PATH_DELIMITER = "/";
 
     public DocumentoServiceImpl(DocumentoRepository documentoRepository,VersionXDocumentoService versionXDocumentoService,
-                                S3DownloadService s3DownloadService, RevisionDocumentoService revisionDocumentoService) {
+                                S3DownloadService s3DownloadService, RevisionDocumentoService revisionDocumentoService,
+                                UsuarioService usuarioService, EntregableRepository entregableRepository) {
         this.documentoRepository = documentoRepository;
         this.versionXDocumentoService = versionXDocumentoService;
         this.s3DownloadService = s3DownloadService;
         this.revisionDocumentoService = revisionDocumentoService;
+        this.usuarioService = usuarioService;
+        this.entregableRepository = entregableRepository;
     }
 
     @Override
@@ -64,7 +68,13 @@ public class DocumentoServiceImpl implements DocumentoService {
     @Transactional
     @Override
     public ResponseEntity<String> subirDocumentos(Integer entregableXTemaId, MultipartFile[] archivos,
-                                                  String ciclo, String curso, String codigoAlumno) {
+                                                  String ciclo, String curso, String comentario,
+                                                  String estado, String cognitoId) {
+        UsuarioDto user = usuarioService.findByCognitoId(cognitoId);
+        String codigoAlumno = user.getCodigoPucp();
+
+        entregableRepository.entregarEntregable(entregableXTemaId, comentario, estado);
+
         for (MultipartFile archivo : archivos) {
             try {
                 String filename = ciclo + S3_PATH_DELIMITER + curso + S3_PATH_DELIMITER +

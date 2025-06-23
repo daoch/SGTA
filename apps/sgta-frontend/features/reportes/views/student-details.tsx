@@ -2,19 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { advisorService, Meeting, StudentDetail, TimelineEvent } from "@/features/asesores/services/advisor-service";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, Book, BookOpen, Calendar, ChevronDown, ChevronsUpDown, ChevronUp, Clock, Eye, Filter, GraduationCap, Mail, Tag, User, X } from "lucide-react";
+import { ArrowLeft, Book, BookOpen, Calendar, ChevronDown, ChevronsUpDown, ChevronUp, Clock, Filter, GraduationCap, Mail, Tag, User, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -821,7 +813,7 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="rounded-md border">
-                <div className="grid border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-500" style={{gridTemplateColumns: "200px 150px 200px 1fr"}}>
+                <div className="grid border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-500" style={{gridTemplateColumns: "150px 120px 150px 1fr"}}>
                   <div 
                     className="cursor-pointer hover:bg-gray-100 px-2 py-1 -mx-2 -my-1 rounded select-none"
                     onClick={() => handleMeetingSort("fecha")}
@@ -859,7 +851,7 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
                 </div>
                 {sortedAndFilteredMeetings.length > 0 ? (
                   sortedAndFilteredMeetings.map((meeting, index) => (
-                    <div key={index} className="grid border-b px-4 py-3 text-sm last:border-0" style={{gridTemplateColumns: "200px 150px 200px 1fr"}}>
+                    <div key={index} className="grid border-b px-4 py-3 text-sm last:border-0" style={{gridTemplateColumns: "150px 120px 150px 1fr"}}>
                       <div>{meeting.fecha ? formatDate(meeting.fecha) : "Fecha pendiente"}</div>
                       <div>{meeting.duracion || "Por definir"}</div>
                       <div>
@@ -867,26 +859,8 @@ export function StudentDetails({ studentId }: StudentDetailsProps) {
                           Programada
                         </span>
                       </div>
-                      <div>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="px-2 h-7">
-                              <Eye className="h-4 w-4 mr-1" /> Ver detalle
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Detalles de la Reunión</DialogTitle>
-                              <DialogDescription>
-                                {meeting.fecha ? formatDate(meeting.fecha) : "Fecha pendiente"} | {meeting.duracion}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="mt-4">
-                              <h4 className="text-sm font-medium mb-2">Notas:</h4>
-                              <p className="text-sm text-gray-700">{meeting.notas || "Sin notas"}</p>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                      <div className="text-gray-700 break-words">
+                        {meeting.notas || "Sin notas"}
                       </div>
                     </div>
                   ))

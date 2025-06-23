@@ -64,6 +64,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
       toast.error("Error al inscribir el tema.");
     }
   };
+  console.log("Tema seleccionado:", temaSeleccionado);
 
   return (
     <>
@@ -91,6 +92,14 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             </DialogHeader>
 
             <div className="space-y-4 pt-2">
+              {/* Crrera */}
+              <div>
+                <p className="text-sm font-medium">Carrera</p>
+                <p className="bg-muted p-2 rounded-md">
+                  {tema.carrera?.nombre}
+                </p>
+              </div>
+
               {/* Title */}
               <div>
                 <p className="text-sm font-medium">Título</p>
@@ -125,7 +134,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium">Asesor</p>
-                  <p className="bg-muted p-2 rounded-md">{asesor?.nombres}</p>
+                  <p className="bg-muted p-2 rounded-md">{`${asesor?.nombres} ${asesor?.primerApellido}`}</p>
                 </div>
 
                 {/* Estado */}
@@ -166,7 +175,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                             {tesista.nombres} {tesista.primerApellido}{" "}
                             {tesista.segundoApellido}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-400">
                             {tesista.codigoPucp}
                           </p>
                         </div>
@@ -177,18 +186,28 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground italic space-y-2">
-                    El tema no tiene estudiantes asignados.
+                  <p className="bg-muted p-2 rounded-md text-gray-400 space-y-2">
+                    Sin estudiantes asignados
                   </p>
                 )}
               </div>
 
-              {/* Requisitos */}
+              {/* Objetivos */}
               {tema.objetivos && tema.objetivos.trim() !== "" && (
+                <div>
+                  <p className="text-sm font-medium">Objetivos</p>
+                  <p className="bg-muted p-2 rounded-md whitespace-pre-line">
+                    {tema.objetivos}
+                  </p>
+                </div>
+              )}
+
+              {/* Requisitos */}
+              {tema.requisitos && tema.requisitos.trim() !== "" && (
                 <div>
                   <p className="text-sm font-medium">Requisitos</p>
                   <p className="bg-muted p-2 rounded-md whitespace-pre-line">
-                    {tema.objetivos}
+                    {tema.requisitos}
                   </p>
                 </div>
               )}

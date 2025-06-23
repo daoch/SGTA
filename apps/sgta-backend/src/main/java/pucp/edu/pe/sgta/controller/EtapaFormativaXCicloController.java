@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
 import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
+import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/etapa-formativa-x-ciclo")
@@ -84,6 +86,13 @@ public class EtapaFormativaXCicloController {
     @GetMapping("/etapaXCiclo/{etapaXCicloId}")
     public EtapaFormativaXCicloDto getEtapaFormativaXCicloByEtapaId(@PathVariable Integer etapaXCicloId) {
         return etapaFormativaXCicloService.getEtapaFormativaXCicloByEtapaId(etapaXCicloId);
+    }
+
+    @GetMapping("/tesista")
+    public ResponseEntity<List<EtapaFormativaXCicloTesistaDto>> listarEtapasFormativasXCicloTesista(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        List<EtapaFormativaXCicloTesistaDto> etapas = etapaFormativaXCicloService.listarEtapasFormativasXCicloTesista(idCognito);
+        return ResponseEntity.ok(etapas);
     }
 
 }

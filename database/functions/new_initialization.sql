@@ -1,5 +1,5 @@
 --COMENTAR SI NO LES HACE FALTA
---SET search_path TO sgtadb;
+SET search_path TO sgtadb;
 
 ----------------------------------
 --|           TIPOS            |--
@@ -31,8 +31,9 @@ INSERT INTO tipo_solicitud (
   ('Aprobación de tema (por coordinador)', 'Solicitud para que el coordinador apruebe el tema', TRUE, NOW(), NOW()),
   ('Solicitud de cambio de título',                       'Modificar el título del tema',        TRUE, NOW(), NOW()),
   ('Solicitud de cambio de resumen',                     'Modificar el resumen del tema',       TRUE, NOW(), NOW()),
-  ('Cambio de asesor (por asesor)',                      'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW());
-
+  ('Cambio de asesor (por asesor)',                      'Solicitud para que el coordinador apruebe el cambio de asesores', TRUE, NOW(), NOW()),
+  ('Solicitud de cambio de objetivos','Solicitud para cambiar de objetivos',true,now(),now()),
+  ('Solicitud de cambio de subárea academica','Solicitud para cambiar de subárea academica',true,now(),now());
 
 INSERT INTO tipo_notificacion (nombre,
                                descripcion,

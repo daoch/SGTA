@@ -44,12 +44,16 @@ export function NavUser({ user }: { user: User }) {
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight gap-1">
-                <span className="truncate font-semibold">{user.name}</span>
+                <span className="truncate font-semibold">
+                  {user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user.email}
+                </span>
                 <div className="flex flex-wrap gap-1 w-full">
                   {user?.roles?.map((role, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="default" 
+                    <Badge
+                      key={index}
+                      variant="default"
                       className="text-xs inline-flex"
                     >
                       {role}
@@ -73,7 +77,11 @@ export function NavUser({ user }: { user: User }) {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate font-semibold">
+                    {user.firstName && user.lastName 
+                      ? `${user.firstName} ${user.lastName}` 
+                      : user.email}
+                  </span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
@@ -93,7 +101,7 @@ export function NavUser({ user }: { user: User }) {
               onClick={() => {
                 // First logout to clear all tokens and state
                 logout();
-                
+
                 // Then redirect to login page
                 setTimeout(() => {
                   // Small timeout to ensure logout completes before redirect

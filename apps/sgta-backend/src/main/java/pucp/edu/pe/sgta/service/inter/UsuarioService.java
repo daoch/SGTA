@@ -1,20 +1,15 @@
 package pucp.edu.pe.sgta.service.inter;
 
-import pucp.edu.pe.sgta.dto.UsuarioRegistroDto;
-import pucp.edu.pe.sgta.dto.asesores.FiltrosDirectorioAsesores;
-import pucp.edu.pe.sgta.dto.asesores.PerfilAsesorDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
-import pucp.edu.pe.sgta.dto.asesores.UsuarioFotoDto;
+import org.springframework.data.domain.Page;
+import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import org.springframework.web.multipart.MultipartFile;
-import pucp.edu.pe.sgta.dto.AlumnoTemaDto;
-import pucp.edu.pe.sgta.dto.DocentesDTO;
-import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
-import pucp.edu.pe.sgta.dto.AlumnoReporteDto;
 
 public interface UsuarioService {
 
@@ -77,11 +72,12 @@ public interface UsuarioService {
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados
      *
-     * @param rolNombre       Nombre del rol por el que filtrar (puede ser "Todos")
+     * @param rolNombre       Nombre del rol por el que filtra (puede ser "Todos")
      * @param terminoBusqueda Término para buscar en nombre, correo o código
+     * @param idCognito      ID del cognito del usuario que realiza la búsqueda
      * @return Lista de usuarios con información de sus roles
      */
-    List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda);
+    List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito);
 
     List<UsuarioDto> getAsesoresBySubArea(Integer idSubArea);
 
@@ -93,7 +89,7 @@ public interface UsuarioService {
 
     Integer getIdByCorreo(String correo);
 
-    List<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros);
+    Page<PerfilAsesorDto> getDirectorioDeAsesoresPorFiltros(FiltrosDirectorioAsesores filtros, Integer pageNumber, Boolean ascending);
 
     void procesarArchivoUsuarios(MultipartFile archivo, UsuarioRegistroDto datosExtra) throws Exception;
 
@@ -106,4 +102,19 @@ public interface UsuarioService {
     AlumnoTemaDto getAlumnoTema(String idAlumno);
 
     List<AlumnoReporteDto> findByStudentsForReviewer(String idUsuario, String cadenaBusqueda);
+
+    PerfilUsuarioDto getPerfilUsuario(Integer idUsuario);
+
+    void updatePerfilUsuario(PerfilUsuarioDto dto);
+
+    String obtenerCognitoPorId(Integer idUsuario);
+
+    Integer obtenerIdUsuarioPorCognito(String cognito);
+
+    List<UsuarioRolRevisorDto> listarRevisoresPorCarrera(Integer carreraId);
+
+    List<PerfilAsesorDto> buscarAsesoresPorCadenaDeBusqueda(String cadena, Integer idUsuario);
+
+    List<UsuarioDto> findAllByIds(Collection<Integer> ids);
+
 }

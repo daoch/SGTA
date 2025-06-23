@@ -12,10 +12,12 @@ export async function fetchPostulacionesAlAsesor(
   debouncedSearchTerm: string,
   debounceEstado: string,
   debounceFechaFin: string,
+  limit: number,
+  offset: number,
 ): Promise<Postulacion[]> {
   try {
     const response = await fetch(
-      `${baseUrl}/temas/listarPostuladosTemaLibre?busqueda=${debouncedSearchTerm}&estado=${debounceEstado}&fechaLimite=${debounceFechaFin}`,
+      `${baseUrl}/temas/listarPostuladosTemaLibre?busqueda=${debouncedSearchTerm}&estado=${debounceEstado}&fechaLimite=${debounceFechaFin}&limit=${limit}&offset=${offset}`,
       {
         method: "GET",
         headers: {
@@ -116,6 +118,36 @@ export async function aceptarPostulacionDeAlumno(tema: TemaDto) {
       "La página no responde. No se pudo aceptar la postulación.",
       error,
     );
+    throw error;
+  }
+}
+
+export async function contarPostulacionesAlAsesor(
+  debouncedSearchTerm: string,
+  debounceEstado: string,
+  debounceFechaFin: string,
+): Promise<number> {
+  try {
+    const response = await fetch(
+      `${baseUrl}/temas/contarPostuladosAlumnosTemaLibreAsesor?busqueda=${debouncedSearchTerm}&estado=${debounceEstado}&fechaLimite=${debounceFechaFin}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener las postulaciones.");
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error("La página no responde.", error);
     throw error;
   }
 }

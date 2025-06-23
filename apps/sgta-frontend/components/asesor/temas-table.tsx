@@ -16,6 +16,13 @@ import { Tema } from "@/features/temas/types/temas/entidades";
 import { titleCase } from "@/lib/utils";
 import { FilePen, Trash2 } from "lucide-react";
 
+import EditarTemaModal from "@/features/temas/components/asesor/editar-tema-modal";
+import { Carrera } from "@/features/temas/types/inscripcion/entities";
+import { AreaConocimiento } from "@/features/temas/types/postulaciones/entidades";
+import { EliminarTema } from "@/features/temas/types/temas/data";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Dialog, DialogTrigger } from "../ui/dialog";
 import DeleteTemaPopUp from "./delete-tema-pop-up";
 import { TemaDetailsDialog } from "./tema-details-modal";
 
@@ -26,6 +33,8 @@ interface PropuestasTableProps {
   error?: string | null;
   asesor?: Coasesor;
   onTemaInscrito?: () => void;
+  areasDisponibles: AreaConocimiento[];
+  carreras?: Carrera[];
 }
 
 /**
@@ -39,14 +48,27 @@ export function TemasTable({
   error,
   asesor,
   onTemaInscrito,
+  areasDisponibles,
+  carreras,
 }: Readonly<PropuestasTableProps>) {
-  const deleteTema = () => {
+  const [isEditarTemaDialogOpen, setIsEditarTemaDialogOpen] = useState(false);
+  const [temaSeleccionado, setTemaSeleccionado] = useState<Tema | null>(null);
+  const deleteTema = async (temaId: number) => {
     console.log("Tema eliminado");
-    // Aquí podrías llamar a tu API o actualizar el estado global
+    try {
+      await EliminarTema(temaId);
+      toast.success("Tema eliminado correctamente");
+    } catch (error) {
+      console.error("Error al eliminar el tema:", error);
+      toast.error("Error al eliminar el tema");
+    } finally {
+      if (onTemaInscrito) {
+        onTemaInscrito();
+      }
+    }
   };
 
-  console.log(temasData);
-
+  console.log("Temas: ", temasData);
   let tableBodyContent;
   if (isLoading) {
     tableBodyContent = (
@@ -112,7 +134,25 @@ export function TemasTable({
           )}
         </TableCell>
         {/* Postulaciones */}
-        {<TableCell>{tema.cantPostulaciones ?? "-"}</TableCell>}
+        {
+          <TableCell>
+            {" "}
+            {!tema.tesistas || tema.tesistas.length === 0 ? (
+              <p>{tema.cantPostulaciones}</p>
+            ) : (
+              (() => {
+                const tesistasAsignados = tema.tesistas.filter(
+                  (e: Tesista) => e.asignado !== false,
+                );
+                return tesistasAsignados.length === 0 ? (
+                  <p>{tema.cantPostulaciones}</p>
+                ) : (
+                  <p className="text-gray-400">Asignado</p>
+                );
+              })()
+            )}
+          </TableCell>
+        }
 
         {/* Tipo */}
         <TableCell>
@@ -129,7 +169,7 @@ export function TemasTable({
             }
             return (
               <Badge variant="outline" className={badgeClass}>
-                {titleCase(tema?.estadoTemaNombre ?? "")}
+                {titleCase((tema?.estadoTemaNombre ?? "").replace(/_/g, " "))}
               </Badge>
             );
           })()}
@@ -181,10 +221,35 @@ export function TemasTable({
             {[Tipo.INSCRITO, Tipo.LIBRE].includes(
               tema.estadoTemaNombre as Tipo,
             ) && (
-              <Button variant="ghost" size="icon" className="text-pucp-blue">
-                <FilePen className="h-4 w-4" />
-                <span className="sr-only">Editar</span>
-              </Button>
+              <Dialog
+                open={isEditarTemaDialogOpen}
+                onOpenChange={setIsEditarTemaDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-pucp-blue"
+                    onClick={() => {
+                      setTemaSeleccionado(tema);
+                      setIsEditarTemaDialogOpen(true);
+                    }}
+                  >
+                    <FilePen className="h-4 w-4" />
+                    <span className="sr-only">Editar</span>
+                  </Button>
+                </DialogTrigger>
+                {temaSeleccionado && asesor && areasDisponibles && carreras && (
+                  <EditarTemaModal
+                    setIsEditarTemaDialogOpen={setIsEditarTemaDialogOpen}
+                    areasDisponibles={areasDisponibles}
+                    carreras={carreras}
+                    asesor={asesor}
+                    tema={temaSeleccionado}
+                    onTemaEditado={onTemaInscrito}
+                  />
+                )}
+              </Dialog>
             )}
             {/* Delete */}
             {[Tipo.INSCRITO, Tipo.LIBRE].includes(
@@ -192,7 +257,7 @@ export function TemasTable({
             ) && (
               <DeleteTemaPopUp
                 temaName={tema.titulo}
-                onConfirmar={deleteTema}
+                onConfirmar={() => deleteTema(tema?.id)}
                 trigger={
                   <Button variant="ghost" size="icon" className="text-red-500">
                     <Trash2 className="h-4 w-4" />

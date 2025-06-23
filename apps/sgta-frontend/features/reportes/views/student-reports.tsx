@@ -24,6 +24,7 @@ export function StudentReports() {
   const [studentData, setStudentData] = useState<AlumnoTemaDetalle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [overdueSummary, setOverdueSummary] = useState<OverdueSummary | null>(null);
+  const [hasError, setHasError] = useState(false); // Nuevo estado para error
   const { user } = useAuth();
 
   useEffect(() => {
@@ -32,7 +33,10 @@ export function StudentReports() {
       try {
         const data = await obtenerDetalleTemaAlumno();
         setStudentData(data);
+        setHasError(false);
       } catch (error) {
+        setHasError(true); 
+        setStudentData(null);
         console.error("Error al obtener datos del alumno:", error);
       } finally {
         setIsLoading(false);
@@ -48,8 +52,12 @@ export function StudentReports() {
     fetchOverdueSummary();
   }, [user]);
 
-  if (!user || isLoading || !studentData) {
+  if (!user || isLoading) {
     return <div>Cargando...</div>;
+  }
+
+  if (hasError || !studentData) {
+    return <div>El alumno aun no tiene un tema de tesis asociado</div>;
   }
 
   return (

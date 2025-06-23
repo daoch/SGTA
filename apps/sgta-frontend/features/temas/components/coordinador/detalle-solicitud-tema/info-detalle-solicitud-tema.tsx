@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Target } from "lucide-react";
 import { SolicitudPendiente } from "../../../types/solicitudes/entities";
@@ -18,6 +18,7 @@ export const InfoDetalleSolicitudTema: React.FC<
       </CardTitle>
     </CardHeader>
     <CardContent>
+      {/* Project Summary */}
       <div>
         <h4 className="font-semibold mb-2 flex items-center gap-2">
           <FileText className="w-4 h-4" />
@@ -25,7 +26,8 @@ export const InfoDetalleSolicitudTema: React.FC<
         </h4>
         <p>{solicitud.tema.resumen}</p>
       </div>
-      <Separator />
+      <Separator className="mb-3 mt-3" />
+      {/* Project Goals */}
       <div>
         <h4 className="font-semibold mb-2 flex items-center gap-2">
           <Target className="w-4 h-4" />
@@ -36,3 +38,4 @@ export const InfoDetalleSolicitudTema: React.FC<
     </CardContent>
   </Card>
 );
+

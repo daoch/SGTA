@@ -6,97 +6,47 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { useMemo } from "react";
 import { CheckCircle, Download, FileText, XCircle } from "lucide-react";
 import { Entregable } from "../types/entregables/entidades";
 import { useAuthStore } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Observacion } from "@/features/temas/types/temas/entidades";
+import TabsObservacionesAlumno from "@/features/revision/components/Tabs_observaciones_alumno";
+
 // Add the correct import for ObservacionesRevisionDTO
 
 
-
-const mockEntregablesData: Entregable[] = [
-  {
-    id: "E0",
-    nombre: "Cronograma",
-    fechaLimite: "22/03/2025",
-    fechaEntrega: "18/03/2025",
-    estado: "Revisado",
-  },
-  {
-      id: "E1",
-      nombre: "Revisión de Avances",
-      fechaLimite: "29/03/2025",
-      fechaEntrega: "28/03/2025",
-      estado: "Revisado",
-  },
-  {
-      id: "E2",
-      nombre: "Implementación Completa",
-      fechaLimite: "26/04/2025",
-      fechaEntrega: "25/04/2025",
-      estado: "En Revisión",
-  },
-  {
-      id: "E3",
-      nombre: "Validación",
-      fechaLimite: "17/05/2025",
-      fechaEntrega: "No entregado",
-      estado: "Pendiente",
-  },
-  {
-      id: "E4",
-      nombre: "Informe Final",
-      fechaLimite: "20/06/2025",
-      fechaEntrega: "No entregado",
-      estado: "Pendiente",
-  },
-  {
-      id: "E5",
-      nombre: "Informe Parcial",
-      fechaLimite: "20/06/2025",
-      fechaEntrega: "19/06/2025",
-      estado: "Entregado",
-  },
-];
-
-const mockObservaciones = [
-  {
-    pagina: 3,
-    tipo: "Contenido",
-    estado: "Resuelto",
-    mensaje: "Excelente revisión de literatura. Muy completa y bien estructurada.",
-  },
-  {
-    pagina: 7,
-    tipo: "Citado",
-    estado: "Resuelto",
-    mensaje: "Referencias correctamente citadas según normas APA.",
-  },
-  {
-    pagina: 10,
-    tipo: "Contenido",
-    estado: "Resuelto",
-    mensaje: "Buena conexión entre conceptos teóricos y el problema de investigación.",
-  },
-];
 
 export default function DetalleEntregableAlumnoPage() {
   const params = useParams();
   const id = params?.DetalleEntregable;
   const searchParams = useSearchParams();
   const temaId = searchParams.get("tema");
-  const [observaciones, setObservaciones] = useState([]);
-  const [obsTab, setObsTab] = useState<"asesor" | "revisor">("asesor");
+  const [observaciones, setObservaciones] = useState<ObservacionAlumnoDTO[]>([]);
   const [detalleEntregable, setDetalleEntregable] = useState<DetalleSimplificadoEntregable | null>(null);
-  const [entregable, setEntregable] = useState<Entregable | null>(null);
   console.log("Tema ID:", temaId);
-  useEffect(() => {
-    console.log("ID del entregable:", id);
-    const found = mockEntregablesData.find((e) => e.id === id);
-    setEntregable(found || null);
-  }, [id]);
+  const [orden, setOrden] = useState("pagina");
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
+  const getTipoObs = (tipo: number) =>
+    tipo === 1
+      ? "Contenido"
+      : tipo === 2
+      ? "Similitud"
+      : tipo === 3
+      ? "Citado"
+      : tipo === 4
+      ? "Inteligencia Artificial"
+      : "";
+
   useEffect(() => {
     const fetchObservaciones = async () => {
       try {
@@ -163,16 +113,62 @@ export default function DetalleEntregableAlumnoPage() {
     ? obs.rolesUsuario.split(",").map((r) => Number(r.trim()))
     : [],
 }));
-const obsAsesor = observacionesConRoles.filter(
-  (obs) => obs.roles.length === 1 && obs.roles[0] === 1
-);
-const obsRevisor = observacionesConRoles.filter(
-  (obs) => obs.roles.includes(4) || (obs.roles.length > 1 || (obs.roles.length === 1 && obs.roles[0] !== 1))
-);
+const totalObservaciones = observaciones.length;
+const totalResueltas = observaciones.filter((obs) => obs.corregido).length;
+const totalPendientes = totalObservaciones - totalResueltas;
 const detalle = Array.isArray(detalleEntregable) ? detalleEntregable[0] : detalleEntregable;
-  /*if (!entregable && id) return <div className="p-6">No se encontró el entregable con ID: {id}</div>;
-  if (!entregable) return <div className="p-6">{id}</div>;*/
+console.log("Detalle del entregable:", detalle);
+const observacionesFiltradas = useMemo(() => {
+    let arr = [...observacionesConRoles];
 
+    // Filtrado por corregido
+    if (filtroCorregido === "corregidos") {
+      arr = arr.filter((obs) => obs.corregido);
+    } else if (filtroCorregido === "sin_corregir") {
+      arr = arr.filter((obs) => !obs.corregido);
+    }
+
+    // Filtrado por búsqueda
+    if (busqueda.trim() !== "") {
+      arr = arr.filter((obs) => {
+        const paginaInicio = obs.numeroPaginaInicio?.toString() || "";
+        const paginaFin = obs.numeroPaginaFin?.toString() || "";
+        const busq = busqueda.toLowerCase();
+
+        return (
+          obs.comentario?.toLowerCase().includes(busq) ||
+          obs.contenido?.toLowerCase().includes(busq) ||
+          getTipoObs(obs.tipoObservacionId).toLowerCase().includes(busq) ||
+          paginaInicio.includes(busq) ||
+          paginaFin.includes(busq) ||
+          `pagina ${paginaInicio}`.includes(busq) ||
+          `página ${paginaInicio}`.includes(busq) ||
+          `pagina ${paginaFin}`.includes(busq) ||
+          `página ${paginaFin}`.includes(busq)
+        );
+      });
+    }
+
+    // Ordenamiento
+    switch (orden) {
+      case "tipo":
+        arr.sort((a, b) => a.tipoObservacionId - b.tipoObservacionId);
+        break;
+      case "usuario":
+        arr.sort((a, b) => a.usuarioCreacionId - b.usuarioCreacionId);
+        break;
+      case "fecha":
+        arr.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime());
+        break;
+      case "pagina":
+        arr.sort((a, b) => a.numeroPaginaInicio - b.numeroPaginaInicio);
+        break;
+      default:
+        break;
+    }
+    return arr;
+  }, [observacionesConRoles, orden, busqueda, filtroCorregido]);
+  
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
       <div className="flex-1 space-y-6">
@@ -224,142 +220,18 @@ const detalle = Array.isArray(detalleEntregable) ? detalleEntregable[0] : detall
             </div>
           </div>
         </div>
-
-        <Tabs value={obsTab} onValueChange={(v) => setObsTab(v as "asesor" | "revisor")} className="w-full">
-          <TabsList>
-            <TabsTrigger value="asesor">Por Asesor</TabsTrigger>
-            <TabsTrigger value="revisor">Por Revisor/Jurado</TabsTrigger>
-          </TabsList>
-          <TabsContent value="asesor">
-            <Card>
-              <CardHeader>
-                <CardTitle>Observaciones por Asesor</CardTitle>
-                <CardDescription>Observaciones realizadas solo por el asesor</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {obsAsesor.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No hay observaciones registradas.</div>
-                  ) : (
-                    obsAsesor.map((obs, idx) => (
-                      <div
-                        key={obs.observacionId ?? idx}
-                        className="bg-white border border-gray-200 rounded-md p-3 space-y-2"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="flex gap-2 items-center">
-                            <p className="text-base font-bold text-black">Página {obs.numeroPaginaInicio}</p>
-                            <Badge
-                              variant="outline"
-                              className={
-                                obs.tipoObservacionId === 1
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : obs.tipoObservacionId === 2
-                                  ? "bg-red-100 text-red-800"
-                                  : obs.tipoObservacionId === 3
-                                  ? "bg-blue-100 text-blue-800"
-                                  : obs.tipoObservacionId === 4
-                                  ? "bg-green-100 text-green-800"
-                                  : ""
-                              }
-                            >
-                              {obs.tipoObservacionId === 1 && "Contenido"}
-                              {obs.tipoObservacionId === 2 && "Similitud"}
-                              {obs.tipoObservacionId === 3 && "Citado"}
-                              {obs.tipoObservacionId === 4 && "Inteligencia Artificial"}
-                            </Badge>
-                          </div>
-                          <div className="text-xs text-black font-semibold text-right">
-                            <div>Comentado por:</div>
-                            <div>
-                              {obs.nombres} {obs.primerApellido} {obs.segundoApellido} (Asesor)
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Comentario</h4>
-                          <p className="text-xs text-black">{obs.comentario}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Texto comentado</h4>
-                          <p className="text-xs text-black">{obs.contenido}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="revisor">
-            <Card>
-              <CardHeader>
-                <CardTitle>Observaciones por Revisor/Jurado</CardTitle>
-                <CardDescription>Observaciones realizadas por revisores o jurados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {obsRevisor.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No hay observaciones registradas.</div>
-                  ) : (
-                    obsRevisor.map((obs, idx) => (
-                      <div
-                        key={obs.observacionId ?? idx}
-                        className="bg-white border border-gray-200 rounded-md p-3 space-y-2"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="flex gap-2 items-center">
-                            <p className="text-base font-bold text-black">Página {obs.numeroPaginaInicio}</p>
-                            <Badge
-                              variant="outline"
-                              className={
-                                obs.tipoObservacionId === 1
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : obs.tipoObservacionId === 2
-                                  ? "bg-red-100 text-red-800"
-                                  : obs.tipoObservacionId === 3
-                                  ? "bg-blue-100 text-blue-800"
-                                  : obs.tipoObservacionId === 4
-                                  ? "bg-green-100 text-green-800"
-                                  : ""
-                              }
-                            >
-                              {obs.tipoObservacionId === 1 && "Contenido"}
-                              {obs.tipoObservacionId === 2 && "Similitud"}
-                              {obs.tipoObservacionId === 3 && "Citado"}
-                              {obs.tipoObservacionId === 4 && "Inteligencia Artificial"}
-                            </Badge>
-                          </div>
-                          <div className="text-xs text-black font-semibold text-right">
-                            <div>Comentado por:</div>
-                            <div>
-                              {obs.nombres} {obs.primerApellido} {obs.segundoApellido}{" "}
-                              {obs.roles.includes(2)
-                                ? "(Jurado)"
-                                : obs.roles.includes(4)
-                                ? "(Revisor)"
-                                : obs.roles.length === 1 && obs.roles[0] === 1
-                                ? "(Asesor)"
-                                : ""}
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Comentario</h4>
-                          <p className="text-xs text-black">{obs.comentario}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Texto comentado</h4>
-                          <p className="text-xs text-black">{obs.contenido}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        
+        <TabsObservacionesAlumno
+          observaciones={observaciones}
+          setObservaciones={setObservaciones}
+          detalle={detalle}
+          orden={orden}
+          setOrden={setOrden}
+          filtroCorregido={filtroCorregido}
+          setFiltroCorregido={setFiltroCorregido}
+          busqueda={busqueda}
+          setBusqueda={setBusqueda}
+        />
       </div>
 
 
@@ -369,7 +241,21 @@ const detalle = Array.isArray(detalleEntregable) ? detalleEntregable[0] : detall
           <div className="text-sm space-y-2">
             <div className="flex justify-between">
               <span>Estado:</span>
-              <Badge className="bg-green-100 text-green-800">Aprobado</Badge>
+              <Badge
+                className={
+                  detalle?.entregableEstado === "aprobado"
+                    ? "bg-blue-100 text-blue-800"
+                    : detalle?.entregableEstado === "rechazado"
+                    ? "bg-red-100 text-red-800"
+                    : detalle?.entregableEstado === "revisado"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }
+              >
+                {detalle?.entregableEstado
+                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1)
+                  : "Sin estado"}
+              </Badge>
             </div>
             <div>
               <span className="block mb-1">Detección de Plagio</span>
@@ -392,9 +278,11 @@ const detalle = Array.isArray(detalleEntregable) ? detalleEntregable[0] : detall
               )}
             </div>
             <div className="text-sm mt-2">
-              <strong>Observaciones:</strong> {observaciones.length}
-              <div className="text-xs text-muted-foreground"> 0 resueltas / {observaciones.length} pendientes</div>
+            <strong>Observaciones:</strong> {totalObservaciones}
+            <div className="text-xs text-muted-foreground">
+              {totalResueltas} resueltas / {totalPendientes} pendientes
             </div>
+          </div>
           </div>
         </div>
 

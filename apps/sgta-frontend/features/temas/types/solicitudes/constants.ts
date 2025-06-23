@@ -1,11 +1,6 @@
 import { EstadoTemaNombre } from "../temas/enums";
 import { PagesList } from "./entities";
 
-export const pageTexts = {
-  title: "Aprobaciones",
-  description: "Gestión de solicitudes de cambios en tesis",
-};
-
 const initialPagesListTemas: PagesList = {
   [EstadoTemaNombre.INSCRITO]: {
     pages: {},
@@ -37,16 +32,16 @@ export const pageTemasTexts = {
       description: "Solicitudes de cambios que requieren aprobación",
       show: true,
     },
-    [EstadoTemaNombre.REGISTRADO]: {
-      label: "Aprobadas",
-      title: "Solicitudes Aprobadas",
-      description: "Solicitudes de cambios que han sido aprobadas",
-      show: true,
-    },
     [EstadoTemaNombre.OBSERVADO]: {
       label: "Observadas",
       title: "Solicitudes Observadas",
       description: "Solicitudes de cambios que quedaron observadas",
+      show: true,
+    },
+    [EstadoTemaNombre.REGISTRADO]: {
+      label: "Aprobadas",
+      title: "Solicitudes Aprobadas",
+      description: "Solicitudes de cambios que han sido aprobadas",
       show: true,
     },
     [EstadoTemaNombre.RECHAZADO]: {

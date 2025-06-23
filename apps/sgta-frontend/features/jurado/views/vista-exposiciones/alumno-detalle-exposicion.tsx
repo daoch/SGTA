@@ -73,6 +73,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
 
   // const [cantJuradoMax, setCantJuradoMax] = useState(0);
   const [pesoAsesor, setPesoAsesor] = useState(0);
+  const [habilitarJuradoAnonimo, setHabilitarJuradoAnonimo] = useState(true);
 
   const fetchParametrosConfiguracion = async () => {
     try {
@@ -88,6 +89,14 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
           (param) => param.parametroConfiguracion.nombre === "Peso Asesor",
         );
         setPesoAsesor(Number(pesoAsesorParam?.valor));
+
+        const habilitarJuradoAnonimoParam = parametrosConfig.find(
+          (param) =>
+            param.parametroConfiguracion.nombre ===
+            "Calificaciones Jurado Anonimizadas",
+        );
+        setHabilitarJuradoAnonimo(habilitarJuradoAnonimoParam?.valor === true);
+
         // console.log("Cantidad de jurados:", juradoMax?.valor);
         // console.log("Peso del asesor:", pesoAsesorParam?.valor);
       } else {
@@ -104,96 +113,6 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
     fetchExposiciones();
     fetchParametrosConfiguracion();
   }, []);
-
-  const calcularNotaFinal = ({
-    exposicion,
-    calificaciones,
-    pesoAsesor,
-  }: {
-    exposicion: ExposicionAlumno | undefined;
-    calificaciones: CalificacionesJurado[];
-    pesoAsesor: number;
-  }): number => {
-    if (!exposicion) return 0;
-
-    //OBTENEMOS A LOS JURADOS
-    const jurados = exposicion.miembrosJurado.filter(
-      (m) => m.tipo.toLowerCase() === "jurado",
-    );
-    console.log("Jurados:", jurados);
-    //OBTENEMOS AL ASESOR
-    const asesor = exposicion.miembrosJurado.find(
-      (m) => m.tipo.toLowerCase() === "asesor",
-    );
-    console.log("Asesor:", asesor);
-
-    const calcularNota = (criterios: CriterioEvaluacion[]) => {
-      const sumaNotas = criterios.reduce(
-        (acc, crit) => acc + (crit.calificacion ?? 0),
-        0,
-      );
-      const sumaMaxima = criterios.reduce(
-        (acc, crit) => acc + crit.nota_maxima,
-        0,
-      );
-      if (sumaMaxima === 0) return 0;
-      return (sumaNotas / sumaMaxima) * 20;
-    };
-
-    // Recorre todos los miembros del jurado (jurados).
-    // Busca en calificaciones la evaluación que corresponda a ese jurado (comparando usuario_id con id_persona).
-    // Si la evaluación existe y está calificada (calificado === true), calcula su nota con calcularNota(...).
-    // Si no existe o no está calificada, devuelve null.
-    // Luego, filtra los null (es decir, ignora a los jurados que no calificaron).
-    // Finalmente, convierte el resultado en un arreglo de números (number[]).
-    const notasJurados = jurados
-      .map((j) => {
-        const evalJurado = calificaciones.find(
-          (c) => c.usuario_id === j.id_persona,
-        );
-        return evalJurado && evalJurado.calificado
-          ? calcularNota(evalJurado.criterios)
-          : null;
-      })
-      .filter((n) => n !== null) as number[];
-
-    const notaAsesor = (() => {
-      if (!asesor) return null;
-      const evalAsesor = calificaciones.find(
-        (c) => c.usuario_id === asesor.id_persona,
-      );
-      return evalAsesor && evalAsesor.calificado
-        ? calcularNota(evalAsesor.criterios)
-        : null;
-    })();
-
-    //ESTE ES EL PESO DE LOS JURADOS EN TOTAL
-    const pesoTotalJurados = 1 - pesoAsesor;
-    let promedioFinal = 0;
-
-    //SI NO HAY CALIFICACION DEL ASESOR, REPARTIMOS EL PESO ENTRE LOS JURADOS
-    if (notaAsesor !== null) {
-      const pesoPorJurado =
-        notasJurados.length > 0 ? pesoTotalJurados / notasJurados.length : 0;
-      notasJurados.forEach((nota) => {
-        promedioFinal += nota * pesoPorJurado;
-      });
-      promedioFinal += notaAsesor * pesoAsesor;
-
-      console.log("Nota final con asesor:", promedioFinal);
-    } else {
-      //si no hay calificacion asesor, repartir el 100% entre los jurados
-      const pesoPorJurado =
-        notasJurados.length > 0 ? 1 / notasJurados.length : 0;
-      notasJurados.forEach((nota) => {
-        promedioFinal += nota * pesoPorJurado;
-      });
-
-      console.log("Nota final sin asesor:", promedioFinal);
-    }
-
-    return promedioFinal; // redondeado
-  };
 
   const router = useRouter();
 
@@ -337,15 +256,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Exposición
                   </label>
                   <a
-                    href={exposicion.link_exposicion}
+                    href={exposicion.linkExposicion}
                     target="_blank"
                     className={
-                      exposicion.link_exposicion
+                      exposicion.linkExposicion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.link_exposicion || "Aún no disponible"}
+                    {exposicion.linkExposicion || "Aún no disponible"}
                   </a>
                 </div>
                 <div>
@@ -353,15 +272,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                     Enlace de la Grabación
                   </label>
                   <a
-                    href={exposicion.link_grabacion}
+                    href={exposicion.linkGrabacion}
                     target="_blank"
                     className={
-                      exposicion.link_grabacion
+                      exposicion.linkGrabacion
                         ? " text-blue-500"
                         : " text-black-500"
                     }
                   >
-                    {exposicion.link_grabacion || "Aún no disponible"}
+                    {exposicion.linkGrabacion || "Aún no disponible"}
                   </a>
                 </div>
               </div>
@@ -373,7 +292,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                 Miembros de Jurados
               </h2>
               <div className="grid grid-cols-3 gap-4">
-                {exposicion.miembrosJurado.map((miembro) => {
+                {exposicion.miembrosJurado.map((miembro, index) => {
                   const calificacion = calificaciones.find(
                     (calif) => calif.usuario_id === miembro.id_persona,
                   );
@@ -390,12 +309,35 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                       <div className="bg-gray-100 p-4 rounded-full mb-3">
                         <User className="h-8 w-8 text-gray-500" />
                       </div>
-                      <h3 className="font-medium text-base">
-                        {miembro.nombre}
+
+                      <h3 className="font-medium text-base text-black-500">
+                        {habilitarJuradoAnonimo
+                          ? `Jurado ${index + 1}`
+                          : miembro.nombre}
                       </h3>
-                      <h3 className="font-medium text-base text-gray-500">
+
+                      {/* <h3 className="font-medium text-base text-black-500">{`Jurado ${index + 1}`}</h3> */}
+
+                      {/* <h3 className="font-medium text-base text-gray-500">
                         {miembro.tipo}
-                      </h3>
+                      </h3> */}
+                      {calificado ? (
+                        <div className="mt-2 text-xl text-gray-600">
+                          <span className="font-medium">
+                            Calificación:{" "}
+                            {calificaciones.find(
+                              (calif) =>
+                                calif.usuario_id === miembro.id_persona,
+                            )?.calificacion_final || "0.00"}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xl text-gray-600">
+                          <span className="font-medium">
+                            Calificación: Pendiente
+                          </span>
+                        </div>
+                      )}
                       <Button
                         asChild
                         // variant={"secondary"}
@@ -413,8 +355,8 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                           className={`${!calificado ? "pointer-events-none text-gray-500" : ""}`}
                         >
                           {calificado
-                            ? "Ver Calificación"
-                            : "Pendiente de calificar"}
+                            ? "Ver Detalles de Calificación"
+                            : "En Espera de Calificación"}
                         </Link>
                       </Button>
                     </div>
@@ -423,33 +365,49 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
               </div>
             </div>
 
-            <TooltipProvider>
-              <div className="mt-4 mb-4 flex items-center gap-1">
-                <h2 className="text-lg font-semibold">
-                  Promedio de Calificación de la Exposición
-                </h2>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex items-center justify-center">
-                      <Info className="h-6 w-6 text-muted-foreground ml-1" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-md text-sm leading-snug text-justify">
-                    Si en caso uno de los jurados no envía la calificación, se
-                    reemplaza con la nota del otro jurado. Si en caso el asesor
-                    no envía la nota del estudiante, la nota de los jurados
-                    tendrá un peso repartido de manera equitativa.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
+            {exposicion.miembrosJurado.some((miembro) => {
+              const calificacion = calificaciones.find(
+                (calif) => calif.usuario_id === miembro.id_persona,
+              );
+              return calificacion?.calificado;
+            }) && (
+              <div>
+                <TooltipProvider>
+                  <div className="mt-4 mb-4 flex items-center gap-1">
+                    <h2 className="text-lg font-semibold">
+                      Promedio de Calificación de la Exposición
+                    </h2>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="flex items-center justify-center">
+                          <Info className="h-6 w-6 text-muted-foreground ml-1" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-md text-sm leading-snug text-justify">
+                        Si en caso uno de los jurados no envía la calificación,
+                        se reemplaza con la nota del otro jurado. Si en caso el
+                        asesor no envía la nota del estudiante, la nota de los
+                        jurados tendrá un peso repartido de manera equitativa.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
 
-            <div>
-              <h1 className="text-4xl font-semibold items-center text-[#264753]">
-                {calcularNotaFinal({ exposicion, calificaciones, pesoAsesor })}{" "}
-                / 20
-              </h1>
-            </div>
+                <div>
+                  <h1
+                    className={`text-4xl font-semibold items-center ${
+                      exposicion.notaFinal > 15
+                        ? "text-green-600"
+                        : exposicion.notaFinal >= 11
+                          ? "text-yellow-500"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {exposicion.notaFinal}/ 20
+                  </h1>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

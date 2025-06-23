@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import pucp.edu.pe.sgta.model.EntregableXTema;
 
 @Entity
 @Getter
@@ -43,4 +44,9 @@ public class VersionDocumento {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "entregable_x_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_version_documento_entregable_x_tema"))
+    private EntregableXTema entregableXTema;
+
 } 

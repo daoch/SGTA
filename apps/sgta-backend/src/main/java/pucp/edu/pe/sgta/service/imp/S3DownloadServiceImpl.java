@@ -2,11 +2,18 @@ package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.web.multipart.MultipartFile;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -15,6 +22,8 @@ import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
@@ -69,5 +78,56 @@ public class S3DownloadServiceImpl implements S3DownloadService {
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(cannedRequest);
 
         return signedUrl.url();
+    }
+    @Override
+    public byte[] downloadFromCloudFront(String key) throws Exception {
+        // Obtén la URL firmada de CloudFront
+        String signedUrl = getUrlFromCloudFront(key);
+
+        // Descarga el archivo usando la URL firmada
+        URL url = new URL(signedUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        try (InputStream in = connection.getInputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            return baos.toByteArray();
+        }
+    }
+    @Override
+        public boolean existsInS3(String key) {
+        try {
+            HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+            s3Client.headObject(headObjectRequest);
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        } catch (Exception e) {
+            // Otros errores (por ejemplo, permisos)
+            return false;
+        }
+    }
+        @Override
+    public void guardarJsonEnS3(String key, String json) {
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType("application/json")
+                .contentLength((long) bytes.length)   
+                .build();
+
+        s3Client.putObject(
+                putObjectRequest,
+                software.amazon.awssdk.core.sync.RequestBody.fromBytes(bytes)
+        );
     }
 }

@@ -2,6 +2,8 @@ package pucp.edu.pe.sgta.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,11 +52,21 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT * FROM obtener_lista_directorio_asesores_alumno(:alumnoId,:cadenaBusqueda, :activo, " +
             "cast(:areaIds as INTEGER[]), cast(:temaIds as INTEGER[]))", nativeQuery = true)
-    List<Object[]> obtenerListaDirectorioAsesoresAlumno(@Param("alumnoId") Integer alumnoId,
-            @Param("cadenaBusqueda") String cadenaBusqueda,
-            @Param("activo") Boolean activo,
-            @Param("areaIds") String areaIds,
-            @Param("temaIds") String temaIds);
+    Page<Object[]> obtenerListaDirectorioAsesoresAlumno(@Param("alumnoId") Integer alumnoId,
+                                                        @Param("cadenaBusqueda") String cadenaBusqueda,
+                                                        @Param("activo") Boolean activo,
+                                                        @Param("areaIds") String areaIds,
+                                                        @Param("temaIds") String temaIds,
+                                                        Pageable pageable);
+
+    @Query(value = "SELECT * FROM obtener_lista_directorio_asesores_alumno(:alumnoId,:cadenaBusqueda, :activo, " +
+            "cast(:areaIds as INTEGER[]), cast(:temaIds as INTEGER[]))", nativeQuery = true)
+    List<Object[]> buscarAsesoresPorCadenaDeBusqueda(@Param("alumnoId") Integer alumnoId,
+                                                        @Param("cadenaBusqueda") String cadenaBusqueda,
+                                                        @Param("activo") Boolean activo,
+                                                        @Param("areaIds") String areaIds,
+                                                        @Param("temaIds") String temaIds);
+
 
     @Query(value = """
             SELECT * FROM obtener_coordinador_por_carrera_usuario(:usuarioId)
@@ -90,4 +102,19 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             SELECT * FROM obtener_profesores()
             """, nativeQuery = true)
     List<Object[]> obtenerProfesores();
+
+    @Query(value = "SELECT * FROM obtener_perfil_usuario(:usuarioId)", nativeQuery = true)
+    List<Object[]> obtenerPerfilUsuario(@Param("usuarioId") Integer usuarioId);
+
+    @Query(value = "SELECT obtener_id_cognito_por_usuario(:usuarioId)", nativeQuery = true)
+    String findIdCognitoByUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    @Query(value = "SELECT * FROM listar_revisores_por_carrera(:carreraId)", nativeQuery = true)
+    List<Object[]> listarRevisoresPorCarrera(@Param("carreraId") Integer carreraId);
+
+    @Query(value = "SELECT obtener_usuario_id_por_cognito_id(:idCognito)", nativeQuery = true)
+    Integer findUsuarioIdByIdCognito(@Param("idCognito")String idCognito);
+
+    List<Usuario> findAllById(Iterable<Integer> ids);
+
 }

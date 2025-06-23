@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -9,12 +10,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Eye, Send, X } from "lucide-react";
+import { CheckCircle, Send, X } from "lucide-react";
 import { useState } from "react";
-import { Proyecto_M } from "../../types/propuestas/entidades";
+import { buscarTemasSimilaresALaPropuesta } from "../../types/propuestas/data";
+import { Proyecto_M, TemaSimilar } from "../../types/propuestas/entidades";
 import { EnviarPropuestaCard } from "./enviar-propuesta-card";
 import { RechazarPropuestaCard } from "./rechazar-propuesta-card";
+import { TemasSimilaresModal } from "./temas-similares-modal";
 
 interface PropuestasModalProps {
   data?: Proyecto_M;
@@ -50,6 +52,9 @@ export function PropuestasModal({
   const [postularDialog, setPostularDialog] = useState(postularPropuesta);
   const [aceptarDialog, setAceptarDialog] = useState(aceptarPropuesta);
   const [rechazarDialog, setRechazarDialog] = useState(rechazarPropuesta);
+  const [temasSimilares, setTemasSimilares] = useState<TemaSimilar[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
 
   const handlePostularClick = () => {
     setPostularDialog(true);
@@ -127,6 +132,21 @@ export function PropuestasModal({
     setAceptarPropuesta?.(false);
     setRechazarPropuesta?.(false);
   };
+
+  const handleListarTemasSimilares = async () => {
+    if (!data || !data.id) return;
+    try {
+      setLoading(true);
+      const ts = await buscarTemasSimilaresALaPropuesta(data?.id);
+      setTemasSimilares(ts);
+      setOpenSimilarDialog(true);
+    } catch (error) {
+      console.error("Error al listar temas similares:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   console.log(`La data es :${data}`);
   return (
     <DialogContent className="max-w-3xl">
@@ -139,21 +159,21 @@ export function PropuestasModal({
 
       {data && !postularDialog && !aceptarDialog && !rechazarDialog && (
         <div className="space-y-6 py-4">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label>Título</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p className="font-medium">{data.titulo}</p>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label>Área</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>{data.subAreas[0].areaConocimiento.nombre}</p>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label>Subárea(s)</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>
@@ -165,7 +185,7 @@ export function PropuestasModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label>Estudiante(s)</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
                 <ul className="space-y-1">
@@ -187,44 +207,64 @@ export function PropuestasModal({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label>Fecha Límite</Label>
               <div className="p-3 bg-gray-50 rounded-md border">
-                <p>{new Date(data.fechaLimite).toLocaleDateString()}</p>
+                {data.fechaLimite === null ? (
+                  <p className="text-gray-500"> No hay fecha límite </p>
+                ) : (
+                  <p>{new Date(data.fechaLimite).toLocaleDateString()}</p>
+                )}
               </div>
             </div>
           </div>
 
-          <Separator />
-
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label>Descripción</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>{data.resumen}</p>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label>Objetivos</Label>
             <div className="p-3 bg-gray-50 rounded-md border">
               <p>{data.objetivos}</p>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Recursos</Label>
-            <div className="p-3 bg-gray-50 rounded-md border">
-              {data.portafolioUrl && data.portafolioUrl.length > 0 ? (
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-blue-500" />
-                  <span>{data.portafolioUrl}</span>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No hay recursos disponibles
-                </p>
-              )}
+          <div className="space-y-1">
+            <Label>Temas similares</Label>
+            <div className="flex items-center gap-2 mt-2">
+              <Button
+                variant="outline"
+                onClick={handleListarTemasSimilares}
+                disabled={loading}
+              >
+                {loading ? "Cargando..." : "Ver Temas Similares"}
+              </Button>
             </div>
+            <Dialog
+              open={openSimilarDialog}
+              onOpenChange={setOpenSimilarDialog}
+            >
+              <DialogContent className="max-w-xl p-0">
+                {temasSimilares.length === 0 ? (
+                  <div className="w-full max-w-xl mx-auto p-6 bg-white rounded-sm">
+                    <div className="flex items-center text-green-600 gap-2 font-semibold text-lg">
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                      No se han encontrado temas similares
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 mb-4">
+                      Hemos detectado que la propuesta no tiene similitudes con
+                      ningún proyectos de fin de carrera existentes.
+                    </p>
+                  </div>
+                ) : (
+                  <TemasSimilaresModal temasSilimares={temasSimilares} />
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       )}
@@ -241,7 +281,7 @@ export function PropuestasModal({
         />
       )}
 
-      <DialogFooter className="mt-6">
+      <DialogFooter className="mt-3">
         {!postularDialog && !aceptarDialog && !rechazarDialog ? (
           <>
             <Button variant="outline" onClick={handleCancelar}>

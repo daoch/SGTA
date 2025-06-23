@@ -83,6 +83,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     useState<Coasesor | null>(null);
   const [areaSeleccionada, setAreaSeleccionada] =
     useState<AreaDeInvestigacion | null>(null); // en realidad es la subarea
+  const [carreraSeleccionada, setCarreraSeleccionada] =
+    useState<Carrera | null>(null); // en realidad es la subarea
   const [estudianteSeleccionado, setEstudianteSeleccionado] =
     useState<Tesista | null>(null);
   const [errores, setErrores] = useState<{
@@ -93,6 +95,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     tesistas?: string;
     fechaLimite?: string;
     area?: string;
+    carrera?: string;
   }>({});
 
   const [coasesoresDisponibles, setCoasesoresDisponibles] = useState<
@@ -110,24 +113,34 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const [temaSimilitud, setTemaSimilitud] = useState<TemaSimilitud[]>([]);
   const [openSimilarDialog, setOpenSimilarDialog] = useState(false);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
+  const [tipoTema, setTipoTema] = useState<TipoRegistro | null>(null);
+
+  const areasFiltradas = areasDisponibles.filter(
+    (area) => area.idCarrera === carreraSeleccionada?.id,
+  );
   //Llenado de datos
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
       try {
-        if (carreras) {
+        if (carreraSeleccionada) {
           const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id,
+            carreraSeleccionada?.id,
             "alumno",
           );
           setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
 
           const coasesoresData: Coasesor[] = await fetchUsers(
-            carreras[0].id,
+            carreraSeleccionada.id,
             "profesor",
           );
 
           setCoasesoresDisponibles(
-            coasesoresData.filter((c) => c.id != asesor.id),
+            coasesoresData
+              .filter((c) => c.id != asesor.id)
+              .map((c) => ({
+                ...c, // Hacer una copia del objeto coasesor
+                nombreCompleto: `${c.nombres} ${c.primerApellido} ${c.segundoApellido}`, // Modificar el atributo activo (por ejemplo, ponerlo en true)
+              })),
           );
         }
       } catch {
@@ -135,7 +148,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       }
     };
     listarEstudiantesYAsesores();
-  }, [carreras, asesor]);
+  }, [carreraSeleccionada, asesor]);
   //
 
   useEffect(() => {
@@ -245,10 +258,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!validarCampos()) return;
     try {
       setLoading(true);
-      if (carreras) {
+      if (carreraSeleccionada) {
         const response = await axiosInstance.post(
           "temas/createInscripcionV2",
-          mapTemaCreateInscription(temaData, carreras[0], asesor),
+          mapTemaCreateInscription(temaData, carreraSeleccionada),
         );
 
         toast.success("Tema guardado exitosamente");
@@ -271,7 +284,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     }
   };
 
-  const handlerVerificarTema = async () => {
+  const handlerVerificarTema = async (tipoRegistro: TipoRegistro) => {
     if (!validarCampos()) return;
     try {
       setCheckingSimilitud(true);
@@ -285,9 +298,24 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       };
       const temasSimilares = await verificarSimilitudTema(temaCreado);
       if (temasSimilares.length === 0) {
-        handleGuardarLibre();
-        console.log("No se encontraron temas similares, guardando tema libre.");
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          handleGuardarLibre();
+          console.log(
+            "No se encontraron temas similares, guardando tema libre.",
+          );
+        } else {
+          handleGuardar();
+          console.log(
+            "No se encontraron temas similares, guardando tema de inscripción.",
+          );
+        }
       } else {
+        if (tipoRegistro === TipoRegistro.LIBRE) {
+          setTipoTema(TipoRegistro.LIBRE);
+        } else {
+          setTipoTema(TipoRegistro.INSCRIPCION);
+        }
+
         setTemaSimilitud(temasSimilares);
         setOpenSimilarDialog(true);
         console.log("Se encontraron temas similares:", temaSimilitud);
@@ -303,9 +331,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardarLibre = async () => {
     if (!validarCampos()) return;
     try {
-      if (carreras) {
+      if (carreraSeleccionada) {
         setLoading(true);
-        await crearTemaLibre(mapTemaCreateLibre(temaData, carreras[0], asesor));
+        await crearTemaLibre(
+          mapTemaCreateLibre(temaData, carreraSeleccionada, asesor),
+        );
         toast.success("Tema guardado exitosamente");
         console.log("Tema libre guardado exitosamente:");
       } else {
@@ -315,6 +345,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setAreaConocimientoSeleccionada(null);
+      setCarreraSeleccionada(null);
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
@@ -328,12 +359,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleCancelar = () => {
     setTemaData(temaVacio);
     setAreaConocimientoSeleccionada(null);
+    setCarreraSeleccionada(null);
     setIsNuevoTemaDialogOpen(false);
   };
 
   const onSelectCoasesor = (nombres: string) => {
     const selectedCoasesor = coasesoresDisponibles.find(
-      (c) => c.nombres === nombres,
+      (c) => c.nombreCompleto === nombres,
     );
     setCoasesorSeleccionado(selectedCoasesor || null);
   };
@@ -356,6 +388,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
 
   const validarCampos = () => {
     const nuevosErrores: typeof errores = {};
+
     if (!temaData.titulo || temaData.titulo.trim() === "") {
       nuevosErrores.titulo = "Debe ingresar el título del tema.";
     }
@@ -379,11 +412,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     if (!temaData.fechaLimite || temaData.fechaLimite.trim() === "") {
       nuevosErrores.fechaLimite = "Debe ingresar fecha límite del tema.";
     }
-    //Solo para tema Libre
+    if (carreraSeleccionada === null || carreraSeleccionada === undefined) {
+      nuevosErrores.carrera = "Debe seleccionar una carrera.";
+    }
     if (
-      tipoRegistro === TipoRegistro.LIBRE &&
-      (areaConocimientoSeleccionada === null ||
-        areaConocimientoSeleccionada === undefined)
+      areaConocimientoSeleccionada === null ||
+      areaConocimientoSeleccionada === undefined
     ) {
       nuevosErrores.area = "Debe seleccionar una área.";
     }
@@ -394,23 +428,45 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   const handleGuardarForzado = async () => {
     if (!validarCampos()) return;
     try {
-      if (carreras) {
+      if (carreraSeleccionada) {
         setLoading(true);
         setCheckingSimilitud(true);
-        await crearTemaLibre(
-          mapTemaCreateLibre(temaData, carreras[0], asesor),
-          temaSimilitud,
-          true,
-        );
-        toast.success("Tema guardado exitosamente.");
-        console.log("Tema libre forzado guardado exitosamente.");
+        if (tipoTema === TipoRegistro.LIBRE) {
+          await crearTemaLibre(
+            mapTemaCreateLibre(temaData, carreraSeleccionada, asesor),
+            temaSimilitud,
+            true,
+          );
+        } else {
+          const response = await axiosInstance.post(
+            "temas/createInscripcionV2",
+            mapTemaCreateInscription(temaData, carreraSeleccionada),
+          );
+          const temaCreado = response.data;
+
+          if (temaSimilitud.length > 0) {
+            const similitudesPayload = temaSimilitud.map((sim) => ({
+              tema: { id: temaCreado },
+              temaRelacion: { id: sim.tema.id },
+              porcentajeSimilitud: sim.similarityScore,
+            }));
+            await axiosInstance.post(
+              "temas/guardarSimilitudes",
+              similitudesPayload,
+            );
+          }
+          toast.success("Tema guardado exitosamente.");
+          console.log("Tema libre forzado guardado exitosamente.");
+        }
       } else {
         throw new Error("No se puede insertar el tema.");
       }
       setOpenSimilarDialog(false);
+      setTipoTema(null);
       // Reinicia el formulario y cierra el modal
       setTemaData(temaVacio);
       setAreaConocimientoSeleccionada(null);
+      setCarreraSeleccionada(null);
       setIsNuevoTemaDialogOpen(false);
       onTemaGuardado();
     } catch (error) {
@@ -422,7 +478,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
       setTemaSimilitud([]);
     }
   };
-
+  console.log(areasDisponibles);
   return (
     <>
       <Toaster richColors position="bottom-right" />
@@ -462,6 +518,37 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           {/* Renderizado condicional utilizando tipoRegistro */}
           {tipoRegistro !== "" && (
             <>
+              {/* Carrera */}
+              <div className="space-y-2">
+                <Label>Carrera</Label>
+                <Select
+                  onValueChange={(value) => {
+                    const carreraSeleccionada = carreras?.find(
+                      (carrera) => String(carrera.id) === value,
+                    );
+                    if (carreraSeleccionada) {
+                      setCarreraSeleccionada(carreraSeleccionada);
+                      setAreaConocimientoSeleccionada(null);
+                      temaData.subareas = [];
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccione una carrera" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {carreras?.map((carrera) => (
+                      <SelectItem key={carrera.id} value={String(carrera.id)}>
+                        {carrera.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errores.carrera && (
+                  <p className="text-red-500 text-xs mt-1">{errores.carrera}</p>
+                )}
+              </div>
+
               {/* Título del Tema */}
               <div className="space-y-2">
                 <Label>Título del Tema</Label>
@@ -480,11 +567,12 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                 <Label>Áreas de Conocimiento</Label>
                 <Select
                   onValueChange={(value) => {
-                    const areaSeleccionada = areasDisponibles.find(
+                    const areaSeleccionada = areasFiltradas.find(
                       (area) => String(area.id) === value,
                     );
                     if (areaSeleccionada) {
                       setAreaConocimientoSeleccionada(areaSeleccionada);
+                      temaData.subareas = [];
                     }
                   }}
                 >
@@ -492,7 +580,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <SelectValue placeholder="Seleccione un área" />
                   </SelectTrigger>
                   <SelectContent>
-                    {areasDisponibles.map((area) => (
+                    {areasFiltradas.map((area) => (
                       <SelectItem key={area.id} value={String(area.id)}>
                         {area.nombre}
                       </SelectItem>
@@ -558,10 +646,13 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
               {/* Coasesores */}
               <ItemSelector
                 label="Coasesores (Opcional)"
-                itemsDisponibles={coasesoresDisponibles}
+                itemsDisponibles={coasesoresDisponibles.map((item) => ({
+                  ...item,
+                  nombreCompleto: `${item.nombres} ${item.primerApellido} ${item.segundoApellido}`,
+                }))}
                 itemsSeleccionados={temaData.coasesores}
                 itemKey="codigoPucp"
-                itemLabel="nombres"
+                itemLabel="nombreCompleto"
                 selectedItem={coasesorSeleccionado}
                 onSelectItem={onSelectCoasesor}
                 onAgregarItem={handleAgregarCoasesor}
@@ -576,7 +667,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                   {/* Asesor Principal */}
                   <div className="space-y-2">
                     <Label>Asesor Principal</Label>
-                    <Input value={asesor.nombres} disabled />
+                    <Input
+                      value={`${asesor.nombres} ${asesor.primerApellido} ${asesor.segundoApellido}`}
+                      disabled
+                    />
                   </div>
 
                   {/* Estudiantes */}
@@ -601,10 +695,11 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                             )
                             .map((estudiante) => (
                               <SelectItem
-                                key={estudiante.codigoPucp}
+                                key={estudiante.id}
                                 value={estudiante.nombres}
                               >
-                                {estudiante.codigoPucp}: {estudiante.nombres}
+                                {estudiante.nombres} {estudiante.primerApellido}{" "}
+                                {estudiante.segundoApellido}{" "}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -717,7 +812,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           </Button>
           {tipoRegistro === TipoRegistro.INSCRIPCION && (
             <Button
-              onClick={handleGuardar}
+              onClick={() => handlerVerificarTema(TipoRegistro.INSCRIPCION)}
               disabled={
                 Object.keys(errores).length > 0 || loading || checkingSimilitud
               }
@@ -727,7 +822,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
           )}
           {tipoRegistro === TipoRegistro.LIBRE && (
             <Button
-              onClick={handlerVerificarTema}
+              onClick={() => handlerVerificarTema(TipoRegistro.LIBRE)}
               disabled={
                 Object.keys(errores).length > 0 || loading || checkingSimilitud
               }
@@ -741,11 +836,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
   );
 };
 
-const mapTemaCreateInscription = (
-  tema: Tema,
-  carrera: Carrera,
-  asesor: Coasesor,
-) => {
+const mapTemaCreateInscription = (tema: Tema, carrera: Carrera) => {
   return {
     titulo: tema.titulo,
     carrera: { id: carrera.id },
@@ -755,7 +846,6 @@ const mapTemaCreateInscription = (
     fechaLimite: new Date(tema.fechaLimite + "T10:00:00Z").toISOString(),
     subareas: tema.subareas.map((a) => ({ id: a.id })),
     coasesores: [
-      { id: asesor.id },
       ...(tema.coasesores ? tema.coasesores.map((c) => ({ id: c.id })) : []),
     ],
     tesistas: tema.tesistas ? tema.tesistas.map((t) => ({ id: t.id })) : [],

@@ -1,12 +1,13 @@
 package pucp.edu.pe.sgta.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
 
-import java.util.List;
+import pucp.edu.pe.sgta.model.UsuarioXTema;
 
 @Repository
 public interface AsesorTesistaRepository extends JpaRepository<UsuarioXTema, Integer> {
@@ -45,4 +46,7 @@ public interface AsesorTesistaRepository extends JpaRepository<UsuarioXTema, Int
         AND LOWER(c.nombre) LIKE LOWER('%' || :carrera || '%');
         """, nativeQuery = true)
     List<Object[]> findAsesorTesistaByCarrera(@Param("carrera") String carrera);
+
+    @Query(value = "SELECT * FROM listar_tesistas_por_asesor_lite(:usuarioId)", nativeQuery = true)
+    List<Object[]> listarTesistasXAsesor(@Param("usuarioId") Integer usuarioId);
 }

@@ -12,15 +12,12 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.HistorialTemaDto;
-import pucp.edu.pe.sgta.dto.TemaConAsesorJuradoDTO;
-import pucp.edu.pe.sgta.dto.TemaPorAsociarDto;
-import pucp.edu.pe.sgta.dto.TemaSimilarDto;
 import pucp.edu.pe.sgta.dto.asesores.InfoTemaPerfilDto;
 import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
+import pucp.edu.pe.sgta.service.imp.TemaServiceImpl;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
@@ -55,6 +52,8 @@ public class TemaController {
 
 	@Autowired
 	UsuarioXCarreraService usuarioXCarreraService;
+    @Autowired
+    private TemaServiceImpl temaServiceImpl;
 
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
@@ -94,7 +93,7 @@ public class TemaController {
 			HttpServletRequest request
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador, false);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -327,7 +326,7 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemaActivoConAsesor/{idAlumno}")
-	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno) {
+	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno, HttpServletRequest request) {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
@@ -512,6 +511,7 @@ public class TemaController {
 			@RequestParam(value = "estadoNombre", required = false) String estadoNombre,
 			@RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
 			@RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
+			@RequestParam(value = "rolNombre", required = false) String rolNombre,
 			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
 			@RequestParam(value = "offset", defaultValue = "0") Integer offset,
 			HttpServletRequest request
@@ -539,6 +539,7 @@ public class TemaController {
 				filtroEstado,
 				fechaDesde,
 				fechaHasta,
+				rolNombre,
 				limit,
 				offset
 		);
@@ -777,8 +778,98 @@ public class TemaController {
 		}
 	}
 
+	@PostMapping("/actualizarTemaLibre")
+	public Integer actualizarTemaLibre(@Valid @RequestBody TemaDto dto) {
+		try {
+			return temaService.actualizarTemaLibre(dto);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+
+	}
 
 
+	@PostMapping("/reenvioSolicitudAprobacion")
+    public ResponseEntity<Void> reenvioSolicitudAprobacion(
+            @RequestParam("temaId") Integer temaId,
+            HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            TemaDto dto = new TemaDto();
+            dto.setId(temaId);
+            temaService.reenvioSolicitudAprobacionTema(dto, usuarioId);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No autorizado para reenviar la solicitud: " + e.getMessage());
+        }
+    }
+
+
+	@GetMapping("/listarSolicitudesDeTema")
+    public ResponseEntity<String> listarSolicitudes(
+            @RequestParam("temaId") Integer temaId,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "limit",  defaultValue = "10") int limit,
+            HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            String json = temaService.listarSolicitudesConUsuarios(temaId, offset, limit);
+            return ResponseEntity.ok(json);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No autorizado para listar solicitudes: " + e.getMessage());
+        }
+    }
+
+	@GetMapping("/TodasSolicitudesPendientes")
+    public ResponseEntity<String> listarPendientes(
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "limit",  defaultValue = "10") int limit,
+            HttpServletRequest request) {
+        try {
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            String json = temaService.listarSolicitudesPendientesPorUsuario(usuarioId, offset, limit);
+            return ResponseEntity.ok(json);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "No autorizado para listar pendientes: " + e.getMessage());
+        }
+    }
+
+	@GetMapping("/listarSolicitudesPendientesTemaAlumnos")
+	public ResponseEntity<String> listarSolicitudesPendientesTemaAlumnos(
+			@RequestParam(value = "offset", defaultValue = "0") int offset,
+			@RequestParam(value = "limit",  defaultValue = "10") int limit,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			String json = temaService.listarSolicitudesPendientesTemaAlumnos(usuarioId, offset, limit);
+			return ResponseEntity.ok(json);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"No autorizado para listar pendientes: " + e.getMessage());
+		}
+	}
+
+
+	@PostMapping("/updatesolicitudesCoordinador")
+	public void updateSolicitudesCoordinador(Integer solicitudId,String respuesta,
+		HttpServletRequest request) {
+			try {
+				String usuarioId = jwtService.extractSubFromRequest(request);
+				temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId,respuesta);
+
+			} catch (RuntimeException e) {
+				throw new ResponseStatusException(
+						HttpStatus.UNAUTHORIZED,
+						"Ocurrió un error: " + e.getMessage());
+			}
+	}
 
 }
 

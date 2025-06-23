@@ -1,4 +1,3 @@
-// components/SolicitudesPendientes.tsx
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -10,179 +9,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CessationRequestPagination from "@/features/asesores/components/cessation-request/pagination-cessation-request";
-import { usePagination } from "@/hooks/temas/use-pagination";
 import { Search } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { SolicitudesTable } from "../components/coordinador/table-solicitudes-pagination";
-import { pageTemasTexts, pageTexts } from "../types/solicitudes/constants";
-import {
-  fetchCarrerasMiembroComite,
-  lenTemasPorCarrera,
-  listarTemasPorCarrera,
-} from "../types/solicitudes/data";
+import { pageTemasTexts } from "../types/solicitudes/constants";
+import { PagesList } from "../types/solicitudes/entities";
 import { getSolicitudFromTema } from "../types/solicitudes/lib";
+import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
 
-const LIMIT = 10;
+interface SolicitudesPendientesProps {
+  readonly fetchAllPagesState: (
+    state: EstadoTemaNombre,
+    current?: number,
+    carrerasIdsParam?: number[],
+  ) => Promise<void>;
+  readonly estadoTema: EstadoTemaNombre;
+  readonly handleTabChange: (state: EstadoTemaNombre) => void;
+  readonly loading: boolean;
+  readonly getPage: (pagesList: PagesList, state: EstadoTemaNombre) => Tema[];
+  readonly temas: PagesList;
+  readonly getTotalPages: (
+    pagesList: PagesList,
+    state: EstadoTemaNombre,
+  ) => number;
+  readonly handlePageChange: (page: number) => void;
+  readonly limit: number;
+}
 
-export default function SolicitudesPendientes() {
-  const [estadoTema, setEstadoTema] = React.useState<EstadoTemaNombre>(
-    EstadoTemaNombre.INSCRITO,
-  );
+export default function SolicitudesPendientes({
+  fetchAllPagesState,
+  estadoTema,
+  handleTabChange,
+  loading,
+  getPage,
+  temas,
+  getTotalPages,
+  handlePageChange,
+  limit,
+}: SolicitudesPendientesProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [cursoFilter, setCursoFilter] = useState("todos");
-  const [loading, setLoading] = useState(false);
-  const [carrerasIds, setCarrerasIds] = useState<number[]>([]);
-  const {
-    pagination: temas,
-    replaceStateKey,
-    addNewPage,
-    getPage,
-    getTotalPages,
-  } = usePagination(pageTemasTexts.initialPagesList, LIMIT);
 
   useEffect(() => {
-    fetchFirstPageAndSetTotalCounts();
+    if (!temas[estadoTema] || temas[estadoTema].totalCounts === 0) {
+      fetchAllPagesState(estadoTema);
+    }
   }, []);
 
-  async function fetchFirstPageAndSetTotalCounts() {
-    try {
-      setLoading(true);
-      // Get CarrerasIds
-      const carreras = await fetchCarrerasMiembroComite();
-      const ids = (carreras || []).map((c) => c.id);
-      setCarrerasIds(ids);
-
-      if (ids.length > 0) {
-        await fetchTotalCountsAndFirstPages(ids);
-      }
-    } catch (error) {
-      console.log("No se pudo cargar las carreras del usuario: " + error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      // Actualizar página actual
-      replaceStateKey(estadoTema, "current", newPage);
-      // Fetch de la página en caso no exista
-      const existingPage = temas[estadoTema]?.pages?.[newPage];
-      if (!existingPage?.length) {
-        setLoading(true);
-        fetchPage(estadoTema, newPage, carrerasIds);
-      }
-    },
-    [estadoTema, temas, carrerasIds],
-  );
-
-  async function fetchPage(
-    state: EstadoTemaNombre,
-    page: number,
-    carrerasIds: number[],
-  ) {
-    try {
-      if (carrerasIds && carrerasIds.length > 0) {
-        // Fetch page
-        const data = await listarTemasPorCarrera(
-          carrerasIds[0], // TODO: Validar
-          state,
-          LIMIT,
-          (page - 1) * LIMIT, // Offset
-        );
-
-        // Add new page to State
-        addNewPage(state, page, data);
-      }
-    } catch (err) {
-      console.error("Error loading data", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchTotalCounts(carrerasIds: number[]) {
-    try {
-      // Get All States
-      const estadosConPages: EstadoTemaNombre[] = Object.keys(
-        temas,
-      ) as EstadoTemaNombre[];
-
-      // Get all counts
-      const counts = await Promise.all(
-        estadosConPages.map((estado) =>
-          lenTemasPorCarrera(carrerasIds[0], estado),
-        ),
-      );
-
-      // Update state
-      estadosConPages.forEach((estado, idx) => {
-        replaceStateKey(estado, "totalCounts", counts[idx]);
-        console.log(estado + ": count = " + counts[idx]);
-      });
-    } catch (err) {
-      console.error("Error loading total counts", err);
-    }
-  }
-
-  async function fetchTotalCountsAndFirstPages(carrerasIds: number[]) {
-    try {
-      // Get All States
-      const estadosConPages: EstadoTemaNombre[] = Object.keys(
-        temas,
-      ) as EstadoTemaNombre[];
-
-      // Get all lists
-      const temasLists = await Promise.all(
-        estadosConPages.map((state) =>
-          listarTemasPorCarrera(
-            carrerasIds[0], // TODO: Validar
-            state,
-            2000, // Get all items
-            0,
-          ),
-        ),
-      );
-
-      // Update counts and first pages
-      estadosConPages.forEach((state, idx) => {
-        const countList = temasLists[idx].length;
-        // Set Count
-        replaceStateKey(state, "totalCounts", countList);
-        console.log(state + ": count = " + countList);
-
-        // Set first page
-        addNewPage(state, 1, temasLists[idx]);
-      });
-    } catch (err) {
-      console.error("Error loading total counts and First pages: ", err);
-    }
-  }
-
-  function handleTabChange(state: EstadoTemaNombre) {
-    setEstadoTema(state);
-
-    // Fetch de la página en caso no exista
-    if (!temas[state]) return;
-    const currentPage = temas[state].current;
-    const existingPage = temas[state]?.pages?.[currentPage];
-    if (!existingPage?.length) {
-      fetchPage(state, currentPage, carrerasIds);
-    }
-  }
-
+  // Get Texts
+  const { title, description } =
+    pageTemasTexts.states[estadoTema as keyof typeof pageTemasTexts.states];
   return (
-    <div className="space-y-8 mt-4">
-      {/* Título general */}
-      <div>
-        <h1 className="text-3xl font-bold text-[#042354]">{pageTexts.title}</h1>
-        <p className="text-muted-foreground">{pageTexts.description}</p>
-      </div>
-
+    <div className="space-y-8 mt-4 flex flex-col overflow-auto">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        {/* Selector de estado */}
+        <Select
+          value={estadoTema}
+          onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
+        >
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Selecciona estado" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(pageTemasTexts.states).map(([key, estado]) => (
+              <SelectItem key={key} value={key}>
+                {estado.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* Searchbar */}
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -193,76 +90,38 @@ export default function SolicitudesPendientes() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        {/* Selector tipo de tema */}
-        {/* <Select value={cursoFilter} onValueChange={setCursoFilter}>
-          <SelectTrigger className="w-[300px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(filters.filterTipos).map(([key, filter]) => (
-              <SelectItem key={key} value={key}>
-                {filter.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select> */}
       </div>
 
-      {/* Tabs */}
-      <Tabs
-        value={estadoTema}
-        onValueChange={(value) => handleTabChange(value as EstadoTemaNombre)}
-      >
-        <TabsList>
-          {Object.entries(pageTemasTexts.states).map(([key, estado]) => (
-            <TabsTrigger key={key} value={key}>
-              {estado.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      {/* Card con tabla */}
-      <Card>
+      {/* Table */}
+      <Card className="flex flex-col flex-1">
         {/* Header */}
-        <CardHeader>
+        <CardHeader className="flex justify-between items-center">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold">
-              {
-                pageTemasTexts.states[
-                  estadoTema as keyof typeof pageTemasTexts.states
-                ].title
-              }
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {
-                pageTemasTexts.states[
-                  estadoTema as keyof typeof pageTemasTexts.states
-                ].description
-              }
-            </p>
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+          {/* Pagination */}
+          <div>
+            {temas[estadoTema] && (
+              <CessationRequestPagination
+                currentPage={temas[estadoTema].current}
+                totalPages={getTotalPages(temas, estadoTema)}
+                onPageChange={handlePageChange}
+              />
+            )}
           </div>
         </CardHeader>
 
+        {/* Solicitudes */}
         <CardContent>
-          {/* Solicitudes */}
           <SolicitudesTable
             solicitudes={getPage(temas, estadoTema).map((p) =>
               getSolicitudFromTema(p, p.id),
-            )} // TODO: Pasar todo y enviar filtro estadoTema
+            )}
             isLoading={loading}
             searchQuery={searchQuery}
+            limit={limit}
           />
-
-          {/* Pagination */}
-          {temas[estadoTema] && (
-            <CessationRequestPagination
-              currentPage={temas[estadoTema].current}
-              totalPages={getTotalPages(temas, estadoTema)}
-              onPageChange={handlePageChange}
-            />
-          )}
         </CardContent>
       </Card>
     </div>
