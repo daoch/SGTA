@@ -795,7 +795,7 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_efcxt_efc FOREIGN KEY (etapa_formativa_x_ciclo_id) REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id) ON DELETE RESTRICT,
     CONSTRAINT fk_efcxt_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT,
-    CONSTRAINT unica_efxc_x_tema UNIQUE (etapa_formativa_x_ciclo_x_tema_id, tema_id)
+    CONSTRAINT unica_efxc_x_tema UNIQUE (etapa_formativa_x_ciclo_id, tema_id)
 );
 
 -- Tabla exposicion
