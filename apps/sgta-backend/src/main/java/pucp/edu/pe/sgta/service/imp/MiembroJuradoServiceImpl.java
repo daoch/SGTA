@@ -1395,17 +1395,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                 return miembro;
                                         }).toList();
 
-                                        // Buscar el usuario x tema
                                         Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
-                                                        .findByUsuarioIdAndActivoTrue(userDto.getId())
-                                                        .stream()
-                                                        .filter(u -> u.getTema().getId().equals(tema.getId()))
-                                                        .findFirst();
+                                                .findByUsuarioIdAndActivoTrue(userDto.getId())
+                                                .stream()
+                                                .filter(u -> u.getTema().getId().equals(tema.getId()))
+                                                .findFirst();
 
-                                        // Obtener estado
-                                        Optional<ControlExposicionUsuarioTema> controlOptional = controlExposicionUsuarioTemaRepository
-                                                        .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
-                                                                        usuarioXTemaOptional.get().getId());
+                                        Optional<ControlExposicionUsuarioTema> controlOptional = Optional.empty();
+
+                                        if (usuarioXTemaOptional.isPresent()) {
+                                                controlOptional = controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(
+                                                        exposicionXTema.getId(),
+                                                        usuarioXTemaOptional.get().getId()
+                                                );
+                                        }
 
                                         // Crear DTO
                                         ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
