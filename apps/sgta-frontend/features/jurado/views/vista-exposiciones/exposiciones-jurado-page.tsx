@@ -313,7 +313,7 @@ const ExposicionesJuradoPage: React.FC = () => {
   return (
     <div>
       <div className="flex h-[60px] pt-[15px] pr-[20px] pb-[10px] items-center gap-[10px] self-stretch">
-        <h1 className="text-[#042354] font-montserrat text-[24px] font-semibold leading-[32px] tracking-[-0.144px]">
+        <h1 className="text-3xl font-bold text-[#042354]">
           Mis Exposiciones
         </h1>
       </div>
