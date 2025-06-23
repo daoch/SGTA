@@ -24,10 +24,10 @@ export function ExposicionCard({
       href={`/alumno/mi-proyecto/exposiciones/${alumnoId}/${exposicion.exposicionId}`}
       className="block"
     >
-      <div className="bg-gray-50 rounded-lg shadow-sm border p-5 flex flex-col md:flex-row gap-10 transition-all duration-300 hover:shadow-md hover:border-gray-400 cursor-pointer">
+      <div className="bg-gray-50 rounded-lg shadow-sm border p-3 flex flex-col md:flex-row gap-10 transition-all duration-300 hover:shadow-md hover:border-gray-400 cursor-pointer">
         {/*HORA FECHA Y SALA*/}
         <div className="flex flex-col items-center space-y-2 md:min-w-[150px] justify-center">
-          <div className="text-4xl font-semibold">
+          <div className="text-3xl font-semibold">
             {exposicion.datetimeInicio.toLocaleTimeString("es-ES", {
               hour: "2-digit",
               minute: "2-digit",
