@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.*;
 import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
 import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
@@ -1333,26 +1334,15 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         throw new RuntimeException("Este usuario no tiene permisos de coordinador.");
                 }
 
-                // 1. Obtener las áreas de conocimiento del coordinador
-                List<UsuarioXAreaConocimiento> areasCoordinador = usuarioXAreaConocimientoRepository
-                                .findByUsuario_IdAndActivoTrue(userDto.getId());
+                List<UsuarioXCarrera> relaciones = usuarioXCarreraRepository
+                        .findByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
 
-                Set<Integer> areaIds = areasCoordinador.stream()
-                                .map(uac -> uac.getAreaConocimiento().getId())
-                                .collect(Collectors.toSet());
 
-                // 2. Obtener los temas relacionados con esas áreas (por subárea)
-                List<SubAreaConocimientoXTema> relaciones = subAreaConocimientoXTemaRepository.findAll()
-                                .stream()
-                                .filter(SubAreaConocimientoXTema::getActivo)
-                                .filter(sact -> areaIds.contains(
-                                                sact.getSubAreaConocimiento().getAreaConocimiento().getId()))
-                                .collect(Collectors.toList());
+                Set<Integer> carreraIds = relaciones.stream()
+                        .map(rel -> rel.getCarrera().getId())
+                        .collect(Collectors.toSet());
 
-                Set<Tema> temasFiltrados = relaciones.stream()
-                                .map(SubAreaConocimientoXTema::getTema)
-                                .collect(Collectors.toSet());
-
+                List<Tema> temasFiltrados = temaRepository.findByCarrera_IdInAndActivoTrue(new ArrayList<>(carreraIds));
                 // 3. Obtener exposiciones por tema
                 List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
 
@@ -1606,5 +1596,29 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 exposicionXTemaRepository.save(exposicionXTema);
 
                 return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+        }
+
+        @Override
+        public Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try {
+                        ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(request.getExposicionXTemaId())
+                                .orElseThrow(() -> new EntityNotFoundException("Exposición por tema no encontrada"));
+
+                        exposicionXTema.setLinkGrabacion(request.getNuevoLinkGrabacion());
+                        exposicionXTemaRepository.save(exposicionXTema);
+
+                        response.put("exito", true);
+                        response.put("mensaje", "Se ha actualizado correctamente el link de grabación.");
+                } catch (EntityNotFoundException e) {
+                        response.put("exito", false);
+                        response.put("mensaje", e.getMessage());
+                } catch (Exception e) {
+                        response.put("exito", false);
+                        response.put("mensaje", "Ocurrió un error al actualizar el link de grabación.");
+                }
+
+                return response;
         }
 }

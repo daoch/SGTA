@@ -10,6 +10,36 @@ import {
   CognitoUserSession,
 } from "amazon-cognito-identity-js";
 
+// Helper function to capitalize names properly with UTF-8 support
+const capitalizeNames = (name: string): string => {
+  if (!name) return name;
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map(word => {
+      if (word.length === 0) return word;
+      // Use proper Unicode-aware capitalization
+      return word.charAt(0).toLocaleUpperCase("es-ES") + word.slice(1).toLocaleLowerCase("es-ES");
+    })
+    .join(" ");
+};
+
+// Helper function to extract first and last name, handling middle names
+const extractFirstAndLastName = (fullName: string): { firstName: string; lastName: string } => {
+  if (!fullName) return { firstName: "", lastName: "" };
+  
+  const nameParts = fullName.trim().split(" ").filter(part => part.length > 0);
+  
+  if (nameParts.length === 0) return { firstName: "", lastName: "" };
+  if (nameParts.length === 1) return { firstName: nameParts[0], lastName: "" };
+  
+  // For Latin America: take first name and last surname (skip middle names)
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+  
+  return { firstName, lastName };
+};
+
 const initialState: AuthState = {
   user: null,
   idToken: null,
@@ -47,9 +77,30 @@ export const useAuthStore = create<AuthStore>()(
                   )
                 : [];
 
+              const rawFirstName = payload["given_name"] as string;
+              const rawLastName = payload["family_name"] as string;
+              const fullName = (payload["name"] as string) || payload.email!;
+              
+              // Process names for proper capitalization and structure
+              let firstName = rawFirstName;
+              let lastName = rawLastName;
+              
+              // If we have a full name but no separate first/last names, extract them
+              if (!firstName || !lastName) {
+                const extracted = extractFirstAndLastName(fullName);
+                firstName = firstName || extracted.firstName;
+                lastName = lastName || extracted.lastName;
+              }
+              
+              // Capitalize names properly
+              firstName = capitalizeNames(firstName);
+              lastName = capitalizeNames(lastName);
+              
               const newUser: User = {
                 id: payload.sub!,
-                name: (payload["name"] as string) || payload.email!,
+                name: fullName,
+                firstName,
+                lastName,
                 email: payload.email!,
                 avatar: "",
                 roles,
@@ -168,9 +219,30 @@ export const useAuthStore = create<AuthStore>()(
                   )
                 : [];
 
+              const rawFirstName = payload["given_name"] as string;
+              const rawLastName = payload["family_name"] as string;
+              const fullName = (payload["name"] as string) || payload.email;
+              
+              // Process names for proper capitalization and structure
+              let firstName = rawFirstName;
+              let lastName = rawLastName;
+              
+              // If we have a full name but no separate first/last names, extract them
+              if (!firstName || !lastName) {
+                const extracted = extractFirstAndLastName(fullName);
+                firstName = firstName || extracted.firstName;
+                lastName = lastName || extracted.lastName;
+              }
+              
+              // Capitalize names properly
+              firstName = capitalizeNames(firstName);
+              lastName = capitalizeNames(lastName);
+              
               const newUser: User = {
                 id: payload.sub,
-                name: (payload["name"] as string) || payload.email,
+                name: fullName,
+                firstName,
+                lastName,
                 email: payload.email,
                 avatar: "",
                 roles,
@@ -246,9 +318,30 @@ export const useAuthStore = create<AuthStore>()(
                     ].includes(g),
                   )
                 : [];
+              const rawFirstName = payload["given_name"] as string;
+              const rawLastName = payload["family_name"] as string;
+              const fullName = (payload["name"] as string) || payload.email!;
+              
+              // Process names for proper capitalization and structure
+              let firstName = rawFirstName;
+              let lastName = rawLastName;
+              
+              // If we have a full name but no separate first/last names, extract them
+              if (!firstName || !lastName) {
+                const extracted = extractFirstAndLastName(fullName);
+                firstName = firstName || extracted.firstName;
+                lastName = lastName || extracted.lastName;
+              }
+              
+              // Capitalize names properly
+              firstName = capitalizeNames(firstName);
+              lastName = capitalizeNames(lastName);
+              
               const newUser: User = {
                 id: payload.sub!,
-                name: (payload["name"] as string) || payload.email!,
+                name: fullName,
+                firstName,
+                lastName,
                 email: payload.email!,
                 avatar: "",
                 roles,
