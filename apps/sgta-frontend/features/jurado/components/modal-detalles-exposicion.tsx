@@ -45,7 +45,7 @@ const ModalDetallesExposicion: React.FC<{
               <Textarea
                 value={exposicion.titulo }
                 disabled
-                className="text-muted-foreground text-sm"
+                className="text-muted-foreground text-sm "
               />
             </div>
 
@@ -55,7 +55,7 @@ const ModalDetallesExposicion: React.FC<{
                 <Textarea
                   value={exposicion.nombre_etapa_formativa}
                   disabled
-                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
+                  className="text-muted-foreground text-sm h-8 min-h-0 resize-none py-1"
                 />
               </div>
               <div>
@@ -63,7 +63,7 @@ const ModalDetallesExposicion: React.FC<{
                 <Textarea
                   value={ exposicion.nombre_exposicion}
                   disabled
-                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
+                  className="text-muted-foreground text-sm h-8 min-h-0 resize-none py-1"
                 />
 
               </div>
@@ -82,7 +82,7 @@ const ModalDetallesExposicion: React.FC<{
                         <div className="text-[14px] leading-none font-semibold">
                           Estudiante {index + 1}
                         </div>
-                        <div className="text-sm text-gray-500 ">{miembro.nombre}</div>
+                        <div className="text-muted-foreground text-[13px] ">{miembro.nombre}</div>
                       </div>
                     </div>
                   </div>
@@ -100,7 +100,7 @@ const ModalDetallesExposicion: React.FC<{
                     <div className="text-[14px] leading-none font-semibold">
                       Asesor
                     </div>
-                    <div className="text-sm text-gray-500 ">{asesor.nombre}</div>
+                    <div className="text-muted-foreground text-[13px] ">{asesor.nombre}</div>
                   </div>
                 </div>
               </div>
@@ -118,7 +118,7 @@ const ModalDetallesExposicion: React.FC<{
                         <div className="text-[14px] leading-none font-semibold">
                           Jurado {index + 1}
                         </div>
-                        <div className="text-sm text-gray-500 ">{jurado.nombre}</div>
+                        <div className="text-muted-foreground text-[13px]">{jurado.nombre}</div>
                       </div>
                     </div>
                   </div>
@@ -134,7 +134,7 @@ const ModalDetallesExposicion: React.FC<{
                 <Input
                   value={format(exposicion.fechahora, "dd/MM/yyyy")}
                   disabled
-                  className="bg-gray-70"
+                  className="text-muted-foreground !text-[13px]"
                 />
               </div>
               <div>
@@ -144,7 +144,7 @@ const ModalDetallesExposicion: React.FC<{
                 <Input
                   value={format(exposicion.fechahora, "HH:mm 'hrs'")}
                   disabled
-                  className="bg-gray-50"
+                  className="text-muted-foreground !text-[13px]"
                 />
               </div>
               <div>
@@ -154,7 +154,7 @@ const ModalDetallesExposicion: React.FC<{
                 <Input
                   value={exposicion.sala}
                   disabled
-                  className="bg-gray-50"
+                  className="text-muted-foreground !text-[13px]"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ const ModalDetallesExposicion: React.FC<{
         </DialogHeader>
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button variant="secondary">Cerrar</Button>
+            <Button variant="outline">Cerrar</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
