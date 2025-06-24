@@ -48,10 +48,10 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
 
     Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
 
-    @Query(value = "SELECT * FROM sgtadb.get_exposiciones_coordinador(:usuarioId)", nativeQuery = true)
+    @Query(value = "SELECT * FROM get_exposiciones_coordinador(:usuarioId)", nativeQuery = true)
     List<Object[]> getExposicionesPorCoordinador(@Param("usuarioId") Integer usuarioId);
 
-    @Query(value = "SELECT * FROM sgtadb.get_miembros_por_tema(:temaId)", nativeQuery = true)
+    @Query(value = "SELECT * FROM get_miembros_por_tema(:temaId)", nativeQuery = true)
     List<Object[]> getMiembrosPorTema(@Param("temaId") Integer temaId);
 
 

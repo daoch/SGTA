@@ -1336,7 +1336,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 List<Object[]> rows = exposicionRepository.getExposicionesPorCoordinador(usuario.getId());
                 Map<Integer, List<MiembroExposicionDto>> miembrosPorTema = new HashMap<>();
                 Set<Integer> temaIds = rows.stream()
-                        .map(row -> (Integer) row[13])
+                        .map(row -> (Integer) row[14])
                         .collect(Collectors.toSet());
 
                 for (Integer temaId : temaIds) {
@@ -1354,7 +1354,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 for (Object[] row : rows) {
                         ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
                         dto.setId_exposicion((Integer) row[0]);
-                        dto.setFechahora((OffsetDateTime) row[1]);
+                        dto.setFechahora(((Instant) row[1]).atOffset(ZoneOffset.UTC));
                         dto.setSala((String) row[2]);
                         dto.setEstado((String) row[3]);
                         dto.setId_etapa_formativa((Integer) row[4]);
@@ -1367,7 +1367,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         // puede venir null si no hay control
                         String estadoControl = (String) row[10];
                         dto.setEstado_control(
-                                estadoControl != null ? EstadoExposicionUsuario.valueOf(estadoControl) : null
+                                estadoControl != null ? EstadoExposicionUsuario.valueOf(estadoControl.toUpperCase()) : null
                         );
 
                         dto.setNombre_exposicion((String) row[11]);
