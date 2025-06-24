@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
   RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
-    advisor_count  BIGINT,
+    advisor_count  INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
     etapas_formativas TEXT  -- Nuevo campo para etapas formativas
@@ -151,7 +151,7 @@ BEGIN
     SELECT
         a.teacher_name,
         COALESCE(apa.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
-        COUNT(DISTINCT a.tema_id) AS advisor_count,
+        COUNT(DISTINCT a.tema_id)::INTEGER AS advisor_count,
         STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names,
         STRING_AGG(DISTINCT a.etapa_formativa_nombre, ', ' ORDER BY a.etapa_formativa_nombre) AS etapas_formativas
@@ -171,7 +171,7 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
   RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
-    juror_count    BIGINT,
+    juror_count    INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
     etapas_formativas TEXT
@@ -315,7 +315,7 @@ BEGIN
     SELECT
         j.teacher_name,
         COALESCE(apj.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
-        COUNT(DISTINCT j.tema_id) AS juror_count,
+        COUNT(DISTINCT j.tema_id)::INTEGER AS juror_count,
         STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names,
         STRING_AGG(DISTINCT j.etapa_formativa_nombre, ', ' ORDER BY j.etapa_formativa_nombre) AS etapas_formativas
@@ -482,7 +482,7 @@ CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
 )
   RETURNS TABLE(
     area_name   VARCHAR,
-    topic_count BIGINT,
+    topic_count INTEGER,
     etapas_formativas_json TEXT
   )
   LANGUAGE plpgsql
@@ -564,7 +564,7 @@ BEGIN
       SELECT
         tpe.area_conocimiento_id,
         tpe.etapa_nombre,
-        COUNT(tpe.tema_id) AS topic_count_etapa
+        COUNT(tpe.tema_id)::INTEGER AS topic_count_etapa
       FROM tema_por_etapa tpe
       GROUP BY tpe.area_conocimiento_id, tpe.etapa_nombre
     ),
@@ -572,7 +572,7 @@ BEGIN
       -- Calcular totales por área y crear JSON con contadores por etapa
       SELECT
         tcpe.area_conocimiento_id,
-        SUM(tcpe.topic_count_etapa) AS total_topic_count,
+        COALESCE(SUM(tcpe.topic_count_etapa), 0)::INTEGER AS total_topic_count,
         JSON_OBJECT_AGG(tcpe.etapa_nombre, tcpe.topic_count_etapa) AS etapas_formativas_json
       FROM tema_counts_por_etapa tcpe
       GROUP BY tcpe.area_conocimiento_id
@@ -593,7 +593,7 @@ CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
   RETURNS TABLE(
     area_name   VARCHAR,
     year        INTEGER,
-    topic_count BIGINT,
+    topic_count INTEGER,
     etapas_formativas_json TEXT
   )
   LANGUAGE plpgsql
@@ -680,7 +680,7 @@ BEGIN
         tpea.area_conocimiento_id,
         tpea.year,
         tpea.etapa_nombre,
-        COUNT(tpea.tema_id) AS topic_count_etapa
+        COUNT(tpea.tema_id)::INTEGER AS topic_count_etapa
       FROM tema_por_etapa_año tpea
       GROUP BY tpea.area_conocimiento_id, tpea.year, tpea.etapa_nombre
     ),
@@ -689,7 +689,7 @@ BEGIN
       SELECT
         tcpea.area_conocimiento_id,
         tcpea.year,
-        SUM(tcpea.topic_count_etapa) AS topic_count,
+        COALESCE(SUM(tcpea.topic_count_etapa), 0)::INTEGER AS topic_count,
         JSON_OBJECT_AGG(tcpea.etapa_nombre, tcpea.topic_count_etapa) AS etapas_formativas_json
       FROM tema_counts_por_etapa_año tcpea
       GROUP BY tcpea.area_conocimiento_id, tcpea.year
