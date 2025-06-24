@@ -61,26 +61,27 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
         private final SubAreaConocimientoRepository subAreaConocimientoRepository;
         private final UsuarioXCarreraRepository usuarioXCarreraRepository;
+        private final ExposicionRepository exposicionRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
-                        UsuarioXTemaRepository usuarioXTemaRepository,
-                        RolRepository rolRepository,
-                        TemaRepository temaRepository,
-                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                        EtapaFormativaRepository etapaFormativaRepository,
-                        ExposicionXTemaRepository exposicionXTemaRepository,
-                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
-                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                        ApplicationEventPublisher eventPublisher,
-                        CriterioExposicionRepository criterioExposicionRepository,
-                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
-                        ParametroConfiguracionRepository parametroConfiguracionRepository,
-                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository,
-                        EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
-                        UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
-                        SubAreaConocimientoRepository subAreaConocimientoRepository,
-                        UsuarioXCarreraRepository usuarioXCarreraRepository) {
+                                        UsuarioXTemaRepository usuarioXTemaRepository,
+                                        RolRepository rolRepository,
+                                        TemaRepository temaRepository,
+                                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                                        EtapaFormativaRepository etapaFormativaRepository,
+                                        ExposicionXTemaRepository exposicionXTemaRepository,
+                                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+                                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+                                        ApplicationEventPublisher eventPublisher,
+                                        CriterioExposicionRepository criterioExposicionRepository,
+                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
+                                        ParametroConfiguracionRepository parametroConfiguracionRepository,
+                                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
+                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository,
+                                        EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
+                                        UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
+                                        SubAreaConocimientoRepository subAreaConocimientoRepository,
+                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -101,6 +102,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
                 this.subAreaConocimientoRepository = subAreaConocimientoRepository;
                 this.usuarioXCarreraRepository = usuarioXCarreraRepository;
+            this.exposicionRepository = exposicionRepository;
         }
 
         @Override
@@ -1331,79 +1333,50 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                         .findFirstByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId())
                         .orElseThrow(() -> new RuntimeException("Este usuario no tiene permisos de coordinador."));
 
-                Integer carreraId = coordinadorRelacion.getCarrera().getId();
+                List<Object[]> rows = exposicionRepository.getExposicionesPorCoordinador(usuario.getId());
+                Map<Integer, List<MiembroExposicionDto>> miembrosPorTema = new HashMap<>();
+                Set<Integer> temaIds = rows.stream()
+                        .map(row -> (Integer) row[13])
+                        .collect(Collectors.toSet());
 
-                List<Tema> temas = temaRepository.findByCarrera_IdAndActivoTrue(carreraId);
-                Map<Integer, List<UsuarioXTema>> usuarioXTemaPorTemaId = usuarioXTemaRepository
-                        .findByTemaIdInAndActivoTrue(temas.stream().map(Tema::getId).toList())
-                        .stream()
-                        .collect(Collectors.groupingBy(uxt -> uxt.getTema().getId()));
+                for (Integer temaId : temaIds) {
+                        List<Object[]> miembrosRaw = exposicionRepository.getMiembrosPorTema(temaId);
+                        List<MiembroExposicionDto> miembros = miembrosRaw.stream().map(m -> new MiembroExposicionDto(
+                                (Integer) m[0],
+                                (String) m[1],
+                                (String) m[2]
+                        )).toList();
+                        miembrosPorTema.put(temaId, miembros);
+                }
 
                 List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
 
-                for (Tema tema : temas) {
-                        List<ExposicionXTema> exposiciones = exposicionXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+                for (Object[] row : rows) {
+                        ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
+                        dto.setId_exposicion((Integer) row[0]);
+                        dto.setFechahora((OffsetDateTime) row[1]);
+                        dto.setSala((String) row[2]);
+                        dto.setEstado((String) row[3]);
+                        dto.setId_etapa_formativa((Integer) row[4]);
+                        dto.setNombre_etapa_formativa((String) row[5]);
+                        dto.setTitulo((String) row[6]);
+                        dto.setCiclo_id((Integer) row[7]);
+                        dto.setCiclo_anio((Integer) row[8]);
+                        dto.setCiclo_semestre((String) row[9]);
 
-                        for (ExposicionXTema ext : exposiciones) {
-                                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository.findByExposicionXTemaIdAndActivoTrue(ext.getId());
+                        // puede venir null si no hay control
+                        String estadoControl = (String) row[10];
+                        dto.setEstado_control(
+                                estadoControl != null ? EstadoExposicionUsuario.valueOf(estadoControl) : null
+                        );
 
-                                for (BloqueHorarioExposicion bloque : bloques) {
-                                        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-                                        if (now.isAfter(bloque.getDatetimeFin())) {
-                                                ext.setEstadoExposicion(EstadoExposicion.COMPLETADA);
-                                                exposicionXTemaRepository.save(ext);
-                                        }
+                        dto.setNombre_exposicion((String) row[11]);
+                        dto.setEnlace_grabacion((String) row[12]);
+                        dto.setEnlace_sesion((String) row[13]);
+                        Integer idTema = (Integer) row[14];
+                        dto.setMiembros(miembrosPorTema.getOrDefault(idTema, List.of()));
 
-                                        String sala = Optional.ofNullable(bloque.getJornadaExposicionXSala())
-                                                .map(j -> j.getSalaExposicion())
-                                                .map(SalaExposicion::getNombre)
-                                                .orElse("");
-
-                                        Exposicion exposicion = ext.getExposicion();
-                                        EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
-                                        Ciclo ciclo = exposicion.getEtapaFormativaXCiclo().getCiclo();
-
-                                        List<MiembroExposicionDto> miembros = usuarioXTemaPorTemaId
-                                                .getOrDefault(tema.getId(), Collections.emptyList())
-                                                .stream()
-                                                .map(uxt -> new MiembroExposicionDto(
-                                                        uxt.getUsuario().getId(),
-                                                        uxt.getUsuario().getNombres() + " " +
-                                                                uxt.getUsuario().getPrimerApellido() + " " +
-                                                                uxt.getUsuario().getSegundoApellido(),
-                                                        uxt.getRol().getNombre()
-                                                ))
-                                                .toList();
-
-                                        Optional<EstadoExposicionUsuario> estadoControl = usuarioXTemaPorTemaId
-                                                .getOrDefault(tema.getId(), Collections.emptyList())
-                                                .stream()
-                                                .filter(uxt -> uxt.getUsuario().getId().equals(usuario.getId()))
-                                                .findFirst()
-                                                .flatMap(uxt -> controlExposicionUsuarioTemaRepository
-                                                        .findByExposicionXTema_IdAndUsuario_Id(ext.getId(), uxt.getId())
-                                                        .map(ControlExposicionUsuarioTema::getEstadoExposicion));
-
-                                        ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
-                                        dto.setId_exposicion(ext.getId());
-                                        dto.setNombre_exposicion(exposicion.getNombre());
-                                        dto.setFechahora(bloque.getDatetimeInicio());
-                                        dto.setSala(sala);
-                                        dto.setEstado(ext.getEstadoExposicion().toString());
-                                        dto.setId_etapa_formativa(etapa.getId());
-                                        dto.setNombre_etapa_formativa(etapa.getNombre());
-                                        dto.setTitulo(tema.getTitulo());
-                                        dto.setCiclo_id(ciclo.getId());
-                                        dto.setCiclo_anio(ciclo.getAnio());
-                                        dto.setCiclo_semestre(ciclo.getSemestre());
-                                        dto.setEstado_control(estadoControl.orElse(null));
-                                        dto.setEnlace_grabacion(ext.getLinkGrabacion());
-                                        dto.setEnlace_sesion(ext.getLinkExposicion());
-                                        dto.setMiembros(miembros);
-
-                                        resultado.add(dto);
-                                }
-                        }
+                        resultado.add(dto);
                 }
 
                 return resultado;
