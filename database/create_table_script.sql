@@ -1042,6 +1042,8 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
     CONSTRAINT fk_entregable_x_tema_entregable FOREIGN KEY (entregable_id) REFERENCES entregable (entregable_id) ON DELETE CASCADE,
     CONSTRAINT fk_entregable_x_tema_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE CASCADE
 );
+ALTER TABLE entregable_x_tema
+ADD COLUMN corregido BOOLEAN DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     revision_criterio_entregable_id SERIAL PRIMARY KEY,
