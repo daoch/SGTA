@@ -174,7 +174,7 @@ export function TemaCard() {
         <h3 className="text-lg font-medium mb-2">No tienes un proyecto de fin de carrera inscrito</h3>
         <p className="text-muted-foreground mb-6">Puedes postular a temas libres o proponer un nuevo tema de tesis</p>
         <div className="flex justify-center gap-4">
-          <Link href="temas/catalogo-de-temas">
+          <Link href="catalogo-de-temas">
             <Button variant="outline">Ver temas libres</Button>
           </Link>
         </div>

@@ -128,7 +128,7 @@ export default function FormularioPropuestaPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.push("/alumno/temas")}
+            onClick={() => router.push("/alumno/temas/temas")}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
