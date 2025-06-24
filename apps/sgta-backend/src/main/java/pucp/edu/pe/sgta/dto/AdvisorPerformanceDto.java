@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -12,4 +13,12 @@ public class AdvisorPerformanceDto {
     private String areaName;
     private Double performancePercentage;
     private Integer totalStudents;
+    private List<String> etapasFormativas;
+
+    public AdvisorPerformanceDto(String advisorName, String areaName, Double performancePercentage, Integer totalStudents) {
+        this.advisorName = advisorName;
+        this.areaName = areaName;
+        this.performancePercentage = performancePercentage;
+        this.totalStudents = totalStudents;
+    }
 }

@@ -9,7 +9,8 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     area_name      VARCHAR,
     advisor_count  BIGINT,
     tesistas_names TEXT,
-    temas_names    TEXT  -- Nuevo campo para mostrar los temas
+    temas_names    TEXT,
+    etapas_formativas TEXT  -- Nuevo campo para etapas formativas
   )
   LANGUAGE plpgsql
   COST 100
@@ -93,16 +94,25 @@ BEGIN
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
-            tdc.area_conocimiento_id  -- Área del tema (no del asesor)
+            tdc.area_conocimiento_id,  -- Área del tema (no del asesor)
+            ef.nombre AS etapa_formativa_nombre
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
                              AND ut.asignado = TRUE
         JOIN rol r ON r.rol_id = ut.rol_id AND (r.nombre = 'Asesor' OR r.nombre = 'Coasesor')
         JOIN temas_del_ciclo tdc ON tdc.tema_id = ut.tema_id
+        -- Obtener etapa formativa del tema
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = ut.tema_id
+        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+        JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- ELIMINADA: Restricción de carrera específica del asesor (casos excepcionales)
         -- ELIMINADA: Restricción de área específica del asesor (casos excepcionales)
         WHERE u.activo = TRUE
+          AND efc.ciclo_id = v_ciclo_id
+          AND ef.activo = TRUE
+          AND efc.activo = TRUE
+          AND efcxt.activo = TRUE
     ),
     tesistas AS (
         -- Obtener todos los tesistas por tema (DISTINCT para evitar duplicados por fallos BD)
@@ -143,7 +153,8 @@ BEGIN
         COALESCE(apa.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
         COUNT(DISTINCT a.tema_id) AS advisor_count,
         STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
-        STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names
+        STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names,
+        STRING_AGG(DISTINCT a.etapa_formativa_nombre, ', ' ORDER BY a.etapa_formativa_nombre) AS etapas_formativas
     FROM asesores a
     LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id  -- LEFT JOIN evita perder asesores
     LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
@@ -162,7 +173,8 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     area_name      VARCHAR,
     juror_count    BIGINT,
     tesistas_names TEXT,
-    temas_names    TEXT
+    temas_names    TEXT,
+    etapas_formativas TEXT
   )
   LANGUAGE plpgsql
   COST 100
@@ -246,16 +258,25 @@ BEGIN
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
-            tdc.area_conocimiento_id  -- Área del tema (no del jurado)
+            tdc.area_conocimiento_id,  -- Área del tema (no del jurado)
+            ef.nombre AS etapa_formativa_nombre
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
                              AND ut.asignado = TRUE
         JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Jurado'
         JOIN temas_del_ciclo tdc ON tdc.tema_id = ut.tema_id
+        -- Obtener etapa formativa del tema
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = ut.tema_id
+        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+        JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
         -- ELIMINADA: Restricción de carrera específica del jurado (casos excepcionales)
         -- ELIMINADA: Restricción de área específica del jurado (casos excepcionales)
         WHERE u.activo = TRUE
+          AND efc.ciclo_id = v_ciclo_id
+          AND ef.activo = TRUE
+          AND efc.activo = TRUE
+          AND efcxt.activo = TRUE
     ),
     tesistas AS (
         -- Obtener todos los tesistas por tema (DISTINCT para evitar duplicados por fallos BD)
@@ -296,7 +317,8 @@ BEGIN
         COALESCE(apj.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
         COUNT(DISTINCT j.tema_id) AS juror_count,
         STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
-        STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names
+        STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names,
+        STRING_AGG(DISTINCT j.etapa_formativa_nombre, ', ' ORDER BY j.etapa_formativa_nombre) AS etapas_formativas
     FROM jurados j
     LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id  -- LEFT JOIN evita perder jurados
     LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
@@ -307,7 +329,7 @@ $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
-    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer)
+    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer, etapas_formativas text)
     language plpgsql
 as
 $$
@@ -380,16 +402,25 @@ BEGIN
         CAST(CONCAT(u.nombres,' ',u.primer_apellido,' ',COALESCE(u.segundo_apellido,'')) AS VARCHAR) AS advisor_name,
         ac.nombre AS area_name,
         tc.area_conocimiento_id,
-        ut.tema_id
+        ut.tema_id,
+        ef.nombre AS etapa_formativa_nombre
       FROM usuario u
       JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                            AND ut.activo = TRUE
                            AND ut.asignado = TRUE
       JOIN rol r ON r.rol_id = ut.rol_id AND (r.nombre = 'Asesor' OR r.nombre = 'Coasesor')
       JOIN temas_ciclo tc ON tc.tema_id = ut.tema_id
+      -- Obtener etapa formativa del tema
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = ut.tema_id
+      JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
       -- ELIMINADA: Restricción de área específica del asesor (casos excepcionales)
       JOIN area_conocimiento ac ON ac.area_conocimiento_id = tc.area_conocimiento_id AND ac.activo = TRUE
       WHERE u.activo = TRUE
+        AND efc.ciclo_id = v_ciclo_id
+        AND ef.activo = TRUE
+        AND efc.activo = TRUE
+        AND efcxt.activo = TRUE
     ),
     topic_deliveries AS (
       SELECT
@@ -397,6 +428,7 @@ BEGIN
         at.advisor_name,
         at.area_name,
         at.tema_id,
+        at.etapa_formativa_nombre,
         COUNT(et.entregable_x_tema_id) AS total_deliverables,
         -- ahora contamos cuántos entregables tienen al menos una revisión con estado 'revisado'
         COUNT(DISTINCT et.entregable_x_tema_id)
@@ -423,7 +455,7 @@ BEGIN
         ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
        AND efc.ciclo_id = v_ciclo_id
        AND efc.activo = TRUE
-      GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id
+      GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id, at.etapa_formativa_nombre
     )
 
     -- en la consulta final, reemplazamos SUM(submitted_deliverables) por SUM(reviewed_deliverables)
@@ -435,7 +467,8 @@ BEGIN
         / NULLIF(SUM(td.total_deliverables),0)
         * 100
     , 2) AS performance_percentage,
-    COUNT(DISTINCT td.tema_id)::INTEGER AS total_students
+    COUNT(DISTINCT td.tema_id)::INTEGER AS total_students,
+    STRING_AGG(DISTINCT td.etapa_formativa_nombre, ', ' ORDER BY td.etapa_formativa_nombre) AS etapas_formativas
 
     FROM topic_deliveries td
     GROUP BY td.usuario_id, td.advisor_name, td.area_name
@@ -449,7 +482,8 @@ CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
 )
   RETURNS TABLE(
     area_name   VARCHAR,
-    topic_count BIGINT
+    topic_count BIGINT,
+    etapas_formativas_json TEXT
   )
   LANGUAGE plpgsql
   COST 100
@@ -504,12 +538,20 @@ BEGIN
       -- Contar temas por área en el ciclo específico (solo tesistas asignados)
       SELECT
         sac.area_conocimiento_id,
-        COUNT(DISTINCT t.tema_id) AS topic_count
+        COUNT(DISTINCT t.tema_id) AS topic_count,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'etapaName', ef.nombre,
+            'topicCount', COUNT(DISTINCT t.tema_id)
+          )
+          ORDER BY ef.nombre
+        ) AS etapas_formativas_json
       FROM tema t
       -- Relación directa tema -> ciclo
       JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
       JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
       JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN etapa_formativa                ef    ON ef.etapa_formativa_id = efc.etapa_formativa_id
       JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
       JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
       -- Restricción: solo temas con tesistas asignados
@@ -520,13 +562,30 @@ BEGIN
         AND ut.asignado = TRUE        -- Solo tesistas asignados
         AND ut.activo = TRUE          -- Relación activa
         AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
-      GROUP BY sac.area_conocimiento_id
+        AND ef.activo = TRUE          -- Etapa formativa activa
+      GROUP BY sac.area_conocimiento_id, ef.etapa_formativa_id, ef.nombre
+    ),
+    area_totals AS (
+      -- Calcular totales por área y agrupar las etapas formativas
+      SELECT
+        tc.area_conocimiento_id,
+        SUM(tc.topic_count) AS total_topic_count,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'etapaName', (tc.etapas_formativas_json::JSON->0->>'etapaName'),
+            'topicCount', tc.topic_count
+          )
+          ORDER BY (tc.etapas_formativas_json::JSON->0->>'etapaName')
+        ) AS etapas_formativas_json
+      FROM tema_counts tc
+      GROUP BY tc.area_conocimiento_id
     )
     SELECT
       CAST(aa.area_name AS VARCHAR)     AS area_name,
-      COALESCE(tc.topic_count, 0)       AS topic_count
+      COALESCE(at.total_topic_count, 0) AS topic_count,
+      COALESCE(at.etapas_formativas_json::TEXT, '[]') AS etapas_formativas_json
     FROM all_areas aa
-    LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = aa.area_conocimiento_id
+    LEFT JOIN area_totals at ON at.area_conocimiento_id = aa.area_conocimiento_id
     ORDER BY topic_count DESC, aa.area_name;
 END;
 $BODY$;
@@ -537,7 +596,8 @@ CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
   RETURNS TABLE(
     area_name   VARCHAR,
     year        INTEGER,
-    topic_count BIGINT
+    topic_count BIGINT,
+    etapas_formativas TEXT
   )
   LANGUAGE plpgsql
   COST 100
@@ -598,11 +658,13 @@ BEGIN
       SELECT
         sac.area_conocimiento_id,
         ci.anio AS year,
-        COUNT(DISTINCT t.tema_id) AS topic_count
+        COUNT(DISTINCT t.tema_id) AS topic_count,
+        STRING_AGG(DISTINCT ef.nombre, ', ' ORDER BY ef.nombre) AS etapas_formativas
       FROM tema t
       JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
       JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
       JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN etapa_formativa                ef    ON ef.etapa_formativa_id = efc.etapa_formativa_id
       JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
       JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
       -- Restricción: solo temas con tesistas asignados
@@ -613,12 +675,14 @@ BEGIN
         AND ut.asignado = TRUE  -- Solo tesistas asignados
         AND ut.activo = TRUE    -- Relación activa
         AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
+        AND ef.activo = TRUE    -- Etapa formativa activa
       GROUP BY sac.area_conocimiento_id, ci.anio  -- Agrupa por AÑO, no por ciclo
     )
     SELECT
       CAST(ayc.area_name AS VARCHAR)     AS area_name,
       ayc.year                           AS year,
-      COALESCE(tc.topic_count, 0)        AS topic_count
+      COALESCE(tc.topic_count, 0)        AS topic_count,
+      COALESCE(tc.etapas_formativas, '') AS etapas_formativas
     FROM area_year_combinations ayc
     LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = ayc.area_conocimiento_id 
                            AND tc.year = ayc.year

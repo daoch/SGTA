@@ -105,8 +105,52 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = topicAreaStatsRepository
                 .getTopicAreaStatsByUserAndCiclo(usuarioId, cicloNombre);
         return results.stream()
-                .map(r -> new TopicAreaStatsDTO((String) r[0], ((Number) r[1]).intValue()))
+                .map(r -> {
+                    String etapasFormativasJson = (String) r[2];
+                    Map<String, Integer> etapasFormativas = parseEtapasFormativasMap(etapasFormativasJson);
+                    return new TopicAreaStatsDTO((String) r[0], ((Number) r[1]).intValue(), etapasFormativas);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private Map<String, Integer> parseEtapasFormativasMap(String jsonStr) {
+        Map<String, Integer> result = new HashMap<>();
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("[]")) {
+            return result;
+        }
+        try {
+            // Parsing manual simple del JSON
+            String cleanJson = jsonStr.trim();
+            if (cleanJson.startsWith("[") && cleanJson.endsWith("]")) {
+                cleanJson = cleanJson.substring(1, cleanJson.length() - 1);
+                String[] objects = cleanJson.split("\\},\\{");
+                for (String obj : objects) {
+                    obj = obj.replace("{", "").replace("}", "");
+                    String[] pairs = obj.split(",");
+                    String etapaName = null;
+                    int topicCount = 0;
+                    for (String pair : pairs) {
+                        String[] keyValue = pair.split(":");
+                        if (keyValue.length == 2) {
+                            String key = keyValue[0].trim().replace("\"", "");
+                            String value = keyValue[1].trim().replace("\"", "");
+                            if ("etapaName".equals(key)) {
+                                etapaName = value;
+                            } else if ("topicCount".equals(key)) {
+                                topicCount = Integer.parseInt(value);
+                            }
+                        }
+                    }
+                    if (etapaName != null) {
+                        result.put(etapaName, topicCount);
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            logger.warn("Error parsing etapas formativas JSON: {}", jsonStr, e);
+            return result;
+        }
     }
 
     @Override
@@ -114,7 +158,13 @@ public class ReportingServiceImpl implements IReportService {
         Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
         return results.stream()
-                .map(r -> new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String etapasFormativasStr = (String) r[3];
+                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
+                        ? Arrays.asList(etapasFormativasStr.split(", "))
+                        : Collections.emptyList();
+                    return new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue(), etapasFormativas);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -124,7 +174,15 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> rows = advisorDistributionRepository
                 .getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
-                .map(r -> new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String etapasFormativasStr = (String) r[5];
+                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
+                        ? Arrays.asList(etapasFormativasStr.split(", "))
+                        : Collections.emptyList();
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
+                    dto.setEtapasFormativas(etapasFormativas);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -134,7 +192,15 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> rows = jurorDistributionRepository
                 .getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
-                .map(r -> new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String etapasFormativasStr = (String) r[5]; // El campo etapas_formativas es el índice 5
+                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
+                        ? Arrays.asList(etapasFormativasStr.split(", "))
+                        : Collections.emptyList();
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
+                    dto.setEtapasFormativas(etapasFormativas);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -143,12 +209,16 @@ public class ReportingServiceImpl implements IReportService {
         var advisors = getAdvisorDistribution(cognitoSub, cicloNombre);
         var jurors   = getJurorDistribution(cognitoSub, cicloNombre);
         Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map = new HashMap<>();
-        processTeachers(advisors, map, true);
-        processTeachers(jurors,   map, false);
+        Map<String, Set<String>> etapasFormativasPorProfesor = new HashMap<>();
+        processTeachers(advisors, map, true, etapasFormativasPorProfesor);
+        processTeachers(jurors,   map, false, etapasFormativasPorProfesor);
         return map.values().stream()
                 .map(b -> {
                     AreaFinalDTO d = b.build();
                     d.setTotalCount(d.getAdvisorCount() + d.getJurorCount());
+                    String key = d.getTeacherName() + "|" + d.getAreaName();
+                    Set<String> etapas = etapasFormativasPorProfesor.get(key);
+                    d.setEtapasFormativas(etapas != null ? new ArrayList<>(etapas) : Collections.emptyList());
                     return d;
                 })
                 .sorted(Comparator.comparing(AreaFinalDTO::getAreaName)
@@ -158,7 +228,8 @@ public class ReportingServiceImpl implements IReportService {
 
     private void processTeachers(List<TeacherCountDTO> list,
                                  Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map,
-                                 boolean isAdvisor) {
+                                 boolean isAdvisor,
+                                 Map<String, Set<String>> etapasFormativasPorProfesor) {
         for (var t : list) {
             String name = t.getTeacherName(),
                     area = t.getAreaName(),
@@ -172,6 +243,12 @@ public class ReportingServiceImpl implements IReportService {
             var b = map.get(key);
             if (isAdvisor) b.advisorCount(t.getCount());
             else           b.jurorCount(t.getCount());
+            
+            // Agregar etapas formativas
+            if (t.getEtapasFormativas() != null && !t.getEtapasFormativas().isEmpty()) {
+                etapasFormativasPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .addAll(t.getEtapasFormativas());
+            }
         }
     }
 
@@ -181,10 +258,18 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = advisorPerformanceRepository
                 .getAdvisorPerformanceByUser(usuarioId, cicloNombre);
         return results.stream()
-                .map(r -> new AdvisorPerformanceDto(
-                        (String) r[0], (String) r[1],
-                        Optional.ofNullable((Number) r[2]).map(Number::doubleValue).orElse(0.0),
-                        ((Number) r[3]).intValue()))
+                .map(r -> {
+                    String etapasFormativasStr = (String) r[4]; // El campo etapas_formativas es el índice 4
+                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
+                        ? Arrays.asList(etapasFormativasStr.split(", "))
+                        : Collections.emptyList();
+                    AdvisorPerformanceDto dto = new AdvisorPerformanceDto(
+                            (String) r[0], (String) r[1],
+                            Optional.ofNullable((Number) r[2]).map(Number::doubleValue).orElse(0.0),
+                            ((Number) r[3]).intValue());
+                    dto.setEtapasFormativas(etapasFormativas);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 

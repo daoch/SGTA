@@ -100,6 +100,7 @@ public class ReportsController {
         return reportingService.getAdvisorPerformance(sub, ciclo);
     }
 
+    
     /** RF4: lista de tesistas por asesor */
     @GetMapping("/advisors/tesistas")
     public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(

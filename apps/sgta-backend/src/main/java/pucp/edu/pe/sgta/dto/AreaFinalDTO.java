@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.dto;
 
 import lombok.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,4 +14,5 @@ public class AreaFinalDTO {
     private int advisorCount;
     private int jurorCount;
     private int totalCount;
+    private List<String> etapasFormativas;
 } 
