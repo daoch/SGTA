@@ -179,9 +179,6 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                             {tesista.codigoPucp}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Ver portafolio
-                        </Button>
                       </div>
                     ))}
                   </div>

@@ -276,18 +276,18 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         >
           <ArrowLeft className="h-6 w-6 text-gray-600" />
         </button>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-3xl font-bold text-[#042354]">
           Registro de Observaciones del Tema de Proyecto
         </h1>
       </div>
 
-      <Label>Título del Proyecto</Label>
+      <Label className="!text-[15px] leading-none font-semibold">Título del Proyecto</Label>
       <Input disabled value={evaluacion.titulo} />
 
-      <Label>Título del Descripción</Label>
+      <Label className="!text-[15px] leading-none font-semibold">Título del Descripción</Label>
       <Textarea disabled value={evaluacion.descripcion} />
 
-      <Label>Estudiantes</Label>
+      <Label className="!text-[15px] leading-none font-semibold">Estudiantes</Label>
       {/* Reemplazar el estudiante hardcodeado con la lista dinámica */}
       {evaluacion.estudiantes.map((estudiante) => (
         <div
@@ -303,7 +303,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
                 .toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span>{estudiante.nombre}</span>
+          <span className="text-muted-foreground text-[14px]">{estudiante.nombre}</span>
         </div>
       ))}
 

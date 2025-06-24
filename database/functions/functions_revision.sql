@@ -113,7 +113,7 @@ $ function $;
 
 --DROP FUNCTION IF EXISTS sgtadb.obtener_revision_documento_por_id(int4);
 CREATE
-OR REPLACE FUNCTION sgtadb.obtener_revision_documento_por_id(revision_id_input integer) RETURNS TABLE(
+OR REPLACE FUNCTION obtener_revision_documento_por_id(revision_id_input integer) RETURNS TABLE(
     revision_id integer,
     tema text,
     entregable text,
@@ -230,7 +230,7 @@ END;
 $ $ LANGUAGE plpgsql;
 
 CREATE
-OR REPLACE FUNCTION sgtadb.crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
+OR REPLACE FUNCTION crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
 
 v_tema_id INT;
 
