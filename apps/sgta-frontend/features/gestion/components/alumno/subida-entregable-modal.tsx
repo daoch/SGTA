@@ -24,7 +24,7 @@ interface EntregablesModalProps {
   readonly setSelectedEntregable?: (
     selectedEntregable: EntregableAlumnoDto | null,
   ) => void;
-  readonly handleUpdateEntregable?: (updated: EntregableAlumnoDto) => void;
+  readonly handleUpdateEntregable: (updated: EntregableAlumnoDto) => void;
 }
 
 const formatFecha = (fechaString?: string) => {
@@ -98,13 +98,6 @@ export function EntregablesModal({
       if (fechaActual > fechaLimite) {
         estado = "enviado_tarde";
       }
-      await axiosInstance.post(
-        `/entregable/entregar/${entregable.entregableXTemaId}`,
-        {
-          comentario: comentario,
-          estado: estado,
-        },
-      );
 
       if (archivosASubir.length > 0) {
         const formData = new FormData();
@@ -113,7 +106,8 @@ export function EntregablesModal({
         );
         formData.append("ciclo", entregable.cicloNombre.toString());
         formData.append("curso", entregable.etapaFormativaNombre.toString());
-        formData.append("codigoAlumno", "20183178");
+        formData.append("comentario", comentario);
+        formData.append("estado", estado);
 
         await axiosInstance.post(
           `/documento/entregable/${entregable.entregableXTemaId}`,
@@ -123,14 +117,13 @@ export function EntregablesModal({
           },
         );
       }
-      if (handleUpdateEntregable) {
-        handleUpdateEntregable({
-          ...entregable,
-          entregableEstado: estado,
-          entregableFechaEnvio: fechaActual.toISOString(),
-          entregableComentario: comentario,
-        });
-      }
+      handleUpdateEntregable({
+        ...entregable,
+        entregableEstado: estado,
+        entregableFechaEnvio: fechaActual.toISOString(),
+        entregableComentario: comentario,
+      });
+
       toast.success("Tus documentos fueron entregados correctamente.");
       setSelectedEntregable?.(null);
     } catch (error) {
@@ -287,7 +280,7 @@ export function EntregablesModal({
               <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
                 Última modificación
               </div>
-              <div className="px-4 py-3 text-gray-700">-</div>
+              <div className="px-4 py-3 text-gray-700">{formatFecha(entregable.entregableFechaEnvio as string)}</div>
             </div>
             <div className="grid grid-cols-[220px_1fr] border-b">
               <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">

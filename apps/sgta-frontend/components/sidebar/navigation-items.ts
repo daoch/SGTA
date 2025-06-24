@@ -151,6 +151,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         },
       ],
     },
+    { name: "Exposiciones", href: "/asesor/exposiciones", icon: MessageSquare },
     { name: "Revisión", href: "/asesor/revision", icon: Search },
     { name: "Reportes", href: "/asesor/reportes", icon: BarChart3 },
   ],

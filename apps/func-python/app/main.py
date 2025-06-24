@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from typing import Optional # Add Optional for type hinting
 from .controller.asignacion_controller import asignar_temas_bloques
 from .controller.similarity_controller import similarity_endpoint
@@ -14,7 +14,8 @@ from .controller.faiss_controller import (
 from .controller.oai_controller import (
     get_current_oai_endpoint, update_oai_endpoint,
     get_oai_repository_sets, refresh_oai_repository_sets_cache,
-    get_all_oai_records, get_oai_records_by_set, get_oai_single_record
+    get_all_oai_records, get_oai_records_by_set, get_oai_single_record,
+    get_oai_records_count
 )
 
 from .models import (
@@ -117,13 +118,21 @@ def handle_get_all_oai_records(
 ):
     return get_all_oai_records(max_records_per_set=max_records_per_set, metadata_prefix=metadata_prefix)
 
-@app.get("/oai/records/set/{set_spec}", response_model=OAIResponse, summary="Harvest records for a specific OAI set", tags=["OAI-PMH Harvesting"])
+@app.get("/oai/records/set/{set_spec}", response_model=OAIResponse, summary="Harvest records for a specific OAI set with pagination", tags=["OAI-PMH Harvesting"])
 def handle_get_oai_records_by_set(
     set_spec: str,
-    max_records: Optional[int] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    include_total_count: bool = False,
     metadata_prefix: str = 'oai_dc'
 ):
-    return get_oai_records_by_set(set_spec=set_spec, max_records=max_records, metadata_prefix=metadata_prefix)
+    return get_oai_records_by_set(
+        set_spec=set_spec, 
+        limit=limit, 
+        offset=offset, 
+        include_total_count=include_total_count, 
+        metadata_prefix=metadata_prefix
+    )
 
 @app.get("/oai/records/identifier/{identifier:path}", response_model=OAIResponse, summary="Get a single OAI record by its identifier", tags=["OAI-PMH Harvesting"])
 def handle_get_oai_single_record(
@@ -133,4 +142,19 @@ def handle_get_oai_single_record(
     # The identifier might contain slashes, so it's captured as a path.
     # No need to manually URL decode, FastAPI handles it.
     return get_oai_single_record(identifier=identifier, metadata_prefix=metadata_prefix)
+
+@app.get("/oai/records/count/{set_spec}", summary="Get record count for a specific OAI set", tags=["OAI-PMH Pagination"])
+def handle_get_oai_records_count(
+    set_spec: str,
+    metadata_prefix: str = 'oai_dc',
+    force_refresh: bool = False
+):
+    return get_oai_records_count(
+        set_spec=set_spec,
+        metadata_prefix=metadata_prefix,
+        force_refresh=force_refresh
+    )
+
+# Note: Async import endpoints are handled by the Java backend
+# The Python microservice focuses on OAI data fetching and caching
 

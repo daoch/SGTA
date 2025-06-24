@@ -31,4 +31,6 @@ public interface UsuarioXRolRepository extends JpaRepository<UsuarioXRol, Intege
     void deleteByUsuarioId(@Param("usuarioId") Integer usuarioId);
 
     boolean existsByUsuario_IdCognitoAndRol_Nombre(String usuarioIdCognito, String rolNombre);
+
+
 }

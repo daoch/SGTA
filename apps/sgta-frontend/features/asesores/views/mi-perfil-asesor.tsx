@@ -188,6 +188,13 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
     }
   };
 
+  const handleFotoChange = (nuevaFoto: string | null) => {
+    setEditedData({
+      ...editedData,
+      foto: nuevaFoto,
+    });
+  };
+
   const addAreaTematica = (area: AreaTematica) => {
     if (
       area &&
@@ -416,6 +423,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
               initiateAreaDelete={initiateAreaDelete}
               removeTemaInteres={removeTemaInteres}
               isAsesor={true}
+              onFotoChange={handleFotoChange}
             />
           </TabsContent>
 

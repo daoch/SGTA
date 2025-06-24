@@ -81,4 +81,68 @@ public class S3FileController {
                     .body("No se pudo generar la url para el archivo: " + e.getMessage());
         }
     }
+    @GetMapping("/existe-plagio-json/{revisionId}")
+    public ResponseEntity<Boolean> existePlagioJson(@PathVariable Integer revisionId) {
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElse(null);
+
+        if (revision == null || revision.getLinkArchivoRevision() == null) {
+            return ResponseEntity.ok(false);
+        }
+
+        String key = revision.getLinkArchivoRevision();
+        String jsonKey = key.replaceAll("\\.[^.]+$", ".json");
+
+        boolean exists = downloadService.existsInS3(jsonKey);
+        return ResponseEntity.ok(exists);
+    }
+    @GetMapping("/get-plagio-json/{revisionId}")
+    public ResponseEntity<String> getJsonPlagio(@PathVariable Integer revisionId) {
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElse(null);
+
+        if (revision == null || revision.getLinkArchivoRevision() == null) {
+            return ResponseEntity.ok("no existe");
+        }
+
+        String key = revision.getLinkArchivoRevision();
+        String jsonKey = key.replaceAll("\\.[^.]+$", ".json");
+
+        byte[] data  = downloadService.download(jsonKey);
+        if (data == null || data.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Archivo de plagio no encontrado o vacío.");
+        }
+        String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok(json);
+
+    }
+    @GetMapping("/get-IA-json/{revisionId}")
+    public ResponseEntity<String> getIAPlagio(@PathVariable Integer revisionId) {
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElse(null);
+
+        if (revision == null || revision.getLinkArchivoRevision() == null) {
+            return ResponseEntity.ok("no existe");
+        }
+
+        String key = revision.getLinkArchivoRevision();
+        // Reemplaza la extensión del archivo original por .json
+        // para obtener el archivo de IA
+        // Aquí asumimos que el archivo de IA tiene el mismo nombre pero con _ia.json
+        // al final del nombre del archivo original 
+        // Ejemplo: si el archivo original es "documento.pdf", el archivo de IA sería
+        // "documento_ia.json"
+
+        String jsonKey = key.replaceAll("\\.[^.]+$", "_ia.json");
+
+        byte[] data  = downloadService.download(jsonKey);
+        if (data == null || data.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Archivo de plagio no encontrado o vacío.");
+        }
+        String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok(json);
+
+    }
 }

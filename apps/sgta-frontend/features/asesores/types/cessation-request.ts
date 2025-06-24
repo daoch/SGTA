@@ -33,7 +33,7 @@ export interface ICessationRequestCreationResponse {
 // --- Tipos Fundamentales que vienen del Backend DTO ---
 
 // El estado que realmente viene del backend para cada solicitud
-export type ICessationRequestStatusBackend = "pendiente" | "aprobada" | "rechazada" | "desconocido"; // O los strings exactos que mapeaste en el backend
+export type ICessationRequestStatusBackend = "pendiente" | "aceptada" | "rechazada" | "desconocido"; // O los strings exactos que mapeaste en el backend
 
 export interface ICessationRequestTemaSimpleBackend {
   id: number;

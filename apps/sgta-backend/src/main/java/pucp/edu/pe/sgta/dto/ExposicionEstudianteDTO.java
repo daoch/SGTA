@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -28,4 +29,5 @@ public class ExposicionEstudianteDTO {
     private String ciclo;
     private List<MiembroExposicionDto> miembrosJurado;
     private String tipoExposicion;
+    private BigDecimal notaFinal;
 }

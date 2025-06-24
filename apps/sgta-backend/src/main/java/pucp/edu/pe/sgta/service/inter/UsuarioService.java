@@ -103,7 +103,7 @@ public interface UsuarioService {
 
     List<AlumnoReporteDto> findByStudentsForReviewer(String idUsuario, String cadenaBusqueda);
 
-    PerfilUsuarioDto getPerfilUsuario(String cognitoId);
+    PerfilUsuarioDto getPerfilUsuario(Integer idUsuario);
 
     void updatePerfilUsuario(PerfilUsuarioDto dto);
 

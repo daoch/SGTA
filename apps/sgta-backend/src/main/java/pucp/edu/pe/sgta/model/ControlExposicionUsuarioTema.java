@@ -53,4 +53,5 @@ public class ControlExposicionUsuarioTema {
     @Column(name = "estado_exposicion_usuario", nullable = false)
     @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
+
 }

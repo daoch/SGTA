@@ -53,7 +53,7 @@ const statusBadgeConfigTable: Record<
   }
 > = {
   pendiente: { text: "Pendiente", icon: Clock, className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-  aprobada: { text: "Aprobada", icon: CheckCircle2, className: "bg-green-100 text-green-800 border-green-300" },
+  aceptada: { text: "Aprobada", icon: CheckCircle2, className: "bg-green-100 text-green-800 border-green-300" },
   rechazada: { text: "Rechazada", icon: XCircle, className: "bg-red-100 text-red-800 border-red-300" },
   desconocido: { text: "Desconocido", icon: HelpCircle, className: "bg-gray-100 text-gray-700 border-gray-300" },
 };

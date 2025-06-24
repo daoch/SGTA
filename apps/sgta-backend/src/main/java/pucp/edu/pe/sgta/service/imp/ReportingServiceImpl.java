@@ -487,8 +487,10 @@ public class ReportingServiceImpl implements IReportService {
 
 
     @Override
-    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
-        //Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String cognitoSub) {
+
+        Integer idUsuario = usuarioService.findByCognitoId(cognitoSub).getId();
+
         List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(idUsuario);
 
         Map<Integer, EntregableCriteriosDetalleDto> map = new LinkedHashMap<>();
@@ -505,6 +507,8 @@ public class ReportingServiceImpl implements IReportService {
                             : null)
                     .estadoEntrega((String) r[4])
                     .criterios(new ArrayList<>())
+                    .etapaFormativaXCicloId(r[9] != null ? (Integer) r[9] : null)
+                    .esEvaluable(r[10] != null ? (Boolean) r[10] : null)
                     .build()
             );
             if (r[5] != null) {

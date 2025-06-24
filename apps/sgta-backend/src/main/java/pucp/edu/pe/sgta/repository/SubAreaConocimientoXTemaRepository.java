@@ -4,9 +4,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pucp.edu.pe.sgta.model.SubAreaConocimiento;
 import pucp.edu.pe.sgta.model.SubAreaConocimientoXTema;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface SubAreaConocimientoXTemaRepository
@@ -15,6 +17,8 @@ public interface SubAreaConocimientoXTemaRepository
     List<SubAreaConocimientoXTema> findByTemaIdAndActivoTrue(Integer temaId);
     SubAreaConocimientoXTema findFirstByTemaIdAndActivoTrue(Integer temaId);
 
+
+    List<SubAreaConocimientoXTema> findBySubAreaConocimiento_IdIn(Set<Integer> subAreaIds);
     @Query(value = """
         SELECT sub_area_conocimiento_id
           FROM sub_area_conocimiento_tema
