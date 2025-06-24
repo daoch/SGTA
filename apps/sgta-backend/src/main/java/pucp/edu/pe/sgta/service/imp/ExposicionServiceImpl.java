@@ -84,6 +84,7 @@ public class ExposicionServiceImpl implements ExposicionService {
         exposicion.setFechaCreacion(OffsetDateTime.now());
 
         exposicionRepository.save(exposicion);
+        exposicionRepository.asociarTemasAExposicion(exposicion.getId(), etapaFormativaXCicloId);
         return exposicion.getId();
     }
 
