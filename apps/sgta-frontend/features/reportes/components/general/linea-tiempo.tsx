@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -21,11 +20,12 @@ import {
 } from "@/components/ui/select";
 import type { User } from "@/features/auth/types/auth.types";
 import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado, getEntregablesConCriterios } from "@/features/reportes/services/report-services";
+import type { EntregableCriteriosDetalle, GradesData, StudentData } from "@/features/reportes/types/Entregable.type";
 import { addDays, format, isBefore, parseISO } from "date-fns";
-import { Eye } from "lucide-react";
+import { ClipboardList, Eye } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnalisisAcademico } from "./analisis-academico";
-import type { EntregableCriteriosDetalle, GradesData, StudentData } from "@/features/reportes/types/Entregable.type";
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
@@ -74,8 +74,6 @@ interface Props {
 }
 
 export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
-
-  console.log("Valor de selectedStudentId recibido en línea de tiempo:", selectedStudentId);
   const [activeTab, setActiveTab] = useState<"entregas" | "avances" | "analisis">("entregas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -106,8 +104,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         const data = selectedStudentId != null
         ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
         : await getEntregablesAlumno();
-        
-        console.log("📦 Datos obtenidos de la API:", data);
 
         type RawEntregable = {
           nombreEntregable: string;
@@ -147,9 +143,11 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 statusInterno === "Pendiente" &&
                 !isLateFlag;
 
+              const fechaFormateada = format(eventDate, "dd-MM-yyyy");
+
               return {
                 event: item.nombreEntregable,
-                date: format(eventDate, "yyyy-MM-dd"),
+                date: fechaFormateada,
                 rawEstadoEntregable: item.estadoEntregable,
                 rawEstadoXTema: item.estadoXTema,
                 estadoRevision: item.estadoRevision,
@@ -185,9 +183,20 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           });
 
         // Orden descendente:
-        eventosTransformados.sort(
-          (a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()
-        );
+        eventosTransformados.sort((a, b) => {
+          if (a.date === "Fecha no disponible") return 1;
+          if (b.date === "Fecha no disponible") return -1;
+          
+          const parseDate = (dateStr: string) => {
+            if (dateStr.includes("-") && dateStr.length === 10) {
+              const [day, month, year] = dateStr.split("-");
+              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            }
+            return parseISO(dateStr);
+          };
+          
+          return parseDate(b.date).getTime() - parseDate(a.date).getTime();
+        });
 
         setTimelineEvents(eventosTransformados);
       } catch (error) {
@@ -252,7 +261,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         return {
           id: entregable.entregableId.toString(),
           name: entregable.entregableNombre,
-          date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "yyyy-MM-dd") : "Sin fecha",
+          date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "dd-MM-yyyy") : "Sin fecha",
           criteria,
           expositionGrade: 0, // No tenemos datos de exposición en la API actual
           finalGrade: entregable.notaGlobal || 0
@@ -284,7 +293,18 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
-    const eventDate = parseISO(event.date);
+    // Si la fecha está en formato dd-MM-yyyy, la convertimos para parsearla
+    if (event.date === "Fecha no disponible") return true;
+    
+    let eventDate: Date;
+    if (event.date.includes("-") && event.date.length === 10) {
+      // Si es formato dd-MM-yyyy, convertirlo a Date
+      const [day, month, year] = event.date.split("-");
+      eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      eventDate = parseISO(event.date);
+    }
+    
     switch (timeFilter) {
       case "past":
         return isBefore(eventDate, currentDate);
@@ -379,7 +399,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                     <div className="p-3 space-y-2">
                       <h4 className="font-medium text-sm">Estado</h4>
                       <div className="space-y-1">
-                        {/* Opción “Todos” */}
+                        {/* Opción "Todos" */}
                         <Button
                           key="all"
                           variant={statusFilter === "all" ? "default" : "outline"}
@@ -537,7 +557,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                               size="sm"
                               onClick={() => openCriteriosModal(event.criterios)}
                             >
-                              Ver criterios
+                              <ClipboardList className="h-4 w-4" />
+                              <span className="ml-1">Ver criterios</span>
                             </Button>
                             {activeTab === "entregas" && (
                               <span className="text-base font-medium">
