@@ -62,8 +62,9 @@ BEGIN
         WHERE c.ciclo_id = v_ciclo_id
     ),
     temas_del_ciclo AS (
-        -- Identificar los temas activos en este ciclo específico
-        SELECT DISTINCT
+        -- Identificar temas del ciclo específico que tengan tesistas asignados
+        -- DISTINCT ON evita duplicar temas si hay múltiples tesistas por tema (fallo BD)
+        SELECT DISTINCT ON (t.tema_id)
             t.tema_id,
             t.titulo::VARCHAR AS tema_titulo,
             sact.sub_area_conocimiento_id,
@@ -75,38 +76,39 @@ BEGIN
         -- Unimos con sub_area_conocimiento_tema para obtener el área asociada al tema
         JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id AND sact.activo = TRUE
         JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
+        -- RESTRICCIÓN CRÍTICA: Solo temas con tesistas asignados
+        JOIN usuario_tema ut_tesista ON ut_tesista.tema_id = t.tema_id
+        JOIN rol r_tesista ON r_tesista.rol_id = ut_tesista.rol_id
         WHERE t.activo = TRUE
           AND efc.activo = TRUE
           AND t.carrera_id = v_carrera_id
+          AND ut_tesista.asignado = TRUE    -- Solo tesistas asignados
+          AND ut_tesista.activo = TRUE      -- Solo relaciones activas
+          AND r_tesista.nombre = 'Tesista'  -- Solo rol tesista
     ),
     asesores AS (
-        -- Obtener asesores filtrando por coincidencia de área
+        -- Obtener TODOS los asesores asignados (incluyendo casos excepcionales fuera de área)
         SELECT DISTINCT
             u.usuario_id,
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
-            tdc.area_conocimiento_id  -- Mantenemos esta columna para el filtrado
+            tdc.area_conocimiento_id  -- Área del tema (no del asesor)
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
                              AND ut.asignado = TRUE
         JOIN rol r ON r.rol_id = ut.rol_id AND (r.nombre = 'Asesor' OR r.nombre = 'Coasesor')
         JOIN temas_del_ciclo tdc ON tdc.tema_id = ut.tema_id
-        JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
-                                AND uc.carrera_id = v_carrera_id
-                                AND uc.activo = TRUE
-        -- Unimos con usuario_area_conocimiento para verificar que el asesor tenga asignada el área del tema
-        JOIN usuario_area_conocimiento uac ON uac.usuario_id = u.usuario_id
-                                          AND uac.area_conocimiento_id = tdc.area_conocimiento_id
-                                          AND uac.activo = TRUE
+        -- ELIMINADA: Restricción de carrera específica del asesor (casos excepcionales)
+        -- ELIMINADA: Restricción de área específica del asesor (casos excepcionales)
         WHERE u.activo = TRUE
     ),
     tesistas AS (
-        -- Obtener todos los tesistas por tema
-        SELECT
+        -- Obtener todos los tesistas por tema (DISTINCT para evitar duplicados por fallos BD)
+        SELECT DISTINCT
             ut.tema_id,
-            ut.usuario_id,
+            ut.usuario_id,  -- DISTINCT evita contar el mismo tesista múltiples veces
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS tesista_name
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
@@ -117,16 +119,14 @@ BEGIN
         WHERE u.activo = TRUE
     ),
     areas_por_asesor AS (
-        -- Obtener áreas de conocimiento de cada asesor
+        -- Obtener áreas de conocimiento POR TEMA (no por asesor) con manejo de errores
         SELECT
             a.usuario_id,
-            ac.area_conocimiento_id,
-            ac.nombre::VARCHAR AS area_name
+            a.area_conocimiento_id,
+            COALESCE(ac.nombre, 'Área eliminada')::VARCHAR AS area_name
         FROM asesores a
-        JOIN usuario_area_conocimiento uac ON uac.usuario_id = a.usuario_id AND uac.activo = TRUE
-        JOIN area_conocimiento ac ON ac.area_conocimiento_id = uac.area_conocimiento_id AND ac.activo = TRUE
-        -- Filtrar sólo por áreas que coinciden con las del tema
-        WHERE ac.area_conocimiento_id = a.area_conocimiento_id
+        LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = a.area_conocimiento_id AND ac.activo = TRUE
+        -- LEFT JOIN evita perder asesores si el área fue eliminada o está inactiva
     ),
     tesistas_por_asesor AS (
         -- Asociar tesistas con sus asesores por tema
@@ -140,12 +140,12 @@ BEGIN
 
     SELECT
         a.teacher_name,
-        apa.area_name,
+        COALESCE(apa.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
         COUNT(DISTINCT a.tema_id) AS advisor_count,
         STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names
     FROM asesores a
-    JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id
+    LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id  -- LEFT JOIN evita perder asesores
     LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
     GROUP BY a.usuario_id, a.teacher_name, apa.area_name
     ORDER BY advisor_count DESC, a.teacher_name ASC;
@@ -215,8 +215,9 @@ BEGIN
         WHERE c.ciclo_id = v_ciclo_id
     ),
     temas_del_ciclo AS (
-        -- Identificar los temas activos en este ciclo específico
-        SELECT DISTINCT
+        -- Identificar temas del ciclo específico que tengan tesistas asignados
+        -- DISTINCT ON evita duplicar temas si hay múltiples tesistas por tema (fallo BD)
+        SELECT DISTINCT ON (t.tema_id)
             t.tema_id,
             t.titulo::VARCHAR AS tema_titulo,
             sact.sub_area_conocimiento_id,
@@ -228,38 +229,39 @@ BEGIN
         -- Unimos con sub_area_conocimiento_tema para obtener el área asociada al tema
         JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id AND sact.activo = TRUE
         JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
+        -- RESTRICCIÓN CRÍTICA: Solo temas con tesistas asignados
+        JOIN usuario_tema ut_tesista ON ut_tesista.tema_id = t.tema_id
+        JOIN rol r_tesista ON r_tesista.rol_id = ut_tesista.rol_id
         WHERE t.activo = TRUE
           AND efc.activo = TRUE
           AND t.carrera_id = v_carrera_id
+          AND ut_tesista.asignado = TRUE    -- Solo tesistas asignados
+          AND ut_tesista.activo = TRUE      -- Solo relaciones activas
+          AND r_tesista.nombre = 'Tesista'  -- Solo rol tesista
     ),
     jurados AS (
-        -- Obtener jurados filtrando por coincidencia de área
+        -- Obtener TODOS los jurados asignados (incluyendo casos excepcionales fuera de área)
         SELECT DISTINCT
             u.usuario_id,
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
-            tdc.area_conocimiento_id  -- Mantenemos esta columna para el filtrado
+            tdc.area_conocimiento_id  -- Área del tema (no del jurado)
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
                              AND ut.asignado = TRUE
         JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Jurado'
         JOIN temas_del_ciclo tdc ON tdc.tema_id = ut.tema_id
-        JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
-                                AND uc.carrera_id = v_carrera_id
-                                AND uc.activo = TRUE
-        -- Unimos con usuario_area_conocimiento para verificar que el jurado tenga asignada el área del tema
-        JOIN usuario_area_conocimiento uac ON uac.usuario_id = u.usuario_id
-                                          AND uac.area_conocimiento_id = tdc.area_conocimiento_id
-                                          AND uac.activo = TRUE
+        -- ELIMINADA: Restricción de carrera específica del jurado (casos excepcionales)
+        -- ELIMINADA: Restricción de área específica del jurado (casos excepcionales)
         WHERE u.activo = TRUE
     ),
     tesistas AS (
-        -- Obtener todos los tesistas por tema
-        SELECT
+        -- Obtener todos los tesistas por tema (DISTINCT para evitar duplicados por fallos BD)
+        SELECT DISTINCT
             ut.tema_id,
-            ut.usuario_id,
+            ut.usuario_id,  -- DISTINCT evita contar el mismo tesista múltiples veces
             CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS tesista_name
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
@@ -270,16 +272,14 @@ BEGIN
         WHERE u.activo = TRUE
     ),
     areas_por_jurado AS (
-        -- Obtener áreas de conocimiento de cada jurado
+        -- Obtener áreas de conocimiento POR TEMA (no por jurado) con manejo de errores
         SELECT
             j.usuario_id,
-            ac.area_conocimiento_id,
-            ac.nombre::VARCHAR AS area_name
+            j.area_conocimiento_id,
+            COALESCE(ac.nombre, 'Área eliminada')::VARCHAR AS area_name
         FROM jurados j
-        JOIN usuario_area_conocimiento uac ON uac.usuario_id = j.usuario_id AND uac.activo = TRUE
-        JOIN area_conocimiento ac ON ac.area_conocimiento_id = uac.area_conocimiento_id AND ac.activo = TRUE
-        -- Filtrar sólo por áreas que coinciden con las del tema
-        WHERE ac.area_conocimiento_id = j.area_conocimiento_id
+        LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = j.area_conocimiento_id AND ac.activo = TRUE
+        -- LEFT JOIN evita perder jurados si el área fue eliminada o está inactiva
     ),
     tesistas_por_jurado AS (
         -- Asociar tesistas con sus jurados por tema
@@ -293,12 +293,12 @@ BEGIN
 
     SELECT
         j.teacher_name,
-        apj.area_name,
+        COALESCE(apj.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
         COUNT(DISTINCT j.tema_id) AS juror_count,
         STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names
     FROM jurados j
-    JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id
+    LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id  -- LEFT JOIN evita perder jurados
     LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
     GROUP BY j.usuario_id, j.teacher_name, apj.area_name
     ORDER BY juror_count DESC, j.teacher_name ASC;
@@ -306,7 +306,7 @@ END;
 $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
-create function get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
+CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
     returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer)
     language plpgsql
 as
@@ -348,8 +348,9 @@ BEGIN
     -- 3) Pipeline de datos y cálculos
     RETURN QUERY
     WITH temas_ciclo AS (
-      -- Obtener los temas activos en el ciclo actual
-      SELECT
+      -- Obtener los temas activos en el ciclo actual (solo con tesistas asignados)
+      -- DISTINCT ON evita duplicar temas si hay múltiples tesistas por tema (fallo BD)
+      SELECT DISTINCT ON (t.tema_id)
         t.tema_id,
         t.carrera_id,
         sact.sub_area_conocimiento_id,
@@ -362,16 +363,23 @@ BEGIN
       -- Unimos con sub_area_conocimiento_tema para obtener el área asociada al tema
       JOIN sub_area_conocimiento_tema sact ON sact.tema_id = t.tema_id AND sact.activo = TRUE
       JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
+      -- RESTRICCIÓN CRÍTICA: Solo temas con tesistas asignados (consistencia con otras funciones)
+      JOIN usuario_tema ut_tesista ON ut_tesista.tema_id = t.tema_id
+      JOIN rol r_tesista ON r_tesista.rol_id = ut_tesista.rol_id
       WHERE t.activo = TRUE
         AND t.carrera_id = v_carrera_id
+        AND ut_tesista.asignado = TRUE    -- Solo tesistas asignados
+        AND ut_tesista.activo = TRUE      -- Solo relaciones activas
+        AND r_tesista.nombre = 'Tesista'  -- Solo rol tesista
     ),
     advisor_topics AS (
-      -- Obtener asesores con sus temas filtrando por coincidencia de área
-      SELECT
+      -- Obtener TODOS los asesores asignados (incluyendo casos excepcionales fuera de área)
+      -- DISTINCT evita duplicados si hay múltiples roles por tema (fallo BD)
+      SELECT DISTINCT
         u.usuario_id,
         CAST(CONCAT(u.nombres,' ',u.primer_apellido,' ',COALESCE(u.segundo_apellido,'')) AS VARCHAR) AS advisor_name,
         ac.nombre AS area_name,
-        ac.area_conocimiento_id,
+        tc.area_conocimiento_id,
         ut.tema_id
       FROM usuario u
       JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
@@ -379,11 +387,8 @@ BEGIN
                            AND ut.asignado = TRUE
       JOIN rol r ON r.rol_id = ut.rol_id AND (r.nombre = 'Asesor' OR r.nombre = 'Coasesor')
       JOIN temas_ciclo tc ON tc.tema_id = ut.tema_id
-      -- Verificar que el asesor tenga asignada el área del tema
-      JOIN usuario_area_conocimiento uac ON uac.usuario_id = u.usuario_id
-                                        AND uac.area_conocimiento_id = tc.area_conocimiento_id
-                                        AND uac.activo = TRUE
-      JOIN area_conocimiento ac ON ac.area_conocimiento_id = uac.area_conocimiento_id AND ac.activo = TRUE
+      -- ELIMINADA: Restricción de área específica del asesor (casos excepcionales)
+      JOIN area_conocimiento ac ON ac.area_conocimiento_id = tc.area_conocimiento_id AND ac.activo = TRUE
       WHERE u.activo = TRUE
     ),
     topic_deliveries AS (
