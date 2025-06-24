@@ -540,7 +540,7 @@ BEGIN
         RAISE EXCEPTION 'El usuario % no tiene carrera activa asignada', p_usuario_id;
     END IF;
 
-    -- 2) Construir la serie tema–año
+    -- 2) Construir la serie tema–año usando la relación directa tema -> ciclo
     RETURN QUERY
     WITH tema_years AS (
       SELECT DISTINCT
@@ -550,14 +550,12 @@ BEGIN
           EXTRACT(YEAR FROM t.fecha_creacion)::INTEGER
         ) AS year
       FROM tema t
-      -- si el tema estuvo en exposiciones activas, tomar el año del ciclo
-      LEFT JOIN exposicion_x_tema    ext ON ext.tema_id = t.tema_id AND ext.activo
-      LEFT JOIN exposicion           e   ON e.exposicion_id = ext.exposicion_id AND e.activo
-      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                           AND efc.activo
-      LEFT JOIN ciclo                ci  ON ci.ciclo_id = efc.ciclo_id AND ci.activo
-      WHERE t.activo
-        AND t.carrera_id = v_carrera_id
+      -- Relación directa: tema -> etapa_formativa_x_ciclo_x_tema -> etapa_formativa_x_ciclo -> ciclo
+      LEFT JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      LEFT JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      LEFT JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      WHERE t.carrera_id = v_carrera_id
+        -- NO filtrar por activo para incluir todo el histórico
     )
     SELECT
       CAST(ac.nombre AS VARCHAR)    AS area_name,
@@ -565,14 +563,11 @@ BEGIN
       COUNT(DISTINCT t.tema_id)      AS topic_count
     FROM area_conocimiento              ac
     JOIN sub_area_conocimiento          sac  ON sac.area_conocimiento_id       = ac.area_conocimiento_id
-                                            AND sac.activo
     JOIN sub_area_conocimiento_tema     sact ON sact.sub_area_conocimiento_id   = sac.sub_area_conocimiento_id
-                                            AND sact.activo
     JOIN tema                           t    ON t.tema_id                     = sact.tema_id
-                                            AND t.activo
                                             AND t.carrera_id = v_carrera_id
     JOIN tema_years                     ty   ON ty.tema_id                    = t.tema_id
-    WHERE ac.activo
+    WHERE ac.carrera_id = v_carrera_id  -- Solo áreas de conocimiento de la misma carrera
     GROUP BY ac.nombre, ty.year
     ORDER BY ty.year, ac.nombre;
 END;
