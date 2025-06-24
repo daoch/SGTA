@@ -31,6 +31,8 @@ import {
   obtenerTemasPorArea,
   obtenerTendenciasTemas
 } from "../services/report-services";
+
+import { ExportModal, type ExportConfig } from "../components/export-modal";
 import type {
   AdvisorDistribution,
   JurorDistribution,
@@ -38,6 +40,7 @@ import type {
   TopicArea as ServiceTopicArea,
   TopicTrend
 } from "../types/coordinator-reports.type";
+import { ExcelExportBackendService } from "../services/excel-export-backend.service";
 
 // Componente de loading centrado
 const CenteredLoading = ({ height = "400px" }: { height?: string }) => (
@@ -66,11 +69,11 @@ export function CoordinatorReports() {
   const { user } = useAuth();
   const [semesterFilter, setSemesterFilter] = useState("2025-1");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
+  const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
   const [loadingTopicsByArea, setLoadingTopicsByArea] = useState(false);
-
 
   // Transformar datos para gráfico de líneas
   const [lineChartData, setLineChartData] = useState<LineChartDatum[]>([]);
@@ -108,6 +111,10 @@ export function CoordinatorReports() {
   const [isPerformanceAreaDropdownOpen, setIsPerformanceAreaDropdownOpen] = useState(false);
   const [isPerformanceAdvisorDropdownOpen, setIsPerformanceAdvisorDropdownOpen] = useState(false);
 
+  // Estado para el modal de exportación
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
   // Función para normalizar texto sin tildes
   const normalizeText = (text: string) => {
     return text
@@ -134,9 +141,19 @@ export function CoordinatorReports() {
   const COLORS = ["#002855", "#006699", "#0088cc", "#00aaff", "#33bbff", "#66ccff", "#99ddff"];
 
   // Función para exportar reporte
-  const handleExport = (format: string) => {
-    // Aquí iría la lógica para exportar el reporte
-    alert(`Exportando reporte en formato ${format}...`);
+  const handleExport = async (config: ExportConfig) => {
+    setIsExporting(true);
+    try {
+      await ExcelExportBackendService.exportToExcel(semesterFilter, config);
+      // Mostrar notificación de éxito
+      console.log("Reporte exportado exitosamente");
+    } catch (error) {
+      console.error("Error al exportar:", error);
+      // Mostrar notificación de error
+      alert("Error al exportar el reporte. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Función para manejar ordenamiento
@@ -200,7 +217,6 @@ export function CoordinatorReports() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isAreaDropdownOpen, isPerformanceAreaDropdownOpen, isPerformanceAdvisorDropdownOpen]);
 
-  const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas");
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
 
   // Descripciones para tooltips
@@ -918,25 +934,19 @@ export function CoordinatorReports() {
               </SelectContent>
             </Select>
 
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2 text-base">
-                  <Download className="h-4 w-4" />
-                  Exportar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport("pdf")} className="text-base">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar como PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport("excel")} className="text-base">
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Exportar como Excel
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              className="gap-2 text-base"
+              disabled={isExporting}
+              onClick={() => setIsExportModalOpen(true)}
+            >
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {isExporting ? "Exportando..." : "Exportar"}
+            </Button>
           </div>
         </div>
         <TabsContent value="topics" className="space-y-4">
@@ -1047,6 +1057,13 @@ export function CoordinatorReports() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Exportación */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={handleExport}
+      />
     </div>
 
   );
