@@ -534,18 +534,13 @@ BEGIN
       FROM area_conocimiento ac
       WHERE ac.carrera_id = v_carrera_id
     ),
-    tema_counts AS (
-      -- Contar temas por área en el ciclo específico (solo tesistas asignados)
-      SELECT
+    tema_por_etapa AS (
+      -- Primero obtener temas únicos por área y etapa formativa
+      SELECT DISTINCT
         sac.area_conocimiento_id,
-        COUNT(DISTINCT t.tema_id) AS topic_count,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'etapaName', ef.nombre,
-            'topicCount', COUNT(DISTINCT t.tema_id)
-          )
-          ORDER BY ef.nombre
-        ) AS etapas_formativas_json
+        ef.etapa_formativa_id,
+        ef.nombre AS etapa_nombre,
+        t.tema_id
       FROM tema t
       -- Relación directa tema -> ciclo
       JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
@@ -563,22 +558,24 @@ BEGIN
         AND ut.activo = TRUE          -- Relación activa
         AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
         AND ef.activo = TRUE          -- Etapa formativa activa
-      GROUP BY sac.area_conocimiento_id, ef.etapa_formativa_id, ef.nombre
+    ),
+    tema_counts_por_etapa AS (
+      -- Contar temas por área y etapa formativa
+      SELECT
+        tpe.area_conocimiento_id,
+        tpe.etapa_nombre,
+        COUNT(tpe.tema_id) AS topic_count_etapa
+      FROM tema_por_etapa tpe
+      GROUP BY tpe.area_conocimiento_id, tpe.etapa_nombre
     ),
     area_totals AS (
-      -- Calcular totales por área y agrupar las etapas formativas
+      -- Calcular totales por área y crear JSON con contadores por etapa
       SELECT
-        tc.area_conocimiento_id,
-        SUM(tc.topic_count) AS total_topic_count,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'etapaName', (tc.etapas_formativas_json::JSON->0->>'etapaName'),
-            'topicCount', tc.topic_count
-          )
-          ORDER BY (tc.etapas_formativas_json::JSON->0->>'etapaName')
-        ) AS etapas_formativas_json
-      FROM tema_counts tc
-      GROUP BY tc.area_conocimiento_id
+        tcpe.area_conocimiento_id,
+        SUM(tcpe.topic_count_etapa) AS total_topic_count,
+        JSON_OBJECT_AGG(tcpe.etapa_nombre, tcpe.topic_count_etapa) AS etapas_formativas_json
+      FROM tema_counts_por_etapa tcpe
+      GROUP BY tcpe.area_conocimiento_id
     )
     SELECT
       CAST(aa.area_name AS VARCHAR)     AS area_name,
@@ -597,7 +594,7 @@ CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
     area_name   VARCHAR,
     year        INTEGER,
     topic_count BIGINT,
-    etapas_formativas TEXT
+    etapas_formativas_json TEXT
   )
   LANGUAGE plpgsql
   COST 100
@@ -653,13 +650,13 @@ BEGIN
       FROM all_areas aa
       CROSS JOIN all_years ay
     ),
-    tema_counts AS (
-      -- Contar temas por área y año (sumando TODOS los ciclos del año)
-      SELECT
+    tema_por_etapa_año AS (
+      -- Primero obtener temas únicos por área, año y etapa formativa
+      SELECT DISTINCT
         sac.area_conocimiento_id,
         ci.anio AS year,
-        COUNT(DISTINCT t.tema_id) AS topic_count,
-        STRING_AGG(DISTINCT ef.nombre, ', ' ORDER BY ef.nombre) AS etapas_formativas
+        ef.nombre AS etapa_nombre,
+        t.tema_id
       FROM tema t
       JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
       JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
@@ -676,13 +673,32 @@ BEGIN
         AND ut.activo = TRUE    -- Relación activa
         AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
         AND ef.activo = TRUE    -- Etapa formativa activa
-      GROUP BY sac.area_conocimiento_id, ci.anio  -- Agrupa por AÑO, no por ciclo
+    ),
+    tema_counts_por_etapa_año AS (
+      -- Contar temas por área, año y etapa formativa
+      SELECT
+        tpea.area_conocimiento_id,
+        tpea.year,
+        tpea.etapa_nombre,
+        COUNT(tpea.tema_id) AS topic_count_etapa
+      FROM tema_por_etapa_año tpea
+      GROUP BY tpea.area_conocimiento_id, tpea.year, tpea.etapa_nombre
+    ),
+    tema_counts AS (
+      -- Calcular totales por área y año, crear JSON con contadores por etapa
+      SELECT
+        tcpea.area_conocimiento_id,
+        tcpea.year,
+        SUM(tcpea.topic_count_etapa) AS topic_count,
+        JSON_OBJECT_AGG(tcpea.etapa_nombre, tcpea.topic_count_etapa) AS etapas_formativas_json
+      FROM tema_counts_por_etapa_año tcpea
+      GROUP BY tcpea.area_conocimiento_id, tcpea.year
     )
     SELECT
       CAST(ayc.area_name AS VARCHAR)     AS area_name,
       ayc.year                           AS year,
       COALESCE(tc.topic_count, 0)        AS topic_count,
-      COALESCE(tc.etapas_formativas, '') AS etapas_formativas
+      COALESCE(tc.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
     FROM area_year_combinations ayc
     LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = ayc.area_conocimiento_id 
                            AND tc.year = ayc.year

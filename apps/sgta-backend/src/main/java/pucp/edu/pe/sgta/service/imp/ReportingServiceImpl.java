@@ -115,34 +115,28 @@ public class ReportingServiceImpl implements IReportService {
 
     private Map<String, Integer> parseEtapasFormativasMap(String jsonStr) {
         Map<String, Integer> result = new HashMap<>();
-        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("[]")) {
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("{}") || jsonStr.equals("null")) {
             return result;
         }
         try {
-            // Parsing manual simple del JSON
+            // Parsing del JSON simple {"Tesis 1": 10, "Tesis 2": 8}
             String cleanJson = jsonStr.trim();
-            if (cleanJson.startsWith("[") && cleanJson.endsWith("]")) {
+            if (cleanJson.startsWith("{") && cleanJson.endsWith("}")) {
                 cleanJson = cleanJson.substring(1, cleanJson.length() - 1);
-                String[] objects = cleanJson.split("\\},\\{");
-                for (String obj : objects) {
-                    obj = obj.replace("{", "").replace("}", "");
-                    String[] pairs = obj.split(",");
-                    String etapaName = null;
-                    int topicCount = 0;
+                if (!cleanJson.trim().isEmpty()) {
+                    String[] pairs = cleanJson.split(",");
                     for (String pair : pairs) {
                         String[] keyValue = pair.split(":");
                         if (keyValue.length == 2) {
                             String key = keyValue[0].trim().replace("\"", "");
-                            String value = keyValue[1].trim().replace("\"", "");
-                            if ("etapaName".equals(key)) {
-                                etapaName = value;
-                            } else if ("topicCount".equals(key)) {
-                                topicCount = Integer.parseInt(value);
+                            String value = keyValue[1].trim();
+                            try {
+                                int count = Integer.parseInt(value);
+                                result.put(key, count);
+                            } catch (NumberFormatException e) {
+                                logger.warn("Invalid number format in JSON: {}", value);
                             }
                         }
-                    }
-                    if (etapaName != null) {
-                        result.put(etapaName, topicCount);
                     }
                 }
             }
@@ -159,11 +153,11 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
         return results.stream()
                 .map(r -> {
-                    String etapasFormativasStr = (String) r[3];
-                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
-                        ? Arrays.asList(etapasFormativasStr.split(", "))
-                        : Collections.emptyList();
-                    return new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue(), etapasFormativas);
+                    String etapasFormativasJson = (String) r[3]; // El campo etapas_formativas_json es el índice 3
+                    Map<String, Integer> etapasFormativas = parseEtapasFormativasMap(etapasFormativasJson);
+                    TopicTrendDTO dto = new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue());
+                    dto.setEtapasFormativasCount(etapasFormativas);
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
