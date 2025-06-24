@@ -423,3 +423,203 @@ BEGIN
       AND c.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION asociar_temas_a_entregable(
+    p_entregable_id INTEGER,
+    p_etapa_formativa_x_ciclo_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_en_progreso_id INTEGER;
+    v_tema RECORD;
+BEGIN
+    -- 0. Obtener el id del estado 'EN_PROGRESO'
+    SELECT estado_tema_id INTO v_estado_en_progreso_id
+    FROM estado_tema
+    WHERE UPPER(nombre) = 'EN_PROGRESO'
+    LIMIT 1;
+
+    -- 1. Buscar los temas en progreso de la etapa formativa x ciclo dada
+    FOR v_tema IN
+        SELECT t.tema_id
+        FROM tema t
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+        WHERE t.estado_tema_id = v_estado_en_progreso_id
+          AND efcxt.etapa_formativa_x_ciclo_id = p_etapa_formativa_x_ciclo_id
+    LOOP
+        -- 2. Insertar en entregable_x_tema si no existe
+        INSERT INTO entregable_x_tema (entregable_id, tema_id, activo)
+        VALUES (p_entregable_id, v_tema.tema_id, TRUE)
+        ON CONFLICT DO NOTHING;
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION asociar_temas_a_exposicion(
+    p_exposicion_id INTEGER,
+    p_etapa_formativa_x_ciclo_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_en_progreso_id INTEGER;
+    v_tema RECORD;
+BEGIN
+    -- 0. Obtener el id del estado 'EN_PROGRESO'
+    SELECT estado_tema_id INTO v_estado_en_progreso_id
+    FROM estado_tema
+    WHERE UPPER(nombre) = 'EN_PROGRESO'
+    LIMIT 1;
+
+    -- 1. Buscar los temas en progreso de la etapa formativa x ciclo dada
+    FOR v_tema IN
+        SELECT t.tema_id
+        FROM tema t
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+        WHERE t.estado_tema_id = v_estado_en_progreso_id
+          AND efcxt.etapa_formativa_x_ciclo_id = p_etapa_formativa_x_ciclo_id
+    LOOP
+        -- 2. Insertar en exposicion_x_tema si no existe
+        INSERT INTO exposicion_x_tema (exposicion_id, tema_id, activo)
+        VALUES (p_exposicion_id, v_tema.tema_id, TRUE)
+        ON CONFLICT DO NOTHING;
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION asociar_temas_a_criterio_exposicion(
+    p_criterio_exposicion_id INTEGER,
+    p_exposicion_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_etapa_formativa_x_ciclo_id INTEGER;
+    v_estado_en_progreso_id INTEGER;
+    v_tema RECORD;
+    v_exposicion_x_tema_id INTEGER;
+    v_asesor_id INTEGER;
+    v_jurado RECORD;
+BEGIN
+    -- 1. Obtener etapa_formativa_x_ciclo_id de la exposición
+    SELECT etapa_formativa_x_ciclo_id INTO v_etapa_formativa_x_ciclo_id
+    FROM exposicion
+    WHERE exposicion_id = p_exposicion_id;
+
+    -- 2. Obtener el id del estado 'EN_PROGRESO'
+    SELECT estado_tema_id INTO v_estado_en_progreso_id
+    FROM estado_tema
+    WHERE UPPER(nombre) = 'EN_PROGRESO'
+    LIMIT 1;
+
+    -- 3. Buscar los temas en progreso de la etapa formativa x ciclo dada
+    FOR v_tema IN
+        SELECT t.tema_id
+        FROM tema t
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+        WHERE t.estado_tema_id = v_estado_en_progreso_id
+          AND efcxt.etapa_formativa_x_ciclo_id = v_etapa_formativa_x_ciclo_id
+    LOOP
+        -- 4. Buscar exposicion_x_tema_id para la exposición y el tema
+        SELECT exposicion_x_tema_id INTO v_exposicion_x_tema_id
+        FROM exposicion_x_tema
+        WHERE exposicion_id = p_exposicion_id
+          AND tema_id = v_tema.tema_id
+        LIMIT 1;
+
+        -- 5. Buscar asesor del tema
+        SELECT ut.usuario_id INTO v_asesor_id
+        FROM usuario_tema ut
+        JOIN rol r ON ut.rol_id = r.rol_id
+        WHERE ut.tema_id = v_tema.tema_id
+          AND r.nombre = 'Asesor'
+          AND ut.asignado = TRUE
+          AND ut.activo = TRUE
+        LIMIT 1;
+
+        -- 6. Insertar en revision_criterio_x_exposicion para el asesor (si existe)
+        IF v_asesor_id IS NOT NULL THEN
+            INSERT INTO revision_criterio_x_exposicion (
+                exposicion_x_tema_id,
+                criterio_exposicion_id,
+                usuario_id
+            ) VALUES (
+                v_exposicion_x_tema_id,
+                p_criterio_exposicion_id,
+                v_asesor_id
+            );
+        END IF;
+
+        -- 7. Insertar en revision_criterio_x_exposicion para cada jurado
+        FOR v_jurado IN
+            SELECT ut.usuario_id
+            FROM usuario_tema ut
+            JOIN rol r ON ut.rol_id = r.rol_id
+            WHERE ut.tema_id = v_tema.tema_id
+              AND r.nombre = 'Jurado'
+              AND ut.activo = TRUE
+        LOOP
+            INSERT INTO revision_criterio_x_exposicion (
+                exposicion_x_tema_id,
+                criterio_exposicion_id,
+                usuario_id
+            ) VALUES (
+                v_exposicion_x_tema_id,
+                p_criterio_exposicion_id,
+                v_jurado.usuario_id
+            );
+        END LOOP;
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION asociar_temas_a_revisor(
+    p_etapa_formativa_x_ciclo_id INTEGER,
+    p_revisor_id INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_en_progreso_id INTEGER;
+    v_rol_revisor_id INTEGER;
+    v_tema RECORD;
+BEGIN
+    -- 1. Obtener el id del estado 'EN_PROGRESO'
+    SELECT estado_tema_id INTO v_estado_en_progreso_id
+    FROM estado_tema
+    WHERE UPPER(nombre) = 'EN_PROGRESO'
+    LIMIT 1;
+
+    -- 2. Obtener el id del rol 'Revisor'
+    SELECT rol_id INTO v_rol_revisor_id
+    FROM rol
+    WHERE UPPER(nombre) = 'REVISOR'
+    LIMIT 1;
+
+    -- 3. Buscar los temas en progreso de la etapa formativa x ciclo dada
+    FOR v_tema IN
+        SELECT t.tema_id
+        FROM tema t
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+        WHERE t.estado_tema_id = v_estado_en_progreso_id
+          AND efcxt.etapa_formativa_x_ciclo_id = p_etapa_formativa_x_ciclo_id
+    LOOP
+        -- 4. Insertar en usuario_tema (revisorId, temaId, rolId) si no existe
+        INSERT INTO usuario_tema (
+            usuario_id,
+            tema_id,
+            rol_id
+        ) VALUES (
+            p_revisor_id,
+            v_tema.tema_id,
+            v_rol_revisor_id
+        )
+        ON CONFLICT DO NOTHING;
+    END LOOP;
+END;
+$$;
