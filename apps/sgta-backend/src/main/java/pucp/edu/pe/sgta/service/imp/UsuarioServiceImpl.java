@@ -1,14 +1,11 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import org.apache.coyote.BadRequestException;
-import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import jakarta.persistence.Query;
@@ -203,6 +200,83 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(UsuarioMapper::toDto)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<UserDto> findAllUsers() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<UserDto> userDtos = new ArrayList<>();
+
+        for (Usuario usuario : usuarios) {
+            // Obtener roles activos del usuario
+            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(usuario.getId());
+            List<String> rolesNombres = roles.stream()
+                    .filter(UsuarioXRol::getActivo)
+                    .map(ur -> ur.getRol().getNombre())
+                    .toList();
+
+            UserDto dto = UserDto.builder()
+                    .id(usuario.getId())
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id(usuario.getTipoUsuario().getId())
+                            .nombre(usuario.getTipoUsuario().getNombre())
+                            .build())
+                    .codigoPucp(usuario.getCodigoPucp())
+                    .nombres(usuario.getNombres())
+                    .primerApellido(usuario.getPrimerApellido())
+                    .segundoApellido(usuario.getSegundoApellido())
+                    .correoElectronico(usuario.getCorreoElectronico())
+                    .roles(rolesNombres)
+                    .build();
+
+            userDtos.add(dto);
+        }
+        return userDtos;
+    }
+
+    @Override
+    public List<UserDto> findAllUsers(String usuarioId) {
+        // Obtener el usuario coordinador por idCognito
+        Usuario coordinador = usuarioRepository.findByIdCognito(usuarioId)
+                .orElseThrow(() -> new NoSuchElementException("Coordinador no encontrado con idCognito: " + usuarioId));
+
+        // Obtener la carrera principal del coordinador
+        UsuarioXCarrera carreraPrincipal = usuarioXCarreraRepository.getCarreraPrincipalCoordinador(coordinador.getId());
+        if (carreraPrincipal == null) {
+            throw new NoSuchElementException("No se encontró carrera principal para el coordinador");
+        }
+        Integer carreraId = carreraPrincipal.getCarrera().getId();
+
+        // Buscar usuarios activos en esa carrera
+        List<UsuarioXCarrera> usuariosCarrera = usuarioXCarreraRepository.findByCarreraIdAndActivoTrue(carreraId);
+
+        List<UserDto> userDtos = new ArrayList<>();
+        for (UsuarioXCarrera uc : usuariosCarrera) {
+            Usuario usuario = uc.getUsuario();
+            // Obtener roles activos del usuario
+            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(usuario.getId());
+            List<String> rolesNombres = roles.stream()
+                    .filter(UsuarioXRol::getActivo)
+                    .map(ur -> ur.getRol().getNombre())
+                    .toList();
+
+            UserDto dto = UserDto.builder()
+                    .id(usuario.getId())
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id(usuario.getTipoUsuario().getId())
+                            .nombre(usuario.getTipoUsuario().getNombre())
+                            .build())
+                    .codigoPucp(usuario.getCodigoPucp())
+                    .nombres(usuario.getNombres())
+                    .primerApellido(usuario.getPrimerApellido())
+                    .segundoApellido(usuario.getSegundoApellido())
+                    .correoElectronico(usuario.getCorreoElectronico())
+                    .roles(rolesNombres)
+                    .build();
+
+            userDtos.add(dto);
+        }
+        return userDtos;
     }
 
     @Override

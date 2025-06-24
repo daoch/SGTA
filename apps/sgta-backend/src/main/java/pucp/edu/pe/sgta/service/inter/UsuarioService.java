@@ -21,6 +21,10 @@ public interface UsuarioService {
 
     List<UsuarioDto> findAllUsuarios();
 
+    List<UserDto> findAllUsers();
+
+    List<UserDto> findAllUsers(String usuarioId);
+
     void updateUsuario(Integer id, UsuarioRegistroDto usuarioDto);
 
     void deleteUsuario(Integer id);

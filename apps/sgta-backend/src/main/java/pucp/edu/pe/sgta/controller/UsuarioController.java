@@ -262,9 +262,20 @@ public class UsuarioController {
     }
 
     @GetMapping("/find_all")
-    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
+    public ResponseEntity<List<UserDto>> findAllUsuarios(HttpServletRequest request) {
         try {
-            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<UserDto> usuarios = usuarioService.findAllUsers(usuarioId);
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/find_all_admin")
+    public ResponseEntity<List<UserDto>> findAllAdminUsuarios() {
+        try {
+            List<UserDto> usuarios = usuarioService.findAllUsers();
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
