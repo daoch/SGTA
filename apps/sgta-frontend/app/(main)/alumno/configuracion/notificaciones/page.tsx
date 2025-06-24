@@ -104,8 +104,8 @@ export default function NotificacionesPage() {
 
             <Separator />
 
-            <div className={`space-y-3 ${!settings.autoReminders ? 'opacity-50' : ''}`}>
-              <h4 className={`text-sm font-medium ${!settings.autoReminders ? 'text-muted-foreground' : ''}`}>
+            <div className={`space-y-3 ${!settings.autoReminders ? "opacity-50" : ""}`}>
+              <h4 className={`text-sm font-medium ${!settings.autoReminders ? "text-muted-foreground" : ""}`}>
                 Días de anticipación para recordatorios
               </h4>
               <div className="space-y-3">
@@ -158,8 +158,8 @@ export default function NotificacionesPage() {
 
             <Separator />
 
-            <div className={`space-y-3 ${!settings.autoReminders ? 'opacity-50' : ''}`}>
-              <h4 className={`text-sm font-medium ${!settings.autoReminders ? 'text-muted-foreground' : ''}`}>
+            <div className={`space-y-3 ${!settings.autoReminders ? "opacity-50" : ""}`}>
+              <h4 className={`text-sm font-medium ${!settings.autoReminders ? "text-muted-foreground" : ""}`}>
                 Canales de notificación
               </h4>
               <div className="space-y-3">

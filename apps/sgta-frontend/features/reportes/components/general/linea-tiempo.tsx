@@ -187,8 +187,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           if (b.date === "Fecha no disponible") return -1;
           
           const parseDate = (dateStr: string) => {
-            if (dateStr.includes('-') && dateStr.length === 10) {
-              const [day, month, year] = dateStr.split('-');
+            if (dateStr.includes("-") && dateStr.length === 10) {
+              const [day, month, year] = dateStr.split("-");
               return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             }
             return parseISO(dateStr);
@@ -296,9 +296,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
     if (event.date === "Fecha no disponible") return true;
     
     let eventDate: Date;
-    if (event.date.includes('-') && event.date.length === 10) {
+    if (event.date.includes("-") && event.date.length === 10) {
       // Si es formato dd-MM-yyyy, convertirlo a Date
-      const [day, month, year] = event.date.split('-');
+      const [day, month, year] = event.date.split("-");
       eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     } else {
       eventDate = parseISO(event.date);

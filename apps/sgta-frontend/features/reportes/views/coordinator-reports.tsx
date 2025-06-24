@@ -248,7 +248,7 @@ export function CoordinatorReports() {
         setLoadingCiclos(true);
         const data = await ciclosService.getAll();
         // Filtrar solo los ciclos activos
-        const ciclosActivos = data.filter((ciclo: any) => ciclo.activo === true);
+        const ciclosActivos = data.filter((ciclo: {activo: boolean}) => ciclo.activo === true);
         setCiclos(ciclosActivos);
         // Si no hay año/semestre seleccionado y hay ciclos disponibles, seleccionar el primero
         if (!selectedYear && !selectedSemester && ciclosActivos.length > 0) {
@@ -1274,10 +1274,10 @@ export function CoordinatorReports() {
                         dataKey="progress" 
                         name="Progreso (%)" 
                         fill="#0ea5e9"
-                        shape={(props: any) => {
+                        shape={(props: {x?: number, y?: number, width?: number, height?: number, fill?: string, progress?: number}) => {
                           if (props.progress === 0) {
                             // Crear un pequeño círculo para valores 0
-                            const { x, y, height } = props;
+                            const { x = 0, y = 0, height = 0 } = props;
                             const circleRadius = 4;
                             const circleX = x + circleRadius;
                             const circleY = y + height / 2;
@@ -1305,10 +1305,10 @@ export function CoordinatorReports() {
                         dataKey="students" 
                         name="Tesistas" 
                         fill="#006699"
-                        shape={(props: any) => {
+                        shape={(props: {x?: number, y?: number, width?: number, height?: number, fill?: string, students?: number}) => {
                           if (props.students === 0) {
                             // Crear un pequeño círculo para valores 0
-                            const { x, y, height } = props;
+                            const { x = 0, y = 0, height = 0 } = props;
                             const circleRadius = 4;
                             const circleX = x + circleRadius;
                             const circleY = y + height / 2;
