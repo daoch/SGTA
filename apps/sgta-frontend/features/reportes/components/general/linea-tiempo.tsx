@@ -158,6 +158,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 date: "Fecha no disponible",
                 rawEstadoEntregable: item.estadoEntregable,
                 rawEstadoXTema: item.estadoXTema,
+                estadoRevision: item.estadoRevision,
                 status: "Pendiente",
                 isLate: false,
                 daysRemaining: 0,
@@ -369,6 +370,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                     terminado:   "text-green-600",
                   }[event.rawEstadoEntregable] ?? "";
 
+                  const colorRevision = {
+                    por_aprobar: "bg-purple-100 text-purple-800",
+                    aprobado:    "bg-green-100 text-green-800",
+                    observado:   "bg-red-100 text-red-800",
+                  }[event.estadoRevision ?? ""] ?? "bg-gray-100 text-gray-800";
+
+
                   let circleClass = "bg-gray-300 border-gray-300";
                   if (event.rawEstadoXTema === "enviado_a_tiempo") {
                     circleClass = "bg-green-500 border-green-500";
@@ -405,10 +413,11 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                                 {textoEntregable}
                               </span>
                               {event.estadoRevision && (
-                                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${colorRevision}`}>
                                   {humanize(event.estadoRevision)}
                                 </span>
                               )}
+
 
                               {event.isAtRisk && (
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
