@@ -1032,6 +1032,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     revision_criterio_entregable_id SERIAL PRIMARY KEY,
     entregable_x_tema_id INTEGER,
     criterio_entregable_id INTEGER,
+	revision_documento_id INTEGER,
     usuario_id INTEGER,
     nota DECIMAL(6, 2),
     observacion TEXT,
@@ -1039,6 +1040,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_nota CHECK (nota >= 0),
+	CONSTRAINT fk_revision_documento FOREIGN KEY (revision_documento_id) REFERENCES revision_documento(revision_documento_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_entregable_x_tema FOREIGN KEY (entregable_x_tema_id) REFERENCES entregable_x_tema (entregable_x_tema_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_criterio FOREIGN KEY (criterio_entregable_id) REFERENCES criterio_entregable (criterio_entregable_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id) ON DELETE RESTRICT
