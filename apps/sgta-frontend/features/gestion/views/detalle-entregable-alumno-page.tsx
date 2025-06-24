@@ -1,5 +1,6 @@
 "use client";
-
+import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ import TabsObservacionesAlumno from "@/features/revision/components/Tabs_observa
 
 
 export default function DetalleEntregableAlumnoPage() {
+  const router = useRouter();
   const params = useParams();
   const id = params?.DetalleEntregable;
   const searchParams = useSearchParams();
@@ -172,6 +174,14 @@ const observacionesFiltradas = useMemo(() => {
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
       <div className="flex-1 space-y-6">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full w-8 h-8"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
         <div>
           <h1 className="text-2xl font-bold">Detalles de Revisión</h1>
         </div>
