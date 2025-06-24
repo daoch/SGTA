@@ -31,4 +31,7 @@ public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera
     boolean existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
 
     List<UsuarioXCarrera> findByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
+
+    Optional<UsuarioXCarrera> findFirstByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
+
 }
