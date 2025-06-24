@@ -12,19 +12,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { User } from "lucide-react";
-import { Exposicion } from "../types/exposicion.types";
 import { format } from "date-fns";
 import { Label } from "@radix-ui/react-label";
-import {
-  ExposicionJurado,
-  MiembroJuradoExpo,
-} from "@/features/jurado/types/jurado.types";
+import { ExposicionJurado } from "@/features/jurado/types/jurado.types";
+import { useState, useEffect } from "react";
 
-const ModalDetallesExposicion: React.FC<{
+const ModalDetallesExposicionCoordinador: React.FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   exposicion: ExposicionJurado | null;
-}> = ({ open, onOpenChange, exposicion }) => {
+  handleGuardarGrabacion: (enlaceGrabacion: string) => void;
+  saving: boolean;
+}> = ({ open, onOpenChange, exposicion, handleGuardarGrabacion, saving }) => {
+  const [grabacionInput, setGrabacionInput] = useState("");
+
+  useEffect(() => {
+    setGrabacionInput(exposicion?.enlace_grabacion ?? "");
+  }, [exposicion]);
+
+  useEffect(() => {
+    if (!open) {
+      setGrabacionInput("");
+    }
+  }, [open]);
+
   if (!exposicion) return null;
 
   const { miembros } = exposicion;
@@ -32,42 +43,39 @@ const ModalDetallesExposicion: React.FC<{
   const asesor = miembros.find((m) => m.tipo === "Asesor");
   const estudiantes = miembros.filter((m) => m.tipo === "Tesista");
   const jurados = miembros.filter((m) => m.tipo === "Jurado");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="leading-none font-semibold">Detalles de la Exposición</DialogTitle>
+          <DialogTitle>Detalles de la Exposición</DialogTitle>
           <div className="pt-4">
             <div className="gap-4 pb-4">
-              <Label className="text-[15px] leading-none font-semibold">
-                Título del tema
-              </Label>
+              <Label className="text-sm font-medium">Título del tema</Label>
               <Textarea
-                value={exposicion.titulo }
+                value={exposicion.titulo}
                 disabled
-                className="text-muted-foreground text-sm "
+                className="bg-gray-50 resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4 pb-4">
               <div>
-                <Label className="text-[15px] leading-none font-semibold">Curso</Label>
+                <Label className="text-sm font-medium">Curso</Label>
                 <Textarea
                   value={exposicion.nombre_etapa_formativa}
                   disabled
-                  className="text-muted-foreground text-sm h-8 min-h-0 resize-none py-1"
+                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
                 />
               </div>
               <div>
-                <Label className="text-[15px] leading-none font-semibold">Exposición</Label>
+                <Label className="text-sm font-medium">Exposicion</Label>
                 <Textarea
-                  value={ exposicion.nombre_exposicion}
+                  value={exposicion.nombre_exposicion}
                   disabled
-                  className="text-muted-foreground text-sm h-8 min-h-0 resize-none py-1"
+                  className="bg-gray-50 resize-none h-8 min-h-0 py-1"
                 />
-
               </div>
-              
             </div>
 
             {estudiantes.length > 0 && (
@@ -79,10 +87,12 @@ const ModalDetallesExposicion: React.FC<{
                         <User className="h-6 w-6 text-gray-500" />
                       </div>
                       <div>
-                        <div className="text-[14px] leading-none font-semibold">
+                        <div className="text-sm font-medium">
                           Estudiante {index + 1}
                         </div>
-                        <div className="text-muted-foreground text-[13px] ">{miembro.nombre}</div>
+                        <div className="text-sm text-gray-500 ">
+                          {miembro.nombre}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -97,10 +107,10 @@ const ModalDetallesExposicion: React.FC<{
                     <User className="h-6 w-6 text-gray-500" />
                   </div>
                   <div>
-                    <div className="text-[14px] leading-none font-semibold">
-                      Asesor
+                    <div className="text-sm font-medium">Asesor</div>
+                    <div className="text-sm text-gray-500 ">
+                      {asesor.nombre}
                     </div>
-                    <div className="text-muted-foreground text-[13px] ">{asesor.nombre}</div>
                   </div>
                 </div>
               </div>
@@ -115,10 +125,12 @@ const ModalDetallesExposicion: React.FC<{
                         <User className="h-6 w-6 text-gray-500" />
                       </div>
                       <div>
-                        <div className="text-[14px] leading-none font-semibold">
+                        <div className="text-sm font-medium text-gray-800">
                           Jurado {index + 1}
                         </div>
-                        <div className="text-muted-foreground text-[13px]">{jurado.nombre}</div>
+                        <div className="text-sm text-gray-500 ">
+                          {jurado.nombre}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -128,79 +140,84 @@ const ModalDetallesExposicion: React.FC<{
 
             <div className="grid grid-cols-3 gap-4 pb-4">
               <div>
-                <Label className="text-[15px] leading-none font-semibold">
-                  Fecha
-                </Label>
+                <Label className="text-sm font-medium">Fecha</Label>
                 <Input
                   value={format(exposicion.fechahora, "dd/MM/yyyy")}
                   disabled
-                  className="text-muted-foreground !text-[13px]"
+                  className="bg-gray-70"
                 />
               </div>
               <div>
-                <Label className="text-[15px] leading-none font-semibold">
-                  Hora
-                </Label>
+                <Label className="text-sm font-medium">Hora</Label>
                 <Input
                   value={format(exposicion.fechahora, "HH:mm 'hrs'")}
                   disabled
-                  className="text-muted-foreground !text-[13px]"
+                  className="bg-gray-50"
                 />
               </div>
               <div>
-                <Label className="text-[15px] leading-none font-semibold">
-                  Sala
-                </Label>
+                <Label className="text-sm font-medium">Sala</Label>
                 <Input
                   value={exposicion.sala}
                   disabled
-                  className="text-muted-foreground !text-[13px]"
+                  className="bg-gray-50"
                 />
               </div>
             </div>
 
             {/*ENLACES*/}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[15px] leading-none font-semibold">
-                    Enlace de la Exposición
-                  </label>
-                 {exposicion.enlace_sesion ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="enlace-exposicion"
+                  className="text-sm font-medium block mb-2"
+                >
+                  Enlace de la Exposición
+                </label>
+                {exposicion.enlace_sesion ? (
                   <Button
-                   // variant="outline"
+                    id="enlace-exposicion"
                     size="sm"
                     className="w-full"
-                    onClick={() => window.open(exposicion.enlace_sesion, "_blank")}
+                    onClick={() =>
+                      window.open(exposicion.enlace_sesion, "_blank")
+                    }
                   >
                     Abrir enlace
                   </Button>
                 ) : (
-                  <div className="text-sm text-gray-500">No disponible</div>
+                  <span className="text-sm text-gray-500">No disponible</span>
                 )}
-                </div>
-                <div>
-                  <label className="text-[15px] leading-none font-semibold">
-                    Enlace de la Grabación
-                  </label>
-                  {exposicion.enlace_grabacion ? (
-                    <Button
-                     // variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => window.open(exposicion.enlace_grabacion, "_blank")}
-                    >
-                      Abrir grabación
-                    </Button>
-                  ) : (
-                    <div className="text-sm text-gray-500">No disponible</div>
-                  )}
-                </div>
               </div>
+              <div>
+                <label
+                  htmlFor="enlace-grabacion"
+                  className="text-sm font-medium block mb-2"
+                >
+                  Enlace de la Grabación
+                </label>
+                <Input
+                  id="enlace-grabacion"
+                  value={grabacionInput}
+                  onChange={(e) => setGrabacionInput(e.target.value)}
+                  placeholder="Ingresa aquí el enlace de la grabación"
+                  className="mb-2"
+                  disabled={saving}
+                />
+              </div>
+            </div>
           </div>
         </DialogHeader>
         <DialogFooter className="sm:justify-end">
+          <Button
+            variant="default"
+            onClick={() => handleGuardarGrabacion(grabacionInput)}
+            disabled={saving || !grabacionInput}
+          >
+            {saving ? "Guardando..." : "Guardar enlace"}
+          </Button>
           <DialogClose asChild>
-            <Button variant="outline">Cerrar</Button>
+            <Button variant="secondary">Cerrar</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
@@ -208,4 +225,4 @@ const ModalDetallesExposicion: React.FC<{
   );
 };
 
-export default ModalDetallesExposicion;
+export default ModalDetallesExposicionCoordinador;

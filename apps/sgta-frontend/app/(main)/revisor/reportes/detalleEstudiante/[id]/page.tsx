@@ -75,7 +75,6 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
         const counts: Record<string, number> = {};
         evaluables.forEach((e) => {
           counts[e.estadoEntregable] = (counts[e.estadoEntregable] || 0) + 1;
-          counts[e.estadoXTema]     = (counts[e.estadoXTema]     || 0) + 1;
         });
         setConteoEstados(counts);
 
@@ -165,7 +164,7 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                     <Badge variant="outline" className="text-sm">
                       {loadingEntregablesEvaluables
                         ? "Cargando..."
-                        : `Entregables Total: ${entregablesEvaluables}`}
+                        : `Entregables: ${entregablesEvaluables}`}
                     </Badge>
 
                     {/* Badges por estado (solo si hay conteo > 0) */}
@@ -184,7 +183,6 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
 
                     {/* {student.entregablesCompletados ?? 0}/{student.entregablesTotales ?? 0} */}
                   </div>
-                  <div className="text-sm text-gray-600">Entregables</div>
                 </div>
               </div>
               {/* <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
