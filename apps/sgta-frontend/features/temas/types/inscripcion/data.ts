@@ -61,25 +61,82 @@ export async function inscribirTemaPrescrito(temaId: number) {
 
 export async function fetchTemasAPI(
   titulo: string = "",
-  //areaId: number,
+  areaId: number,
   estadoNombre: string,
-  limit: number = 10,
+  limit: number = 100,
   offset: number = 0,
 ): Promise<Tema[]> {
   try {
-    const response = await axiosInstance.get(
-      "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
-      {
-        params: {
-          titulo: titulo,
-          //areaId: areaId,
-          estadoNombre: estadoNombre,
-          limit,
-          offset,
+    if (areaId === 0) {
+      const response = await axiosInstance.get(
+        "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
+        {
+          params: {
+            titulo: titulo,
+            estadoNombre: estadoNombre,
+            limit,
+            offset,
+          },
         },
-      },
-    );
-    return response.data;
+      );
+      return response.data;
+    } else {
+      const response = await axiosInstance.get(
+        "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
+        {
+          params: {
+            titulo: titulo,
+            areaId: areaId,
+            estadoNombre: estadoNombre,
+            limit,
+            offset,
+          },
+        },
+      );
+      return response.data;
+    }
+  } catch (error) {
+    console.error("La página no responde. No se obtuvieron los temas.", error);
+    throw error;
+  }
+}
+
+export async function fetchCantidadTemas(
+  titulo: string = "",
+  areaId: number,
+  estadoNombre: string,
+  limit: number = 100,
+  offset: number = 0,
+): Promise<number> {
+  try {
+    if (areaId === 0) {
+      const response = await axiosInstance.get(
+        "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
+        {
+          params: {
+            titulo: titulo,
+            estadoNombre: estadoNombre,
+            limit,
+            offset,
+          },
+        },
+      );
+      return response.data.length;
+    } else {
+      const response = await axiosInstance.get(
+        "/temas/porUsuarioTituloAreaCarreraEstadoFecha",
+        {
+          params: {
+            titulo: titulo,
+            areaId: areaId,
+            estadoNombre: estadoNombre,
+            limit,
+            offset,
+          },
+        },
+      );
+      return response.data.length;
+    }
   } catch (error) {
     console.error("La página no responde. No se obtuvieron los temas.", error);
     throw error;
