@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookOpen, Check, Users } from "lucide-react";
+import { BookOpen, CalendarIcon, Check, RefreshCcw, Users, UserX2 } from "lucide-react";
 import Link from "next/link";
 
 const cards = [
@@ -20,7 +20,7 @@ const cards = [
     title: "Cese de Asesoría",
     description: "Administra solicitudes de cese de función de asesoría.",
     href: "/coordinador/asesores/cese-de-asesoria",
-    icon: Check,
+    icon: UserX2,
   },
   {
     title: "Áreas Temáticas",
@@ -33,14 +33,20 @@ const cards = [
     title: "Cese de Tema",
     description: "Gestiona solicitudes de cese de tema de tesis.",
     href: "/coordinador/asesores/cese-tema",
-    icon: BookOpen,
+    icon: UserX2,
   },
   {
     title: "Cambio de Asesor",
     description: "Administra solicitudes de cambio de asesor académico.",
     href: "/coordinador/asesores/cambio-asesor",
-    icon: BookOpen,
+    icon: RefreshCcw,
   },
+  {
+    title: "Reuniones",
+    description: "Visualiza las reuniones de asesores con sus tesistas.",
+    href: "/coordinador/asesores/reuniones",
+    icon: CalendarIcon,
+  },  
 ];
 
 export default function PersonalAcademicoDashboard() {
