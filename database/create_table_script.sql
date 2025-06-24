@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS usuario_carrera (
     usuario_id INTEGER NOT NULL,
     carrera_id INTEGER NOT NULL,
     es_coordinador BOOLEAN NOT NULL DEFAULT FALSE,
+    refresh_token TEXT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -793,7 +794,8 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_efcxt_efc FOREIGN KEY (etapa_formativa_x_ciclo_id) REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_efcxt_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
+    CONSTRAINT fk_efcxt_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT,
+    CONSTRAINT unica_efxc_x_tema UNIQUE (etapa_formativa_x_ciclo_id, tema_id)
 );
 
 -- Tabla exposicion
