@@ -485,31 +485,44 @@ BEGIN
         RAISE EXCEPTION 'El ciclo % no existe o está inactivo', p_ciclo_nombre;
     END IF;
 
-    -- 4) Conteo de temas por área, filtrando por ciclo o incluyendo no expuestos
+    -- 4) Conteo completo: todas las áreas + conteos reales (incluyendo 0)
     RETURN QUERY
+    WITH all_areas AS (
+      -- Obtener todas las áreas de conocimiento de la carrera
+      SELECT 
+        ac.area_conocimiento_id,
+        ac.nombre AS area_name
+      FROM area_conocimiento ac
+      WHERE ac.carrera_id = v_carrera_id
+    ),
+    tema_counts AS (
+      -- Contar temas por área en el ciclo específico (solo tesistas asignados)
+      SELECT
+        sac.area_conocimiento_id,
+        COUNT(DISTINCT t.tema_id) AS topic_count
+      FROM tema t
+      -- Relación directa tema -> ciclo
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
+      JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      -- Restricción: solo temas con tesistas asignados
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.ciclo_id = v_ciclo_id  -- Solo el ciclo específico
+        AND ut.asignado = TRUE        -- Solo tesistas asignados
+        AND ut.activo = TRUE          -- Relación activa
+        AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
+      GROUP BY sac.area_conocimiento_id
+    )
     SELECT
-      CAST(ac.nombre AS VARCHAR)       AS area_name,
-      COUNT(DISTINCT t.tema_id)        AS topic_count
-    FROM area_conocimiento              ac
-    JOIN sub_area_conocimiento          sac  ON sac.area_conocimiento_id           = ac.area_conocimiento_id
-                                             AND sac.activo
-    JOIN sub_area_conocimiento_tema     sact ON sact.sub_area_conocimiento_id       = sac.sub_area_conocimiento_id
-                                             AND sact.activo
-    JOIN tema                           t    ON t.tema_id                         = sact.tema_id
-                                             AND t.activo
-                                             AND t.carrera_id = v_carrera_id
-    LEFT JOIN exposicion_x_tema         ext  ON ext.tema_id                        = t.tema_id
-                                             AND ext.activo
-    LEFT JOIN exposicion                e    ON e.exposicion_id                   = ext.exposicion_id
-                                             AND e.activo
-    LEFT JOIN etapa_formativa_x_ciclo   efc  ON efc.etapa_formativa_x_ciclo_id     = e.etapa_formativa_x_ciclo_id
-                                             AND efc.activo
-    LEFT JOIN ciclo                     ci   ON ci.ciclo_id                       = efc.ciclo_id
-                                             AND ci.activo
-    WHERE ac.activo
-      AND (ci.ciclo_id = v_ciclo_id OR ci.ciclo_id IS NULL)
-    GROUP BY ac.nombre
-    ORDER BY topic_count DESC;
+      CAST(aa.area_name AS VARCHAR)     AS area_name,
+      COALESCE(tc.topic_count, 0)       AS topic_count
+    FROM all_areas aa
+    LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = aa.area_conocimiento_id
+    ORDER BY topic_count DESC, aa.area_name;
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------
@@ -540,41 +553,71 @@ BEGIN
         RAISE EXCEPTION 'El usuario % no tiene carrera activa asignada', p_usuario_id;
     END IF;
 
-    -- 2) Construir la serie tema–año
+    -- 2) Construir series completas: todas las áreas × todos los años con actividad
     RETURN QUERY
-    WITH tema_years AS (
-      SELECT DISTINCT
-        t.tema_id,
-        COALESCE(
-          ci.anio,
-          EXTRACT(YEAR FROM t.fecha_creacion)::INTEGER
-        ) AS year
+    WITH     all_years AS (
+      -- Obtener todos los años donde hubo actividad oficial en ciclos
+      SELECT DISTINCT ci.anio AS year
       FROM tema t
-      -- si el tema estuvo en exposiciones activas, tomar el año del ciclo
-      LEFT JOIN exposicion_x_tema    ext ON ext.tema_id = t.tema_id AND ext.activo
-      LEFT JOIN exposicion           e   ON e.exposicion_id = ext.exposicion_id AND e.activo
-      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                           AND efc.activo
-      LEFT JOIN ciclo                ci  ON ci.ciclo_id = efc.ciclo_id AND ci.activo
-      WHERE t.activo
-        AND t.carrera_id = v_carrera_id
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      -- Solo temas con tesistas asignados para determinar años válidos
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.anio IS NOT NULL
+        AND ut.asignado = TRUE
+        AND ut.activo = TRUE
+        AND LOWER(r.nombre) = 'tesista'
+    ),
+    all_areas AS (
+      -- Obtener todas las áreas de conocimiento de la carrera
+      SELECT 
+        ac.area_conocimiento_id,
+        ac.nombre AS area_name
+      FROM area_conocimiento ac
+      WHERE ac.carrera_id = v_carrera_id
+    ),
+    area_year_combinations AS (
+      -- Generar todas las combinaciones área-año
+      SELECT 
+        aa.area_conocimiento_id,
+        aa.area_name,
+        ay.year
+      FROM all_areas aa
+      CROSS JOIN all_years ay
+    ),
+    tema_counts AS (
+      -- Contar temas por área y año (sumando TODOS los ciclos del año)
+      SELECT
+        sac.area_conocimiento_id,
+        ci.anio AS year,
+        COUNT(DISTINCT t.tema_id) AS topic_count
+      FROM tema t
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
+      JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      -- Restricción: solo temas con tesistas asignados
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.anio IS NOT NULL
+        AND ut.asignado = TRUE  -- Solo tesistas asignados
+        AND ut.activo = TRUE    -- Relación activa
+        AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
+      GROUP BY sac.area_conocimiento_id, ci.anio  -- Agrupa por AÑO, no por ciclo
     )
     SELECT
-      CAST(ac.nombre AS VARCHAR)    AS area_name,
-      ty.year                        AS year,
-      COUNT(DISTINCT t.tema_id)      AS topic_count
-    FROM area_conocimiento              ac
-    JOIN sub_area_conocimiento          sac  ON sac.area_conocimiento_id       = ac.area_conocimiento_id
-                                            AND sac.activo
-    JOIN sub_area_conocimiento_tema     sact ON sact.sub_area_conocimiento_id   = sac.sub_area_conocimiento_id
-                                            AND sact.activo
-    JOIN tema                           t    ON t.tema_id                     = sact.tema_id
-                                            AND t.activo
-                                            AND t.carrera_id = v_carrera_id
-    JOIN tema_years                     ty   ON ty.tema_id                    = t.tema_id
-    WHERE ac.activo
-    GROUP BY ac.nombre, ty.year
-    ORDER BY ty.year, ac.nombre;
+      CAST(ayc.area_name AS VARCHAR)     AS area_name,
+      ayc.year                           AS year,
+      COALESCE(tc.topic_count, 0)        AS topic_count
+    FROM area_year_combinations ayc
+    LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = ayc.area_conocimiento_id 
+                           AND tc.year = ayc.year
+    ORDER BY ayc.year, ayc.area_name;
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------

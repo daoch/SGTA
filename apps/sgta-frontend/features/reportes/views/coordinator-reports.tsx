@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { BarChartHorizontal, ChevronDown, ChevronsUpDown, ChevronUp, Download, FileSpreadsheet, Loader2, PieChart, Search, X } from "lucide-react";
+import { ciclosService } from "@/features/configuracion/services/etapa-formativa-ciclo";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { BarChartHorizontal, ChevronDown, ChevronsUpDown, ChevronUp, Download, Loader2, PieChart, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Bar,
@@ -67,13 +68,30 @@ type TopicArea = { area: string; count: number };
 
 export function CoordinatorReports() {
   const { user } = useAuth();
-  const [semesterFilter, setSemesterFilter] = useState("2025-1");
+  const isMobile = useIsMobile();
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
   const [loadingTopicsByArea, setLoadingTopicsByArea] = useState(false);
+
+  // Estados para ciclos
+  const [ciclos, setCiclos] = useState<{id: number, semestre: string, anio: number, activo: boolean}[]>([]);
+  const [loadingCiclos, setLoadingCiclos] = useState(false);
+
+  // Años únicos disponibles
+  const availableYears = Array.from(new Set(ciclos.map(ciclo => ciclo.anio))).sort((a, b) => b - a);
+  
+  // Semestres disponibles para el año seleccionado
+  const availableSemesters = selectedYear 
+    ? ciclos.filter(ciclo => ciclo.anio === parseInt(selectedYear)).map(ciclo => ciclo.semestre).sort()
+    : [];
+
+  // Filtro combinado para compatibilidad con el resto del código
+  const semesterFilter = selectedYear && selectedSemester ? `${selectedYear}-${selectedSemester}` : "";
 
   // Transformar datos para gráfico de líneas
   const [lineChartData, setLineChartData] = useState<LineChartDatum[]>([]);
@@ -110,6 +128,10 @@ export function CoordinatorReports() {
   const [performanceAreaFilter, setPerformanceAreaFilter] = useState<string[]>([]);
   const [isPerformanceAreaDropdownOpen, setIsPerformanceAreaDropdownOpen] = useState(false);
   const [isPerformanceAdvisorDropdownOpen, setIsPerformanceAdvisorDropdownOpen] = useState(false);
+  
+  // Estados para búsqueda en filtros
+  const [advisorSearchTerm, setAdvisorSearchTerm] = useState("");
+  const [areaSearchTerm, setAreaSearchTerm] = useState("");
 
   // Estado para el modal de exportación
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -207,9 +229,11 @@ export function CoordinatorReports() {
       }
       if (isPerformanceAreaDropdownOpen && !target.closest("[data-performance-area-dropdown]")) {
         setIsPerformanceAreaDropdownOpen(false);
+        setAreaSearchTerm("");
       }
       if (isPerformanceAdvisorDropdownOpen && !target.closest("[data-performance-advisor-dropdown]")) {
         setIsPerformanceAdvisorDropdownOpen(false);
+        setAdvisorSearchTerm("");
       }
     };
 
@@ -218,6 +242,7 @@ export function CoordinatorReports() {
   }, [isAreaDropdownOpen, isPerformanceAreaDropdownOpen, isPerformanceAdvisorDropdownOpen]);
 
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
+  const [activeTab, setActiveTab] = useState("topics");
 
   // Descripciones para tooltips
   const topicsDescriptions = {
@@ -234,6 +259,41 @@ export function CoordinatorReports() {
   useEffect(() => {
     // Solo ejecutar si el usuario está disponible
     if (!user) return;
+
+    const fetchCiclos = async () => {
+      try {
+        setLoadingCiclos(true);
+        const data = await ciclosService.getAll();
+        // Filtrar solo los ciclos activos
+        const ciclosActivos = data.filter((ciclo: {activo: boolean}) => ciclo.activo === true);
+        setCiclos(ciclosActivos);
+        // Si no hay año/semestre seleccionado y hay ciclos disponibles, seleccionar el primero
+        if (!selectedYear && !selectedSemester && ciclosActivos.length > 0) {
+          const primerCiclo = ciclosActivos[0];
+          setSelectedYear(primerCiclo.anio.toString());
+          setSelectedSemester(primerCiclo.semestre);
+        }
+      } catch (error) {
+        console.log("Error al cargar los ciclos:", error);
+        setCiclos([]);
+      } finally {
+        setLoadingCiclos(false);
+      }
+    };
+
+    fetchCiclos();
+  }, [user]);
+
+  useEffect(() => {
+    // Resetear semestre si no está disponible para el año seleccionado
+    if (selectedYear && selectedSemester && !availableSemesters.includes(selectedSemester)) {
+      setSelectedSemester("");
+    }
+  }, [selectedYear, availableSemesters, selectedSemester]);
+
+  useEffect(() => {
+    // Solo ejecutar si el usuario está disponible y hay un ciclo seleccionado
+    if (!user || !semesterFilter) return;
 
     const fetchTopicsAreas = async () => {
       try {
@@ -373,21 +433,32 @@ export function CoordinatorReports() {
     }
 
     if (thesisTopicsByArea.length === 0) {
-      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-sm sm:text-base">No hay datos para este ciclo.</div>;
     }
 
     if (themeAreaChartType === "horizontal-bar") {
       return (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={Math.max(150, thesisTopicsByArea.length * 80)}>
           <RechartsBarChart
             layout="vertical"
             data={thesisTopicsByArea}
             margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
+            <XAxis 
+              type="number"
+              label={{ 
+                value: "Cantidad de temas", 
+                position: "insideBottom", 
+                offset: -5, 
+                style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+              }}
+            />
             <YAxis type="category" dataKey="area" tickFormatter={toTitleCase} />
-            <Tooltip />
+            <Tooltip 
+              formatter={(value, name) => [`${value}`, "Total"]}
+              labelFormatter={(label) => toTitleCase(label)}
+            />
             <Bar dataKey="count" fill="#006699" />
           </RechartsBarChart>
         </ResponsiveContainer>
@@ -395,15 +466,24 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
-        <RechartsPieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+      <ResponsiveContainer width="100%" height={isMobile ? 620 : 500}>
+        <RechartsPieChart margin={{ 
+          top: 20, 
+          right: isMobile ? 25 : 20, 
+          bottom: isMobile ? 160 : 100, 
+          left: isMobile ? 25 : 20 
+        }}>
           <Pie
             data={thesisTopicsByArea}
-            cx="45%"
-            cy="50%"
+            cx="50%"
+            cy={isMobile ? "32%" : "40%"}
             labelLine={false}
-            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-            outerRadius={130}
+            label={({ percent }) => {
+              const percentValue = (percent * 100).toFixed(0);
+              // Solo mostrar porcentaje si es mayor a 3% para evitar superposición
+              return parseFloat(percentValue) > 3 ? `${percentValue}%` : "";
+            }}
+            outerRadius={isMobile ? 85 : 140}
             fill="#8884d8"
             dataKey="count"
           >
@@ -412,18 +492,34 @@ export function CoordinatorReports() {
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value, name, props) => [
-              `${value} temas`, 
-              toTitleCase(props.payload.area)
-            ]}
-            labelFormatter={() => ""}
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-2 shadow-lg">
+                    <p className="font-medium text-xs sm:text-sm">{toTitleCase(data.area)}</p>
+                    <p className="text-blue-600 text-xs sm:text-sm">
+                      Total: {data.count}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Legend
-            layout="vertical"
-            verticalAlign="middle"
-            align="right"
+            layout={isMobile ? "vertical" : "horizontal"}
+            verticalAlign="bottom"
+            align="center"
             wrapperStyle={{ 
-              paddingRight: "50px"
+              paddingTop: isMobile ? "20px" : "20px",
+              paddingLeft: isMobile ? "15px" : "0px",
+              paddingRight: isMobile ? "15px" : "0px",
+              fontSize: isMobile ? "11px" : "14px",
+              lineHeight: isMobile ? "1.8" : "1.5",
+              textAlign: "center",
+              width: "100%",
+              maxWidth: "100%"
             }}
             payload={thesisTopicsByArea.map((item, index) => ({
               id: item.area,
@@ -443,7 +539,7 @@ export function CoordinatorReports() {
     }
 
     if (lineChartData.length === 0) {
-      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-sm sm:text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
@@ -474,25 +570,37 @@ export function CoordinatorReports() {
     }
 
     if (advisorDistribution.length === 0) {
-      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-sm sm:text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={Math.max(150, advisorDistribution.length * 80)}>
         <RechartsBarChart
           layout="vertical"
           data={advisorDistribution}
           margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} />
+          <XAxis 
+            type="number" 
+            allowDecimals={false}
+            label={{ 
+              value: "Número de Tesistas", 
+              position: "insideBottom", 
+              offset: -5, 
+              style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+            }}
+          />
           <YAxis 
             type="category" 
             dataKey="name" 
             tickFormatter={toTitleCase}
             width={80}
           />
-          <Tooltip />
+          <Tooltip 
+            formatter={(value, name) => [`${value}`, "Total"]}
+            labelFormatter={(label) => toTitleCase(label)}
+          />
           <Bar dataKey="count" fill="#006699" />
         </RechartsBarChart>
       </ResponsiveContainer>
@@ -505,25 +613,37 @@ export function CoordinatorReports() {
     }
 
     if (juryDistribution.length === 0) {
-      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-sm sm:text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={Math.max(150, juryDistribution.length * 80)}>
         <RechartsBarChart
           layout="vertical"
           data={juryDistribution}
           margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} />
+          <XAxis 
+            type="number" 
+            allowDecimals={false}
+            label={{ 
+              value: "Cantidad de veces que ha sido jurado", 
+              position: "insideBottom", 
+              offset: -5, 
+              style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+            }}
+          />
           <YAxis 
             type="category" 
             dataKey="name" 
             tickFormatter={toTitleCase}
             width={80}
           />
-          <Tooltip />
+          <Tooltip 
+            formatter={(value, name) => [`${value}`, "Total"]}
+            labelFormatter={(label) => toTitleCase(label)}
+          />
           <Bar dataKey="count" fill="#002855" />
         </RechartsBarChart>
       </ResponsiveContainer>
@@ -540,13 +660,13 @@ export function CoordinatorReports() {
         return (
           <div>
             {advisorDistribution.length === 0 && juryDistribution.length === 0 ? (
-              <div className="text-center text-gray-500 py-8 text-base">
+              <div className="text-center text-gray-500 py-8 text-sm sm:text-base">
                 No hay información de carga para este ciclo.
               </div>
             ) : (
               <>
                 {/* Barra de búsqueda y filtros */}
-                <div className="mb-2 flex flex-col sm:flex-row gap-4 px-6">
+                <div className="mb-2 flex flex-col sm:flex-row gap-4 px-4 sm:px-6">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
@@ -554,14 +674,14 @@ export function CoordinatorReports() {
                       placeholder="Buscar por nombre de docente..."
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      className="w-full pl-10 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                      className="w-full pl-10 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     />
                   </div>
-                  <div className="relative" style={{ width: "280px", minWidth: "280px", maxWidth: "280px" }} data-area-dropdown>
+                  <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-area-dropdown>
                     <button
                       type="button"
                       onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <span className="text-gray-700">
                         {areaFilter.length === 0 
@@ -595,67 +715,68 @@ export function CoordinatorReports() {
                 </div>
 
                 {/* Botón limpiar filtros - espacio pequeño reservado */}
-                <div className="flex justify-end mb-4 px-6" style={{ height: "20px" }}>
+                <div className="flex justify-end mb-4 px-4 sm:px-6" style={{ height: "20px" }}>
                   {(searchFilter || areaFilter.length > 0) && (
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={clearFilters}
-                      className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-5 flex items-center gap-1"
+                      className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-5 flex items-center gap-1"
                     >
                       <X className="h-3 w-3" />
-                      Limpiar filtros
+                      <span className="hidden sm:inline">Limpiar filtros</span>
+                      <span className="sm:hidden">Limpiar</span>
                     </Button>
                   )}
                 </div>
 
-                <div className="overflow-x-auto px-6 pb-4">
+                <div className="overflow-x-auto px-4 sm:px-6 pb-4">
                   <table className="w-full min-w-[600px] border-collapse bg-white rounded-lg shadow-sm">
                     <thead className="bg-gray-50">
                       <tr className="border-b border-gray-200">
                         <th 
-                          className="px-6 py-4 text-left text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
                           onClick={() => handleSort("name")}
                         >
                           <div className="flex items-center justify-between">
                             <span>Docente</span>
-                            <span className="text-sm">{getSortIcon("name")}</span>
+                            <span className="text-xs sm:text-sm">{getSortIcon("name")}</span>
                           </div>
                         </th>
                         <th 
-                          className="px-6 py-4 text-left text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
                           onClick={() => handleSort("department")}
                         >
                           <div className="flex items-center justify-between">
-                            <span>Área</span>
-                            <span className="text-sm">{getSortIcon("department")}</span>
+                            <span>Área del docente</span>
+                            <span className="text-xs sm:text-sm">{getSortIcon("department")}</span>
                           </div>
                         </th>
                         <th 
-                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
                           onClick={() => handleSort("advisorCount")}
                         >
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
                             <span>Asesor</span>
-                            <span className="text-sm">{getSortIcon("advisorCount")}</span>
+                            <span className="text-xs sm:text-sm">{getSortIcon("advisorCount")}</span>
                           </div>
                         </th>
                         <th 
-                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
                           onClick={() => handleSort("juryCount")}
                         >
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
                             <span>Jurado</span>
-                            <span className="text-sm">{getSortIcon("juryCount")}</span>
+                            <span className="text-xs sm:text-sm">{getSortIcon("juryCount")}</span>
                           </div>
                         </th>
                         <th 
-                          className="px-6 py-4 text-center text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-base font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none transition-colors"
                           onClick={() => handleSort("total")}
                         >
-                          <div className="flex items-center justify-center gap-2">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
                             <span>Total</span>
-                            <span className="text-sm">{getSortIcon("total")}</span>
+                            <span className="text-xs sm:text-sm">{getSortIcon("total")}</span>
                           </div>
                         </th>
                       </tr>
@@ -755,11 +876,11 @@ export function CoordinatorReports() {
 
                           return (
                             <tr key={`${teacher.name}-${teacher.department}`} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 text-base font-medium text-gray-900">{toTitleCase(teacher.name)}</td>
-                              <td className="px-6 py-4 text-base text-gray-600">{toTitleCase(teacher.department)}</td>
-                              <td className="px-6 py-4 text-base text-center text-gray-900">{teacher.advisorCount}</td>
-                              <td className="px-6 py-4 text-base text-center text-gray-900">{teacher.juryCount}</td>
-                              <td className="px-6 py-4 text-base text-center font-semibold text-gray-900">{total}</td>
+                              <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-base font-medium text-gray-900">{toTitleCase(teacher.name)}</td>
+                              <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-base text-gray-600">{toTitleCase(teacher.department)}</td>
+                              <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-base text-center text-gray-900">{teacher.advisorCount}</td>
+                              <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-base text-center text-gray-900">{teacher.juryCount}</td>
+                              <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-base text-center font-semibold text-gray-900">{total}</td>
                             </tr>
                           );
                         });
@@ -780,7 +901,7 @@ export function CoordinatorReports() {
     }
 
     if (advisorPerformance.length === 0) {
-      return <div className="text-center text-gray-500 py-8 text-base">No hay datos para este ciclo.</div>;
+      return <div className="text-center text-gray-500 py-8 text-sm sm:text-base">No hay datos para este ciclo.</div>;
     }
 
     return (
@@ -791,9 +912,9 @@ export function CoordinatorReports() {
             <button
               type="button"
               onClick={() => setIsPerformanceAdvisorDropdownOpen(!isPerformanceAdvisorDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <span className="text-gray-700">
+              <span className="text-gray-700 truncate">
                 {performanceSearchFilter.length === 0 
                   ? "Seleccionar asesores" 
                   : `${performanceSearchFilter.length} asesor${performanceSearchFilter.length > 1 ? "es" : ""} seleccionado${performanceSearchFilter.length > 1 ? "s" : ""}`
@@ -804,37 +925,50 @@ export function CoordinatorReports() {
             {isPerformanceAdvisorDropdownOpen && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
                 <div className="p-3">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar asesores:</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Seleccionar asesores:</div>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      placeholder="Buscar asesor..."
+                      value={advisorSearchTerm}
+                      className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setAdvisorSearchTerm(e.target.value)}
+                    />
+                  </div>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {uniquePerformanceAdvisors.map((advisor) => (
-                      <label key={advisor} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                        <input
-                          type="checkbox"
-                          checked={performanceSearchFilter.includes(advisor)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPerformanceSearchFilter(prev => [...prev, advisor]);
-                            } else {
-                              setPerformanceSearchFilter(prev => prev.filter(a => a !== advisor));
-                            }
-                          }}
-                          className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{toTitleCase(advisor)}</span>
-                      </label>
-                    ))}
+                    {uniquePerformanceAdvisors
+                      .filter(advisor => 
+                        advisorSearchTerm === "" || normalizeText(advisor).includes(normalizeText(advisorSearchTerm))
+                      )
+                      .map((advisor) => (
+                        <label key={advisor} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={performanceSearchFilter.includes(advisor)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPerformanceSearchFilter(prev => [...prev, advisor]);
+                              } else {
+                                setPerformanceSearchFilter(prev => prev.filter(a => a !== advisor));
+                              }
+                            }}
+                            className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-xs sm:text-sm text-gray-700">{toTitleCase(advisor)}</span>
+                        </label>
+                      ))}
                   </div>
                 </div>
               </div>
             )}
           </div>
-          <div className="relative" style={{ width: "280px", minWidth: "280px", maxWidth: "280px" }} data-performance-area-dropdown>
+          <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-performance-area-dropdown>
             <button
               type="button"
               onClick={() => setIsPerformanceAreaDropdownOpen(!isPerformanceAreaDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <span className="text-gray-700">
+              <span className="text-gray-700 truncate">
                 {performanceAreaFilter.length === 0 
                   ? "Filtrar por áreas" 
                   : `${performanceAreaFilter.length} área${performanceAreaFilter.length > 1 ? "s" : ""} seleccionada${performanceAreaFilter.length > 1 ? "s" : ""}`
@@ -845,63 +979,83 @@ export function CoordinatorReports() {
             {isPerformanceAreaDropdownOpen && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
                 <div className="p-3">
-                  <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar áreas:</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Seleccionar áreas:</div>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      placeholder="Buscar área..."
+                      value={areaSearchTerm}
+                      className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setAreaSearchTerm(e.target.value)}
+                    />
+                  </div>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {uniquePerformanceAreas.map((area) => (
-                      <label key={area} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                        <input
-                          type="checkbox"
-                          checked={performanceAreaFilter.includes(area)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPerformanceAreaFilter(prev => [...prev, area]);
-                            } else {
-                              setPerformanceAreaFilter(prev => prev.filter(a => a !== area));
-                            }
-                          }}
-                          className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{toTitleCase(area)}</span>
-                      </label>
-                    ))}
+                    {uniquePerformanceAreas
+                      .filter(area => 
+                        areaSearchTerm === "" || normalizeText(area).includes(normalizeText(areaSearchTerm))
+                      )
+                      .map((area) => (
+                        <label key={area} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={performanceAreaFilter.includes(area)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPerformanceAreaFilter(prev => [...prev, area]);
+                              } else {
+                                setPerformanceAreaFilter(prev => prev.filter(a => a !== area));
+                              }
+                            }}
+                            className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-xs sm:text-sm text-gray-700">{toTitleCase(area)}</span>
+                        </label>
+                      ))}
                   </div>
                 </div>
               </div>
             )}
           </div>
-          {(performanceSearchFilter.length > 0 || performanceAreaFilter.length > 0) && (
+        </div>
+
+        {/* Botón limpiar filtros */}
+        {(performanceSearchFilter.length > 0 || performanceAreaFilter.length > 0) && (
+          <div className="flex justify-end mb-4">
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => {
                 setPerformanceSearchFilter([]);
                 setPerformanceAreaFilter([]);
+                setAdvisorSearchTerm("");
+                setAreaSearchTerm("");
               }}
-              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-full flex items-center gap-1"
+              className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1"
             >
               <X className="h-3 w-3" />
-              Limpiar filtros
+              <span className="hidden sm:inline">Limpiar filtros</span>
+              <span className="sm:hidden">Limpiar</span>
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Grid de tarjetas de desempeño */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4">
           {filteredAdvisors.map((advisor) => (
-            <div key={`${advisor.name}-${advisor.department}`} className="space-y-1">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-base font-medium">{toTitleCase(advisor.name)}</h3>
-                  <p className="text-sm text-gray-500">{toTitleCase(advisor.department)}</p>
+            <div key={`${advisor.name}-${advisor.department}`} className="space-y-2">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm sm:text-base font-medium truncate">{toTitleCase(advisor.name)}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 truncate">{toTitleCase(advisor.department)}</p>
                 </div>
-                <div className="text-right">
-                  <span className="text-lg font-bold">{advisor.progress}%</span>
-                  <span className="text-sm text-gray-500 ml-1">({advisor.students} tesistas)</span>
+                <div className="text-right sm:text-right flex-shrink-0">
+                  <span className="text-base sm:text-lg font-bold">{advisor.progress}%</span>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-1">({advisor.students} tesistas)</span>
                 </div>
               </div>
               <Progress
                 value={advisor.progress}
-                className="h-3 bg-gray-200"
+                className="h-2 sm:h-3 bg-gray-200"
                 indicatorClassName="bg-[#002855]"
               />
             </div>
@@ -912,27 +1066,74 @@ export function CoordinatorReports() {
   };
 
   return (
-    <div className="space-y-4">
-      <Tabs defaultValue="topics">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="text-base">
-            <TabsTrigger value="topics" className="text-base">Temas y Áreas</TabsTrigger>
-            <TabsTrigger value="distribution" className="text-base">Distribución de Jurados y Asesores</TabsTrigger>
-            <TabsTrigger value="performance" className="text-base">Desempeño de Asesores</TabsTrigger>
+    <div className="space-y-4 p-4 sm:p-6">
+      <Tabs defaultValue="topics" onValueChange={setActiveTab}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+          <TabsList className="text-sm sm:text-base w-full sm:w-auto">
+            <TabsTrigger value="topics" className="text-xs sm:text-base flex-1 sm:flex-none">
+              <span className="hidden sm:inline">Temas y Áreas</span>
+              <span className="sm:hidden">Temas</span>
+            </TabsTrigger>
+            <TabsTrigger value="distribution" className="text-xs sm:text-base flex-1 sm:flex-none">
+              <span className="hidden sm:inline">Distribución de Jurados y Asesores</span>
+              <span className="sm:hidden">Distribución</span>
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs sm:text-base flex-1 sm:flex-none">
+              <span className="hidden sm:inline">Desempeño de Asesores</span>
+              <span className="sm:hidden">Desempeño</span>
+            </TabsTrigger>
           </TabsList>
-          <div className="flex gap-3 items-center">
-            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
-              <SelectTrigger className="w-[160px] text-base">
-                <SelectValue placeholder="Seleccionar ciclo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2025-1" className="text-base">2025-1</SelectItem>
-                <SelectItem value="2024-2" className="text-base">2024-2</SelectItem>
-                <SelectItem value="2024-1" className="text-base">2024-1</SelectItem>
-                <SelectItem value="2023-2" className="text-base">2023-2</SelectItem>
-                <SelectItem value="2023-1" className="text-base">2023-1</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Ocultar dropdowns cuando está en pestaña "topics" y gráfico "trends" */}
+            {!(activeTab === "topics" && selectedTopicsChart === "trends") && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={selectedYear} onValueChange={(value) => {
+                  setSelectedYear(value);
+                  setSelectedSemester(""); // Reset semestre cuando cambia el año
+                }}>
+                  <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
+                    <SelectValue placeholder={loadingCiclos ? "Cargando..." : "Año"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {availableYears.length > 0 ? (
+                      availableYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()} className="text-sm sm:text-base">
+                          {year}
+                        </SelectItem>
+                      ))
+                    ) : !loadingCiclos ? (
+                      <div className="px-2 py-1 text-sm text-gray-500">
+                        No hay años disponibles
+                      </div>
+                    ) : null}
+                  </SelectContent>
+                </Select>
+
+                <Select 
+                  value={selectedSemester} 
+                  onValueChange={setSelectedSemester}
+                  disabled={!selectedYear || loadingCiclos}
+                >
+                  <SelectTrigger className="w-full sm:w-[100px] text-sm sm:text-base">
+                    <SelectValue placeholder={!selectedYear ? "Año" : "Ciclo"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {availableSemesters.length > 0 ? (
+                      availableSemesters.map((semester) => (
+                        <SelectItem key={semester} value={semester} className="text-sm sm:text-base">
+                          {semester}
+                        </SelectItem>
+                      ))
+                    ) : selectedYear ? (
+                      <div className="px-2 py-1 text-sm text-gray-500">
+                        No hay semestres disponibles
+                      </div>
+                    ) : null}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <Button
               variant="outline"
@@ -949,22 +1150,23 @@ export function CoordinatorReports() {
             </Button>
           </div>
         </div>
+
         <TabsContent value="topics" className="space-y-4">
           <Card>
-            <CardHeader className="pb-2">
-              <div className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Visualización de Temas</CardTitle>
+            <CardHeader className="pb-2 px-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle className="text-base sm:text-lg">Visualización de Temas</CardTitle>
                 <Select value={selectedTopicsChart} onValueChange={setSelectedTopicsChart}>
-                  <SelectTrigger className="w-[280px] text-base">
+                  <SelectTrigger className="w-full sm:w-[280px] text-sm sm:text-base">
                     <SelectValue placeholder="Seleccionar visualización" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="areas" className="text-base">Distribución de Temas por Área</SelectItem>
-                    <SelectItem value="trends" className="text-base">Tendencias de Temas por Año</SelectItem>
+                    <SelectItem value="areas" className="text-sm sm:text-base">Distribución de Temas por Área</SelectItem>
+                    <SelectItem value="trends" className="text-sm sm:text-base">Tendencias de Temas por Año</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-base text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
+              <p className="text-sm sm:text-base text-gray-600 pt-2">{topicsDescriptions[selectedTopicsChart as keyof typeof topicsDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
@@ -986,7 +1188,7 @@ export function CoordinatorReports() {
                       onClick={() => setThemeAreaChartType("pie")}
                       title="Gráfico circular"
                     >
-                      <PieChart className="h-4 w-4" />
+                      <PieChart className="h-20 w-20" />
                     </Button>
                   </div>
                   {renderTopicsAreaChart()}
@@ -1002,21 +1204,21 @@ export function CoordinatorReports() {
 
         <TabsContent value="distribution" className="space-y-4">
           <Card>
-            <CardHeader className="pb-2">
-              <div className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Distribución de Carga</CardTitle>
+            <CardHeader className="pb-2 px-4 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle className="text-base sm:text-lg">Distribución de Carga</CardTitle>
                 <Select value={selectedDistributionChart} onValueChange={setSelectedDistributionChart}>
-                  <SelectTrigger className="w-[280px] text-base">
+                  <SelectTrigger className="w-full sm:w-[280px] text-sm sm:text-base">
                     <SelectValue placeholder="Seleccionar visualización" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="advisors" className="text-base">Asesores por Docente</SelectItem>
-                    <SelectItem value="jury" className="text-base">Jurados por Docente</SelectItem>
-                    <SelectItem value="comparison" className="text-base">Asesorías vs Jurado</SelectItem>
+                    <SelectItem value="advisors" className="text-sm sm:text-base">Asesores por Docente</SelectItem>
+                    <SelectItem value="jury" className="text-sm sm:text-base">Jurados por Docente</SelectItem>
+                    <SelectItem value="comparison" className="text-sm sm:text-base">Asesorías vs Jurado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-base text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
+              <p className="text-sm sm:text-base text-gray-600 pt-2">{distributionDescriptions[selectedDistributionChart as keyof typeof distributionDescriptions]}</p>
             </CardHeader>
             <CardContent className="p-0">
               {renderDistributionContent()}
@@ -1026,29 +1228,131 @@ export function CoordinatorReports() {
 
         <TabsContent value="performance" className="space-y-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Desempeño de Asesores</CardTitle>
-              <p className="text-base text-gray-600 pt-2">
+            <CardHeader className="pb-2 px-4 sm:px-6">
+              <CardTitle className="text-base sm:text-lg">Desempeño de Asesores</CardTitle>
+              <p className="text-sm sm:text-base text-gray-600 pt-2">
                 Promedio de avance de tesistas por asesor
               </p>
             </CardHeader>
-            <CardContent className="px-6">
+            <CardContent className="px-4 sm:px-6">
               {renderPerformanceContent()}
               {advisorPerformance.length > 0 && (
-                <div className="mt-8 -mx-6">
-                  <div className="px-6">
-                    <h3 className="text-base font-medium mb-6">Comparativa de Eficiencia</h3>
+                <div className="mt-8 -mx-4 sm:-mx-6">
+                  <div className="px-4 sm:px-6">
+                    <h3 className="text-sm sm:text-base font-medium mb-6">Comparativa de Eficiencia</h3>
                   </div>
-                  <ResponsiveContainer width="100%" height={Math.max(450, filteredAdvisors.length * 60 + 50)}>
-                    <RechartsBarChart layout="vertical" data={filteredAdvisors} margin={{top: 20, right: 30, left: 30, bottom: 60}}>
+                  <ResponsiveContainer width="100%" height={Math.max(600, filteredAdvisors.length * 80)}>
+                    <RechartsBarChart layout="vertical" data={filteredAdvisors} margin={{top: 40, right: 50, left: 30, bottom: 80}}>
                       <CartesianGrid strokeDasharray="3 3"/>
-                      <XAxis xAxisId="left" type="number" orientation="bottom" stroke="#002855" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Progreso (%)", position: "insideBottom", offset: -10, style: { textAnchor: "middle", fontSize: "14px", fill: "#002855" } }}/>
-                      <XAxis xAxisId="right" type="number" orientation="top" stroke="#006699" tick={{fontSize: 15}} allowDecimals={false} label={{ value: "Número de Tesistas", position: "insideTop", offset: -15, style: { textAnchor: "middle", fontSize: "14px", fill: "#006699" } }}/>
-                      <YAxis type="category" dataKey="name" tickFormatter={toTitleCase} tick={{fontSize: 15}} width={130}/>
-                      <Tooltip/>
-                      <Legend wrapperStyle={{fontSize: "15px", marginTop: "25px", paddingTop: "15px"}}/>
-                      <Bar xAxisId="left" dataKey="progress" name="Progreso (%)" fill="#002855"/>
-                      <Bar xAxisId="right" dataKey="students" name="Tesistas" fill="#006699"/>
+                      <XAxis 
+                        xAxisId="students" 
+                        type="number" 
+                        orientation="bottom" 
+                        stroke="#006699" 
+                        tick={{fontSize: 12}} 
+                        allowDecimals={false}
+                        label={{ 
+                          value: "Número de Tesistas", 
+                          position: "insideBottom", 
+                          offset: -5, 
+                          style: { textAnchor: "middle", fontSize: "12px", fill: "#006699" } 
+                        }}
+                      />
+                      <XAxis 
+                        xAxisId="progress" 
+                        type="number" 
+                        orientation="top" 
+                        stroke="#0ea5e9" 
+                        tick={{fontSize: 12}} 
+                        allowDecimals={false} 
+                        domain={[0, 100]}
+                        label={{ 
+                          value: "Progreso (%)", 
+                          position: "insideTop", 
+                          offset: -5, 
+                          style: { textAnchor: "middle", fontSize: "12px", fill: "#0ea5e9" } 
+                        }}
+                      />
+                      <YAxis 
+                        type="category" 
+                        dataKey="name" 
+                        tickFormatter={toTitleCase} 
+                        tick={{fontSize: 12}} 
+                        width={100}
+                      />
+                      <Tooltip 
+                        formatter={(value, name) => {
+                          if (name === "Progreso (%)") {
+                            return value === 0 ? ["Sin progreso", name] : [`${value}%`, name];
+                          } else if (name === "Tesistas") {
+                            return value === 0 ? ["Sin tesistas", name] : [value, name];
+                          }
+                          return [value, name];
+                        }}
+                      />
+                      <Legend wrapperStyle={{fontSize: "12px", marginTop: "50px", paddingTop: "50px"}}/>
+                      <Bar 
+                        xAxisId="progress" 
+                        dataKey="progress" 
+                        name="Progreso (%)" 
+                        fill="#0ea5e9"
+                        shape={(props: {x?: number, y?: number, width?: number, height?: number, fill?: string, progress?: number}) => {
+                          if (props.progress === 0) {
+                            // Crear un pequeño círculo para valores 0
+                            const { x = 0, y = 0, height = 0 } = props;
+                            const circleRadius = 4;
+                            const circleX = x + circleRadius;
+                            const circleY = y + height / 2;
+                            return (
+                              <g>
+                                <circle 
+                                  cx={circleX} 
+                                  cy={circleY} 
+                                  r={circleRadius} 
+                                  fill="#e5e7eb" 
+                                  stroke="#9ca3af" 
+                                  strokeWidth={1.5}
+                                  strokeDasharray="2,2"
+                                />
+                              </g>
+                            );
+                          }
+                          // Filtrar solo las props válidas para rect
+                          const { x, y, width, height, fill } = props;
+                          return <rect x={x} y={y} width={width} height={height} fill={fill} />;
+                        }}
+                      />
+                      <Bar 
+                        xAxisId="students" 
+                        dataKey="students" 
+                        name="Tesistas" 
+                        fill="#006699"
+                        shape={(props: {x?: number, y?: number, width?: number, height?: number, fill?: string, students?: number}) => {
+                          if (props.students === 0) {
+                            // Crear un pequeño círculo para valores 0
+                            const { x = 0, y = 0, height = 0 } = props;
+                            const circleRadius = 4;
+                            const circleX = x + circleRadius;
+                            const circleY = y + height / 2;
+                            return (
+                              <g>
+                                <circle 
+                                  cx={circleX} 
+                                  cy={circleY} 
+                                  r={circleRadius} 
+                                  fill="#e5e7eb" 
+                                  stroke="#9ca3af" 
+                                  strokeWidth={1.5}
+                                  strokeDasharray="2,2"
+                                />
+                              </g>
+                            );
+                          }
+                          // Filtrar solo las props válidas para rect
+                          const { x, y, width, height, fill } = props;
+                          return <rect x={x} y={y} width={width} height={height} fill={fill} />;
+                        }}
+                      />
                     </RechartsBarChart>
                   </ResponsiveContainer>
                 </div>

@@ -139,7 +139,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             // registrar en bd
             usuarioRepository.save(usuario);
             // guardar usuario_carreras
-            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getCarreras() != null) {
+            if (dto.getCarreras() != null) {
                 for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
                     Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
                             .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
@@ -149,7 +149,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                     relacion.setActivo(true);
                     relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
                     usuarioXCarreraRepository.save(relacion);
-                    if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
                         cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
                     }
                 }
@@ -1062,16 +1062,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
         }
         TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
-        //validar que tenga carrera
-        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
-            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
-        }
         //cargar Carrera/s
         Map<Integer, Carrera> carrerasMap = new HashMap<>();
-        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
-                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
-            carrerasMap.put(carrera.getId(), carrera);
+        if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                        .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                carrerasMap.put(carrera.getId(), carrera);
+            }
         }
         // roles en caso de profesor
         Map<Integer, Rol> rolesMap = new HashMap<>();
@@ -1149,14 +1147,16 @@ public class UsuarioServiceImpl implements UsuarioService {
                     usuarioRepository.save(usuario);
 
                     // guardar relción con carreras
-                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
-                        UsuarioXCarrera relacion = new UsuarioXCarrera();
-                        relacion.setUsuario(usuario);
-                        relacion.setCarrera(carrera);
-                        relacion.setActivo(true);
-                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
-                        usuarioXCarreraRepository.save(relacion);
+                    if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                            UsuarioXCarrera relacion = new UsuarioXCarrera();
+                            relacion.setUsuario(usuario);
+                            relacion.setCarrera(carrera);
+                            relacion.setActivo(true);
+                            relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                            usuarioXCarreraRepository.save(relacion);
+                        }
                     }
                     // en caso de profesor, guardar roles y grupos extra en Cognito
                     if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
@@ -1192,16 +1192,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
         }
         TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
-        //validar que tenga carreras
-        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
-            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
-        }
         //obtener carreras
         Map<Integer, Carrera> carrerasMap = new HashMap<>();
-        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
-                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
-            carrerasMap.put(carrera.getId(), carrera);
+        if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                        .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                carrerasMap.put(carrera.getId(), carrera);
+            }
         }
         // cargar roles desde IDs
         Map<Integer, Rol> rolesMap = new HashMap<>();
@@ -1270,16 +1268,18 @@ public class UsuarioServiceImpl implements UsuarioService {
                     }
                     usuarioRepository.save(usuario);
                     // guardar relción con carrera
-                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
-                        UsuarioXCarrera relacion = new UsuarioXCarrera();
-                        relacion.setUsuario(usuario);
-                        relacion.setCarrera(carrera);
-                        relacion.setActivo(true);
-                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
-                        usuarioXCarreraRepository.save(relacion);
-                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
-                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                    if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                            UsuarioXCarrera relacion = new UsuarioXCarrera();
+                            relacion.setUsuario(usuario);
+                            relacion.setCarrera(carrera);
+                            relacion.setActivo(true);
+                            relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                            usuarioXCarreraRepository.save(relacion);
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                            }
                         }
                     }
                     // para profesor, registrar roles y grupos extra en Cognito
