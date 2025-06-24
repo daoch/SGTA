@@ -178,4 +178,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
 
   List<Tema> findByCarrera_IdInAndActivoTrue(List<Integer> carreraIds);
 
+  List<Tema> findByCarrera_IdAndActivoTrue(Integer carreraId);
+
+
 }

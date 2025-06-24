@@ -28,6 +28,7 @@ import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
+import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -1323,120 +1324,91 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         @Override
         public List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId) {
                 UsuarioDto userDto = usuarioService.findByCognitoId(coordinadorId);
-
                 Usuario usuario = usuarioRepository.findById(userDto.getId())
-                                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-                boolean esCoordinador = usuarioXCarreraRepository
-                                .existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
+                UsuarioXCarrera coordinadorRelacion = usuarioXCarreraRepository
+                        .findFirstByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId())
+                        .orElseThrow(() -> new RuntimeException("Este usuario no tiene permisos de coordinador."));
 
-                if (!esCoordinador) {
-                        throw new RuntimeException("Este usuario no tiene permisos de coordinador.");
-                }
+                Integer carreraId = coordinadorRelacion.getCarrera().getId();
 
-                List<UsuarioXCarrera> relaciones = usuarioXCarreraRepository
-                        .findByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
+                List<Tema> temas = temaRepository.findByCarrera_IdAndActivoTrue(carreraId);
+                Map<Integer, List<UsuarioXTema>> usuarioXTemaPorTemaId = usuarioXTemaRepository
+                        .findByTemaIdInAndActivoTrue(temas.stream().map(Tema::getId).toList())
+                        .stream()
+                        .collect(Collectors.groupingBy(uxt -> uxt.getTema().getId()));
 
-
-                Set<Integer> carreraIds = relaciones.stream()
-                        .map(rel -> rel.getCarrera().getId())
-                        .collect(Collectors.toSet());
-
-                List<Tema> temasFiltrados = temaRepository.findByCarrera_IdInAndActivoTrue(new ArrayList<>(carreraIds));
-                // 3. Obtener exposiciones por tema
                 List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
 
-                for (Tema tema : temasFiltrados) {
-                        List<ExposicionXTema> exposiciones = exposicionXTemaRepository
-                                        .findByTemaIdAndActivoTrue(tema.getId());
-                        for (ExposicionXTema exposicionXTema : exposiciones) {
-                                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository
-                                                .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
+                for (Tema tema : temas) {
+                        List<ExposicionXTema> exposiciones = exposicionXTemaRepository.findByTemaIdAndActivoTrue(tema.getId());
+
+                        for (ExposicionXTema ext : exposiciones) {
+                                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository.findByExposicionXTemaIdAndActivoTrue(ext.getId());
 
                                 for (BloqueHorarioExposicion bloque : bloques) {
-                                        OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
-                                        OffsetDateTime datetimeFin = bloque.getDatetimeFin();
-
-                                        OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
-                                        if (fechaActual.isAfter(datetimeFin)) {
-                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.COMPLETADA);
-                                                exposicionXTemaRepository.save(exposicionXTema);
+                                        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+                                        if (now.isAfter(bloque.getDatetimeFin())) {
+                                                ext.setEstadoExposicion(EstadoExposicion.COMPLETADA);
+                                                exposicionXTemaRepository.save(ext);
                                         }
 
-                                        String salaNombre = "";
-                                        if (bloque.getJornadaExposicionXSala() != null &&
-                                                        bloque.getJornadaExposicionXSala()
-                                                                        .getSalaExposicion() != null) {
-                                                salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion()
-                                                                .getNombre();
-                                        }
+                                        String sala = Optional.ofNullable(bloque.getJornadaExposicionXSala())
+                                                .map(j -> j.getSalaExposicion())
+                                                .map(SalaExposicion::getNombre)
+                                                .orElse("");
 
-                                        Exposicion exposicion = exposicionXTema.getExposicion();
-
-                                        // Etapa formativa
+                                        Exposicion exposicion = ext.getExposicion();
                                         EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
-                                        Integer idEtapaFormativa = etapa.getId();
-                                        String nombreEtapaFormativa = etapa.getNombre();
-                                        Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
-                                        Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
-                                        String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo()
-                                                        .getSemestre();
+                                        Ciclo ciclo = exposicion.getEtapaFormativaXCiclo().getCiclo();
 
-                                        // Miembros
-                                        List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository
-                                                        .findByTemaIdAndActivoTrue(tema.getId());
-                                        List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
-                                                MiembroExposicionDto miembro = new MiembroExposicionDto();
-                                                miembro.setId_persona(ut.getUsuario().getId());
-                                                miembro.setNombre(ut.getUsuario().getNombres() + " "
-                                                                + ut.getUsuario().getPrimerApellido() + " "
-                                                                + ut.getUsuario().getSegundoApellido());
-                                                miembro.setTipo(ut.getRol().getNombre());
-                                                return miembro;
-                                        }).toList();
-
-                                        Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
-                                                .findByUsuarioIdAndActivoTrue(userDto.getId())
+                                        List<MiembroExposicionDto> miembros = usuarioXTemaPorTemaId
+                                                .getOrDefault(tema.getId(), Collections.emptyList())
                                                 .stream()
-                                                .filter(u -> u.getTema().getId().equals(tema.getId()))
-                                                .findFirst();
+                                                .map(uxt -> new MiembroExposicionDto(
+                                                        uxt.getUsuario().getId(),
+                                                        uxt.getUsuario().getNombres() + " " +
+                                                                uxt.getUsuario().getPrimerApellido() + " " +
+                                                                uxt.getUsuario().getSegundoApellido(),
+                                                        uxt.getRol().getNombre()
+                                                ))
+                                                .toList();
 
-                                        Optional<ControlExposicionUsuarioTema> controlOptional = Optional.empty();
+                                        Optional<EstadoExposicionUsuario> estadoControl = usuarioXTemaPorTemaId
+                                                .getOrDefault(tema.getId(), Collections.emptyList())
+                                                .stream()
+                                                .filter(uxt -> uxt.getUsuario().getId().equals(usuario.getId()))
+                                                .findFirst()
+                                                .flatMap(uxt -> controlExposicionUsuarioTemaRepository
+                                                        .findByExposicionXTema_IdAndUsuario_Id(ext.getId(), uxt.getId())
+                                                        .map(ControlExposicionUsuarioTema::getEstadoExposicion));
 
-                                        if (usuarioXTemaOptional.isPresent()) {
-                                                controlOptional = controlExposicionUsuarioTemaRepository.findByExposicionXTema_IdAndUsuario_Id(
-                                                        exposicionXTema.getId(),
-                                                        usuarioXTemaOptional.get().getId()
-                                                );
-                                        }
-
-                                        // Crear DTO
                                         ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
-                                        dto.setId_exposicion(exposicionXTema.getId());
+                                        dto.setId_exposicion(ext.getId());
                                         dto.setNombre_exposicion(exposicion.getNombre());
-                                        dto.setFechahora(datetimeInicio);
-                                        dto.setSala(salaNombre);
-                                        dto.setEstado(exposicionXTema.getEstadoExposicion().toString());
-                                        dto.setId_etapa_formativa(idEtapaFormativa);
-                                        dto.setNombre_etapa_formativa(nombreEtapaFormativa);
+                                        dto.setFechahora(bloque.getDatetimeInicio());
+                                        dto.setSala(sala);
+                                        dto.setEstado(ext.getEstadoExposicion().toString());
+                                        dto.setId_etapa_formativa(etapa.getId());
+                                        dto.setNombre_etapa_formativa(etapa.getNombre());
                                         dto.setTitulo(tema.getTitulo());
-                                        dto.setCiclo_id(idCiclo);
-                                        dto.setCiclo_anio(anioCiclo);
-                                        dto.setCiclo_semestre(semestreCiclo);
-                                        dto.setEstado_control(
-                                                        controlOptional.map(
-                                                                        ControlExposicionUsuarioTema::getEstadoExposicion)
-                                                                        .orElse(null));
-                                        dto.setEnlace_grabacion(exposicionXTema.getLinkGrabacion());
-                                        dto.setEnlace_sesion(exposicionXTema.getLinkExposicion());
+                                        dto.setCiclo_id(ciclo.getId());
+                                        dto.setCiclo_anio(ciclo.getAnio());
+                                        dto.setCiclo_semestre(ciclo.getSemestre());
+                                        dto.setEstado_control(estadoControl.orElse(null));
+                                        dto.setEnlace_grabacion(ext.getLinkGrabacion());
+                                        dto.setEnlace_sesion(ext.getLinkExposicion());
                                         dto.setMiembros(miembros);
 
                                         resultado.add(dto);
                                 }
                         }
                 }
+
                 return resultado;
         }
+
 
         @Override
         @Transactional
