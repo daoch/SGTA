@@ -477,34 +477,35 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         solicitudRepository.save(solicitudOriginal);
         log.info("Solicitud ID {} actualizada a ESTADO_REASIGNACION_COMPLETADA.", solicitudOriginalId);
 
-        // 6. Notificar a todas las partes
-        // a. Coordinador
-        // List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
-        //         temaAReasignar.getCarrera().getId(), SgtaConstants.TIPO_USUARIO_COORDINADOR);
-        // String msgCoord = String.format("El Prof. %s %s ha ACEPTADO la propuesta de asesoría para el tema '%s' (Solicitud Cese ID: %d). La reasignación está completa.",
-        //         asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
-        // String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
-        // for (Usuario coord : coordinadores) {
-        //     notificacionService.crearNotificacionParaUsuario(coord.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
-        // }
+        //6. Notificar a todas las partes
+        //a. Coordinador
+        List<UsuarioXCarrera> usCoordinadores = usuarioXCarreraRepository.findByCarreraIdAndActivoTrue(temaAReasignar.getCarrera().getId(), );
+        List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
+                temaAReasignar.getCarrera().getId(), SgtaConstants.TIPO_USUARIO_COORDINADOR);
+        String msgCoord = String.format("El Prof. %s %s ha ACEPTADO la propuesta de asesoría para el tema '%s' (Solicitud Cese ID: %d). La reasignación está completa.",
+                asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
+        String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
+        for (Usuario coord : coordinadores) {
+            notificacionService.crearNotificacionParaUsuario(coord.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
+        }
 
-        // // b. Estudiantes
-        // Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null);
-        // if (rolTesista != null) {
-        //     List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(temaAReasignar.getId(), rolTesista.getId());
-        //     String msgEst = String.format("Se ha asignado un nuevo asesor para su tema '%s'. Su nuevo asesor es el Prof. %s %s.",
-        //             temaAReasignar.getTitulo(), asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
-        //     String enlaceEst = String.format("/alumno/mis-temas/%d", temaAReasignar.getId());
-        //     for (UsuarioXTema ut : tesistasDelTema) {
-        //         notificacionService.crearNotificacionParaUsuario(ut.getUsuario().getId(), SgtaConstants.MODULO_ASESORIA_TEMA, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgEst, "SISTEMA", enlaceEst);
-        //     }
-        // }
+        // b. Estudiantes
+        Rol rolTesista = rolRepository.findByNombre(SgtaConstants.ROL_NOMBRE_TESISTA).orElse(null);
+        if (rolTesista != null) {
+            List<UsuarioXTema> tesistasDelTema = usuarioXTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(temaAReasignar.getId(), rolTesista.getId());
+            String msgEst = String.format("Se ha asignado un nuevo asesor para su tema '%s'. Su nuevo asesor es el Prof. %s %s.",
+                    temaAReasignar.getTitulo(), asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
+            String enlaceEst = String.format("/alumno/mis-temas/%d", temaAReasignar.getId());
+            for (UsuarioXTema ut : tesistasDelTema) {
+                notificacionService.crearNotificacionParaUsuario(ut.getUsuario().getId(), SgtaConstants.MODULO_ASESORIA_TEMA, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgEst, "SISTEMA", enlaceEst);
+            }
+        }
 
-        // // c. Asesor Original (que cesó)
-        // if (asesorOriginalQueCeso != null) {
-        //     String msgAsesorOrig = String.format("La reasignación para su cese del tema '%s' (Solicitud ID: %d) ha sido completada. El nuevo asesor es el Prof. %s %s.",
-        //             temaAReasignar.getTitulo(), solicitudOriginalId, asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
-        //     notificacionService.crearNotificacionParaUsuario(asesorOriginalQueCeso.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
-        // }
+        // c. Asesor Original (que cesó)
+        if (asesorOriginalQueCeso != null) {
+            String msgAsesorOrig = String.format("La reasignación para su cese del tema '%s' (Solicitud ID: %d) ha sido completada. El nuevo asesor es el Prof. %s %s.",
+                    temaAReasignar.getTitulo(), solicitudOriginalId, asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
+            notificacionService.crearNotificacionParaUsuario(asesorOriginalQueCeso.getId(), SgtaConstants.MODULO_SOLICITUDES_CESE, SgtaConstants.TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
+        }
     }
 }

@@ -173,53 +173,53 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         log.info("UsuarioSolicitud para asesor ID {} (CognitoSub: {}) y solicitud ID {} creada.",
         asesor.getId(), asesorCognitoSub, solicitudGuardada.getId());
 
-        // Notificar al/los coordinador(es)
-        // RolSolicitud rolSolCoordGestor = rolSolicitudRepository.findByNombre(ROL_SOLICITUD_COORDINADOR_GESTOR)
-        //         .orElseThrow(() -> new ResourceNotFoundException("RolSolicitud '" + ROL_SOLICITUD_COORDINADOR_GESTOR + "' no encontrado."));
-        // AccionSolicitud accionSolPendiente = accionSolicitudRepository.findByNombre(ACCION_SOLICITUD_PENDIENTE_ACCION)
-        //         .orElseThrow(() -> new ResourceNotFoundException("AccionSolicitud '" + ACCION_SOLICITUD_PENDIENTE_ACCION + "' no encontrada."));
+        //Notificar al/los coordinador(es)
+        RolSolicitud rolSolCoordGestor = rolSolicitudRepository.findByNombre(ROL_SOLICITUD_COORDINADOR_GESTOR)
+                .orElseThrow(() -> new ResourceNotFoundException("RolSolicitud '" + ROL_SOLICITUD_COORDINADOR_GESTOR + "' no encontrado."));
+        AccionSolicitud accionSolPendiente = accionSolicitudRepository.findByNombre(ACCION_SOLICITUD_PENDIENTE_ACCION)
+                .orElseThrow(() -> new ResourceNotFoundException("AccionSolicitud '" + ACCION_SOLICITUD_PENDIENTE_ACCION + "' no encontrada."));
 
-        // if (tema.getCarrera() == null) {
-        //     log.error("El tema ID {} no tiene una carrera asociada. No se puede notificar a coordinadores.", tema.getId());
-        //     throw new BusinessRuleException("El tema no está asociado a ninguna carrera, no se puede procesar la solicitud.");
-        // }
-        // List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
-        //         tema.getCarrera().getId(), "coordinador"
-        // );
-        // if (coordinadores.isEmpty()) {
-        //     log.warn("No se encontraron coordinadores activos para la carrera ID: {} del tema ID: {}",
-        //             tema.getCarrera().getId(), tema.getId());
-        // }
+        if (tema.getCarrera() == null) {
+            log.error("El tema ID {} no tiene una carrera asociada. No se puede notificar a coordinadores.", tema.getId());
+            throw new BusinessRuleException("El tema no está asociado a ninguna carrera, no se puede procesar la solicitud.");
+        }
+        List<Usuario> coordinadores = usuarioRepository.findUsuariosActivosPorCarreraYTipo(
+                tema.getCarrera().getId(), "coordinador"
+        );
+        if (coordinadores.isEmpty()) {
+            log.warn("No se encontraron coordinadores activos para la carrera ID: {} del tema ID: {}",
+                    tema.getCarrera().getId(), tema.getId());
+        }
 
-        // for (Usuario coordinador : coordinadores) {
-        //     UsuarioSolicitud usCoordinador = new UsuarioSolicitud();
-        //     usCoordinador.setSolicitud(solicitudGuardada);
-        //     usCoordinador.setUsuario(coordinador);
-        //     usCoordinador.setRolSolicitud(rolSolCoordGestor);
-        //     usCoordinador.setAccionSolicitud(accionSolPendiente);
-        //     usCoordinador.setActivo(true);
-        //     usCoordinador.setDestinatario(true);
-        //     usuarioSolicitudRepository.save(usCoordinador);
-        //     log.info("UsuarioSolicitud para coordinador ID {} y solicitud ID {} creada.", coordinador.getId(), solicitudGuardada.getId());
+        for (Usuario coordinador : coordinadores) {
+            UsuarioXSolicitud usCoordinador = new UsuarioXSolicitud();
+            usCoordinador.setSolicitud(solicitudGuardada);
+            usCoordinador.setUsuario(coordinador);
+            usCoordinador.setRolSolicitud(rolSolCoordGestor);
+            usCoordinador.setAccionSolicitud(accionSolPendiente);
+            usCoordinador.setActivo(true);
+            usCoordinador.setDestinatario(true);
+            usuarioSolicitudRepository.save(usCoordinador);
+            log.info("UsuarioSolicitud para coordinador ID {} y solicitud ID {} creada.", coordinador.getId(), solicitudGuardada.getId());
 
-        //     // Enviar notificación al coordinador
-        //     try {
-        //         String enlaceCoordinador = String.format("/coordinador/solicitudes/cese?id=%d&status=pending", solicitudGuardada.getId()); // Ejemplo de enlace
-        //         notificacionService.crearNotificacionParaUsuario(
-        //                 coordinador.getId(),
-        //                 MODULO_NOMBRE_SOLICITUDES_CESE,
-        //                 TIPO_NOTIF_INFORMATIVA,
-        //                 String.format("El asesor %s %s ha solicitado el cese de asesoría para el tema '%s'. Solicitud ID: %d.",
-        //                         asesor.getNombres(), asesor.getPrimerApellido(), tema.getTitulo(), solicitudGuardada.getId()),
-        //                 "SISTEMA", // Canal
-        //                 enlaceCoordinador
-        //         );
-        //         log.info("Notificación creada para coordinador ID {}", coordinador.getId());
-        //     } catch (Exception e) {
-        //         log.error("Error al crear notificación para coordinador ID {}: {}", coordinador.getId(), e.getMessage(), e);
-        //         // Decide si este error debe detener la transacción o solo registrarse.
-        //     }
-        // }
+            // Enviar notificación al coordinador
+            try {
+                String enlaceCoordinador = String.format("/coordinador/solicitudes/cese?id=%d&status=pending", solicitudGuardada.getId()); // Ejemplo de enlace
+                notificacionService.crearNotificacionParaUsuario(
+                        coordinador.getId(),
+                        MODULO_NOMBRE_SOLICITUDES_CESE,
+                        TIPO_NOTIF_INFORMATIVA,
+                        String.format("El asesor %s %s ha solicitado el cese de asesoría para el tema '%s'. Solicitud ID: %d.",
+                                asesor.getNombres(), asesor.getPrimerApellido(), tema.getTitulo(), solicitudGuardada.getId()),
+                        "SISTEMA", // Canal
+                        enlaceCoordinador
+                );
+                log.info("Notificación creada para coordinador ID {}", coordinador.getId());
+            } catch (Exception e) {
+                log.error("Error al crear notificación para coordinador ID {}: {}", coordinador.getId(), e.getMessage(), e);
+                // Decide si este error debe detener la transacción o solo registrarse.
+            }
+        }
 
         // Notificar al/los estudiante(s)
         RolSolicitud rolSolEstudianteAfectado = rolSolicitudRepository.findByNombre(ROL_SOLICITUD_ESTUDIANTE_AFECTADO)
@@ -249,22 +249,22 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
             usuarioSolicitudRepository.save(usEstudiante);
             log.info("UsuarioSolicitud para estudiante ID {} y solicitud ID {} creada.", tesista.getId(), solicitudGuardada.getId());
 
-            // Enviar notificación al estudiante
-            // try {
-            //     String enlaceEstudiante = String.format("/alumno/mis-temas/%d/solicitud-cese/%d", tema.getId(), solicitudGuardada.getId()); // Ejemplo
-            //     notificacionService.crearNotificacionParaUsuario(
-            //             tesista.getId(),
-            //             MODULO_NOMBRE_ASESORIA_TEMA,
-            //             TIPO_NOTIF_ADVERTENCIA,
-            //             String.format("Su asesor, %s %s, ha solicitado el cese de la asesoría para su tema: '%s'.",
-            //                     asesor.getNombres(), asesor.getPrimerApellido(), tema.getTitulo()),
-            //             "SISTEMA",
-            //             enlaceEstudiante
-            //     );
-            //     log.info("Notificación creada para estudiante ID {}", tesista.getId());
-            // } catch (Exception e) {
-            //     log.error("Error al crear notificación para estudiante ID {}: {}", tesista.getId(), e.getMessage(), e);
-            // }
+            Enviar notificación al estudiante
+            try {
+                String enlaceEstudiante = String.format("/alumno/mis-temas/%d/solicitud-cese/%d", tema.getId(), solicitudGuardada.getId()); // Ejemplo
+                notificacionService.crearNotificacionParaUsuario(
+                        tesista.getId(),
+                        MODULO_NOMBRE_ASESORIA_TEMA,
+                        TIPO_NOTIF_ADVERTENCIA,
+                        String.format("Su asesor, %s %s, ha solicitado el cese de la asesoría para su tema: '%s'.",
+                                asesor.getNombres(), asesor.getPrimerApellido(), tema.getTitulo()),
+                        "SISTEMA",
+                        enlaceEstudiante
+                );
+                log.info("Notificación creada para estudiante ID {}", tesista.getId());
+            } catch (Exception e) {
+                log.error("Error al crear notificación para estudiante ID {}: {}", tesista.getId(), e.getMessage(), e);
+            }
         }
 
         return solicitudGuardada;
