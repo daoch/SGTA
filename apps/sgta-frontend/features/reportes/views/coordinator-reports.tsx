@@ -421,14 +421,22 @@ export function CoordinatorReports() {
 
     if (themeAreaChartType === "horizontal-bar") {
       return (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={Math.max(150, thesisTopicsByArea.length * 80)}>
           <RechartsBarChart
             layout="vertical"
             data={thesisTopicsByArea}
             margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
+            <XAxis 
+              type="number"
+              label={{ 
+                value: "Cantidad de temas", 
+                position: "insideBottom", 
+                offset: -5, 
+                style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+              }}
+            />
             <YAxis type="category" dataKey="area" tickFormatter={toTitleCase} />
             <Tooltip 
               formatter={(value, name) => [`${value}`, "Total"]}
@@ -441,15 +449,24 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={isMobile ? 500 : 400}>
-        <RechartsPieChart margin={{ top: 20, right: 20, bottom: isMobile ? 80 : 20, left: 20 }}>
+      <ResponsiveContainer width="100%" height={isMobile ? 620 : 500}>
+        <RechartsPieChart margin={{ 
+          top: 20, 
+          right: isMobile ? 25 : 20, 
+          bottom: isMobile ? 160 : 100, 
+          left: isMobile ? 25 : 20 
+        }}>
           <Pie
             data={thesisTopicsByArea}
-            cx={isMobile ? "50%" : "35%"}
-            cy={isMobile ? "40%" : "50%"}
+            cx="50%"
+            cy={isMobile ? "32%" : "40%"}
             labelLine={false}
-            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-            outerRadius={isMobile ? 100 : 100}
+            label={({ percent }) => {
+              const percentValue = (percent * 100).toFixed(0);
+              // Solo mostrar porcentaje si es mayor a 3% para evitar superposición
+              return parseFloat(percentValue) > 3 ? `${percentValue}%` : "";
+            }}
+            outerRadius={isMobile ? 85 : 140}
             fill="#8884d8"
             dataKey="count"
           >
@@ -463,8 +480,8 @@ export function CoordinatorReports() {
                 const data = payload[0].payload;
                 return (
                   <div className="bg-white border border-gray-300 rounded-md p-2 shadow-lg">
-                    <p className="font-medium">{toTitleCase(data.area)}</p>
-                    <p className="text-blue-600">
+                    <p className="font-medium text-xs sm:text-sm">{toTitleCase(data.area)}</p>
+                    <p className="text-blue-600 text-xs sm:text-sm">
                       Total: {data.count}
                     </p>
                   </div>
@@ -474,16 +491,18 @@ export function CoordinatorReports() {
             }}
           />
           <Legend
-            layout={isMobile ? "vertical" : "vertical"}
-            verticalAlign={isMobile ? "bottom" : "middle"}
-            align={isMobile ? "center" : "center"}
-            wrapperStyle={isMobile ? { 
-              paddingTop: "10px",
-              left: "80px", 
-              fontSize: "11px"
-            } : { 
-              fontSize: "15px",
-              marginLeft: "80px"
+            layout={isMobile ? "vertical" : "horizontal"}
+            verticalAlign="bottom"
+            align="center"
+            wrapperStyle={{ 
+              paddingTop: isMobile ? "20px" : "20px",
+              paddingLeft: isMobile ? "15px" : "0px",
+              paddingRight: isMobile ? "15px" : "0px",
+              fontSize: isMobile ? "11px" : "14px",
+              lineHeight: isMobile ? "1.8" : "1.5",
+              textAlign: "center",
+              width: "100%",
+              maxWidth: "100%"
             }}
             payload={thesisTopicsByArea.map((item, index) => ({
               id: item.area,
@@ -538,14 +557,23 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={Math.max(150, advisorDistribution.length * 80)}>
         <RechartsBarChart
           layout="vertical"
           data={advisorDistribution}
           margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} />
+          <XAxis 
+            type="number" 
+            allowDecimals={false}
+            label={{ 
+              value: "Número de Tesistas", 
+              position: "insideBottom", 
+              offset: -5, 
+              style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+            }}
+          />
           <YAxis 
             type="category" 
             dataKey="name" 
@@ -572,14 +600,23 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={Math.max(150, juryDistribution.length * 80)}>
         <RechartsBarChart
           layout="vertical"
           data={juryDistribution}
           margin={{ top: 5, right: 30, left: 30, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} />
+          <XAxis 
+            type="number" 
+            allowDecimals={false}
+            label={{ 
+              value: "Cantidad de veces que ha sido jurado", 
+              position: "insideBottom", 
+              offset: -5, 
+              style: { textAnchor: "middle", fontSize: "12px", fill: "#4b5563" } 
+            }}
+          />
           <YAxis 
             type="category" 
             dataKey="name" 
@@ -884,7 +921,7 @@ export function CoordinatorReports() {
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {uniquePerformanceAdvisors
                       .filter(advisor => 
-                        advisorSearchTerm === '' || normalizeText(advisor).includes(normalizeText(advisorSearchTerm))
+                        advisorSearchTerm === "" || normalizeText(advisor).includes(normalizeText(advisorSearchTerm))
                       )
                       .map((advisor) => (
                         <label key={advisor} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
@@ -938,7 +975,7 @@ export function CoordinatorReports() {
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {uniquePerformanceAreas
                       .filter(area => 
-                        areaSearchTerm === '' || normalizeText(area).includes(normalizeText(areaSearchTerm))
+                        areaSearchTerm === "" || normalizeText(area).includes(normalizeText(areaSearchTerm))
                       )
                       .map((area) => (
                         <label key={area} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
@@ -1182,7 +1219,7 @@ export function CoordinatorReports() {
                   <div className="px-4 sm:px-6">
                     <h3 className="text-sm sm:text-base font-medium mb-6">Comparativa de Eficiencia</h3>
                   </div>
-                  <ResponsiveContainer width="100%" height={Math.max(450, filteredAdvisors.length * 60 + 50)}>
+                  <ResponsiveContainer width="100%" height={Math.max(600, filteredAdvisors.length * 80)}>
                     <RechartsBarChart layout="vertical" data={filteredAdvisors} margin={{top: 40, right: 50, left: 30, bottom: 80}}>
                       <CartesianGrid strokeDasharray="3 3"/>
                       <XAxis 
