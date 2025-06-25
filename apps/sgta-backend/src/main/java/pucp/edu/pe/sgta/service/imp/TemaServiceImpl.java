@@ -189,6 +189,7 @@ public class TemaServiceImpl implements TemaService {
 					.forEach(tesista -> dto.getCoasesores().add(tesista));
 			listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name())
 					.forEach(tesista -> dto.getCoasesores().add(tesista));
+			dto.setSubareas(listarSubAreasPorTema(dto.getId())); // agregamos las subáreas
 			return dto;
 		}
 		return null;
@@ -321,8 +322,6 @@ public class TemaServiceImpl implements TemaService {
 		// areaEspecializacion
 		temaRepository.save(tema);
 
-		// Start historial tema
-		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
 
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
@@ -338,6 +337,9 @@ public class TemaServiceImpl implements TemaService {
 		// 4) Save cotesistas
 
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
+		// Start historial tema
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
+
 		return tema.getId();// return tema id
 	}
 
@@ -1582,11 +1584,11 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		entityManager.flush();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " START");
-		//String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
+		String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
 
-		//entityManager.createNativeQuery(queryRechazo)
-		//		.setParameter("uid", idTesista)
-		//		.getSingleResult();
+		entityManager.createNativeQuery(queryRechazo)
+				.setParameter("uid", dto.getId())
+				.getSingleResult();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
 		logger.info("Eliminando postulaciones de usuario: " + idTesista);
 
