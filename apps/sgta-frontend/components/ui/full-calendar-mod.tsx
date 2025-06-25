@@ -43,11 +43,9 @@ import {
   EditarReunionModal,
   type ReunionFormData,
 } from "@/features/cronograma/editar-reunion-modal";
-import { addHours } from "date-fns";
 
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
-/*
 const handleRegistrarReunion = async (reunionData: ReunionFormData) => {
   try {
     // Here you would typically make an API call to save the meeting
@@ -78,7 +76,6 @@ const handleRegistrarReunion = async (reunionData: ReunionFormData) => {
     throw error; // Re-throw to let the modal handle the error
   }
 };
-*/
 
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
@@ -289,16 +286,11 @@ const EventGroup = ({
       }}
     >
       {tesistasOrdenados.map((tesista, index) => {
-        const eventos = events.filter((event) => {
-          const start = event.start ?? event.end;
-          const end = event.end;
-          return (
-            start <= addHours(hour, 1) &&
-            end >= hour &&
+        const eventos = events.filter(
+          (event) =>
+            isSameHour(event.start ?? event.end, hour) &&
             event.tesista === tesista
-          );
-        });
-        
+        );
 
         return (
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
