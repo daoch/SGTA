@@ -103,6 +103,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: FileText,
     },
     { name: "Reportes", href: "/alumno/reportes", icon: BarChart3 },
+    {
+      name: "Configuración",
+      href: "/alumno/configuracion/notificaciones",
+      icon: Settings,
+    },
   ],
   jurado: [
     { name: "Calendario", href: "/jurado/calendario", icon: CalendarIcon },
@@ -151,6 +156,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         },
       ],
     },
+    { name: "Exposiciones", href: "/asesor/exposiciones", icon: MessageSquare },
     { name: "Revisión", href: "/asesor/revision", icon: Search },
     { name: "Reportes", href: "/asesor/reportes", icon: BarChart3 },
   ],

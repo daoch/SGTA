@@ -7,6 +7,7 @@ import { toast, Toaster } from "sonner";
 import { AccionesDetalleSoliTema } from "../components/coordinador/detalle-solicitud-tema/acciones-detalle-soli-tema";
 import { AnalisisSimilitudTema } from "../components/coordinador/detalle-solicitud-tema/analisis-similitud-tema";
 import { ComentariosDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/comentarios-detalle-solicitud-tema";
+import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 import { EncabezadoDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/encabezado-detalle-solicitud-tema";
 import { HistorialDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/historial-detalle-solicitud-tema";
 import { InfoDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/info-detalle-solicitud-tema";
@@ -18,7 +19,6 @@ import {
   eliminarTemaPorCoordinador,
   fetchSolicitudesDeTema,
   fetchTemasSimilares,
-  fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
@@ -29,7 +29,6 @@ import {
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
-import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 
 const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
   Aprobada: EstadoTemaNombre.REGISTRADO,

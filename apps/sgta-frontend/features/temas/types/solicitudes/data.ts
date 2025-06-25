@@ -192,3 +192,22 @@ export async function fetchTodasSolicitudesPendientes(
   }
 }
 
+export async function fetchUpdateSolicitudCoordinador(
+  solicitudId: number,
+  respuesta: string,
+) {
+  try {
+    const { data } = await axiosInstance.post(
+      "/temas/updatesolicitudesCoordinador",
+      {
+        solicitudId,
+        respuesta,
+      },
+    );
+    return data;
+  } catch (error) {
+    console.error("Error al actualizar la solicitud:", error);
+    throw error;
+  }
+}
+

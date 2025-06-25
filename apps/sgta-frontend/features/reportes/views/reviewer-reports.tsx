@@ -14,6 +14,15 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { findStudentsForReviewer } from "../services/report-services";
 import { AlumnoReviewer } from "../types/Alumno.type";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export function ReviewerReports() {
   const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
@@ -24,6 +33,8 @@ export function ReviewerReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const fetchEtapas = async () => {
     try {
@@ -87,6 +98,18 @@ export function ReviewerReports() {
       )
     );
   }, [students, courseFilter, searchQuery]);
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredStudents.length / pageSize);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  // Resetear página si cambia el filtro o búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, courseFilter, students]);
 
   // Utilidades de estado visual
   const getStatusColor = (status: string) => {
@@ -257,8 +280,9 @@ export function ReviewerReports() {
           </CardContent>
         </Card>
       ) : (
+        <>
         <div className="space-y-3">
-          {filteredStudents.map((student) => (
+          {paginatedStudents.map((student) => (
             <Card
               key={student.usuarioId}
               className="hover:shadow-sm transition-shadow py-2 md:py-2 rounded-lg"
@@ -308,6 +332,98 @@ export function ReviewerReports() {
             </Card>
           ))}
         </div>
+        {/* Paginador */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-6">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    aria-disabled={currentPage <= 1}
+                  />
+                </PaginationItem>
+                {/* Números de página */}
+                {(() => {
+                  const MAX_PAGE_BUTTONS = 5;
+                  let startPage = Math.max(1, currentPage - 2);
+                  let endPage = Math.min(totalPages, currentPage + 2);
+                  if (endPage - startPage < MAX_PAGE_BUTTONS - 1) {
+                    if (startPage === 1) {
+                      endPage = Math.min(totalPages, startPage + MAX_PAGE_BUTTONS - 1);
+                    } else if (endPage === totalPages) {
+                      startPage = Math.max(1, endPage - MAX_PAGE_BUTTONS + 1);
+                    }
+                  }
+                  const pages = [];
+                  if (startPage > 1) {
+                    pages.push(
+                      <PaginationItem key={1}>
+                        <PaginationLink
+                          isActive={1 === currentPage}
+                          onClick={() => setCurrentPage(1)}
+                          className="cursor-pointer"
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                    if (startPage > 2) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-start">
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                  }
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          isActive={i === currentPage}
+                          onClick={() => setCurrentPage(i)}
+                          className="cursor-pointer"
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-end">
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    pages.push(
+                      <PaginationItem key={totalPages}>
+                        <PaginationLink
+                          isActive={totalPages === currentPage}
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="cursor-pointer"
+                        >
+                          {totalPages}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                  return pages;
+                })()}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    aria-disabled={currentPage >= totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

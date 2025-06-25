@@ -135,15 +135,15 @@ const EditarTemaDialog: React.FC<EditarTemaDialogProps> = ({
   useEffect(() => {
     const listarEstudiantesYAsesores = async () => {
       try {
-        if (carreras) {
+        if (tema.carrera) {
           const tesistasData: Tesista[] = await fetchUsers(
-            carreras[0].id,
+            tema?.carrera?.id,
             "alumno",
           );
           setEstudiantesDisponibles(tesistasData.filter((t) => !t.asignado)); // No deben estar asignados
 
           const coasesoresData: Coasesor[] = await fetchUsers(
-            carreras[0].id,
+            tema?.carrera?.id,
             "profesor",
           );
 
@@ -161,7 +161,7 @@ const EditarTemaDialog: React.FC<EditarTemaDialogProps> = ({
       }
     };
     listarEstudiantesYAsesores();
-  }, [carreras, asesor]);
+  }, [tema, asesor]);
   //
 
   useEffect(() => {
@@ -279,9 +279,9 @@ const EditarTemaDialog: React.FC<EditarTemaDialogProps> = ({
         estadoTemaNombre: "Activo",
       };
       const temasSimilares = await verificarSimilitudTema(temaCreado);
-      if (temasSimilares.length === 0 && carreras && asesor) {
+      if (temasSimilares.length === 0 && tema.carrera && asesor) {
         console.log("No se encontraron temas similares.");
-        console.log(mapTemaCreate(temaData, carreras[0], asesor));
+        console.log(mapTemaCreate(temaData, tema?.carrera, asesor));
         handleEditarTema();
       } else {
         setTemaSimilitud(temasSimilares);
@@ -297,14 +297,14 @@ const EditarTemaDialog: React.FC<EditarTemaDialogProps> = ({
   };
 
   const handleEditarTema = async () => {
-    if (!validarCampos() || !carreras) return;
+    if (!validarCampos() || !tema?.carrera) return;
     try {
       setLoading(true);
       console.log(
         "Editando tema:",
-        mapTemaCreate(temaData, carreras[0], asesor),
+        mapTemaCreate(temaData, tema?.carrera, asesor),
       );
-      await editarTema(mapTemaCreate(temaData, carreras[0], asesor));
+      await editarTema(mapTemaCreate(temaData, tema?.carrera, asesor));
       setIsEditarTemaDialogOpen(false);
       if (onTemaEditado) {
         onTemaEditado();
@@ -388,6 +388,7 @@ const EditarTemaDialog: React.FC<EditarTemaDialogProps> = ({
     return Object.keys(nuevosErrores).length === 0;
   };
 
+  console.log(tema);
   return (
     <>
       <Toaster richColors position="bottom-right" />

@@ -63,6 +63,7 @@ public class CriterioExposicionServiceImpl implements CriterioExposicionService 
         criterioExposicion.setFechaCreacion(OffsetDateTime.now());
 
         criterioExposicionRepository.save(criterioExposicion);
+        criterioExposicionRepository.asociarTemasACriterioExposicion(criterioExposicion.getId(), exposicionId);
         return criterioExposicion.getId();
     }
 
