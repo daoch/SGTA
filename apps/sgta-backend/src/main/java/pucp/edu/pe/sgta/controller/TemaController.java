@@ -859,18 +859,21 @@ public class TemaController {
 
 
 	@PostMapping("/updatesolicitudesCoordinador")
-	public void updateSolicitudesCoordinador(Integer solicitudId,String respuesta,
-		HttpServletRequest request) {
-			try {
-				String usuarioId = jwtService.extractSubFromRequest(request);
-				temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId,respuesta);
+	public void updateSolicitudesCoordinador(
+			@RequestParam Integer solicitudId,
+			@RequestParam String respuesta,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId, respuesta);
 
-			} catch (RuntimeException e) {
-				throw new ResponseStatusException(
-						HttpStatus.UNAUTHORIZED,
-						"Ocurrió un error: " + e.getMessage());
-			}
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"Ocurrió un error: " + e.getMessage());
+		}
 	}
+
 
 	@GetMapping("/profesores-por-subareas")
     public ResponseEntity<List<UsuarioDto>> listarProfesoresPorSubareasGet(
