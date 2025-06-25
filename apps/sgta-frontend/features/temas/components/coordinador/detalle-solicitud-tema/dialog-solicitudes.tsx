@@ -153,16 +153,10 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
     </VariantCard>
   );
 
-  const tiposAprobacion = [
-    SolicitudType.APROBACION_TEMA,
-    SolicitudType.CAMBIO_RESUMEN,
-    SolicitudType.CAMBIO_TITULO,
-  ];
-
   function requiresApproval(sol: SolicitudTema): boolean {
     return (
-      !tiposAprobacion.includes(sol.tipo_solicitud as SolicitudType) &&
-      sol.estado_solicitud === "PENDIENTE"
+      sol.estado_solicitud === "PENDIENTE" &&
+      sol.tipo_solicitud !== SolicitudType.APROBACION_TEMA
     );
   }
 

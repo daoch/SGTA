@@ -19,9 +19,11 @@ import {
   eliminarTemaPorCoordinador,
   fetchSolicitudesDeTema,
   fetchTemasSimilares,
+  fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
+  SolicitudGeneral,
   SolicitudPendiente,
   SolicitudTema,
   TemaSimilar,
@@ -187,10 +189,10 @@ export default function DetalleSolicitudesCoordinadorPage({
 
   async function getSolicitudes() {
     try {
-      const data: SolicitudTema[] | [] = await fetchSolicitudesDeTema(
-        solicitud.tema.id,
-      );
-      setSolicitudes(data);
+      const data: SolicitudGeneral[] | [] =
+        await fetchTodasSolicitudesPendientes();
+
+      setSolicitudes(data.filter((sol) => sol.tema_id === solicitud.tema.id));
       setListoSolicitudes(
         data.reduce(
           (acc, curr) => acc && curr.estado_solicitud !== "PENDIENTE",
