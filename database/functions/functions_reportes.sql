@@ -5,8 +5,8 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     p_ciclo_nombre  VARCHAR
 )
   RETURNS TABLE(
-    teacher_name   VARCHAR,
-    area_name      VARCHAR,
+    teacher_name   TEXT,
+    area_name      TEXT,
     areas_conocimiento_json TEXT, -- NUEVO: JSON con múltiples áreas
     advisor_count  INTEGER,
     tesistas_names TEXT,
@@ -68,7 +68,7 @@ BEGIN
         -- DISTINCT ON evita duplicar temas si hay múltiples tesistas por tema (fallo BD)
         SELECT DISTINCT ON (t.tema_id)
             t.tema_id,
-            t.titulo::VARCHAR AS tema_titulo,
+            t.titulo::TEXT AS tema_titulo,
             sact.sub_area_conocimiento_id,
             sac.area_conocimiento_id  -- Añadimos esta columna para poder filtrar posteriormente
         FROM tema t
@@ -92,7 +92,7 @@ BEGIN
         -- Obtener TODOS los asesores asignados (incluyendo casos excepcionales fuera de área)
         SELECT DISTINCT
             u.usuario_id,
-            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
+            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::TEXT AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
             tdc.area_conocimiento_id,  -- Área del tema (no del asesor)
@@ -120,7 +120,7 @@ BEGIN
         SELECT DISTINCT
             ut.tema_id,
             ut.usuario_id,  -- DISTINCT evita contar el mismo tesista múltiples veces
-            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS tesista_name
+            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::TEXT AS tesista_name
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
@@ -134,7 +134,7 @@ BEGIN
         SELECT
             a.usuario_id,
             a.area_conocimiento_id,
-            COALESCE(ac.nombre, 'Área eliminada')::VARCHAR AS area_name
+            COALESCE(ac.nombre, 'Área eliminada')::TEXT AS area_name
         FROM asesores a
         LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = a.area_conocimiento_id AND ac.activo = TRUE
         -- LEFT JOIN evita perder asesores si el área fue eliminada o está inactiva
@@ -215,8 +215,8 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     p_ciclo_nombre  VARCHAR
 )
   RETURNS TABLE(
-    teacher_name   VARCHAR,
-    area_name      VARCHAR,
+    teacher_name   TEXT,
+    area_name      TEXT,
     areas_conocimiento_json TEXT, -- NUEVO: JSON con múltiples áreas
     juror_count    INTEGER,
     tesistas_names TEXT,
@@ -278,7 +278,7 @@ BEGIN
         -- DISTINCT ON evita duplicar temas si hay múltiples tesistas por tema (fallo BD)
         SELECT DISTINCT ON (t.tema_id)
             t.tema_id,
-            t.titulo::VARCHAR AS tema_titulo,
+            t.titulo::TEXT AS tema_titulo,
             sact.sub_area_conocimiento_id,
             sac.area_conocimiento_id  -- Añadimos esta columna para poder filtrar posteriormente
         FROM tema t
@@ -302,7 +302,7 @@ BEGIN
         -- Obtener TODOS los jurados asignados (incluyendo casos excepcionales fuera de área)
         SELECT DISTINCT
             u.usuario_id,
-            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS teacher_name,
+            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::TEXT AS teacher_name,
             ut.tema_id,
             tdc.tema_titulo,
             tdc.area_conocimiento_id,  -- Área del tema (no del jurado)
@@ -330,7 +330,7 @@ BEGIN
         SELECT DISTINCT
             ut.tema_id,
             ut.usuario_id,  -- DISTINCT evita contar el mismo tesista múltiples veces
-            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::VARCHAR AS tesista_name
+            CONCAT(u.nombres, ' ', u.primer_apellido, ' ', COALESCE(u.segundo_apellido, ''))::TEXT AS tesista_name
         FROM usuario u
         JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id
                              AND ut.activo = TRUE
@@ -344,7 +344,7 @@ BEGIN
         SELECT
             j.usuario_id,
             j.area_conocimiento_id,
-            COALESCE(ac.nombre, 'Área eliminada')::VARCHAR AS area_name
+            COALESCE(ac.nombre, 'Área eliminada')::TEXT AS area_name
         FROM jurados j
         LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = j.area_conocimiento_id AND ac.activo = TRUE
         -- LEFT JOIN evita perder jurados si el área fue eliminada o está inactiva
@@ -421,7 +421,7 @@ $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
-    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer, etapas_formativas_json text)
+    returns TABLE(advisor_name text, area_name text, performance_percentage numeric, total_students integer, etapas_formativas_json text)
     language plpgsql
 as
 $$
@@ -616,7 +616,7 @@ CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
     p_ciclo_nombre   VARCHAR
 )
   RETURNS TABLE(
-    area_name   VARCHAR,
+    area_name   TEXT,
     topic_count INTEGER,
     etapas_formativas_json TEXT
   )
@@ -726,7 +726,7 @@ CREATE OR REPLACE FUNCTION get_topic_area_trends_by_user(
     p_usuario_id  INTEGER
 )
   RETURNS TABLE(
-    area_name   VARCHAR,
+    area_name   TEXT,
     year        INTEGER,
     topic_count INTEGER,
     etapas_formativas_json TEXT
