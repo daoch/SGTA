@@ -415,8 +415,12 @@ export function CoordinatorReports() {
       let years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
       
       // Filtrar años por rango si se especifica
-      if (startYear && endYear) {
-        years = years.filter(year => year >= startYear && year <= endYear);
+      if (startYear || endYear) {
+        years = years.filter(year => {
+          const meetsStart = startYear ? year >= startYear : true;
+          const meetsEnd = endYear ? year <= endYear : true;
+          return meetsStart && meetsEnd;
+        });
       }
       
       const areas = Array.from(new Set(responseData.map(item => item.areaName)));
