@@ -1607,4 +1607,6 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
         }
+
+
 }

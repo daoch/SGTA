@@ -5,14 +5,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.api.services.gmail.Gmail;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.*;
@@ -36,6 +39,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     private final GoogleCalendarService googleCalendarService;
 
     private final GoogleGmailService googleGmailService;
+    @Value("${url.back}")
+    private String backURL;
 
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
                                               GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService, HttpServletRequest request) {
@@ -147,7 +152,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             (String) row[13],                             // apellidos
                             row[14] != null ? ((Number) row[14]).intValue() : null, // rolId
                             (String) row[15],                             // rolNombre
-                            (String) row[16]                              // estadoRespuesta
+                            (String) row[16],                         // estadoRespuesta
+                            (String) row[17] //correo
                     ))
                     .distinct()
                     .toList();
@@ -209,8 +215,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
-        /*
+    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion) {
+
         try {
 
             ObjectMapper mapper = new ObjectMapper();
@@ -254,67 +260,105 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             System.out.println("==================================================================");
             System.out.println("Resultado de la función: " + resultado);
 
+            HttpSession session = request.getSession(false);
+            if (session == null) throw new RuntimeException("No hay sesión activa");
+            int usuario_numero = 0 ;
+            String accessToken = (String) session.getAttribute("googleAccessToken");
+            if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
+            try{
+                // 1. Construir cliente Gmail
+                Gmail gmail = googleGmailService.buildGmailClient(accessToken);
+                for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesCambiado){
+                    if(bloque.getExpo()==null){
+                        continue;
+                    }
+                    TemaConAsesorJuradoDTO tema =  bloque.getExpo();
+                     List<UsarioRolDto>usuarios = tema.getUsuarios();
+                     if(usuarios == null)
+                         continue;
 
+                     for(UsarioRolDto usuario : usuarios){
+                         if(!usuario.getRol().getNombre().equals("Asesor") && !usuario.getRol().getNombre().equals("Jurado") )
+                             continue;
+                         if(usuario_numero == 0 ){
+                             usuario.setCorreo("a20191810@pucp.edu.pe");
+
+                         }
+                         // 2. Datos del correo
+                         String token = UUID.randomUUID().toString();//ESTE ES EL TOKEN IDENTIFICADOR
+                         try {
+                             controlExposicionUsuarioTemaRepository.setTokenUnico(usuario.getIdUsario(), token, exposicion,tema.getId());
+                         } catch (Exception e) {
+                             System.err.println("Error al asignar token único:");
+                             System.err.println(e.getMessage());
+
+                             // Si necesitas saber si es un error específico de PostgreSQL:
+                             if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx) {
+                                 System.err.println("PostgreSQL error: " + psqlEx.getServerErrorMessage().getMessage());
+                             }
+
+                             // Puedes continuar con el siguiente usuario si estás en un bucle
+                         }
+                         String destinatario = usuario.getCorreo();
+                         String asunto = "TEMA: " + tema.getCodigo()+ " - " + tema.getTitulo();
+                         String fecha = bloque.getKey().split("\\|")[0];
+                         String range = bloque.getRange();
+                         String tituloTema = tema.getTitulo();
+                         String urlAceptar = backURL + "/control-exposicion/aceptar-invitacion-correo?token=" + token;
+                         String urlRechazar = backURL + "/control-exposicion/rechazar-invitacion-correo?token=" + token;
+
+                         String cuerpoHtml = """
+                            <h2>Invitación a reunión 📅</h2>
+                            <p>Has sido invitado a esta reunión.</p>
+                            <p>Se ha programado la exposición del tema "<strong>%s</strong>" para el día <strong>%s</strong>, en el rango de <strong>%s</strong>.</p>
+                            <p>Por favor, confirma tu asistencia:</p>
+                            <div style="margin-top: 20px;">
+                                <a href="%s" style="
+                                    padding: 10px 20px;
+                                    background-color: #4CAF50;
+                                    color: white;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    margin-right: 10px;
+                                    display: inline-block;
+                                ">Sí</a>
+                                <a href="%s" style="
+                                    padding: 10px 20px;
+                                    background-color: #f44336;
+                                    color: white;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    display: inline-block;
+                                ">No</a>
+                            </div>
+                            """.formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
+                         try{
+                             if(usuario_numero==0){
+                                 googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
+                                 System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
+                                 System.out.println("Correo enviado correctamente.");
+                                 usuario_numero++;
+                             }
+
+                         }catch (Exception e){
+                             System.err.println("Error al enviar correo a: " + usuario.getCorreo());
+                             e.printStackTrace(); // o usar logger
+                         }
+
+                     }
+
+
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return false;
+            }
             return true;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return false;
-        }*/
-        HttpSession session = request.getSession(false);
-        if (session == null) throw new RuntimeException("No hay sesión activa");
-
-        String accessToken = (String) session.getAttribute("googleAccessToken");
-        if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
-
-        try {            // === CONFIGURACIÓN DE CORREO ===
-
-
-            // 1. Construir cliente Gmail
-            Gmail gmail = googleGmailService.buildGmailClient(accessToken);
-
-            // 2. Datos del correo
-            String destinatario = "a20191810@pucp.edu.pe";
-            String asunto = "SGTA - Prueba de correo automático";
-            String cuerpoHtml = """
-            <h2>Invitación a reunión 📅</h2>
-            <p>Has sido invitado a esta reunión.</p>
-            <p>Por favor, confirma tu asistencia:</p>
-        
-            <div style="margin-top: 20px;">
-                <a href="https://sgta.pucp.edu.pe/reunion/aceptar" style="
-                    padding: 10px 20px;
-                    background-color: #4CAF50;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 5px;
-                    margin-right: 10px;
-                    display: inline-block;
-                ">Sí</a>
-        
-                <a href="https://sgta.pucp.edu.pe/reunion/rechazar" style="
-                    padding: 10px 20px;
-                    background-color: #f44336;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 5px;
-                    display: inline-block;
-                ">No</a>
-            </div>
-        """;
-
-
-            // 3. Enviar correo
-            googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
-
-            System.out.println("Correo enviado correctamente.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
-
-
-        return true;
-
 
     }
 

@@ -104,6 +104,7 @@ export interface Usuario {
   apellidos: string;
   rol: Rol;
   estadoRespuesta: "esperando_respuesta" | "aceptado" | "rechazado";
+  correo : string;
 }
 
 export interface Rol {

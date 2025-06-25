@@ -44,6 +44,7 @@ public class SgtaApplication {
 		System.setProperty("GOOGLE_SCOPE",dotenv.get("GOOGLE_SCOPE", ""));
 
 		System.setProperty("REDIRECT_BACK",dotenv.get("REDIRECT_BACK", ""));
+		System.setProperty("URL_BACK",dotenv.get("URL_BACK", ""));
 	}
 
 	public static void main(String[] args) {

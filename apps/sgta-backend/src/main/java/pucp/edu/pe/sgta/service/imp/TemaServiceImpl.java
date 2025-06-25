@@ -1233,6 +1233,7 @@ public class TemaServiceImpl implements TemaService {
 			String apellidos = (String) fila[5];
 			Integer rolId = (Integer) fila[6];
 			String rolNombre = (String) fila[7];
+			String correo = (String) fila[8];
 
 			// Si el tema no ha sido creado aún en el mapa, se crea
 			TemaConAsesorJuradoDTO dto = mapaTemas.get(temaId);
@@ -1241,6 +1242,7 @@ public class TemaServiceImpl implements TemaService {
 				dto.setId(temaId);
 				dto.setCodigo(codigo);
 				dto.setTitulo(titulo);
+
 				dto.setUsuarios(new ArrayList<>());
 				List<AreaConocimientoDto> areas = areaConocimientoService.getAllByTemaId(temaId);
 				dto.setAreasConocimiento(areas);
@@ -1252,7 +1254,7 @@ public class TemaServiceImpl implements TemaService {
 			usuarioDto.setIdUsario(usuarioId);
 			usuarioDto.setNombres(nombres);
 			usuarioDto.setApellidos(apellidos);
-
+			usuarioDto.setCorreo(correo);
 			RolDto rolDto = new RolDto();
 			rolDto.setId(rolId);
 			rolDto.setNombre(rolNombre);

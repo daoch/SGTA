@@ -54,4 +54,7 @@ public class ControlExposicionUsuarioTema {
     @Convert(converter = EstadoExposicionUsuarioConverter.class)
     private EstadoExposicionUsuario estadoExposicion = EstadoExposicionUsuario.ESPERANDO_RESPUESTA;
 
+    @Column(name="token_unico",nullable = true)
+    private String tokenUnico;
+
 }
