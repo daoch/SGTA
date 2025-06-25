@@ -97,6 +97,7 @@ public class EntregableServiceImpl implements EntregableService {
             entregable.setEstado(EstadoActividad.no_iniciado);
         }
         entregableRepository.save(entregable);
+        entregableRepository.asociarTemasAEntregable(entregable.getId(), etapaFormativaXCicloId);
         return entregable.getId();
     }
 

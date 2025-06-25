@@ -47,4 +47,13 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
     List<Object[]> listarTesistasXExposicion(@Param("exposicionId") Integer exposicionId);
 
     Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
+
+    @Query(value = "SELECT * FROM get_exposiciones_coordinador(:usuarioId)", nativeQuery = true)
+    List<Object[]> getExposicionesPorCoordinador(@Param("usuarioId") Integer usuarioId);
+
+    @Query(value = "SELECT * FROM get_miembros_por_tema(:temaId)", nativeQuery = true)
+    List<Object[]> getMiembrosPorTema(@Param("temaId") Integer temaId);
+
+    @Query(value = "SELECT asociar_temas_a_exposicion(:exposicionId, :etapaFormativaXCicloId)", nativeQuery = true)
+    void asociarTemasAExposicion(@Param("exposicionId") Integer exposicionId, @Param("etapaFormativaXCicloId") Integer etapaFormativaXCicloId);
 }
