@@ -82,6 +82,25 @@ const PlanificacionEstadoStepper: React.FC<Props> = React.memo(
                     </span>
                   )}
                   {step.id === estadoPlan.id - 1 &&
+                    step.id !== 2 &&
+                    estadoPlan.id !== 5 &&
+                    estadoPlan.fechaModificacion && (
+                      <span>
+                        {new Date(estadoPlan.fechaModificacion).toLocaleString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          },
+                        )}
+                      </span>
+                    )}
+                  {estadoPlan.id === 5 &&
+                    step.id === 5 &&
                     estadoPlan.fechaModificacion && (
                       <span>
                         {new Date(estadoPlan.fechaModificacion).toLocaleString(
