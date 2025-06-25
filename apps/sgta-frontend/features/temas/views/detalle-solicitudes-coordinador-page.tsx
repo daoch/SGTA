@@ -7,6 +7,7 @@ import { toast, Toaster } from "sonner";
 import { AccionesDetalleSoliTema } from "../components/coordinador/detalle-solicitud-tema/acciones-detalle-soli-tema";
 import { AnalisisSimilitudTema } from "../components/coordinador/detalle-solicitud-tema/analisis-similitud-tema";
 import { ComentariosDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/comentarios-detalle-solicitud-tema";
+import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 import { EncabezadoDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/encabezado-detalle-solicitud-tema";
 import { HistorialDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/historial-detalle-solicitud-tema";
 import { InfoDetalleSolicitudTema } from "../components/coordinador/detalle-solicitud-tema/info-detalle-solicitud-tema";
@@ -18,7 +19,6 @@ import {
   eliminarTemaPorCoordinador,
   fetchSolicitudesDeTema,
   fetchTemasSimilares,
-  fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
 import {
   SolicitudAction,
@@ -29,7 +29,6 @@ import {
 } from "../types/solicitudes/entities";
 import { Tema } from "../types/temas/entidades";
 import { EstadoTemaNombre } from "../types/temas/enums";
-import { DialogSolicitudes } from "../components/coordinador/detalle-solicitud-tema/dialog-solicitudes";
 
 const actionToStateMap: Record<SolicitudAction, EstadoTemaNombre> = {
   Aprobada: EstadoTemaNombre.REGISTRADO,
@@ -127,9 +126,10 @@ export default function DetalleSolicitudesCoordinadorPage({
           } else {
             await crearSolicitudCambioTitulo(solicitud.tema.id, comentario);
           }
-
-          getSolicitudes(); // Visualizar cambios
         }
+
+        // Lists Updated Solicitudes
+        getSolicitudes();
       }
 
       // Show Succes Message
@@ -250,30 +250,30 @@ export default function DetalleSolicitudesCoordinadorPage({
     />
   );
 
+  const temaPorAprobar = [
+    EstadoTemaNombre.INSCRITO,
+    EstadoTemaNombre.OBSERVADO,
+  ].includes(solicitud.estado);
   return (
     <>
       <Toaster position="top-right" richColors />
       <form className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="max-w-6xl mx-auto space-y-6 flex flex-col md:flex-row gap-6">
-          {/* #1 */}
+          {/* #1 Detalles del tema */}
           <div className="flex flex-col gap-4 md:w-3/5">
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
-            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-              solicitud.estado,
-            ) && moduloAnalisisSimilitud}
+            {temaPorAprobar && moduloAnalisisSimilitud}
             <HistorialDetalleSolicitudTema historial={historialMock} />
           </div>
 
-          {/* # 2 */}
+          {/* # 2 Acciones */}
           <div className="flex flex-col gap-4 md:w-2/5">
             {/* Similitudes */}
             {moduloSolicitudes}
 
             {/* Comentarios del Comité y selección del tipo de solicitud */}
-            {[EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-              solicitud.estado,
-            ) && (
+            {temaPorAprobar && (
               <ComentariosDetalleSolicitudTema
                 tipoSolicitud={tipoSolicitud}
                 setTipoSolicitud={setTipoSolicitud}
@@ -286,9 +286,7 @@ export default function DetalleSolicitudesCoordinadorPage({
             )}
 
             {/* Similitud */}
-            {[EstadoTemaNombre.REGISTRADO, EstadoTemaNombre.RECHAZADO].includes(
-              solicitud.estado,
-            ) && moduloAnalisisSimilitud}
+            {!temaPorAprobar && moduloAnalisisSimilitud}
 
             {/* Actions */}
             <AccionesDetalleSoliTema

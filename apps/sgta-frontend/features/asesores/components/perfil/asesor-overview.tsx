@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Mail, Plus, X } from "lucide-react";
+import { Check, ChevronsUpDown, Mail, Pencil, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -40,6 +40,7 @@ import {
 } from "../../types/perfil/entidades";
 import { EstadisticasAsesorCard } from "./indicadores-asesor";
 import { ItemCopiable } from "./item-copia";
+import ModalSubirFoto from "./modal-subir-foto";
 import { PLATAFORMAS_DISPONIBLES, PlatformIcon } from "./plataforma-icons";
 
 interface Props {
@@ -66,6 +67,7 @@ interface Props {
   initiateAreaDelete: (area: AreaTematica) => void;
   removeTemaInteres: (idTema: number) => void;
   isAsesor: boolean;
+  onFotoChange?: (nuevaFoto: string | null) => void;
 }
 
 export default function OverviewSection({
@@ -92,6 +94,7 @@ export default function OverviewSection({
   initiateAreaDelete,
   removeTemaInteres,
   isAsesor,
+  onFotoChange,
 }: Readonly<Props>) {
   const [newEnlace, setNewEnlace] = useState<{
     nombrePlataforma?: PlataformaType;
@@ -103,6 +106,7 @@ export default function OverviewSection({
     enlace: "",
   });
   const [showAllTopics, setShowAllTopics] = useState(false);
+  const [isModalFotoOpen, setIsModalFotoOpen] = useState(false);
 
   const tesisEnProceso = tesis.filter((t) => t.estado === "en_proceso").length;
   const totalProyectos = proyectos.length;
@@ -190,6 +194,16 @@ export default function OverviewSection({
     }
   };
 
+  const handleOpenModalFoto = () => {
+    setIsModalFotoOpen(true);
+  };
+
+  const handleFotoChange = (nuevaFoto: string | null) => {
+    if (onFotoChange) {
+      onFotoChange(nuevaFoto);
+    }
+  };
+
   const displayedTopics = showAllTopics
     ? [
         ...editedData.areasTematicas.map((item) => ({
@@ -218,22 +232,36 @@ export default function OverviewSection({
       <div className="lg:col-span-3">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex flex-col items-center text-center">
-            <Avatar className="w-48 h-48 rounded-lg mb-4">
-              <AvatarImage
-                src={avatar || undefined}
-                alt={asesor?.nombre || "Usuario"}
-              />
-              <AvatarFallback className="rounded-lg text-2xl">
-                {asesor?.nombre
-                  ? asesor.nombre
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()
-                  : "US"}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="w-32 h-32 rounded-lg mb-2">
+                <AvatarImage
+                  src={asesor?.foto || undefined}
+                  alt={asesor?.nombre || "Usuario"}
+                />
+                <AvatarFallback className="rounded-lg">
+                  {asesor?.nombre
+                    ? asesor.nombre
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "US"}
+                </AvatarFallback>
+              </Avatar>
+
+              {isEditing && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 shadow-md hover:shadow-lg transition-shadow"
+                  onClick={handleOpenModalFoto}
+                  title="Cambiar foto"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
 
             <h2 className="text-2xl font-bold mb-2">{asesor?.nombre}</h2>
             <p className="text-gray-600 mb-4">{asesor?.especialidad}</p>
@@ -830,6 +858,12 @@ export default function OverviewSection({
           )}
         </div>
       </div>
+      <ModalSubirFoto
+        open={isModalFotoOpen}
+        onOpenChange={setIsModalFotoOpen}
+        onFotoChange={handleFotoChange}
+        fotoActual={avatar}
+      />
     </div>
   );
 }

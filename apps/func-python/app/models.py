@@ -213,3 +213,37 @@ class OAIResponse(BaseModel):
     total_sets_processed: int = 0
     set_spec_filter: Optional[str] = None # If the response is for a specific set
     records: List[OAIRecord] = Field(default_factory=list)
+    # Pagination fields
+    total_available: Optional[int] = None # Total records available (expensive to compute)
+    has_more: Optional[bool] = None # Whether there are more records to fetch
+    offset: Optional[int] = None # Current offset for pagination
+    limit: Optional[int] = None # Current limit for pagination
+
+# Models for async import functionality
+class AsyncImportTaskInfo(BaseModel):
+    task_id: str
+    set_spec: str
+    carrera_id: int
+    metadata_prefix: str
+    status: str # queued, running, completed, failed
+    created_at: str
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    progress: float = 0.0  # 0-100 percentage
+    imported_count: int = 0
+    processed_records: int = 0
+    total_records: Optional[int] = None
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+class AsyncImportResponse(BaseModel):
+    success: bool
+    message: str
+    task_id: str
+    status: str
+    error: Optional[str] = None
+
+class AsyncImportStatusResponse(BaseModel):
+    success: bool
+    task_info: AsyncImportTaskInfo
+    error: Optional[str] = None

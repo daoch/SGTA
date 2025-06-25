@@ -2,10 +2,34 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaCiclo, EtapaFormativaCicloCreate } from "../types/etapa-formativa-ciclo";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
+export interface EtapaFormativaXCicloTesista {
+    id: number;
+    etapaFormativaId: number;
+    etapaFormativaNombre: string;
+    cicloId: number;
+    cicloNombre: string;
+    carreraId: number;
+    carreraNombre: string;
+    activo: boolean;
+    estado: string;
+}
+
 export const etapaFormativaCicloService = {
     getAllByIdCarrera: async (): Promise<EtapaFormativaCiclo[]> => {
         const { idToken } = useAuthStore.getState();
         const response = await axiosInstance.get("/etapa-formativa-x-ciclo/carreraList",
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+        );
+        return response.data;
+    },
+
+    getByTesista: async (): Promise<EtapaFormativaXCicloTesista[]> => {
+        const { idToken } = useAuthStore.getState();
+        const response = await axiosInstance.get("/etapa-formativa-x-ciclo/tesista",
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,

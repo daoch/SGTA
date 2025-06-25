@@ -10,10 +10,7 @@ import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.mapper.ExposicionMapper;
-import pucp.edu.pe.sgta.model.EstadoPlanificacion;
-import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
-import pucp.edu.pe.sgta.model.Exposicion;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
@@ -22,6 +19,7 @@ import pucp.edu.pe.sgta.service.inter.ExposicionService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -36,7 +34,8 @@ public class ExposicionServiceImpl implements ExposicionService {
     private final BloqueHorarioExposicionService bloqueHorarioExposicionService;
 
     public ExposicionServiceImpl(ExposicionRepository exposicionRepository,
-                                 UsuarioXTemaRepository usuarioXTemaRepository, BloqueHorarioExposicionService bloqueHorarioExposicionService) {
+            UsuarioXTemaRepository usuarioXTemaRepository,
+            BloqueHorarioExposicionService bloqueHorarioExposicionService) {
         this.exposicionRepository = exposicionRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.bloqueHorarioExposicionService = bloqueHorarioExposicionService;
@@ -53,7 +52,8 @@ public class ExposicionServiceImpl implements ExposicionService {
                         ((Number) resultado[1]).intValue(), // id etapa formativa x ciclo
                         (String) resultado[2], // nombre
                         (String) resultado[3], // descripcion
-                        ((Number) resultado[4]).intValue() // id estado planificacion
+                        ((Number) resultado[4]).intValue(), // id estado planificacion
+                        ((Number) resultado[5]).intValue() // id entregable
                 ))
                 .collect(Collectors.toList());
     }
@@ -79,9 +79,13 @@ public class ExposicionServiceImpl implements ExposicionService {
         EtapaFormativaXCiclo efc = new EtapaFormativaXCiclo();
         efc.setId(etapaFormativaXCicloId);
         exposicion.setEtapaFormativaXCiclo(efc);
+        Entregable entregable = new Entregable();
+        entregable.setId(dto.getEntregableId());
+        exposicion.setEntregable(entregable);
         exposicion.setFechaCreacion(OffsetDateTime.now());
 
         exposicionRepository.save(exposicion);
+        exposicionRepository.asociarTemasAExposicion(exposicion.getId(), etapaFormativaXCicloId);
         return exposicion.getId();
     }
 
@@ -96,6 +100,10 @@ public class ExposicionServiceImpl implements ExposicionService {
         EstadoPlanificacion estadoPlanificacion = new EstadoPlanificacion();
         estadoPlanificacion.setId(dto.getEstadoPlanificacionId());
         exposicionToUpdate.setEstadoPlanificacion(estadoPlanificacion);
+
+        Entregable entregable = new Entregable();
+        entregable.setId(dto.getEntregableId());
+        exposicionToUpdate.setEntregable(entregable);
 
         exposicionToUpdate.setDescripcion(dto.getDescripcion());
         exposicionToUpdate.setFechaModificacion(OffsetDateTime.now());
@@ -193,6 +201,7 @@ public class ExposicionServiceImpl implements ExposicionService {
             dto.setCiclo((String) obj[10]);
             dto.setTipoExposicion((String) obj[11]);
             dto.setEstudianteId(usuarioId);
+            dto.setNotaFinal((BigDecimal) obj[12]);
 
             List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository.findByTemaIdAndActivoTrue(dto.getTemaId());
             List<MiembroExposicionDto> miembros = usuarioTemas.stream()
@@ -212,8 +221,10 @@ public class ExposicionServiceImpl implements ExposicionService {
 
     @Override
     public byte[] exportarExcel(Integer expoId) {
-        List<ListBloqueHorarioExposicionSimpleDTO>lista = bloqueHorarioExposicionService.listarBloquesHorarioPorExposicion(expoId);
-        List<ListBloqueHorarioExposicionSimpleDTO>listaFiltrada = lista.stream().filter(l->l.getExpo()!=null).toList();
+        List<ListBloqueHorarioExposicionSimpleDTO> lista = bloqueHorarioExposicionService
+                .listarBloquesHorarioPorExposicion(expoId);
+        List<ListBloqueHorarioExposicionSimpleDTO> listaFiltrada = lista.stream().filter(l -> l.getExpo() != null)
+                .toList();
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Reporte");
 
@@ -230,7 +241,7 @@ public class ExposicionServiceImpl implements ExposicionService {
             headerRow.createCell(8).setCellValue("Revisor 1");
             headerRow.createCell(9).setCellValue("Revisor 2");
             int rowNum = 1;
-            for(ListBloqueHorarioExposicionSimpleDTO dto : listaFiltrada) {
+            for (ListBloqueHorarioExposicionSimpleDTO dto : listaFiltrada) {
                 Row dataRow = sheet.createRow(rowNum++);
                 dataRow.createCell(0).setCellValue(dto.getExpo().getCodigo());
                 dataRow.createCell(1).setCellValue(dto.getExpo().getTitulo());
@@ -261,45 +272,43 @@ public class ExposicionServiceImpl implements ExposicionService {
                         }
                     }
                 }
-                if(jurado1 != null) {
-                    dataRow.createCell(2).setCellValue(jurado1.getNombres() +" " + jurado1.getApellidos());
+                if (jurado1 != null) {
+                    dataRow.createCell(2).setCellValue(jurado1.getNombres() + " " + jurado1.getApellidos());
                 }
-                if(jurado2 != null) {
+                if (jurado2 != null) {
                     dataRow.createCell(3).setCellValue(jurado2.getNombres() + " " + jurado2.getApellidos());
                 }
 
-                if(asesor != null) {
+                if (asesor != null) {
                     dataRow.createCell(4).setCellValue(asesor.getNombres() + " " + asesor.getApellidos());
                 }
-
 
                 String[] partes = dto.getKey().split("\\|");
                 String hora = partes[1];
                 String salon = partes[2];
                 dataRow.createCell(5).setCellValue(hora);
                 dataRow.createCell(6).setCellValue(salon);
-                if(tesista != null) {
-                    dataRow.createCell(7).setCellValue(tesista.getNombres()+" " + tesista.getApellidos());
+                if (tesista != null) {
+                    dataRow.createCell(7).setCellValue(tesista.getNombres() + " " + tesista.getApellidos());
                 }
-                if(revisor1 != null) {
-                    dataRow.createCell(8).setCellValue(revisor1.getNombres()+" "+revisor1.getApellidos());
+                if (revisor1 != null) {
+                    dataRow.createCell(8).setCellValue(revisor1.getNombres() + " " + revisor1.getApellidos());
                 }
-                if(revisor2 != null) {
-                    dataRow.createCell(9).setCellValue(revisor2.getNombres()+" " +revisor2.getApellidos());
+                if (revisor2 != null) {
+                    dataRow.createCell(9).setCellValue(revisor2.getNombres() + " " + revisor2.getApellidos());
                 }
 
             }
-
-
-
 
             // Convertir a byte array
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             String rutaArchivo = "/home/darkmoon/Descargas/reporte.xlsx"; // o cualquier ruta válida
-            /*try (FileOutputStream fileOut = new FileOutputStream(rutaArchivo)) {
-                workbook.write(fileOut);
-            }*/
+            /*
+             * try (FileOutputStream fileOut = new FileOutputStream(rutaArchivo)) {
+             * workbook.write(fileOut);
+             * }
+             */
             return outputStream.toByteArray(); // ✅ Retornar aquí
         } catch (Exception e) {
             e.printStackTrace();

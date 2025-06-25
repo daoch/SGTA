@@ -20,10 +20,11 @@ import {
   EtapaFormativa,
   Ciclo,
 } from "@/features/jurado/types/juradoDetalle.types";
-
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
   getCiclos,
   getEtapasFormativasNombres,
+  getEtapaFormativaId
 } from "../services/jurado-service";
 
 const estados = [
@@ -59,7 +60,9 @@ export const FilterExposicionJurado: React.FC<Props> = ({
   useEffect(() => {
     const fetchEtapasFormativas = async () => {
       try {
-        const etapasFormativas = await getEtapasFormativasNombres();
+        const { idToken } = useAuthStore.getState();
+        console.log("ID Token del filtro:", idToken);
+        const etapasFormativas = await getEtapaFormativaId(idToken!);
         setEtapasFormativas(etapasFormativas);
       } catch (error) {
         console.error("Error fetching etapas formativas:", error);
@@ -90,7 +93,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
     <div className="flex flex-wrap gap-4 pb-4 items-end">
       {/* Buscador */}
       <div>
-        <Label htmlFor="buscador" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="buscador" className="leading-none font-semibold mb-2">
           Buscar
         </Label>
         <div className="flex items-center gap-3">
@@ -123,7 +126,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Curso */}
       <div>
-        <Label htmlFor="curso" className="text-sm font-semibold mb-2">
+        <Label htmlFor="curso" className="leading-none font-semibold mb-2">
           Curso
         </Label>
         <Controller
@@ -150,7 +153,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Periodo */}
       <div>
-        <Label htmlFor="periodo" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="periodo" className="leading-none font-semibold mb-2">
           Período
         </Label>
         <Controller
@@ -178,7 +181,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Estado */}
       <div>
-        <Label htmlFor="estado" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="estado" className="leading-none font-semibold mb-2">
           Estado
         </Label>
         <Controller

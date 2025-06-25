@@ -22,4 +22,10 @@ public interface CicloRepository extends JpaRepository<Ciclo, Integer> {
       """, nativeQuery = true)
   List<CicloConEtapasProjection> findAllCiclesAndEtapaFormativas();
 
+  /**
+   * Obtiene todos los ciclos (activos e inactivos) ordenados por año y semestre descendente
+   */
+  @Query("SELECT c FROM Ciclo c ORDER BY c.anio DESC, c.semestre DESC, c.activo DESC")
+  List<Ciclo> findAllCiclosCompletos();
+
 }

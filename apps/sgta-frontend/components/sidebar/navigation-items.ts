@@ -9,10 +9,12 @@ import {
   FileText,
   FolderOpen,
   Home,
+  MailQuestion,
   MessageSquare,
   RefreshCcw,
   Search,
   Settings,
+  Shuffle,
   Users,
   UserX2,
 } from "lucide-react";
@@ -101,6 +103,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: FileText,
     },
     { name: "Reportes", href: "/alumno/reportes", icon: BarChart3 },
+    {
+      name: "Configuración",
+      href: "/alumno/configuracion/notificaciones",
+      icon: Settings,
+    },
   ],
   jurado: [
     { name: "Calendario", href: "/jurado/calendario", icon: CalendarIcon },
@@ -116,6 +123,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: ClipboardList,
     },
     { name: "Propuestas", href: "/asesor/propuestas", icon: FileText },
+    {
+      name: "Invitaciones de Asesoría",
+      href: "/asesor/propuestas-recibidas",
+      icon: MailQuestion,
+    },
     { name: "Tesistas", href: "/asesor/tesistas", icon: Users },
     {
       name: "Asesores",
@@ -144,6 +156,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         },
       ],
     },
+    { name: "Exposiciones", href: "/asesor/exposiciones", icon: MessageSquare },
     { name: "Revisión", href: "/asesor/revision", icon: Search },
     { name: "Reportes", href: "/asesor/reportes", icon: BarChart3 },
   ],
@@ -154,6 +167,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       name: "Aprobaciones",
       href: "/coordinador/aprobaciones",
       icon: CheckSquare,
+    },
+    {
+      name: "Reasignaciones Pendientes",
+      href: "/coordinador/reasignaciones-pendientes", // La ruta de la nueva página
+      icon: Shuffle, // Ícono para reasignaciones/cambios
     },
     {
       name: "Exposiciones",

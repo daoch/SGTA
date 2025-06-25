@@ -42,23 +42,41 @@ class OAIQueryTool:
             logger.error(f"Error listing sets from {self.oai_base_url}: {e}", exc_info=True)
             return []
 
-    def list_records(self, metadata_prefix: str = 'oai_dc', set_spec: Optional[str] = None) -> Iterator[Dict[str, Any]]:
+    def list_records(self, metadata_prefix: str = 'oai_dc', set_spec: Optional[str] = None, 
+                    limit: Optional[int] = None, offset: Optional[int] = None) -> Iterator[Dict[str, Any]]:
         """
-        Lists records from the repository, optionally filtered by set.
+        Lists records from the repository, optionally filtered by set with pagination support.
 
         Args:
             metadata_prefix: The metadata prefix to use (e.g., 'oai_dc').
             set_spec: The setSpec of the set to harvest records from. If None, harvests from all sets.
+            limit: Maximum number of records to return. If None, returns all records.
+            offset: Number of records to skip before starting to return records. If None, starts from 0.
 
         Yields:
             Dict: A dictionary representing a single record's header and metadata.
         """
         try:
-            logger.info(f"Listing records with prefix '{metadata_prefix}'{f' for set {set_spec}' if set_spec else ''}...")
+            logger.info(f"Listing records with prefix '{metadata_prefix}'{f' for set {set_spec}' if set_spec else ''} (limit: {limit}, offset: {offset})...")
             records_iterator = self.sickle.ListRecords(metadataPrefix=metadata_prefix, set=set_spec, ignore_deleted=True)
             count = 0
+            yielded = 0
+            start_offset = offset or 0
+            max_records = limit
+            
             for record in records_iterator:
+                # Skip records until we reach the offset
+                if count < start_offset:
+                    count += 1
+                    continue
+                
+                # Stop if we've reached the limit
+                if max_records is not None and yielded >= max_records:
+                    break
+                
                 count += 1
+                yielded += 1
+                
                 # The record object from Sickle has 'header' and 'metadata' attributes.
                 # record.header is an XML element. record.metadata is a dict.
                 # We need to extract relevant info from the header, like the identifier.
@@ -71,7 +89,8 @@ class OAIQueryTool:
                     },
                     "metadata": record.metadata
                 }
-            logger.info(f"Finished listing {count} records with prefix '{metadata_prefix}'{f' for set {set_spec}' if set_spec else ''}.")
+            
+            logger.info(f"Finished listing {yielded} records (total processed: {count}) with prefix '{metadata_prefix}'{f' for set {set_spec}' if set_spec else ''}.")
         except NoRecordsMatch:
             logger.info(f"No records match for prefix '{metadata_prefix}'{f' in set {set_spec}' if set_spec else ''}.")
             # Yield nothing explicitly, or could return an empty iterator: yield from ()
@@ -104,6 +123,33 @@ class OAIQueryTool:
         except Exception as e:
             logger.error(f"Error getting record {identifier} from {self.oai_base_url}: {e}", exc_info=True)
             return None
+
+    def count_records(self, metadata_prefix: str = 'oai_dc', set_spec: Optional[str] = None) -> int:
+        """
+        Counts the total number of records in a set (or all sets if set_spec is None).
+        
+        Note: This requires iterating through all records, so it may be slow for large sets.
+        Consider caching the result for better performance.
+        
+        Args:
+            metadata_prefix: The metadata prefix to use (e.g., 'oai_dc').
+            set_spec: The setSpec of the set to count records from. If None, counts from all sets.
+            
+        Returns:
+            int: Total number of records available.
+        """
+        try:
+            logger.info(f"Counting records with prefix '{metadata_prefix}'{f' for set {set_spec}' if set_spec else ''}...")
+            records_iterator = self.sickle.ListRecords(metadataPrefix=metadata_prefix, set=set_spec, ignore_deleted=True)
+            count = sum(1 for _ in records_iterator)
+            logger.info(f"Total records count: {count}")
+            return count
+        except NoRecordsMatch:
+            logger.info(f"No records match for prefix '{metadata_prefix}'{f' in set {set_spec}' if set_spec else ''}.")
+            return 0
+        except Exception as e:
+            logger.error(f"Error counting records from {self.oai_base_url} (prefix: {metadata_prefix}, set: {set_spec}): {e}", exc_info=True)
+            return 0
 
 # Example Usage (for testing purposes)
 if __name__ == '__main__':

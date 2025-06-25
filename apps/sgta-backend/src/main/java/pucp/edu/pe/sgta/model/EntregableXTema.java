@@ -32,6 +32,12 @@ public class EntregableXTema {
     @JoinColumn(name = "tema_id", foreignKey = @ForeignKey(name = "fk_entregable_x_tema_tema"))
     private Tema tema;
 
+    @Column(name = "entregable_id", insertable = false, updatable = false)
+    private Integer entregableId;
+
+    @Column(name = "tema_id", insertable = false, updatable = false)
+    private Integer temaId;
+
     @Column(name = "fecha_envio", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaEnvio;
 
@@ -55,6 +61,9 @@ public class EntregableXTema {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+    
+    @Column(name = "corregido")
+    private Boolean corregido = false;
 
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;

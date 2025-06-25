@@ -103,8 +103,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             """, nativeQuery = true)
     List<Object[]> obtenerProfesores();
 
-    @Query(value = "SELECT * FROM obtener_perfil_usuario(:cognito_id)", nativeQuery = true)
-    List<Object[]> obtenerPerfilUsuario(@Param("cognito_id") String cognitoId);
+    @Query(value = "SELECT * FROM obtener_perfil_usuario(:usuarioId)", nativeQuery = true)
+    List<Object[]> obtenerPerfilUsuario(@Param("usuarioId") Integer usuarioId);
 
     @Query(value = "SELECT obtener_id_cognito_por_usuario(:usuarioId)", nativeQuery = true)
     String findIdCognitoByUsuarioId(@Param("usuarioId") Integer usuarioId);
@@ -114,4 +114,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @Query(value = "SELECT obtener_usuario_id_por_cognito_id(:idCognito)", nativeQuery = true)
     Integer findUsuarioIdByIdCognito(@Param("idCognito")String idCognito);
+
+    List<Usuario> findAllById(Iterable<Integer> ids);
+
 }

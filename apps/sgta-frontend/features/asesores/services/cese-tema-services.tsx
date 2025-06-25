@@ -32,14 +32,15 @@ export async function getDetalleSolicitudCeseTema(
 }
 
 export async function getResumenesSolicitudCeseTema(
-  rolSolicitud: string,
+  roles: string[],
 ): Promise<SolicitudCeseTemaResumen[]> {
   try {
+    const queryString = roles
+      .map((r) => `roles=${encodeURIComponent(r)}`)
+      .join("&");
+
     const response = await axiosInstance.get(
-      "/solicitudes/listarResumenSolicitudCeseTemaUsuario",
-      {
-        params: { rolSolicitud },
-      },
+      `/solicitudes/listarResumenSolicitudCeseTemaUsuario?${queryString}`,
     );
     return response.data as SolicitudCeseTemaResumen[];
   } catch (error: unknown) {

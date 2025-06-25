@@ -113,7 +113,7 @@ $ function $;
 
 --DROP FUNCTION IF EXISTS sgtadb.obtener_revision_documento_por_id(int4);
 CREATE
-OR REPLACE FUNCTION sgtadb.obtener_revision_documento_por_id(revision_id_input integer) RETURNS TABLE(
+OR REPLACE FUNCTION obtener_revision_documento_por_id(revision_id_input integer) RETURNS TABLE(
     revision_id integer,
     tema text,
     entregable text,
@@ -230,7 +230,7 @@ END;
 $ $ LANGUAGE plpgsql;
 
 CREATE
-OR REPLACE FUNCTION sgtadb.crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
+OR REPLACE FUNCTION crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
 
 v_tema_id INT;
 
@@ -315,34 +315,36 @@ END;
 
 $ function $;
 
-CREATE
-OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
+DROP FUNCTION IF EXISTS obtener_detalles_entregable_y_tema;
+CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
 ) RETURNS TABLE (
     nombre_tema VARCHAR,
     nombre_entregable VARCHAR,
-    estado enum_estado_entrega,
+    estado enum_estado_revision,
     fecha_envio TIMESTAMPTZ,
     fecha_fin TIMESTAMPTZ
-) AS $ $ BEGIN RETURN QUERY
-SELECT
-    t.titulo AS nombre_tema,
-    e.nombre AS nombre_entregable,
-    ext.estado,
-    ext.fecha_envio,
-    e.fecha_fin
-FROM
-    entregable_x_tema ext
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.titulo AS nombre_tema,
+        e.nombre AS nombre_entregable,
+        rd.estado_revision AS estado,  -- Obtener el estado desde revision_documento
+        ext.fecha_envio,
+        e.fecha_fin
+    FROM
+        entregable_x_tema ext
     JOIN tema t ON t.tema_id = ext.tema_id
     JOIN entregable e ON e.entregable_id = ext.entregable_id
-WHERE
-    ext.entregable_id = p_entregable_id
-    AND ext.tema_id = p_tema_id;
-
+    LEFT JOIN version_documento vd ON vd.entregable_x_tema_id = ext.entregable_x_tema_id  -- Corrección aquí
+    LEFT JOIN revision_documento rd ON rd.version_documento_id = vd.version_documento_id
+    WHERE
+        ext.entregable_id = p_entregable_id
+        AND ext.tema_id = p_tema_id;
 END;
-
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE
 OR REPLACE FUNCTION obtener_alumnos_por_revision(revision_id INTEGER) RETURNS TABLE (
@@ -437,3 +439,38 @@ WHERE
 END;
 
 $ $ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS actualizar_corregido_por_estado_revision(INTEGER);
+CREATE OR REPLACE FUNCTION actualizar_corregido_por_estado_revision(entregable_x_tema_id_param INTEGER)
+RETURNS VOID AS
+$$
+DECLARE
+    -- Variable para contar las revisiones con estado 'revisado'
+    revisiones_revisado INTEGER;
+    -- Variable para contar el total de revisiones relacionadas
+    total_revisiones INTEGER;
+BEGIN
+    -- Contamos cuántas revisiones tienen el estado 'revisado'
+    SELECT COUNT(*)
+    INTO revisiones_revisado
+    FROM revision_documento rd
+    JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
+    WHERE vd.entregable_x_tema_id = entregable_x_tema_id_param
+      AND rd.estado_revision = 'revisado';
+
+    -- Contamos el total de revisiones relacionadas con el entregable_x_tema_id
+    SELECT COUNT(*)
+    INTO total_revisiones
+    FROM revision_documento rd
+    JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
+    WHERE vd.entregable_x_tema_id = entregable_x_tema_id_param;
+
+    -- Si el número de revisiones con estado 'revisado' es igual al total de revisiones
+    IF revisiones_revisado = total_revisiones THEN
+        -- Actualizamos la columna 'corregido' a 'true' en la tabla entregable_x_tema
+        UPDATE entregable_x_tema
+        SET corregido = TRUE
+        WHERE entregable_x_tema_id = entregable_x_tema_id_param;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;

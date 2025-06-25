@@ -6,6 +6,7 @@ export type Profesor = {
   correo: string;
   codigo: string;
   rolesAsignados: ("asesor" | "jurado")[]; 
-  tesisActivas: number;
+  tesisAsesor: number;
+  tesisJurado: number;
   estado: "activo"; 
 };
