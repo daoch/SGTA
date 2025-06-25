@@ -3779,7 +3779,55 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
-
-
-
+	@Override
+	public List<UsuarioDto> listarProfesoresPorSubareasConMatch(List<Integer> subareaIds) {
+		if (subareaIds == null || subareaIds.isEmpty()) {
+			return new ArrayList<>();
+		}
+		
+		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
+		
+		String sql = "SELECT usuario_id, nombres, primer_apellido, segundo_apellido, " +
+					"correo_electronico, subarea_ids, subarea_nombres " +
+					"FROM listar_profesores_por_subareas_con_match(:subareaIds)";
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("subareaIds", subareaArray)
+				.getResultList();
+		
+		List<UsuarioDto> profesores = new ArrayList<>();
+		
+		for (Object[] fila : resultados) {
+			// Extraer arrays de IDs y nombres de subáreas
+			Integer[] subareaIdsArray = (Integer[]) fila[5];
+			String[] subareaNombresArray = (String[]) fila[6];
+			
+			// Construir lista de SubAreaConocimientoDto
+			List<SubAreaConocimientoDto> subareasList = new ArrayList<>();
+			if (subareaIdsArray != null && subareaNombresArray != null) {
+				for (int i = 0; i < subareaIdsArray.length; i++) {
+					SubAreaConocimientoDto subarea = SubAreaConocimientoDto.builder()
+							.id(subareaIdsArray[i])
+							.nombre(subareaNombresArray[i])
+							.build();
+					subareasList.add(subarea);
+				}
+			}
+			
+			UsuarioDto profesor = UsuarioDto.builder()
+					.id((Integer) fila[0])
+					.nombres((String) fila[1])
+					.primerApellido((String) fila[2])
+					.segundoApellido((String) fila[3])
+					.correoElectronico((String) fila[4])
+					.subareas(subareasList) // Ahora con las subáreas pobladas
+					.build();
+					
+			profesores.add(profesor);
+		}
+		
+		return profesores;
+	}
 }

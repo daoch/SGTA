@@ -120,7 +120,7 @@ BEGIN
 END;
 $$;
 
--- Función para listar etapas formativas x ciclo del tesista según la carrera de su último tema inscrito
+-- Función para listar etapas formativas x ciclo x tema del tesista según su tema inscrito
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_x_ciclo_tesista(p_usuario_id INTEGER)
     RETURNS TABLE
             (
@@ -138,27 +138,25 @@ CREATE OR REPLACE FUNCTION listar_etapas_formativas_x_ciclo_tesista(p_usuario_id
 AS
 $$
 DECLARE
-    v_carrera_id INTEGER;
+    v_tema_id INTEGER;
 BEGIN
-    -- Obtener la carrera del último tema en el que está inscrito el tesista
-    SELECT t.carrera_id INTO v_carrera_id
+    -- Obtener el tema del tesista
+    SELECT ut.tema_id INTO v_tema_id
     FROM usuario_tema ut
-    JOIN tema t ON ut.tema_id = t.tema_id
     JOIN rol r ON ut.rol_id = r.rol_id
     WHERE ut.usuario_id = p_usuario_id
       AND r.nombre = 'Tesista'
       AND ut.activo = true
       AND ut.asignado = true
-      AND t.activo = true
     ORDER BY ut.fecha_creacion DESC
     LIMIT 1;
 
-    -- Si no se encuentra carrera, retornar vacío
-    IF v_carrera_id IS NULL THEN
+    -- Si no se encuentra tema, retornar vacío
+    IF v_tema_id IS NULL THEN
         RETURN;
     END IF;
 
-    -- Retornar las etapas formativas x ciclo de esa carrera
+    -- Retornar las etapas formativas x ciclo x tema específicas del tema del tesista
     RETURN QUERY
     SELECT 
         efc.etapa_formativa_x_ciclo_id,
@@ -170,11 +168,13 @@ BEGIN
         car.nombre::TEXT as carrera_nombre,
         efc.activo,
         efc.estado::TEXT
-    FROM etapa_formativa_x_ciclo efc
+    FROM etapa_formativa_x_ciclo_x_tema efcxt
+    JOIN etapa_formativa_x_ciclo efc ON efcxt.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
     JOIN ciclo c ON efc.ciclo_id = c.ciclo_id
     JOIN carrera car ON ef.carrera_id = car.carrera_id
-    WHERE ef.carrera_id = v_carrera_id
+    WHERE efcxt.tema_id = v_tema_id
+      AND efcxt.activo = true
       AND efc.activo = true
       AND ef.activo = true
       AND c.activo = true

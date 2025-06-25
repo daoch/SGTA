@@ -7,11 +7,13 @@ import { Exposicion } from "../../dtos/exposicion";
 interface ExposicionCardProps {
   etapaId: string;
   exposicion: Exposicion;
+  entregableNombre?: string;
 }
 
 export function ExposicionCard({
   etapaId,
   exposicion,
+  entregableNombre,
   onDelete,
 }: ExposicionCardProps & { onDelete: (id: string) => void }) {
   return (
@@ -23,6 +25,12 @@ export function ExposicionCard({
             <div>
               <h3 className="font-medium">{exposicion.nombre}</h3>
               <p className="text-sm mt-1">{exposicion.descripcion}</p>
+              {entregableNombre && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  <span className="font-semibold">Entregable asociado:</span>{" "}
+                  {entregableNombre}
+                </p>
+              )}
             </div>
           </div>
           {/* Contenedor para alinear los botones */}

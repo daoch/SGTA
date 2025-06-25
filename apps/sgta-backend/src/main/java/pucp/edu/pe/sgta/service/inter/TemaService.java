@@ -243,4 +243,5 @@ public interface TemaService {
 
 	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
 	void updateSolicitudesCoordinador(String usuarioId,Integer solicitudId,String respuesta);
+	List<UsuarioDto> listarProfesoresPorSubareasConMatch(List<Integer> subareaIds);
 }

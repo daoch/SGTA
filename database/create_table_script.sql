@@ -803,13 +803,15 @@ CREATE TABLE IF NOT EXISTS exposicion (
     exposicion_id SERIAL PRIMARY KEY,
     etapa_formativa_x_ciclo_id INTEGER NOT NULL,
     estado_planificacion_id INTEGER NOT NULL,
+    entregable_id INTEGER NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     nombre TEXT NOT NULL,
     descripcion TEXT NOT NULL,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_texefc_ef_x_c FOREIGN KEY (etapa_formativa_x_ciclo_id) REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_exp_estado_planificacion FOREIGN KEY (estado_planificacion_id) REFERENCES estado_planificacion (estado_planificacion_id) ON DELETE RESTRICT
+    CONSTRAINT fk_exp_estado_planificacion FOREIGN KEY (estado_planificacion_id) REFERENCES estado_planificacion (estado_planificacion_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_exp_entregable FOREIGN KEY (entregable_id) REFERENCES entregable (entregable_id) ON DELETE RESTRICT;
 );
 
 -- Tabla jornada_exposicion
@@ -1042,6 +1044,8 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
     CONSTRAINT fk_entregable_x_tema_entregable FOREIGN KEY (entregable_id) REFERENCES entregable (entregable_id) ON DELETE CASCADE,
     CONSTRAINT fk_entregable_x_tema_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE CASCADE
 );
+ALTER TABLE entregable_x_tema
+ADD COLUMN corregido BOOLEAN DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     revision_criterio_entregable_id SERIAL PRIMARY KEY,
