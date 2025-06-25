@@ -149,6 +149,20 @@ BEGIN
         FROM asesores a
         JOIN tesistas t ON t.tema_id = a.tema_id
     ),
+    asesores_agrupados AS (
+        -- Agrupar asesores primero sin JSON
+        SELECT
+            a.usuario_id,
+            a.teacher_name,
+            COALESCE(apa.area_name, 'Área no encontrada') AS area_name,
+            COUNT(DISTINCT a.tema_id)::INTEGER AS advisor_count,
+            STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
+            STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names
+        FROM asesores a
+        LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id
+        LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
+        GROUP BY a.usuario_id, a.teacher_name, apa.area_name
+    ),
     tesistas_por_etapa_por_asesor AS (
         -- Contar tesistas por asesor y etapa formativa
         SELECT 
@@ -157,29 +171,22 @@ BEGIN
             COUNT(DISTINCT tpa.tesista_id)::INTEGER AS tesistas_count
         FROM tesistas_por_asesor tpa
         GROUP BY tpa.asesor_id, tpa.etapa_formativa_nombre
-    ),
-    etapas_json_por_asesor AS (
-        -- Crear JSON con contadores de tesistas por etapa para cada asesor
-        SELECT 
-            tepa.asesor_id,
-            JSON_OBJECT_AGG(tepa.etapa_formativa_nombre, tepa.tesistas_count) AS etapas_formativas_json
-        FROM tesistas_por_etapa_por_asesor tepa
-        GROUP BY tepa.asesor_id
     )
 
     SELECT
-        a.teacher_name,
-        COALESCE(apa.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
-        COUNT(DISTINCT a.tema_id)::INTEGER AS advisor_count,
-        STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
-        STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names,
-        COALESCE(ejpa.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
-    FROM asesores a
-    LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id  -- LEFT JOIN evita perder asesores
-    LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
-    LEFT JOIN etapas_json_por_asesor ejpa ON ejpa.asesor_id = a.usuario_id
-    GROUP BY a.usuario_id, a.teacher_name, apa.area_name, ejpa.etapas_formativas_json
-    ORDER BY advisor_count DESC, a.teacher_name ASC;
+        ag.teacher_name,
+        ag.area_name,
+        ag.advisor_count,
+        ag.tesistas_names,
+        ag.temas_names,
+        COALESCE(
+            (SELECT JSON_OBJECT_AGG(tepd.etapa_formativa_nombre, tepd.tesistas_count)::TEXT
+             FROM tesistas_por_etapa_por_asesor tepd
+             WHERE tepd.asesor_id = ag.usuario_id),
+            '{}'
+        ) AS etapas_formativas_json
+    FROM asesores_agrupados ag
+    ORDER BY ag.advisor_count DESC, ag.teacher_name ASC;
 END;
 $BODY$;
 
@@ -333,6 +340,20 @@ BEGIN
         FROM jurados j
         JOIN tesistas t ON t.tema_id = j.tema_id
     ),
+    jurados_agrupados AS (
+        -- Agrupar jurados primero sin JSON
+        SELECT
+            j.usuario_id,
+            j.teacher_name,
+            COALESCE(apj.area_name, 'Área no encontrada') AS area_name,
+            COUNT(DISTINCT j.tema_id)::INTEGER AS juror_count,
+            STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
+            STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names
+        FROM jurados j
+        LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id
+        LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
+        GROUP BY j.usuario_id, j.teacher_name, apj.area_name
+    ),
     tesistas_por_etapa_por_jurado AS (
         -- Contar tesistas por jurado y etapa formativa
         SELECT 
@@ -341,29 +362,22 @@ BEGIN
             COUNT(DISTINCT tpj.tesista_id)::INTEGER AS tesistas_count
         FROM tesistas_por_jurado tpj
         GROUP BY tpj.jurado_id, tpj.etapa_formativa_nombre
-    ),
-    etapas_json_por_jurado AS (
-        -- Crear JSON con contadores de tesistas por etapa para cada jurado
-        SELECT 
-            tepj.jurado_id,
-            JSON_OBJECT_AGG(tepj.etapa_formativa_nombre, tepj.tesistas_count) AS etapas_formativas_json
-        FROM tesistas_por_etapa_por_jurado tepj
-        GROUP BY tepj.jurado_id
     )
 
     SELECT
-        j.teacher_name,
-        COALESCE(apj.area_name, 'Área no encontrada') AS area_name,  -- Maneja casos sin área
-        COUNT(DISTINCT j.tema_id)::INTEGER AS juror_count,
-        STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
-        STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names,
-        COALESCE(ejpj.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
-    FROM jurados j
-    LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id  -- LEFT JOIN evita perder jurados
-    LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
-    LEFT JOIN etapas_json_por_jurado ejpj ON ejpj.jurado_id = j.usuario_id
-    GROUP BY j.usuario_id, j.teacher_name, apj.area_name, ejpj.etapas_formativas_json
-    ORDER BY juror_count DESC, j.teacher_name ASC;
+        jg.teacher_name,
+        jg.area_name,
+        jg.juror_count,
+        jg.tesistas_names,
+        jg.temas_names,
+        COALESCE(
+            (SELECT JSON_OBJECT_AGG(tepj.etapa_formativa_nombre, tepj.tesistas_count)::TEXT
+             FROM tesistas_por_etapa_por_jurado tepj
+             WHERE tepj.jurado_id = jg.usuario_id),
+            '{}'
+        ) AS etapas_formativas_json
+    FROM jurados_agrupados jg
+    ORDER BY jg.juror_count DESC, jg.teacher_name ASC;
 END;
 $BODY$;
 
@@ -525,33 +539,37 @@ BEGIN
       FROM tesistas_por_asesor tpa
       GROUP BY tpa.usuario_id, tpa.advisor_name, tpa.area_name, tpa.etapa_formativa_nombre
     ),
-    etapas_json_asesor AS (
-      -- Crear JSON con contadores de tesistas por etapa para cada asesor
-      SELECT 
-        tepd.usuario_id,
-        tepd.advisor_name,
-        tepd.area_name,
-        JSON_OBJECT_AGG(tepd.etapa_formativa_nombre, tepd.tesistas_count) AS etapas_formativas_json
-      FROM tesistas_por_etapa_asesor tepd
-      GROUP BY tepd.usuario_id, tepd.advisor_name, tepd.area_name
+    asesor_performance_agrupado AS (
+      -- Agrupar performance primero sin JSON
+      SELECT
+        td.usuario_id,
+        td.advisor_name,
+        td.area_name,
+        ROUND(
+            SUM(td.reviewed_deliverables)::NUMERIC
+            / NULLIF(SUM(td.total_deliverables),0)
+            * 100
+        , 2) AS performance_percentage,
+        COUNT(DISTINCT td.tema_id)::INTEGER AS total_students
+      FROM topic_deliveries td
+      GROUP BY td.usuario_id, td.advisor_name, td.area_name
     )
 
-    -- en la consulta final, reemplazamos SUM(submitted_deliverables) por SUM(reviewed_deliverables)
+    -- Consulta final con JSON generado después del agrupamiento
     SELECT
-      td.advisor_name,
-      td.area_name,
-      ROUND(
-          SUM(td.reviewed_deliverables)::NUMERIC
-          / NULLIF(SUM(td.total_deliverables),0)
-          * 100
-      , 2) AS performance_percentage,
-      COUNT(DISTINCT td.tema_id)::INTEGER AS total_students,
-      COALESCE(eja.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
+      apa.advisor_name,
+      apa.area_name,
+      apa.performance_percentage,
+      apa.total_students,
+      COALESCE(
+          (SELECT JSON_OBJECT_AGG(tepd.etapa_formativa_nombre, tepd.tesistas_count)::TEXT
+           FROM tesistas_por_etapa_asesor tepd
+           WHERE tepd.usuario_id = apa.usuario_id),
+          '{}'
+      ) AS etapas_formativas_json
 
-    FROM topic_deliveries td
-    LEFT JOIN etapas_json_asesor eja ON eja.usuario_id = td.usuario_id
-    GROUP BY td.usuario_id, td.advisor_name, td.area_name, eja.etapas_formativas_json
-    ORDER BY performance_percentage DESC, total_students DESC;
+    FROM asesor_performance_agrupado apa
+    ORDER BY apa.performance_percentage DESC, apa.total_students DESC;
 END;
 $$;
 -------------------------------------------------------------------------------------------------------------
