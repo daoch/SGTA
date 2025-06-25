@@ -7,10 +7,11 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
   RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
+    areas_conocimiento_json TEXT, -- NUEVO: JSON con múltiples áreas
     advisor_count  INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
-    etapas_formativas_json TEXT  -- Cambio a JSON con contadores de tesistas
+    etapas_formativas_json TEXT  -- JSON con contadores de tesistas
   )
   LANGUAGE plpgsql
   COST 100
@@ -149,19 +150,36 @@ BEGIN
         FROM asesores a
         JOIN tesistas t ON t.tema_id = a.tema_id
     ),
+    areas_por_asesor_agrupadas AS (
+        -- Agrupar múltiples áreas por asesor
+        SELECT
+            a.usuario_id,
+            STRING_AGG(DISTINCT COALESCE(ac.nombre, 'Área eliminada'), ', ' ORDER BY COALESCE(ac.nombre, 'Área eliminada')) AS areas_nombres,
+            COALESCE(
+                (SELECT JSON_AGG(DISTINCT ac2.nombre ORDER BY ac2.nombre)::TEXT
+                 FROM asesores a2
+                 LEFT JOIN area_conocimiento ac2 ON ac2.area_conocimiento_id = a2.area_conocimiento_id AND ac2.activo = TRUE
+                 WHERE a2.usuario_id = a.usuario_id AND ac2.nombre IS NOT NULL),
+                '[]'
+            ) AS areas_json
+        FROM asesores a
+        LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = a.area_conocimiento_id AND ac.activo = TRUE
+        GROUP BY a.usuario_id
+    ),
     asesores_agrupados AS (
         -- Agrupar asesores primero sin JSON
         SELECT
             a.usuario_id,
             a.teacher_name,
-            COALESCE(apa.area_name, 'Área no encontrada') AS area_name,
+            COALESCE(apag.areas_nombres, 'Área no encontrada') AS area_name,
+            apag.areas_json,
             COUNT(DISTINCT a.tema_id)::INTEGER AS advisor_count,
             STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
             STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names
         FROM asesores a
-        LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id
+        LEFT JOIN areas_por_asesor_agrupadas apag ON apag.usuario_id = a.usuario_id
         LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
-        GROUP BY a.usuario_id, a.teacher_name, apa.area_name
+        GROUP BY a.usuario_id, a.teacher_name, apag.areas_nombres, apag.areas_json
     ),
     tesistas_por_etapa_por_asesor AS (
         -- Contar tesistas por asesor y etapa formativa
@@ -176,6 +194,7 @@ BEGIN
     SELECT
         ag.teacher_name,
         ag.area_name,
+        COALESCE(ag.areas_json, '[]') AS areas_conocimiento_json,
         ag.advisor_count,
         ag.tesistas_names,
         ag.temas_names,
@@ -198,6 +217,7 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
   RETURNS TABLE(
     teacher_name   VARCHAR,
     area_name      VARCHAR,
+    areas_conocimiento_json TEXT, -- NUEVO: JSON con múltiples áreas
     juror_count    INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
@@ -340,19 +360,36 @@ BEGIN
         FROM jurados j
         JOIN tesistas t ON t.tema_id = j.tema_id
     ),
+    areas_por_jurado_agrupadas AS (
+        -- Agrupar múltiples áreas por jurado
+        SELECT
+            j.usuario_id,
+            STRING_AGG(DISTINCT COALESCE(ac.nombre, 'Área eliminada'), ', ' ORDER BY COALESCE(ac.nombre, 'Área eliminada')) AS areas_nombres,
+            COALESCE(
+                (SELECT JSON_AGG(DISTINCT ac2.nombre ORDER BY ac2.nombre)::TEXT
+                 FROM jurados j2
+                 LEFT JOIN area_conocimiento ac2 ON ac2.area_conocimiento_id = j2.area_conocimiento_id AND ac2.activo = TRUE
+                 WHERE j2.usuario_id = j.usuario_id AND ac2.nombre IS NOT NULL),
+                '[]'
+            ) AS areas_json
+        FROM jurados j
+        LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = j.area_conocimiento_id AND ac.activo = TRUE
+        GROUP BY j.usuario_id
+    ),
     jurados_agrupados AS (
         -- Agrupar jurados primero sin JSON
         SELECT
             j.usuario_id,
             j.teacher_name,
-            COALESCE(apj.area_name, 'Área no encontrada') AS area_name,
+            COALESCE(apjag.areas_nombres, 'Área no encontrada') AS area_name,
+            apjag.areas_json,
             COUNT(DISTINCT j.tema_id)::INTEGER AS juror_count,
             STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
             STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names
         FROM jurados j
-        LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id
+        LEFT JOIN areas_por_jurado_agrupadas apjag ON apjag.usuario_id = j.usuario_id
         LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
-        GROUP BY j.usuario_id, j.teacher_name, apj.area_name
+        GROUP BY j.usuario_id, j.teacher_name, apjag.areas_nombres, apjag.areas_json
     ),
     tesistas_por_etapa_por_jurado AS (
         -- Contar tesistas por jurado y etapa formativa
@@ -367,6 +404,7 @@ BEGIN
     SELECT
         jg.teacher_name,
         jg.area_name,
+        COALESCE(jg.areas_json, '[]') AS areas_conocimiento_json,
         jg.juror_count,
         jg.tesistas_names,
         jg.temas_names,

@@ -147,6 +147,33 @@ public class ReportingServiceImpl implements IReportService {
         }
     }
 
+    private List<String> parseAreasConocimientoList(String jsonStr) {
+        List<String> result = new ArrayList<>();
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("[]") || jsonStr.equals("null")) {
+            return result;
+        }
+        try {
+            // Parsing del JSON array ["Ciencias de la Computación", "Ingeniería de Software"]
+            String cleanJson = jsonStr.trim();
+            if (cleanJson.startsWith("[") && cleanJson.endsWith("]")) {
+                cleanJson = cleanJson.substring(1, cleanJson.length() - 1);
+                if (!cleanJson.trim().isEmpty()) {
+                    String[] areas = cleanJson.split(",");
+                    for (String area : areas) {
+                        String cleanArea = area.trim().replace("\"", "");
+                        if (!cleanArea.isEmpty()) {
+                            result.add(cleanArea);
+                        }
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            logger.warn("Error parsing areas conocimiento JSON: {}", jsonStr, e);
+            return result;
+        }
+    }
+
     @Override
     public List<TopicTrendDTO> getTopicTrendsByYear(String cognitoSub) {
         Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
@@ -169,9 +196,13 @@ public class ReportingServiceImpl implements IReportService {
                 .getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
                 .map(r -> {
-                    String etapasFormativasJson = (String) r[5]; // Campo etapas_formativas_json
+                    String areasConocimientoJson = (String) r[2]; // Campo areas_conocimiento_json 
+                    String etapasFormativasJson = (String) r[6]; // Campo etapas_formativas_json (ahora índice 6)
                     Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
-                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
+                    List<String> areasConocimiento = parseAreasConocimientoList(areasConocimientoJson);
+                    
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[3]).intValue());
+                    dto.setAreasConocimiento(areasConocimiento);
                     dto.setEtapasFormativasCount(etapasFormativasCount);
                     return dto;
                 })
@@ -185,9 +216,13 @@ public class ReportingServiceImpl implements IReportService {
                 .getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
                 .map(r -> {
-                    String etapasFormativasJson = (String) r[5]; // Campo etapas_formativas_json
+                    String areasConocimientoJson = (String) r[2]; // Campo areas_conocimiento_json 
+                    String etapasFormativasJson = (String) r[6]; // Campo etapas_formativas_json (ahora índice 6)
                     Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
-                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
+                    List<String> areasConocimiento = parseAreasConocimientoList(areasConocimientoJson);
+                    
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[3]).intValue());
+                    dto.setAreasConocimiento(areasConocimiento);
                     dto.setEtapasFormativasCount(etapasFormativasCount);
                     return dto;
                 })
@@ -199,20 +234,50 @@ public class ReportingServiceImpl implements IReportService {
         var advisors = getAdvisorDistribution(cognitoSub, cicloNombre);
         var jurors   = getJurorDistribution(cognitoSub, cicloNombre);
         Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map = new HashMap<>();
-        Map<String, Set<String>> etapasFormativasPorProfesor = new HashMap<>();
-        processTeachers(advisors, map, true, etapasFormativasPorProfesor);
-        processTeachers(jurors,   map, false, etapasFormativasPorProfesor);
+        
+        // Mapas separados para asesores y jurados
+        Map<String, Map<String, Integer>> etapasFormativasAsesorPorProfesor = new HashMap<>();
+        Map<String, Map<String, Integer>> etapasFormativasJuradoPorProfesor = new HashMap<>();
+        Map<String, Set<String>> areasConocimientoPorProfesor = new HashMap<>();
+        
+        processTeachersEnhanced(advisors, map, true, etapasFormativasAsesorPorProfesor, areasConocimientoPorProfesor);
+        processTeachersEnhanced(jurors, map, false, etapasFormativasJuradoPorProfesor, areasConocimientoPorProfesor);
+        
         return map.values().stream()
                 .map(b -> {
                     AreaFinalDTO d = b.build();
                     d.setTotalCount(d.getAdvisorCount() + d.getJurorCount());
-                    String key = d.getTeacherName() + "|" + d.getAreaName();
-                    Set<String> etapas = etapasFormativasPorProfesor.get(key);
-                    d.setEtapasFormativas(etapas != null ? new ArrayList<>(etapas) : Collections.emptyList());
+                    
+                    String key = d.getTeacherName();  // Solo por profesor, no por área
+                    
+                    // Configurar múltiples áreas
+                    Set<String> areas = areasConocimientoPorProfesor.get(key);
+                    d.setAreasConocimiento(areas != null ? new ArrayList<>(areas) : Collections.emptyList());
+                    
+                    // Configurar contadores separados por etapa formativa
+                    d.setEtapasFormativasAsesorCount(
+                        etapasFormativasAsesorPorProfesor.getOrDefault(key, Collections.emptyMap())
+                    );
+                    d.setEtapasFormativasJuradoCount(
+                        etapasFormativasJuradoPorProfesor.getOrDefault(key, Collections.emptyMap())
+                    );
+                    
+                    // DEPRECATED: Para compatibilidad
+                    d.setAreaName(areas != null && !areas.isEmpty() ? areas.iterator().next() : "Área no definida");
+                    
+                    // Combinar todas las etapas para compatibilidad
+                    Set<String> todasEtapas = new HashSet<>();
+                    if (d.getEtapasFormativasAsesorCount() != null) {
+                        todasEtapas.addAll(d.getEtapasFormativasAsesorCount().keySet());
+                    }
+                    if (d.getEtapasFormativasJuradoCount() != null) {
+                        todasEtapas.addAll(d.getEtapasFormativasJuradoCount().keySet());
+                    }
+                    d.setEtapasFormativas(new ArrayList<>(todasEtapas));
+                    
                     return d;
                 })
-                .sorted(Comparator.comparing(AreaFinalDTO::getAreaName)
-                        .thenComparing(AreaFinalDTO::getTeacherName))
+                .sorted(Comparator.comparing(AreaFinalDTO::getTeacherName))
                 .collect(Collectors.toList());
     }
 
@@ -238,6 +303,53 @@ public class ReportingServiceImpl implements IReportService {
             if (t.getEtapasFormativasCount() != null && !t.getEtapasFormativasCount().isEmpty()) {
                 etapasFormativasPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
                     .addAll(t.getEtapasFormativasCount().keySet());
+            }
+        }
+    }
+
+    private void processTeachersEnhanced(List<TeacherCountDTO> list,
+                                       Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map,
+                                       boolean isAdvisor,
+                                       Map<String, Map<String, Integer>> etapasFormativasPorProfesor,
+                                       Map<String, Set<String>> areasConocimientoPorProfesor) {
+        for (var t : list) {
+            String name = t.getTeacherName();
+            String key = name; // Clave solo por nombre de profesor
+            
+            // Configurar builder del DTO
+            map.computeIfAbsent(key, k -> AreaFinalDTO.builder()
+                    .teacherName(name)
+                    .advisorCount(0)
+                    .jurorCount(0)
+                    .totalCount(0));
+            
+            var b = map.get(key);
+            // Necesitamos acumular los valores correctamente
+            AreaFinalDTO temp = b.build();
+            if (isAdvisor) {
+                b.advisorCount(temp.getAdvisorCount() + t.getCount());
+            } else {
+                b.jurorCount(temp.getJurorCount() + t.getCount());
+            }
+            
+            // Agregar áreas de conocimiento
+            if (t.getAreasConocimiento() != null && !t.getAreasConocimiento().isEmpty()) {
+                areasConocimientoPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .addAll(t.getAreasConocimiento());
+            } else if (t.getAreaName() != null) {
+                // Fallback a área simple
+                areasConocimientoPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .add(t.getAreaName());
+            }
+            
+            // Agregar etapas formativas específicas (asesor o jurado)
+            if (t.getEtapasFormativasCount() != null && !t.getEtapasFormativasCount().isEmpty()) {
+                // Agregar/sumar contadores por etapa formativa
+                Map<String, Integer> existingCounts = etapasFormativasPorProfesor.getOrDefault(key, new HashMap<>());
+                for (Map.Entry<String, Integer> entry : t.getEtapasFormativasCount().entrySet()) {
+                    existingCounts.merge(entry.getKey(), entry.getValue(), Integer::sum);
+                }
+                etapasFormativasPorProfesor.put(key, existingCounts);
             }
         }
     }

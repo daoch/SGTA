@@ -11,7 +11,8 @@ import java.util.Map;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class TeacherCountDTO {
     private String teacherName;
-    private String areaName;
+    private String areaName; // Área principal (para compatibilidad)
+    private List<String> areasConocimiento; // Múltiples áreas donde trabaja
     private int    count;
     private Map<String, Integer> etapasFormativasCount; // Contadores por etapa formativa
 
