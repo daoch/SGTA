@@ -73,7 +73,8 @@ export function CoordinatorReports() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
-  const [selectedEtapaFormativa, setSelectedEtapaFormativa] = useState("all"); // Filtro para etapa formativa
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] = useState("all"); // Filtro para etapa formativa en tendencias
+  const [selectedEtapaFormativaAreas, setSelectedEtapaFormativaAreas] = useState("all"); // Filtro para etapa formativa en áreas
   const [yearRangeStart, setYearRangeStart] = useState<string>("all"); // Año de inicio del rango
   const [yearRangeEnd, setYearRangeEnd] = useState<string>("all"); // Año de fin del rango
 
@@ -249,7 +250,7 @@ export function CoordinatorReports() {
 
   // Descripciones para tooltips
   const topicsDescriptions = {
-    areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento",
+    areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento. Puede filtrarse por etapa formativa específica.",
     trends: "Visualiza la evolución histórica de temas por área a través de los años. Puede filtrarse por etapa formativa específica."
   };
 
@@ -302,10 +303,30 @@ export function CoordinatorReports() {
       try {
         setLoadingTopicsByArea(true);
         const data = await obtenerTemasPorArea(semesterFilter);
-        const normalized = data.map((item: ServiceTopicArea) => ({
-          area: item.areaName,
-          count: item.topicCount,
-        }));
+        
+        // Extraer etapas formativas únicas de los datos de áreas
+        const etapasAreasSet = new Set<string>();
+        data.forEach((item: ServiceTopicArea) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasAreasSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasAreas(Array.from(etapasAreasSet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const normalized = data.map((item: ServiceTopicArea) => {
+          let count = item.topicCount;
+          
+          if (selectedEtapaFormativaAreas !== "all" && item.etapasFormativasCount) {
+            count = item.etapasFormativasCount[selectedEtapaFormativaAreas] || 0;
+          }
+          
+          return {
+            area: item.areaName,
+            count: count,
+          };
+        }).filter(item => item.count > 0); // Filtrar áreas sin temas para la etapa seleccionada
+        
         setThesisTopicsByArea(normalized);
       } catch (error) {
         console.log("Error al cargar los temas por area:", error);
@@ -371,7 +392,7 @@ export function CoordinatorReports() {
     fetchAdvisorsDistribution();
     fetchJurorsDistribution();
     fetchAdvisorPerformance();
-  }, [semesterFilter, user?.id]);
+  }, [semesterFilter, user?.id, selectedEtapaFormativaAreas]);
 
   const findTopicCount = (responseData: TopicTrend[], year: number, area: string) => {
     const found = responseData.find(item => item.year === year && item.areaName === area);
@@ -379,8 +400,10 @@ export function CoordinatorReports() {
   };
 
 
-  // Estado para las etapas formativas disponibles
+  // Estado para las etapas formativas disponibles en tendencias
   const [availableEtapasFormativas, setAvailableEtapasFormativas] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en áreas
+  const [availableEtapasFormativasAreas, setAvailableEtapasFormativasAreas] = useState<string[]>([]);
   // Estado para los años disponibles en los datos de tendencias
   const [trendsAvailableYears, setTrendsAvailableYears] = useState<number[]>([]);
 
@@ -511,6 +534,25 @@ export function CoordinatorReports() {
             <Tooltip 
               formatter={(value, name) => [`${value}`, "Total"]}
               labelFormatter={(label) => toTitleCase(label)}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                      <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                      <p className="text-xs text-gray-600 mb-1">
+                        {selectedEtapaFormativaAreas === "all" 
+                          ? "Todas las etapas formativas" 
+                          : `Etapa: ${toTitleCase(selectedEtapaFormativaAreas)}`
+                        }
+                      </p>
+                      <p className="text-blue-600 text-sm">
+                        Total: {payload[0].value}
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Bar dataKey="count" fill="#006699" />
           </RechartsBarChart>
@@ -549,8 +591,14 @@ export function CoordinatorReports() {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className="bg-white border border-gray-300 rounded-md p-2 shadow-lg">
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
                     <p className="font-medium text-xs sm:text-sm">{toTitleCase(data.area)}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {selectedEtapaFormativaAreas === "all" 
+                        ? "Todas las etapas formativas" 
+                        : `Etapa: ${toTitleCase(selectedEtapaFormativaAreas)}`
+                      }
+                    </p>
                     <p className="text-blue-600 text-xs sm:text-sm">
                       Total: {data.count}
                     </p>
@@ -1257,25 +1305,43 @@ export function CoordinatorReports() {
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
                 <div>
-                  <div className="flex items-center justify-end gap-1 px-4 py-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
-                      onClick={() => setThemeAreaChartType("horizontal-bar")}
-                      title="Gráfico de barras horizontal"
-                    >
-                      <BarChartHorizontal className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
-                      onClick={() => setThemeAreaChartType("pie")}
-                      title="Gráfico circular"
-                    >
-                      <PieChart className="h-20 w-20" />
-                    </Button>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">Etapa Formativa:</label>
+                      <Select value={selectedEtapaFormativaAreas} onValueChange={setSelectedEtapaFormativaAreas}>
+                        <SelectTrigger className="w-[280px] text-sm">
+                          <SelectValue placeholder="Seleccionar etapa formativa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todas las etapas</SelectItem>
+                          {availableEtapasFormativasAreas.map((etapa) => (
+                            <SelectItem key={etapa} value={etapa} className="text-sm">
+                              {toTitleCase(etapa)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
+                        onClick={() => setThemeAreaChartType("horizontal-bar")}
+                        title="Gráfico de barras horizontal"
+                      >
+                        <BarChartHorizontal className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
+                        onClick={() => setThemeAreaChartType("pie")}
+                        title="Gráfico circular"
+                      >
+                        <PieChart className="h-20 w-20" />
+                      </Button>
+                    </div>
                   </div>
                   {renderTopicsAreaChart()}
                 </div>

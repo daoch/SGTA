@@ -3,6 +3,7 @@
 export interface TopicArea {
   areaName: string;
   topicCount: number;
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface AdvisorDistribution {
