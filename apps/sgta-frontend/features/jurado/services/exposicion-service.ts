@@ -191,6 +191,7 @@ export const getExposicionesEstudiantesByEstudianteId = async (
         nombre: miembro.nombre,
         tipo: miembro.tipo,
       })),
+      notaFinal: item.notaFinal,
     }));
   } catch (error) {
     console.error(

@@ -2,11 +2,10 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionJuradoDTO;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
+import pucp.edu.pe.sgta.dto.calificacion.*;
+import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
+import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -62,8 +61,15 @@ public interface MiembroJuradoService {
 
         ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
 
+        List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
+
+        List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
+
+        ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
+
         public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
                         ExposicionCalificacionRequest exposicionCalificacionRequest);
-
         public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
+
+        Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request);
 }

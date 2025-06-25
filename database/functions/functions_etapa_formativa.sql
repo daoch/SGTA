@@ -120,4 +120,66 @@ BEGIN
 END;
 $$;
 
+-- Función para listar etapas formativas x ciclo x tema del tesista según su tema inscrito
+CREATE OR REPLACE FUNCTION listar_etapas_formativas_x_ciclo_tesista(p_usuario_id INTEGER)
+    RETURNS TABLE
+            (
+                id                      INTEGER,
+                etapa_formativa_id      INTEGER,
+                etapa_formativa_nombre  TEXT,
+                ciclo_id                INTEGER,
+                ciclo_nombre            TEXT,
+                carrera_id              INTEGER,
+                carrera_nombre          TEXT,
+                activo                  BOOLEAN,
+                estado                  TEXT
+            )
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_tema_id INTEGER;
+BEGIN
+    -- Obtener el tema del tesista
+    SELECT ut.tema_id INTO v_tema_id
+    FROM usuario_tema ut
+    JOIN rol r ON ut.rol_id = r.rol_id
+    WHERE ut.usuario_id = p_usuario_id
+      AND r.nombre = 'Tesista'
+      AND ut.activo = true
+      AND ut.asignado = true
+    ORDER BY ut.fecha_creacion DESC
+    LIMIT 1;
+
+    -- Si no se encuentra tema, retornar vacío
+    IF v_tema_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- Retornar las etapas formativas x ciclo x tema específicas del tema del tesista
+    RETURN QUERY
+    SELECT 
+        efc.etapa_formativa_x_ciclo_id,
+        ef.etapa_formativa_id,
+        ef.nombre::TEXT as etapa_formativa_nombre,
+        c.ciclo_id,
+        (c.anio || ' - ' || c.semestre)::TEXT as ciclo_nombre,
+        car.carrera_id,
+        car.nombre::TEXT as carrera_nombre,
+        efc.activo,
+        efc.estado::TEXT
+    FROM etapa_formativa_x_ciclo_x_tema efcxt
+    JOIN etapa_formativa_x_ciclo efc ON efcxt.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
+    JOIN ciclo c ON efc.ciclo_id = c.ciclo_id
+    JOIN carrera car ON ef.carrera_id = car.carrera_id
+    WHERE efcxt.tema_id = v_tema_id
+      AND efcxt.activo = true
+      AND efc.activo = true
+      AND ef.activo = true
+      AND c.activo = true
+    ORDER BY c.anio DESC, c.semestre DESC, ef.nombre;
+END;
+$$;
+
 

@@ -120,6 +120,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
             :estadoNombre,
             :fechaDesde,
             :fechaHasta,
+            :filtroRol,
             :limit,
             :offset
           )
@@ -132,6 +133,7 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
         @Param("estadoNombre")  String estadoNombre,
         @Param("fechaDesde")    java.sql.Date fechaDesde,
         @Param("fechaHasta")    java.sql.Date fechaHasta,
+        @Param("filtroRol")     String filtroRol,
         @Param("limit")         Integer limit,
         @Param("offset")        Integer offset
     );
@@ -171,6 +173,12 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   @Query(value = "SELECT * FROM obtener_temas_por_alumno(:idAlumno)", nativeQuery = true)
   List<Object[]> obtenerTemasPorAlumno(@Param("idAlumno") Integer idAlumno);
 
+  Optional<Tema>  findTemaByIdAndEstadoTema_Nombre(Integer temaId, String nombre);
+
+
+  List<Tema> findByCarrera_IdInAndActivoTrue(List<Integer> carreraIds);
+
+  List<Tema> findByCarrera_IdAndActivoTrue(Integer carreraId);
 
 
 }

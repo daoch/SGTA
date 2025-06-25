@@ -15,5 +15,6 @@ public class EtapaFormativaXCicloXUsuarioRolServiceImpl implements EtapaFormativ
 
     public void asignarRevisor(Integer cursoId, Integer revisorId) {
         etapaFormativaXCicloXUsuarioRolRepository.asignarRevisor(cursoId, revisorId);
+        etapaFormativaXCicloXUsuarioRolRepository.asociarTemasARevisor(cursoId, revisorId);
     }
 }

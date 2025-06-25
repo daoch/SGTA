@@ -9,24 +9,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { ObservacionV2 } from "@/features/temas/types/temas/entidades";
 import { AlertCircle, CheckCircle, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Toaster, toast } from "sonner";
 
 export function ObservacionesCard({ observaciones }: { observaciones: ObservacionV2[] }) {
   const router = useRouter();
-  const { toast } = useToast();
   const { idToken } = useAuthStore();
 
   const [modoEdicion, setModoEdicion] = useState(false);
   const [tema, setTema] = useState<{ titulo: string; resumen: string } | null>(null);
   const [nuevoTitulo, setNuevoTitulo] = useState("");
   const [nuevoResumen, setNuevoResumen] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Cargar el tema al montar el componente (no al editar)
   useEffect(() => {
     fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/temas/porUsuarioTituloAreaCarreraEstadoFecha?titulo=&areaId=&carreraId=&estadoNombre=OBSERVADO&fechaCreacionDesde=&fechaCreacionHasta=`,
@@ -70,6 +69,7 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
 
   // Guardar cambios
   const handleGuardar = async () => {
+    setIsLoading(true);
     const changeRequests = observaciones.map((obs) => ({
       id: obs.solicitud_id,
       usuario: { id: null },
@@ -112,30 +112,24 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
 
       if (!response.ok) throw new Error("Error al enviar subsanaciones");
 
-      toast({
-        title: "Subsanaciones enviadas",
-        description: "Tus cambios se guardaron correctamente.",
-        duration: 4000,
-      });
+      toast.success("¡Subsanaciones enviadas correctamente!");
+      router.push("/alumno/temas");
 
       setModoEdicion(false);
-      setTimeout(() => router.push("/alumno/temas"), 4500);
     } catch (error) {
       console.error("Error al guardar cambios:", error);
-      toast({
-        title: "Error",
-        description: "Hubo un problema al guardar.",
-        variant: "destructive",
-      });
+      toast.error("Hubo un problema al enviar las subsanaciones.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Card className="mt-4 border border-gray-300 shadow-sm rounded-xl">
       <CardHeader className="flex flex-row gap-2 items-start">
-        <AlertCircle className="text-red-500 mt-1" />
+        <AlertCircle className="text-yellow-500 mt-1" />
         <div>
-          <CardTitle className="text-red-700 text-lg">Observaciones del Coordinador</CardTitle>
+          <CardTitle className="text-yellow-500 text-lg">Observaciones del Coordinador</CardTitle>
           <CardDescription className="text-muted-foreground">
             Tu tema tiene observaciones que deben ser subsanadas para continuar con el proceso
           </CardDescription>
@@ -148,7 +142,7 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
             key={obs.solicitud_id}
             className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm"
           >
-            <div className="font-semibold text-sm text-red-700 mb-1">
+            <div className="font-semibold text-sm text-yellow-500 mb-1">
               {obs.tipo_solicitud}
             </div>
             <div className="text-sm mb-2">{obs.descripcion}</div>
@@ -170,9 +164,15 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
               <div>
                 <label className="block text-sm font-medium mb-1 mt-2">Resumen del Tema</label>
                 <textarea
-                  className="border rounded-md px-2 py-1 w-full text-sm"
+                  className="border rounded-md px-2 py-1 w-full text-sm resize-none"
                   value={nuevoResumen}
                   onChange={(e) => setNuevoResumen(e.target.value)}
+                  rows={2}
+                  onInput={(e) => {
+                    const target = e.currentTarget;
+                    target.style.height = "auto";
+                    target.style.height = `${target.scrollHeight}px`;
+                  }}
                 />
               </div>
             )}
@@ -190,17 +190,21 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
               Cancelar
             </button>
             <button
-              className={`flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition ${!cambiosHechos ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition ${(!cambiosHechos || isLoading) ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={handleGuardar}
-              disabled={!cambiosHechos}
+              disabled={!cambiosHechos || isLoading}
             >
-              <CheckCircle className="w-5 h-5" />
-              Enviar todas las subsanaciones
+              {isLoading ? "Subsanando observaciones..." : (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  Enviar todas las subsanaciones
+                </>
+              )}
             </button>
           </div>
         ) : (
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-yellow-500 hover:bg-red-700 text-white"
             onClick={handleSubsanar}
           >
             <Pencil className="h-4 w-4 mr-2" />
@@ -208,6 +212,7 @@ export function ObservacionesCard({ observaciones }: { observaciones: Observacio
           </Button>
         )}
       </CardFooter>
+      <Toaster position="bottom-right" />
     </Card>
   );
 }

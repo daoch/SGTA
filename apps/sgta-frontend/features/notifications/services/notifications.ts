@@ -4,7 +4,6 @@ import { Notificacion } from "../types/Notification.type";
 
 const { idToken } = useAuthStore.getState();
 
-
 export const getUnreadNotifications = async (): Promise<Notificacion[]> => {
   try {
     const response = await axiosInstance.get<Notificacion[]>(
@@ -86,6 +85,72 @@ export const markAsRead = async (notificacionId: number): Promise<Notificacion[]
     return response.data;
   } catch (error) {
     console.error("Error al marcar la notificacion como leida", error);
+    throw error;
+  }
+};
+
+// Tipos para la configuración de recordatorios
+export interface ReminderConfig {
+  activo: boolean;
+  diasAnticipacion: number[];
+  canalCorreo: boolean;
+  canalSistema: boolean;
+}
+
+// Obtener configuración de recordatorios
+export const getReminderConfig = async (): Promise<ReminderConfig> => {
+  try {
+    const response = await axiosInstance.get<ReminderConfig>(
+      "/reminder-config",
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener la configuración de recordatorios:", error);
+    throw error;
+  }
+};
+
+// Actualizar configuración de recordatorios
+export const updateReminderConfig = async (config: ReminderConfig): Promise<ReminderConfig> => {
+  try {
+    const response = await axiosInstance.post<ReminderConfig>(
+      "/reminder-config",
+      config,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al actualizar la configuración de recordatorios:", error);
+    throw error;
+  }
+};
+
+// Actualizar configuración de recordatorios (reset)
+export const updateReminderConfigReset = async (config: ReminderConfig): Promise<ReminderConfig> => {
+  try {
+    const response = await axiosInstance.post<ReminderConfig>(
+      "/reminder-config",
+      config,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al actualizar la configuración de recordatorios (reset):", error);
     throw error;
   }
 };

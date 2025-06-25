@@ -74,7 +74,8 @@ RETURNS TABLE(
     etapa_formativa_x_ciclo_id INTEGER,
     nombre TEXT,
     descripcion TEXT,
-    estado_planificacion_id INTEGER
+    estado_planificacion_id INTEGER,
+    entregable_id INTEGER
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -83,7 +84,8 @@ BEGIN
         e.etapa_formativa_x_ciclo_id,
         e.nombre,
         e.descripcion,
-        e.estado_planificacion_id
+        e.estado_planificacion_id,
+        e.entregable_id
     FROM exposicion e
     INNER JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     WHERE efc.etapa_formativa_x_ciclo_id = etapaFormativaXCicloId

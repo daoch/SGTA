@@ -17,9 +17,9 @@ export function ObservacionesCard({ observaciones }: ObservacionesCardProps) {
   return (
     <Card className="mt-4 border border-gray-300 shadow-sm rounded-xl">
       <CardHeader className="flex flex-row gap-2 items-start">
-        <AlertCircle className="text-red-500 mt-1" />
+        <AlertCircle className="text-yellow-500 mt-1" />
         <div className="w-full">
-          <CardTitle className="text-red-700 text-lg">
+          <CardTitle className="text-yellow-500 text-lg">
             Observaciones del Coordinador
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -28,20 +28,23 @@ export function ObservacionesCard({ observaciones }: ObservacionesCardProps) {
           </CardDescription>
           <CardContent className="px-0 max-w-full mt-2 space-y-4">
             {observaciones.map((obs) => (
-              <Card
-                key={obs.campo}
-                className="border border-gray-300 bg-white rounded-md"
+              <div
+                key={obs.solicitud_id}
+                className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm"
               >
-                <CardContent className="space-y-2 pt-0">
-                  <p className="text-sm font-semibold text-red-700">
-                    Observación sobre el {obs.campo}
-                  </p>
-                  <p className="text-sm">{obs.detalle}</p>
-                  <p className="text-xs text-muted-foreground italic">
-                    {obs.autor} - {obs.fecha}
-                  </p>
-                </CardContent>
-              </Card>
+                <div className="font-semibold text-sm text-yellow-500 mb-1">
+                  {obs.tipo_solicitud}
+                </div>
+                <div className="text-sm mb-2">{obs.descripcion}</div>
+                <div className="italic text-xs text-gray-500">
+                  {obs.usuarios.map((r, index) => (
+                    <div key={index}>
+                      {r.nombres} {r.primer_apellido}{" "}
+                    </div>
+                  ))}
+                  {new Date(obs.fecha_creacion).toLocaleDateString()}
+                </div>
+              </div>
             ))}
           </CardContent>
         </div>

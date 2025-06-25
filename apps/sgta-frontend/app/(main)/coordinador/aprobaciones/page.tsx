@@ -1,10 +1,15 @@
 "use client";
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchTodasSolicitudesPendientes } from "@/features/temas/types/solicitudes/data";
+import {
+  SolicitudGeneral,
+  SolicitudState,
+} from "@/features/temas/types/solicitudes/entities";
 import SolicitudesPendientes from "@/features/temas/views/solicitudes-pendientes-pagination";
-import React, { useState } from "react";
+import SolicitudesPendientesGeneral from "@/features/temas/views/solicitudes-pendientes-pagination-general";
 import { usePaginationTemas } from "@/hooks/temas/coordinador/use-pagination-temas";
+import React, { useEffect, useState } from "react";
 
 enum TypeView {
   Tema = "tema",
@@ -25,12 +30,40 @@ const texts = {
 };
 
 const Page: React.FC = () => {
+  // General
   const [selectedTab, setSelectedTab] = useState<TypeView>(TypeView.Tema);
-  const paginationTemas = usePaginationTemas();
 
   const onTabChange = (tab: TypeView) => {
     setSelectedTab(tab as TypeView);
   };
+
+  // Tema Solicitudes
+  const paginationTemas = usePaginationTemas();
+
+  // General Solicitudes
+  const [stateGeneral, setStateGeneral] = useState<SolicitudState>("PENDIENTE");
+  const [solicitudesGenerales, setSolicitudesGenerales] = useState<
+    SolicitudGeneral[]
+  >([]);
+
+  async function fetchSolicitudesGenerales(
+    offset: number = 0,
+    limit: number = 100,
+  ) {
+    try {
+      const data = await fetchTodasSolicitudesPendientes(offset, limit);
+      setSolicitudesGenerales(data);
+    } catch (error) {
+      console.error("Error al obtener las solicitudes:", error);
+      throw error;
+    }
+  }
+
+  useEffect(() => {
+    if (selectedTab === TypeView.Solicitud) {
+      fetchSolicitudesGenerales();
+    }
+  }, [selectedTab]);
 
   return (
     <Tabs
@@ -39,14 +72,11 @@ const Page: React.FC = () => {
       className="w-full"
     >
       {/* Tabs List */}
-      <TabsList>
+      <TabsList className="w-full mb-2">
         {Object.entries(texts).map(([tab, { label }]) => (
           <TabsTrigger key={tab} value={tab}>
             <span className="flex items-center gap-2">
               <span>{label}</span>
-              <Badge variant="secondary">
-                {paginationTemas.temas.INSCRITO?.totalCounts || 0}
-              </Badge>
             </span>
           </TabsTrigger>
         ))}
@@ -77,7 +107,11 @@ const Page: React.FC = () => {
         />
       </TabsContent>
       <TabsContent value={TypeView.Solicitud}>
-        {/* Aquí puedes renderizar el contenido de solicitudes de cambios */}
+        <SolicitudesPendientesGeneral
+          solicitudes={solicitudesGenerales}
+          state={stateGeneral}
+          setState={setStateGeneral}
+        />
       </TabsContent>
     </Tabs>
   );

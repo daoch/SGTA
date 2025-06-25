@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Toaster, toast } from "sonner";
+import { buscarTemaPorId } from "@/features/temas/types/solicitudes/data";
+import { Tema } from "@/features/temas/types/temas/entidades";
+import { DetalleTema } from "@/features/temas/components/asesor/detalle-tema-card";
+import HistorialTemaCard from "@/features/temas/components/asesor/historial-tema-card";
 
 // Datos de ejemplo (en producción, estos vendrían de una API)
 
@@ -42,6 +46,7 @@ export function DetalleTesisJuradoView() {
     id: number;
     nombre: string;
   } | null>(null);
+  const [tema, setTema] = useState<Tema | null>(null);
 
   useEffect(() => {
     const fetchTesisData = async () => {
@@ -62,7 +67,14 @@ export function DetalleTesisJuradoView() {
       }
     };
 
+    const fetchTema = async () => {
+      const tema = await buscarTemaPorId(idTema);
+      setTema(tema);
+      setLoading(false);
+    };
+
     fetchTesisData();
+    fetchTema();
   }, []);
 
   const openConfirmDialog = (jurado: { id: number; nombre: string }) => {
@@ -185,9 +197,37 @@ export function DetalleTesisJuradoView() {
         </button>
       </div>
 
+      {activeTab === "informacion" && (
+        <div className="bg-white p-6 border border-gray-200 rounded-lg">
+          <div>
+            {tema ? (
+              <DetalleTema tema={tema} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No hay tema seleccionado.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "historial" && (
+        <div className="bg-white p-6 border border-gray-200 rounded-lg">
+          <div>
+            {tema ? (
+              <HistorialTemaCard idTema={tema.id} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No hay tema seleccionado.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tab Content */}
-      <div className="bg-white p-6 border border-gray-200 rounded-lg">
-        {activeTab === "exposiciones" && (
+      {activeTab === "exposiciones" && (
+        <div className="bg-white p-6 border border-gray-200 rounded-lg">
           <div>
             <div className="grid grid-cols-12 gap-6 mb-6">
               <div className="col-span-3">
@@ -367,8 +407,8 @@ export function DetalleTesisJuradoView() {
                 </div>
               ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Toaster position="bottom-right" richColors />
     </div>

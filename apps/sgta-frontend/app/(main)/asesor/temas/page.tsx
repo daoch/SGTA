@@ -11,12 +11,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PaginatedList from "@/features/temas/components/asesor/paginacion";
 import {
   pageTexts,
   tableTexts,
 } from "@/features/temas/types/inscripcion/constants";
 import {
+  fetchCantidadTemas,
   fetchTemasAPI,
   obtenerAreasDelUsuario,
   obtenerCarrerasPorUsuario,
@@ -51,6 +61,14 @@ const Page = () => {
     EstadoTemaNombre.INSCRITO,
   );
 
+  const [comentario, setComentario] = useState("");
+  const [areaFilter, setAreaFilter] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Puedes ajustar el número de items por página
+  const [totalItems, setTotalItems] = useState(0); // Total de items para la paginación
+
   useEffect(() => {
     const obtenerUsuario = async () => {
       try {
@@ -69,34 +87,45 @@ const Page = () => {
   // Función para recargar los temas
   const fetchTemas = useCallback(async () => {
     try {
-      console.log("Entro a recoger los temas.");
+      console.log("Entro a recoger los temas.", { comentario, areaFilter });
       setIsLoading(true);
+      const offset = (page - 1) * itemsPerPage;
       setError(null);
+      if (areaFilter === "all" || areaFilter === null) {
+        console.log("Entro al if de areaFilter");
+        setAreaFilter("0");
+      }
+      const dataSinFiltrar: Tema[] =
+        (await fetchTemasAPI(
+          comentario,
+          Number(areaFilter),
+          "",
+          itemsPerPage,
+          offset,
+        )) || [];
       let data: Tema[] = [];
       switch (estadoTema) {
         case EstadoTemaNombre.INSCRITO:
-          const temasInscritos = (await fetchTemasAPI("", estadoTema)) || [];
-          const temasEnProgres =
-            (await fetchTemasAPI("", EstadoTemaNombre.EN_PROGRESO)) || [];
-          const temasObservado =
-            (await fetchTemasAPI("", EstadoTemaNombre.OBSERVADO)) || [];
-          const temasRegistrado =
-            (await fetchTemasAPI("", EstadoTemaNombre.REGISTRADO)) || [];
-          data = [
-            ...temasInscritos,
-            ...temasEnProgres,
-            ...temasObservado,
-            ...temasRegistrado,
-          ];
+          data = dataSinFiltrar.filter(
+            (tema) =>
+              tema.estadoTemaNombre === EstadoTemaNombre.INSCRITO ||
+              tema.estadoTemaNombre === EstadoTemaNombre.OBSERVADO ||
+              tema.estadoTemaNombre === EstadoTemaNombre.REGISTRADO ||
+              tema.estadoTemaNombre === EstadoTemaNombre.INSCRITO,
+          );
           break;
         case EstadoTemaNombre.PROPUESTO_LIBRE:
-          data = (await fetchTemasAPI("", estadoTema)) || [];
+          data = dataSinFiltrar.filter(
+            (tema) =>
+              tema.estadoTemaNombre === EstadoTemaNombre.PROPUESTO_LIBRE,
+          );
           break;
         case EstadoTemaNombre.PROPUESTO_GENERAL:
-          const temasGenerales = (await fetchTemasAPI("", estadoTema)) || [];
-          const temasPreInscrito =
-            (await fetchTemasAPI("", EstadoTemaNombre.PREINSCRITO)) || [];
-          data = [...temasGenerales, ...temasPreInscrito];
+          data = dataSinFiltrar.filter(
+            (tema) =>
+              tema.estadoTemaNombre === EstadoTemaNombre.PROPUESTO_GENERAL ||
+              tema.estadoTemaNombre === EstadoTemaNombre.PREINSCRITO,
+          );
           break;
         default:
           console.log("Entro al defaul");
@@ -110,7 +139,7 @@ const Page = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [estadoTema]);
+  }, [estadoTema, comentario, areaFilter, page, itemsPerPage]);
 
   useEffect(() => {
     fetchTemas();
@@ -158,6 +187,33 @@ const Page = () => {
 
     fetchData();
   }, [usuarioLoggeado]);
+
+  useEffect(() => {
+    console.log({ searchTerm });
+    const timer = setTimeout(() => {
+      setComentario(searchTerm);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const fetchTotalItems = async () => {
+      try {
+        const total = await fetchCantidadTemas(
+          comentario,
+          Number(areaFilter),
+          "",
+          100,
+          0,
+        );
+        setTotalItems(total);
+        console.log("Total de temas:", total);
+      } catch (error) {
+        console.error("Error al obtener el total de temas:", error);
+      }
+    };
+    fetchTotalItems();
+  }, [comentario, areaFilter]);
 
   //console.log({ areasDisponibles });
   return (
@@ -226,13 +282,58 @@ const Page = () => {
                   <CardDescription>{value.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <div className="mb-6 flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Input
+                        type="search"
+                        placeholder="Buscar por título..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm?.(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="w-full md:w-64">
+                      <Select
+                        value={areaFilter || "all"}
+                        onValueChange={(value) =>
+                          setAreaFilter(value === "all" ? null : value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filtrar por área" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas las áreas</SelectItem>
+                          {areasDisponibles?.map((area) => (
+                            <SelectItem
+                              key={area.id}
+                              value={area.id.toString()}
+                            >
+                              {area.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   <TemasTable
                     temasData={temasData}
                     isLoading={isLoading}
                     error={error}
                     asesor={asesorData}
                     onTemaInscrito={fetchTemas}
+                    areasDisponibles={areasDisponibles}
+                    carreras={carrera}
                   />
+                  {/*Paginación*/}
+                  <div className="mt-6">
+                    <PaginatedList
+                      totalItems={totalItems}
+                      itemsPerPage={itemsPerPage}
+                      page={page}
+                      setPage={setPage}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

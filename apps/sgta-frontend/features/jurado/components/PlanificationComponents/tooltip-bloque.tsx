@@ -30,7 +30,9 @@ export default function ToolTipoBloque({ tema }: Props) {
       <div className="flex flex-col">
         <strong>Miembros de jurado :</strong>
         {tema?.usuarios
-          ?.filter((u) => u.rol?.nombre !== "Tesista")
+          ?.filter(
+            (u) => u.rol?.nombre !== "Tesista" && u.rol?.nombre !== "Revisor",
+          )
           .map((a) => (
             <li key={a.idUsario}>
               <span className="text-gray-300">

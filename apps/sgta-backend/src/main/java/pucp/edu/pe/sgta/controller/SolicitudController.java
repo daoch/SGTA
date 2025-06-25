@@ -1,6 +1,7 @@
 package pucp.edu.pe.sgta.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +11,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import pucp.edu.pe.sgta.dto.SolicitudCeseDto;
-import pucp.edu.pe.sgta.dto.asesores.RejectSolicitudRequestDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
+import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import org.springframework.http.HttpStatus;
+
+import java.util.List;
 
 @RestController
 
@@ -157,5 +159,34 @@ public class SolicitudController {
                 String cognitoSub = jwt.getSubject();
         SolicitudCeseDetalleDto detalleDto = solicitudService.findSolicitudCeseDetailsById(solicitudId, cognitoSub);
         return ResponseEntity.ok(detalleDto);
+    }
+
+    @PostMapping("/registrarSolicitudCeseTema")
+    public ResponseEntity<Object> registrarSolicitudCeseTema(
+            @Valid @RequestBody RegistroCeseTemaDto registroDto,
+            HttpServletRequest request
+    ){
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        registroDto = solicitudService.registrarSolicitudCeseTema(registroDto, cognitoId);
+        return ResponseEntity.ok(registroDto);
+    }
+
+    @GetMapping("/listarResumenSolicitudCeseTemaUsuario")
+    public ResponseEntity<Object> listarResumenSolicitudCeseTemaUsuario(
+            @RequestParam List<String> roles,
+            HttpServletRequest request
+    ){
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        List<SolicitudCeseTemaResumenDto> solicitudes = solicitudService.listarResumenSolicitudCeseTemaUsuario(cognitoId, roles);
+        return ResponseEntity.ok(solicitudes);
+    }
+
+    @GetMapping("/listarDetalleSolicitudCeseTema")
+    public ResponseEntity<Object> listarDetalleSolicitudCeseTema(
+            @RequestParam Integer idSolicitud,
+            HttpServletRequest request
+    ){
+        DetalleSolicitudCeseTema solicitud = solicitudService.listarDetalleSolicitudCeseTema(idSolicitud);
+        return ResponseEntity.ok(solicitud);
     }
 }

@@ -17,6 +17,7 @@ public class InfoTemaPerfilDto {
     private String estado;
     private Integer idProyecto;
     private String tituloProyecto;
+    private String rol;
 
     public static InfoTemaPerfilDto fromQuery(Object[] query){
         InfoTemaPerfilDto dto = new InfoTemaPerfilDto();
@@ -34,6 +35,7 @@ public class InfoTemaPerfilDto {
         dto.estado = estado;
         dto.idProyecto = (Integer) query[6];
         dto.tituloProyecto = (String) query[7];
+        dto.rol = (String) query[8];
         return dto;
     }
 }

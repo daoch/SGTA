@@ -26,6 +26,11 @@ public class CicloController {
         return cicloService.listarCiclosYetapasFormativas();
     }
 
+    @GetMapping("/listarTodosLosCiclos")
+    public List<CicloDto> listarTodosLosCiclos() {
+        return cicloService.listarTodosLosCiclos();
+    }
+
     @PostMapping("/create")
     public void create(@RequestBody CicloDto dto) {
         this.cicloService.create(dto);
