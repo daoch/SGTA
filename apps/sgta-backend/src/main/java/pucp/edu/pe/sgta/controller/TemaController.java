@@ -860,8 +860,8 @@ public class TemaController {
 
 	@PostMapping("/updatesolicitudesCoordinador")
 	public void updateSolicitudesCoordinador(
-			@RequestParam Integer solicitudId,
-			@RequestParam String respuesta,
+			@RequestParam("solicitudId") Integer solicitudId,
+			@RequestParam("respuesta") String respuesta,
 			HttpServletRequest request) {
 		try {
 			String usuarioId = jwtService.extractSubFromRequest(request);
