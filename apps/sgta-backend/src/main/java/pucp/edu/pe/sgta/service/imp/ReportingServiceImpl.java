@@ -169,12 +169,10 @@ public class ReportingServiceImpl implements IReportService {
                 .getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
                 .map(r -> {
-                    String etapasFormativasStr = (String) r[5];
-                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
-                        ? Arrays.asList(etapasFormativasStr.split(", "))
-                        : Collections.emptyList();
+                    String etapasFormativasJson = (String) r[5]; // Campo etapas_formativas_json
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
                     TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
-                    dto.setEtapasFormativas(etapasFormativas);
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -187,12 +185,10 @@ public class ReportingServiceImpl implements IReportService {
                 .getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
                 .map(r -> {
-                    String etapasFormativasStr = (String) r[5]; // El campo etapas_formativas es el índice 5
-                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
-                        ? Arrays.asList(etapasFormativasStr.split(", "))
-                        : Collections.emptyList();
+                    String etapasFormativasJson = (String) r[5]; // Campo etapas_formativas_json
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
                     TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue());
-                    dto.setEtapasFormativas(etapasFormativas);
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -238,10 +234,10 @@ public class ReportingServiceImpl implements IReportService {
             if (isAdvisor) b.advisorCount(t.getCount());
             else           b.jurorCount(t.getCount());
             
-            // Agregar etapas formativas
-            if (t.getEtapasFormativas() != null && !t.getEtapasFormativas().isEmpty()) {
+            // Agregar etapas formativas desde el mapa de contadores
+            if (t.getEtapasFormativasCount() != null && !t.getEtapasFormativasCount().isEmpty()) {
                 etapasFormativasPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
-                    .addAll(t.getEtapasFormativas());
+                    .addAll(t.getEtapasFormativasCount().keySet());
             }
         }
     }
@@ -253,15 +249,13 @@ public class ReportingServiceImpl implements IReportService {
                 .getAdvisorPerformanceByUser(usuarioId, cicloNombre);
         return results.stream()
                 .map(r -> {
-                    String etapasFormativasStr = (String) r[4]; // El campo etapas_formativas es el índice 4
-                    List<String> etapasFormativas = etapasFormativasStr != null && !etapasFormativasStr.isEmpty() 
-                        ? Arrays.asList(etapasFormativasStr.split(", "))
-                        : Collections.emptyList();
+                    String etapasFormativasJson = (String) r[4]; // Campo etapas_formativas_json
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
                     AdvisorPerformanceDto dto = new AdvisorPerformanceDto(
                             (String) r[0], (String) r[1],
                             Optional.ofNullable((Number) r[2]).map(Number::doubleValue).orElse(0.0),
                             ((Number) r[3]).intValue());
-                    dto.setEtapasFormativas(etapasFormativas);
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
                     return dto;
                 })
                 .collect(Collectors.toList());

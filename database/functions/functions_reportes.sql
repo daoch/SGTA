@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION get_advisor_distribution_by_coordinator_and_ciclo(
     advisor_count  INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
-    etapas_formativas TEXT  -- Nuevo campo para etapas formativas
+    etapas_formativas_json TEXT  -- Cambio a JSON con contadores de tesistas
   )
   LANGUAGE plpgsql
   COST 100
@@ -143,9 +143,28 @@ BEGIN
         SELECT DISTINCT
             a.usuario_id AS asesor_id,
             a.tema_id,
-            t.tesista_name
+            t.tesista_name,
+            t.usuario_id AS tesista_id,
+            a.etapa_formativa_nombre
         FROM asesores a
         JOIN tesistas t ON t.tema_id = a.tema_id
+    ),
+    tesistas_por_etapa_por_asesor AS (
+        -- Contar tesistas por asesor y etapa formativa
+        SELECT 
+            tpa.asesor_id,
+            tpa.etapa_formativa_nombre,
+            COUNT(DISTINCT tpa.tesista_id)::INTEGER AS tesistas_count
+        FROM tesistas_por_asesor tpa
+        GROUP BY tpa.asesor_id, tpa.etapa_formativa_nombre
+    ),
+    etapas_json_por_asesor AS (
+        -- Crear JSON con contadores de tesistas por etapa para cada asesor
+        SELECT 
+            tepa.asesor_id,
+            JSON_OBJECT_AGG(tepa.etapa_formativa_nombre, tepa.tesistas_count) AS etapas_formativas_json
+        FROM tesistas_por_etapa_por_asesor tepa
+        GROUP BY tepa.asesor_id
     )
 
     SELECT
@@ -154,11 +173,12 @@ BEGIN
         COUNT(DISTINCT a.tema_id)::INTEGER AS advisor_count,
         STRING_AGG(DISTINCT tpa.tesista_name, '; ' ORDER BY tpa.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT a.tema_titulo, '; ' ORDER BY a.tema_titulo) AS temas_names,
-        STRING_AGG(DISTINCT a.etapa_formativa_nombre, ', ' ORDER BY a.etapa_formativa_nombre) AS etapas_formativas
+        COALESCE(ejpa.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
     FROM asesores a
     LEFT JOIN areas_por_asesor apa ON apa.usuario_id = a.usuario_id  -- LEFT JOIN evita perder asesores
     LEFT JOIN tesistas_por_asesor tpa ON tpa.asesor_id = a.usuario_id
-    GROUP BY a.usuario_id, a.teacher_name, apa.area_name
+    LEFT JOIN etapas_json_por_asesor ejpa ON ejpa.asesor_id = a.usuario_id
+    GROUP BY a.usuario_id, a.teacher_name, apa.area_name, ejpa.etapas_formativas_json
     ORDER BY advisor_count DESC, a.teacher_name ASC;
 END;
 $BODY$;
@@ -174,7 +194,7 @@ CREATE OR REPLACE FUNCTION get_juror_distribution_by_coordinator_and_ciclo(
     juror_count    INTEGER,
     tesistas_names TEXT,
     temas_names    TEXT,
-    etapas_formativas TEXT
+    etapas_formativas_json TEXT
   )
   LANGUAGE plpgsql
   COST 100
@@ -307,9 +327,28 @@ BEGIN
         SELECT DISTINCT
             j.usuario_id AS jurado_id,
             j.tema_id,
-            t.tesista_name
+            t.tesista_name,
+            t.usuario_id AS tesista_id,
+            j.etapa_formativa_nombre
         FROM jurados j
         JOIN tesistas t ON t.tema_id = j.tema_id
+    ),
+    tesistas_por_etapa_por_jurado AS (
+        -- Contar tesistas por jurado y etapa formativa
+        SELECT 
+            tpj.jurado_id,
+            tpj.etapa_formativa_nombre,
+            COUNT(DISTINCT tpj.tesista_id)::INTEGER AS tesistas_count
+        FROM tesistas_por_jurado tpj
+        GROUP BY tpj.jurado_id, tpj.etapa_formativa_nombre
+    ),
+    etapas_json_por_jurado AS (
+        -- Crear JSON con contadores de tesistas por etapa para cada jurado
+        SELECT 
+            tepj.jurado_id,
+            JSON_OBJECT_AGG(tepj.etapa_formativa_nombre, tepj.tesistas_count) AS etapas_formativas_json
+        FROM tesistas_por_etapa_por_jurado tepj
+        GROUP BY tepj.jurado_id
     )
 
     SELECT
@@ -318,18 +357,19 @@ BEGIN
         COUNT(DISTINCT j.tema_id)::INTEGER AS juror_count,
         STRING_AGG(DISTINCT tpj.tesista_name, '; ' ORDER BY tpj.tesista_name) AS tesistas_names,
         STRING_AGG(DISTINCT j.tema_titulo, '; ' ORDER BY j.tema_titulo) AS temas_names,
-        STRING_AGG(DISTINCT j.etapa_formativa_nombre, ', ' ORDER BY j.etapa_formativa_nombre) AS etapas_formativas
+        COALESCE(ejpj.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
     FROM jurados j
     LEFT JOIN areas_por_jurado apj ON apj.usuario_id = j.usuario_id  -- LEFT JOIN evita perder jurados
     LEFT JOIN tesistas_por_jurado tpj ON tpj.jurado_id = j.usuario_id
-    GROUP BY j.usuario_id, j.teacher_name, apj.area_name
+    LEFT JOIN etapas_json_por_jurado ejpj ON ejpj.jurado_id = j.usuario_id
+    GROUP BY j.usuario_id, j.teacher_name, apj.area_name, ejpj.etapas_formativas_json
     ORDER BY juror_count DESC, j.teacher_name ASC;
 END;
 $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
-    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer, etapas_formativas text)
+    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer, etapas_formativas_json text)
     language plpgsql
 as
 $$
@@ -456,22 +496,61 @@ BEGIN
        AND efc.ciclo_id = v_ciclo_id
        AND efc.activo = TRUE
       GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id, at.etapa_formativa_nombre
+    ),
+    -- Contar tesistas por etapa formativa para cada asesor
+    tesistas_por_asesor AS (
+      SELECT DISTINCT
+        td.usuario_id,
+        td.advisor_name,
+        td.area_name,
+        td.tema_id,
+        -- Obtener tesista del tema
+        ut_tesista.usuario_id AS tesista_id,
+        td.etapa_formativa_nombre
+      FROM topic_deliveries td
+      JOIN usuario_tema ut_tesista ON ut_tesista.tema_id = td.tema_id
+      JOIN rol r_tesista ON r_tesista.rol_id = ut_tesista.rol_id
+      WHERE ut_tesista.activo = TRUE
+        AND ut_tesista.asignado = TRUE
+        AND r_tesista.nombre = 'Tesista'
+    ),
+    tesistas_por_etapa_asesor AS (
+      -- Contar tesistas por asesor y etapa formativa
+      SELECT 
+        tpa.usuario_id,
+        tpa.advisor_name,
+        tpa.area_name,
+        tpa.etapa_formativa_nombre,
+        COUNT(DISTINCT tpa.tesista_id)::INTEGER AS tesistas_count
+      FROM tesistas_por_asesor tpa
+      GROUP BY tpa.usuario_id, tpa.advisor_name, tpa.area_name, tpa.etapa_formativa_nombre
+    ),
+    etapas_json_asesor AS (
+      -- Crear JSON con contadores de tesistas por etapa para cada asesor
+      SELECT 
+        tepd.usuario_id,
+        tepd.advisor_name,
+        tepd.area_name,
+        JSON_OBJECT_AGG(tepd.etapa_formativa_nombre, tepd.tesistas_count) AS etapas_formativas_json
+      FROM tesistas_por_etapa_asesor tepd
+      GROUP BY tepd.usuario_id, tepd.advisor_name, tepd.area_name
     )
 
     -- en la consulta final, reemplazamos SUM(submitted_deliverables) por SUM(reviewed_deliverables)
     SELECT
       td.advisor_name,
-    td.area_name,
-    ROUND(
-        SUM(td.reviewed_deliverables)::NUMERIC
-        / NULLIF(SUM(td.total_deliverables),0)
-        * 100
-    , 2) AS performance_percentage,
-    COUNT(DISTINCT td.tema_id)::INTEGER AS total_students,
-    STRING_AGG(DISTINCT td.etapa_formativa_nombre, ', ' ORDER BY td.etapa_formativa_nombre) AS etapas_formativas
+      td.area_name,
+      ROUND(
+          SUM(td.reviewed_deliverables)::NUMERIC
+          / NULLIF(SUM(td.total_deliverables),0)
+          * 100
+      , 2) AS performance_percentage,
+      COUNT(DISTINCT td.tema_id)::INTEGER AS total_students,
+      COALESCE(eja.etapas_formativas_json::TEXT, '{}') AS etapas_formativas_json
 
     FROM topic_deliveries td
-    GROUP BY td.usuario_id, td.advisor_name, td.area_name
+    LEFT JOIN etapas_json_asesor eja ON eja.usuario_id = td.usuario_id
+    GROUP BY td.usuario_id, td.advisor_name, td.area_name, eja.etapas_formativas_json
     ORDER BY performance_percentage DESC, total_students DESC;
 END;
 $$;

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -13,7 +14,7 @@ public class AdvisorPerformanceDto {
     private String areaName;
     private Double performancePercentage;
     private Integer totalStudents;
-    private List<String> etapasFormativas;
+    private Map<String, Integer> etapasFormativasCount;
 
     public AdvisorPerformanceDto(String advisorName, String areaName, Double performancePercentage, Integer totalStudents) {
         this.advisorName = advisorName;
