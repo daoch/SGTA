@@ -249,7 +249,7 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
             usuarioSolicitudRepository.save(usEstudiante);
             log.info("UsuarioSolicitud para estudiante ID {} y solicitud ID {} creada.", tesista.getId(), solicitudGuardada.getId());
 
-            Enviar notificación al estudiante
+            //Enviar notificación al estudiante
             try {
                 String enlaceEstudiante = String.format("/alumno/mis-temas/%d/solicitud-cese/%d", tema.getId(), solicitudGuardada.getId()); // Ejemplo
                 notificacionService.crearNotificacionParaUsuario(
@@ -318,36 +318,37 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         usCoordinador.setSolicitudCompletada(true); // Campo antiguo
         usuarioSolicitudRepository.save(usCoordinador);
 
-        // // Notificar al asesor solicitante y a los estudiantes
-        // // 1. Encontrar al asesor solicitante original
-        // Usuario asesorSolicitante = encontrarAsesorSolicitante(solicitudActualizada);
-        // if (asesorSolicitante != null) {
-        //     notificacionService.crearNotificacionParaUsuario(
-        //             asesorSolicitante.getId(),
-        //             MODULO_NOMBRE_SOLICITUDES_CESE,
-        //             TIPO_NOTIF_SOLICITUD_APROBADA, // Necesitas este tipo de notificación
-        //             "Su solicitud de cese de asesoría para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA.",
-        //             "SISTEMA",
-        //             null // Enlace opcional
-        //     );
-        // }
+        // Notificar al asesor solicitante y a los estudiantes
+        // 1. Encontrar al asesor solicitante original
+        Usuario asesorSolicitante = encontrarAsesorSolicitante(solicitudActualizada);
+        if (asesorSolicitante != null) {
+            notificacionService.crearNotificacionParaUsuario(
+                    asesorSolicitante.getId(),
+                    MODULO_NOMBRE_SOLICITUDES_CESE,
+                    TIPO_NOTIF_SOLICITUD_APROBADA, // Necesitas este tipo de notificación
+                    "Su solicitud de cese de asesoría para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA.",
+                    "SISTEMA",
+                    null // Enlace opcional
+            );
+        }
 
         // // 2. Notificar a los estudiantes del tema
-        // Rol rolTesista = rolRepository.findByNombre("Tesista").orElse(null);
-        // if (rolTesista != null) {
-        //     List<UsuarioXTema> tesistasDelTema = usuarioTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(
-        //             solicitudActualizada.getTema().getId(), rolTesista.getId());
-        //     for (UsuarioXTema ut : tesistasDelTema) {
-        //         notificacionService.crearNotificacionParaUsuario(
-        //                 ut.getUsuario().getId(),
-        //                 MODULO_NOMBRE_SOLICITUDES_CESE,
-        //                 TIPO_NOTIF_SOLICITUD_APROBADA,
-        //                 "La solicitud de cese de su asesor para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA. Se procederá con la reasignación.",
-        //                 "SISTEMA",
-        //                 null // Enlace opcional
-        //         );
-        //     }
-        // }
+        Rol rolTesista = rolRepository.findByNombre("Tesista")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol 'Tesista' no encontrado."));;
+        if (rolTesista != null) {
+            List<UsuarioXTema> tesistasDelTema = usuarioTemaRepository.findByTema_IdAndRol_IdAndActivoTrue(
+                    solicitudActualizada.getTema().getId(), rolTesista.getId());
+            for (UsuarioXTema ut : tesistasDelTema) {
+                notificacionService.crearNotificacionParaUsuario(
+                        ut.getUsuario().getId(),
+                        MODULO_NOMBRE_SOLICITUDES_CESE,
+                        TIPO_NOTIF_SOLICITUD_APROBADA,
+                        "La solicitud de cese de su asesor para el tema '" + solicitudActualizada.getTema().getTitulo() + "' ha sido APROBADA. Se procederá con la reasignación.",
+                        "SISTEMA",
+                        null // Enlace opcional
+                );
+            }
+        }
 
         return new SolicitudActualizadaDto(
                 solicitudActualizada.getId(),
@@ -402,5 +403,28 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
                 );
         });
         }
+
+        // Método auxiliar para encontrar al asesor que creó la solicitud
+    private Usuario encontrarAsesorSolicitante(Solicitud solicitud) {
+        // Necesitas un método en UsuarioSolicitudRepository que busque por solicitudId y rolSolicitud.nombre
+        // y devuelva List<UsuarioSolicitud> o Optional<UsuarioSolicitud> si esperas solo uno.
+        // Por ejemplo: findBySolicitud_IdAndRolSolicitud_Nombre(Integer solicitudId, String rolNombre)
+
+        RolSolicitud rolAsesorCese = rolSolicitudRepository.findByNombre(ROL_SOLICITUD_ASESOR_CESE)
+        .orElseThrow(() -> new ResourceNotFoundException("Rol 'ASESOR_ACTUAL' no encontrado."));; // Usando la clase de constantes
+        // O la constante local: private static final String ROL_SOLICITUD_ASESOR_CESE = "ASESOR_SOLICITANTE_CESE";
+
+
+        UsuarioXSolicitud usAsesores = usuarioSolicitudRepository.findFirstBySolicitudAndRolSolicitudAndActivoTrue(
+                solicitud,
+                rolAsesorCese
+        );
+
+        if (usAsesores != null && usAsesores.getUsuario() != null) {
+            // Asumimos que solo debería haber un ASESOR_SOLICITANTE_CESE por solicitud
+            return usAsesores.getUsuario();
+        }
+        return null;
+    }
 
 }

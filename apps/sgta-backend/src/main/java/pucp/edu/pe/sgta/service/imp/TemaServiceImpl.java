@@ -3709,8 +3709,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
 		notificacionService.crearNotificacionParaUsuario(
 				nuevoAsesorPropuestoId,
-				"Propuestas de Asesoria", // O un módulo específico para "Propuestas de Asesoría"
-				"NuevaPropuestaAsesoria", // O un tipo específico "NuevaPropuestaAsesoria"
+				"Asesores", // O un módulo específico para "Propuestas de Asesoría"
+				"informativa", // O un tipo específico "NuevaPropuestaAsesoria"
 				mensajeNotificacion,
 				"SISTEMA",
 				enlace
