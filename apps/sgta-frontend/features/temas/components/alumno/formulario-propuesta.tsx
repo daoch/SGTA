@@ -131,42 +131,6 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     fetchAreasGenerales();
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    if (formData.areaGeneral) {
-      fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario?idArea=${formData.areaGeneral}`,
-        { signal }
-      )
-        .then((res) => res.json())
-        .then(
-          (data: Array<{ id: number; nombres: string; primerApellido: string}>) => {
-            if (Array.isArray(data)) {
-              setAsesores(
-                data.map((u) => ({
-                  id: String(u.id),
-                  nombre: `${u.nombres} ${u.primerApellido}`.trim(),
-                }))
-              );
-            } else {
-              setAsesores([]);
-              console.error("La respuesta de asesores no es un array:", data);
-            }
-          }
-        )
-        .catch((err) => {
-          if (err.name !== "AbortError") {
-            console.error("Error cargando asesores:", err);
-          }
-        });
-    } else {
-      setAsesores([]);
-    }
-    return () => controller.abort();
-  }, [formData.areaGeneral]);
-
   // Cargar subáreas cuando cambia área general
   useEffect(() => {
     async function fetchAreas() {
@@ -198,6 +162,45 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
     }
   }, [formData.areaGeneral]);
 
+  // Cargar asesores cuando el tipo es directa y hay subáreas seleccionadas
+  useEffect(() => {
+    const fetchAsesores = async () => {
+      if (formData.tipo !== "directa" || subareasSeleccionadas.length === 0) {
+        setAsesores([]);
+        setFormData((f) => ({ ...f, asesor: "" })); // Borra asesor si no cumple condiciones
+        return;
+      }
+      try {
+        const { idToken } = useAuthStore.getState();
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/profesores-por-subareas`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(subareasSeleccionadas.map(s => s.id))
+          }
+        );
+        if (!res.ok) throw new Error("Error cargando asesores");
+        const data: Array<{ id: number; nombres: string; primerApellido: string }> = await res.json();
+        setAsesores(
+          data.map((u) => ({
+            id: String(u.id),
+            nombre: `${u.nombres} ${u.primerApellido}`.trim(),
+          }))
+        );
+      } catch (err) {
+        setAsesores([]);
+        setFormData((f) => ({ ...f, asesor: "" }));
+        console.error("Error cargando asesores:", err);
+      }
+    };
+    fetchAsesores();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.tipo, subareasSeleccionadas]);
+
   const handleChange =
     (field: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -217,6 +220,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         asesor: "", // limpiar asesor también
       }));
 
+      setSubareasSeleccionadas([]); // <-- limpiar subáreas seleccionadas
       setErrors((e) => ({
         ...e,
         [field]: undefined,
@@ -477,9 +481,10 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                   <button
                     type="button"
                     className="ml-2"
-                    onClick={() =>
-                      setSubareasSeleccionadas(subareasSeleccionadas.filter(s => s.id !== sub.id))
-                    }
+                    onClick={() => {
+                      setSubareasSeleccionadas(subareasSeleccionadas.filter(s => s.id !== sub.id));
+                      setFormData(f => ({ ...f, asesor: "" })); // Borra asesor
+                    }}
                   >
                     ×
                   </button>
@@ -560,11 +565,15 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
               <Select
                 value={formData.asesor}
                 onValueChange={handleSelectStr("asesor")}
-                disabled={!formData.area || asesores.length === 0}
+                disabled={
+                  formData.tipo !== "directa" ||
+                  subareasSeleccionadas.length === 0 ||
+                  asesores.length === 0
+                }
               >
                 <SelectTrigger
                   className={
-                    !formData.area
+                    formData.tipo !== "directa" || subareasSeleccionadas.length === 0
                       ? "opacity-50 cursor-not-allowed"
                       : errors.asesor
                       ? "border-red-500"
@@ -573,8 +582,10 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                 >
                   <SelectValue
                     placeholder={
-                      !formData.area
-                        ? "Elige un área primero"
+                      formData.tipo !== "directa"
+                        ? "Elige tipo directa"
+                        : subareasSeleccionadas.length === 0
+                        ? "Elige subárea(s) primero"
                         : "Seleccione un asesor"
                     }
                   />
