@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ObservacionesCard } from "@/features/temas/components/asesor/observaciones-tema-card";
 import {
   buscarTema,
   obtenerObservacionesTema,
@@ -11,7 +17,10 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Observacion, Solicitud, Tema } from "../types/temas/entidades";
+import { DetalleTema } from "../components/asesor/detalle-tema-card";
+import HistorialTemaCard from "../components/asesor/historial-tema-card";
+import { ObservacionesCard } from "../components/asesor/observaciones-tema-card";
+import { Observacion, Tema } from "../types/temas/entidades";
 
 export default function InformacionTemaAsesor({
   params,
@@ -38,30 +47,36 @@ export default function InformacionTemaAsesor({
   }, [params, router]);
 
   useEffect(() => {
-    const fetchObservaciones = async (id: number) => {
-      setLoading(true);
+    const fetchObservaciones = async () => {
       try {
-        const obsData: { changeRequests: Solicitud[] } =
-          await obtenerObservacionesTema(id);
+        const obsData: Observacion[] = await obtenerObservacionesTema();
 
-        const filtradas = obsData.changeRequests.filter(
-          (req) =>
-            (req.tipoSolicitud.id === 2 || req.tipoSolicitud.id === 3) &&
-            req.solicitudCompletada === false,
+        const filtradas = obsData.filter(
+          (req: Observacion) => req.tema_id === tema?.id,
         );
 
-        const observacionesFormateadas: Observacion[] = filtradas.map(
-          (req) => ({
-            campo: req.tipoSolicitud.id === 2 ? "título" : "descripción",
-            detalle: req.reason,
-            autor: `${req.usuario.nombres} ${req.usuario.primerApellido}`,
-            fecha: req.registerTime,
-          }),
-        );
+        const observaciones = filtradas
+          .map((s) => {
+            const remitente = s.usuarios.find(
+              (u) => u.rol_solicitud === "REMITENTE",
+            );
+            if (!remitente) return null;
+            return {
+              solicitud_id: s.solicitud_id,
+              descripcion: s.descripcion,
+              tipo_solicitud: s.tipo_solicitud,
+              estado_solicitud: s.estado_solicitud,
+              tema_id: s.tema_id,
+              fecha_creacion: s.fecha_creacion,
+              usuarios: [remitente],
+            };
+          })
+          .filter((o): o is NonNullable<typeof o> => o !== null);
 
-        setObservaciones(observacionesFormateadas);
+        setObservaciones(observaciones);
       } catch (err) {
         if (err instanceof Error) {
+          console.error("Error al obtener las observaciones:", err);
           setError(err.message);
         } else {
           setError("Error desconocido");
@@ -70,11 +85,12 @@ export default function InformacionTemaAsesor({
         setLoading(false);
       }
     };
+    if (tema) {
+      setLoading(true);
+      fetchObservaciones();
+    }
+  }, [tema]);
 
-    fetchObservaciones(Number(params));
-  }, [params]);
-
-  console.log({ tema });
   return (
     <div className="space-y-8 mt-4">
       <div className="flex items-center gap-4">
@@ -90,8 +106,13 @@ export default function InformacionTemaAsesor({
       </div>
       <Tabs defaultValue={"Comentarios"} className="w-full">
         <TabsList>
+          <TabsTrigger value={"Detalle"}>Detalles del tema</TabsTrigger>
           <TabsTrigger value={"Comentarios"}>Comentario(s)</TabsTrigger>
+          <TabsTrigger value={"Historial"}>Historial de cambio</TabsTrigger>
         </TabsList>
+        <TabsContent value={"Detalle"}>
+          {tema && <DetalleTema tema={tema} />}
+        </TabsContent>
         <TabsContent value={"Comentarios"}>
           {(() => {
             if (loading) {
@@ -100,13 +121,21 @@ export default function InformacionTemaAsesor({
                   Cargando observaciones...
                 </p>
               );
-            } else if (error) {
-              return <p className="p-6 text-red-500">Error: {error}</p>;
             } else if (observaciones.length === 0) {
               return (
-                <p className="p-6 text-muted-foreground">
-                  No se encontraron observaciones para este tema
-                </p>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Observaciones pendientes</CardTitle>
+                    <CardDescription>
+                      Observaciones pendientes por parte del alumno
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6 text-gray-500">
+                      No se encontraron observaciones pendientes
+                    </div>
+                  </CardContent>
+                </Card>
               );
             } else {
               return (
@@ -117,8 +146,10 @@ export default function InformacionTemaAsesor({
             }
           })()}
         </TabsContent>
+        <TabsContent value={"Historial"}>
+          <HistorialTemaCard idTema={tema?.id} />
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
-

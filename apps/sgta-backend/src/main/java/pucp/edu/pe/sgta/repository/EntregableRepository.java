@@ -66,4 +66,7 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
         @Param("entregableId") Integer entregableId,
         @Param("temaId") Integer temaId
     );
+
+    @Query(value = "SELECT asociar_temas_a_entregable(:entregableId, :etapaFormativaXCicloId)", nativeQuery = true)
+    void asociarTemasAEntregable(@Param("entregableId") Integer entregableId, @Param("etapaFormativaXCicloId") Integer etapaFormativaXCicloId);
 }

@@ -139,7 +139,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             // registrar en bd
             usuarioRepository.save(usuario);
             // guardar usuario_carreras
-            if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && dto.getCarreras() != null) {
+            if (dto.getCarreras() != null) {
                 for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : dto.getCarreras()) {
                     Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
                             .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
@@ -149,7 +149,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                     relacion.setActivo(true);
                     relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
                     usuarioXCarreraRepository.save(relacion);
-                    if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                    if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre()) && Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
                         cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
                     }
                 }
@@ -921,7 +921,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 u.correo_electronico,
                 u.codigo_pucp,
                 string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_count,
+                -- >>> CAMBIO: Conteo separado para roles de Asesor/Co-Asesor y Jurado
+                COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_asesor_count,
+                COUNT(DISTINCT CASE WHEN ut.rol_id = 2 THEN ut.tema_id END) AS tesis_jurado_count,
                 tu.tipo_usuario_id,
                 tu.nombre AS tipo_usuario_nombre
             FROM
@@ -1006,31 +1008,34 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
-                .map(row -> {
-                    TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
-                            .id((Integer) row[8])
-                            .nombre((String) row[9])
-                            .activo(true)
-                            .build();
+            .map(row -> {
+                // >>> CAMBIO: Los índices se desplazan por la nueva columna en el SELECT
+                TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
+                        .id((Integer) row[9])
+                        .nombre((String) row[10])
+                        .activo(true)
+                        .build();
 
-                    UsuarioDto usuarioBase = UsuarioDto.builder()
-                            .id((Integer) row[0])
-                            .nombres((String) row[1])
-                            .primerApellido((String) row[2])
-                            .segundoApellido((String) row[3])
-                            .correoElectronico((String) row[4])
-                            .codigoPucp((String) row[5])
-                            .tipoUsuario(tipoUsuarioDto)
-                            .activo(true)
-                            .build();
+                UsuarioDto usuarioBase = UsuarioDto.builder()
+                        .id((Integer) row[0])
+                        .nombres((String) row[1])
+                        .primerApellido((String) row[2])
+                        .segundoApellido((String) row[3])
+                        .correoElectronico((String) row[4])
+                        .codigoPucp((String) row[5])
+                        .tipoUsuario(tipoUsuarioDto)
+                        .activo(true)
+                        .build();
 
-                    return UsuarioConRolDto.builder()
-                            .usuario(usuarioBase)
-                            .rolesConcat((String) row[6])
-                            .tesisCount(((Number) row[7]).intValue())
-                            .build();
-                })
-                .collect(Collectors.toList());
+                // >>> CAMBIO: Mapear a los nuevos campos del DTO
+                return UsuarioConRolDto.builder()
+                        .usuario(usuarioBase)
+                        .rolesConcat((String) row[6])
+                        .tesisAsesorCount(((Number) row[7]).intValue())
+                        .tesisJuradoCount(((Number) row[8]).intValue())
+                        .build();
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -1057,16 +1062,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
         }
         TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
-        //validar que tenga carrera
-        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
-            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
-        }
         //cargar Carrera/s
         Map<Integer, Carrera> carrerasMap = new HashMap<>();
-        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
-                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
-            carrerasMap.put(carrera.getId(), carrera);
+        if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                        .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                carrerasMap.put(carrera.getId(), carrera);
+            }
         }
         // roles en caso de profesor
         Map<Integer, Rol> rolesMap = new HashMap<>();
@@ -1144,14 +1147,16 @@ public class UsuarioServiceImpl implements UsuarioService {
                     usuarioRepository.save(usuario);
 
                     // guardar relción con carreras
-                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
-                        UsuarioXCarrera relacion = new UsuarioXCarrera();
-                        relacion.setUsuario(usuario);
-                        relacion.setCarrera(carrera);
-                        relacion.setActivo(true);
-                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
-                        usuarioXCarreraRepository.save(relacion);
+                    if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                            UsuarioXCarrera relacion = new UsuarioXCarrera();
+                            relacion.setUsuario(usuario);
+                            relacion.setCarrera(carrera);
+                            relacion.setActivo(true);
+                            relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                            usuarioXCarreraRepository.save(relacion);
+                        }
                     }
                     // en caso de profesor, guardar roles y grupos extra en Cognito
                     if ("profesor".equalsIgnoreCase(tipoUsuario.getNombre())) {
@@ -1187,16 +1192,14 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Tipo de usuario no válido: " + datosExtra.getTipoUsuarioNombre());
         }
         TipoUsuario tipoUsuario = tipoUsuarioOpt.get();
-        //validar que tenga carreras
-        if (datosExtra.getCarreras() == null || datosExtra.getCarreras().isEmpty()) {
-            throw new IllegalArgumentException("Debe proporcionarse al menos una carrera asignada");
-        }
         //obtener carreras
         Map<Integer, Carrera> carrerasMap = new HashMap<>();
-        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-            Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
-                    .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
-            carrerasMap.put(carrera.getId(), carrera);
+        if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+            for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                Carrera carrera = carreraRepository.findById(carreraDto.getCarreraId())
+                        .orElseThrow(() -> new IllegalArgumentException("Carrera no válida con ID: " + carreraDto.getCarreraId()));
+                carrerasMap.put(carrera.getId(), carrera);
+            }
         }
         // cargar roles desde IDs
         Map<Integer, Rol> rolesMap = new HashMap<>();
@@ -1265,16 +1268,18 @@ public class UsuarioServiceImpl implements UsuarioService {
                     }
                     usuarioRepository.save(usuario);
                     // guardar relción con carrera
-                    for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
-                        Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
-                        UsuarioXCarrera relacion = new UsuarioXCarrera();
-                        relacion.setUsuario(usuario);
-                        relacion.setCarrera(carrera);
-                        relacion.setActivo(true);
-                        relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
-                        usuarioXCarreraRepository.save(relacion);
-                        if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
-                            cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                    if (datosExtra.getCarreras() != null && !datosExtra.getCarreras().isEmpty()) {
+                        for (UsuarioRegistroDto.CarreraAsignadaDto carreraDto : datosExtra.getCarreras()) {
+                            Carrera carrera = carrerasMap.get(carreraDto.getCarreraId());
+                            UsuarioXCarrera relacion = new UsuarioXCarrera();
+                            relacion.setUsuario(usuario);
+                            relacion.setCarrera(carrera);
+                            relacion.setActivo(true);
+                            relacion.setEsCoordinador(Boolean.TRUE.equals(carreraDto.getEsCoordinador()));
+                            usuarioXCarreraRepository.save(relacion);
+                            if (Boolean.TRUE.equals(carreraDto.getEsCoordinador()) && !"coordinador".equals(grupoPrincipal)) {
+                                cognitoService.agregarUsuarioAGrupo(idCognito, "coordinador");
+                            }
                         }
                     }
                     // para profesor, registrar roles y grupos extra en Cognito
@@ -1613,8 +1618,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public PerfilUsuarioDto getPerfilUsuario(String cognitoId) {
-        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(cognitoId);
+    public PerfilUsuarioDto getPerfilUsuario(Integer usuarioId) {
+        List<Object[]> queryResult = usuarioRepository.obtenerPerfilUsuario(usuarioId);
         if(queryResult.isEmpty()) {
             throw new RuntimeException("No se encontró un perfil de usuario correspondiente");
         }
@@ -1748,6 +1753,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
     }
 
+    public Usuario buscarUsuarioPorCognito(String idCognito, String onErrorMsg){
+        Integer idUsuario = obtenerIdUsuarioPorCognito(idCognito);
+        return buscarUsuarioPorId(idUsuario, onErrorMsg);
+    }
+
     public List<InfoAreaConocimientoDto> listarInfoAreaConocimientoParaPerfilPorUsuario(Integer usuarioId){
         List<Object[]> queryResult = areaConocimientoRepository.listarParaPerfilPorUsuarioId(usuarioId);
         List<InfoAreaConocimientoDto> dtos = new ArrayList<>();
@@ -1790,5 +1800,21 @@ public class UsuarioServiceImpl implements UsuarioService {
             revisores.add(dto);
         }
         return revisores;
+    }
+
+
+    public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return usuarioRepository.findAllById(ids).stream()
+            .map(u -> UsuarioDto.builder()
+                .id(u.getId())
+                .nombres(u.getNombres())
+                .primerApellido(u.getPrimerApellido())
+                .segundoApellido(u.getSegundoApellido())
+                .build()
+            )
+            .collect(Collectors.toList());
     }
 }

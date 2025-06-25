@@ -18,6 +18,7 @@ import AppLoading from "@/components/loading/app-loading";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import { descargarExcelByExposicionId } from "../../services/planificacion-service";
 import { toast } from "sonner";
+import ButtonAlertDialog from "../button-alert-dialog";
 
 interface Props {
   days: JornadaExposicionDTO[];
@@ -93,12 +94,22 @@ const PlanificationPanel: React.FC<Props> = ({
 
           {estadoPlan.nombre !== "Planificacion inicial" &&
             estadoPlan.nombre !== "Cierre de planificacion" && (
-              <Button
-                onClick={() => onAvanzarPlanificacionClick("terminar")}
-                disabled={isLoading}
-              >
-                Terminar Planificacion
-              </Button>
+              // <Button
+              //   onClick={() => onAvanzarPlanificacionClick("terminar")}
+              //   disabled={isLoading}
+              // >
+              //   Terminar Planificacion
+              // </Button>
+              <ButtonAlertDialog
+                message="¿Estás seguro de que deseas terminar la planificación? Esta acción no se puede deshacer."
+                trigger={
+                  <Button className="w-fit" disabled={isLoading}>
+                    {/* <FolderSync /> */}
+                    Terminar Planificación
+                  </Button>
+                }
+                onConfirm={() => onAvanzarPlanificacionClick("terminar")}
+              />
             )}
           {estadoPlan.nombre === "Cierre de planificacion" && (
             <Button

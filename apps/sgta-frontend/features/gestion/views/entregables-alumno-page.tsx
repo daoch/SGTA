@@ -151,16 +151,22 @@ const EntregablesAlumnoPage = () => {
         </div>
       </div>
 
-      {/* Mostrar el nombre del tema asociado a la etapa formativa seleccionada */}
       <div className="text-lg font-medium text-[#042354]">
         {(() => {
-          // Busca la etapa formativa seleccionada según el ciclo
           const etapa = etapasFormativas.find(
             (e) => e.cicloNombre === cicloSeleccionado,
           );
-          return etapa?.temaTitulo
-            ? `Tema: ${etapa.temaTitulo}`
-            : "No hay tema asociado";
+          return (
+            <>
+              {etapa?.temaTitulo
+                ? `Curso: ${etapa.etapaFormativaNombre}`
+                : "No hay curso asociado"}
+              <br /> 
+              {etapa?.temaTitulo
+                ? `Tema: ${etapa.temaTitulo}`
+                : "No hay tema asociado"}
+            </>
+          );
         })()}
       </div>
 
@@ -206,22 +212,22 @@ const TABS_VALUES = {
   no_iniciado: {
     title: "Pendientes",
     description: "Lista de entregables pendientes de revisión",
-    filter: "no_iniciado",
+    filter: "pendiente",
   },
   entregados: {
     title: "Entregados",
     description: "Lista de entregables presentados",
-    filter: "Entregado",
+    filter: "enviado_a_tiempo",
   },
   revision: {
     title: "En Revisión",
     description: "Lista de entregables en revisión",
-    filter: "En Revisión",
+    filter: "en_revision",
   },
   revisados: {
     title: "Revisados",
     description: "Lista de entregables revisados",
-    filter: "Revisado",
+    filter: "revisado",
   },
   todos: {
     title: "Todos",

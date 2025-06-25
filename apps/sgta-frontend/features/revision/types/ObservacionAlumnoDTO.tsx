@@ -15,5 +15,6 @@ interface ObservacionAlumnoDTO {
   fechaCreacion: string;
   activo: boolean | null;
   corregido: boolean | null;
+  estado: string; // Ejemplo: "Pendiente", "Corregido", etc.
   // Agrega otros campos si los necesitas
 }

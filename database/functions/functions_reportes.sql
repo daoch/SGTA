@@ -306,20 +306,11 @@ END;
 $BODY$;
 
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION get_advisor_performance_by_user(
-    p_usuario_id     INTEGER,
-    p_ciclo_nombre   VARCHAR
-)
-  RETURNS TABLE(
-    advisor_name           VARCHAR,
-    area_name              VARCHAR,
-    performance_percentage NUMERIC,
-    total_students         INTEGER
-  )
-  LANGUAGE plpgsql
-  COST 100
-  VOLATILE PARALLEL UNSAFE
-AS $BODY$
+create function get_advisor_performance_by_user(p_usuario_id integer, p_ciclo_nombre character varying)
+    returns TABLE(advisor_name character varying, area_name character varying, performance_percentage numeric, total_students integer)
+    language plpgsql
+as
+$$
 DECLARE
     v_carrera_id INTEGER;
     v_ciclo_id   INTEGER;
@@ -402,33 +393,50 @@ BEGIN
         at.area_name,
         at.tema_id,
         COUNT(et.entregable_x_tema_id) AS total_deliverables,
-        COUNT(*) FILTER (WHERE et.estado::text != 'no_enviado') AS submitted_deliverables
+        -- ahora contamos cuántos entregables tienen al menos una revisión con estado 'revisado'
+        COUNT(DISTINCT et.entregable_x_tema_id)
+          FILTER (
+            WHERE EXISTS (
+              SELECT 1
+                FROM version_documento vd
+                JOIN revision_documento rd
+                  ON rd.version_documento_id = vd.version_documento_id
+               WHERE vd.entregable_x_tema_id = et.entregable_x_tema_id
+                 AND vd.activo = TRUE
+                 AND rd.activo = TRUE
+                 AND rd.estado_revision = 'revisado'
+            )
+          ) AS reviewed_deliverables
       FROM advisor_topics AS at
-      -- Entregables del tema
-      LEFT JOIN entregable_x_tema et ON et.tema_id = at.tema_id AND et.activo = TRUE
-      LEFT JOIN entregable e ON e.entregable_id = et.entregable_id
-                             AND e.activo = TRUE
-      -- Filtrar entregables del ciclo actual
-      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                           AND efc.ciclo_id = v_ciclo_id
-                                           AND efc.activo = TRUE
+      LEFT JOIN entregable_x_tema et
+        ON et.tema_id = at.tema_id
+       AND et.activo = TRUE
+      LEFT JOIN entregable e
+        ON e.entregable_id = et.entregable_id
+       AND e.activo = TRUE
+      LEFT JOIN etapa_formativa_x_ciclo efc
+        ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+       AND efc.ciclo_id = v_ciclo_id
+       AND efc.activo = TRUE
       GROUP BY at.usuario_id, at.advisor_name, at.area_name, at.tema_id
     )
 
+    -- en la consulta final, reemplazamos SUM(submitted_deliverables) por SUM(reviewed_deliverables)
     SELECT
       td.advisor_name,
-      td.area_name,
-      ROUND(
-        (SUM(td.submitted_deliverables)::NUMERIC
-         / NULLIF(SUM(td.total_deliverables),0)
-        ) * 100
-      , 2) AS performance_percentage,
-      CAST(COUNT(DISTINCT td.tema_id) AS INTEGER) AS total_students
-    FROM topic_deliveries AS td
+    td.area_name,
+    ROUND(
+        SUM(td.reviewed_deliverables)::NUMERIC
+        / NULLIF(SUM(td.total_deliverables),0)
+        * 100
+    , 2) AS performance_percentage,
+    COUNT(DISTINCT td.tema_id)::INTEGER AS total_students
+
+    FROM topic_deliveries td
     GROUP BY td.usuario_id, td.advisor_name, td.area_name
     ORDER BY performance_percentage DESC, total_students DESC;
 END;
-$BODY$;
+$$;
 -------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION get_topic_area_stats_by_user_and_ciclo(
     p_usuario_id     INTEGER,
@@ -477,31 +485,44 @@ BEGIN
         RAISE EXCEPTION 'El ciclo % no existe o está inactivo', p_ciclo_nombre;
     END IF;
 
-    -- 4) Conteo de temas por área, filtrando por ciclo o incluyendo no expuestos
+    -- 4) Conteo completo: todas las áreas + conteos reales (incluyendo 0)
     RETURN QUERY
+    WITH all_areas AS (
+      -- Obtener todas las áreas de conocimiento de la carrera
+      SELECT 
+        ac.area_conocimiento_id,
+        ac.nombre AS area_name
+      FROM area_conocimiento ac
+      WHERE ac.carrera_id = v_carrera_id
+    ),
+    tema_counts AS (
+      -- Contar temas por área en el ciclo específico (solo tesistas asignados)
+      SELECT
+        sac.area_conocimiento_id,
+        COUNT(DISTINCT t.tema_id) AS topic_count
+      FROM tema t
+      -- Relación directa tema -> ciclo
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
+      JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      -- Restricción: solo temas con tesistas asignados
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.ciclo_id = v_ciclo_id  -- Solo el ciclo específico
+        AND ut.asignado = TRUE        -- Solo tesistas asignados
+        AND ut.activo = TRUE          -- Relación activa
+        AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
+      GROUP BY sac.area_conocimiento_id
+    )
     SELECT
-      CAST(ac.nombre AS VARCHAR)       AS area_name,
-      COUNT(DISTINCT t.tema_id)        AS topic_count
-    FROM area_conocimiento              ac
-    JOIN sub_area_conocimiento          sac  ON sac.area_conocimiento_id           = ac.area_conocimiento_id
-                                             AND sac.activo
-    JOIN sub_area_conocimiento_tema     sact ON sact.sub_area_conocimiento_id       = sac.sub_area_conocimiento_id
-                                             AND sact.activo
-    JOIN tema                           t    ON t.tema_id                         = sact.tema_id
-                                             AND t.activo
-                                             AND t.carrera_id = v_carrera_id
-    LEFT JOIN exposicion_x_tema         ext  ON ext.tema_id                        = t.tema_id
-                                             AND ext.activo
-    LEFT JOIN exposicion                e    ON e.exposicion_id                   = ext.exposicion_id
-                                             AND e.activo
-    LEFT JOIN etapa_formativa_x_ciclo   efc  ON efc.etapa_formativa_x_ciclo_id     = e.etapa_formativa_x_ciclo_id
-                                             AND efc.activo
-    LEFT JOIN ciclo                     ci   ON ci.ciclo_id                       = efc.ciclo_id
-                                             AND ci.activo
-    WHERE ac.activo
-      AND (ci.ciclo_id = v_ciclo_id OR ci.ciclo_id IS NULL)
-    GROUP BY ac.nombre
-    ORDER BY topic_count DESC;
+      CAST(aa.area_name AS VARCHAR)     AS area_name,
+      COALESCE(tc.topic_count, 0)       AS topic_count
+    FROM all_areas aa
+    LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = aa.area_conocimiento_id
+    ORDER BY topic_count DESC, aa.area_name;
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------
@@ -532,41 +553,71 @@ BEGIN
         RAISE EXCEPTION 'El usuario % no tiene carrera activa asignada', p_usuario_id;
     END IF;
 
-    -- 2) Construir la serie tema–año
+    -- 2) Construir series completas: todas las áreas × todos los años con actividad
     RETURN QUERY
-    WITH tema_years AS (
-      SELECT DISTINCT
-        t.tema_id,
-        COALESCE(
-          ci.anio,
-          EXTRACT(YEAR FROM t.fecha_creacion)::INTEGER
-        ) AS year
+    WITH     all_years AS (
+      -- Obtener todos los años donde hubo actividad oficial en ciclos
+      SELECT DISTINCT ci.anio AS year
       FROM tema t
-      -- si el tema estuvo en exposiciones activas, tomar el año del ciclo
-      LEFT JOIN exposicion_x_tema    ext ON ext.tema_id = t.tema_id AND ext.activo
-      LEFT JOIN exposicion           e   ON e.exposicion_id = ext.exposicion_id AND e.activo
-      LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
-                                           AND efc.activo
-      LEFT JOIN ciclo                ci  ON ci.ciclo_id = efc.ciclo_id AND ci.activo
-      WHERE t.activo
-        AND t.carrera_id = v_carrera_id
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      -- Solo temas con tesistas asignados para determinar años válidos
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.anio IS NOT NULL
+        AND ut.asignado = TRUE
+        AND ut.activo = TRUE
+        AND LOWER(r.nombre) = 'tesista'
+    ),
+    all_areas AS (
+      -- Obtener todas las áreas de conocimiento de la carrera
+      SELECT 
+        ac.area_conocimiento_id,
+        ac.nombre AS area_name
+      FROM area_conocimiento ac
+      WHERE ac.carrera_id = v_carrera_id
+    ),
+    area_year_combinations AS (
+      -- Generar todas las combinaciones área-año
+      SELECT 
+        aa.area_conocimiento_id,
+        aa.area_name,
+        ay.year
+      FROM all_areas aa
+      CROSS JOIN all_years ay
+    ),
+    tema_counts AS (
+      -- Contar temas por área y año (sumando TODOS los ciclos del año)
+      SELECT
+        sac.area_conocimiento_id,
+        ci.anio AS year,
+        COUNT(DISTINCT t.tema_id) AS topic_count
+      FROM tema t
+      JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+      JOIN etapa_formativa_x_ciclo        efc   ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+      JOIN ciclo                          ci    ON ci.ciclo_id = efc.ciclo_id
+      JOIN sub_area_conocimiento_tema     sact  ON sact.tema_id = t.tema_id
+      JOIN sub_area_conocimiento          sac   ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id
+      -- Restricción: solo temas con tesistas asignados
+      JOIN usuario_tema                   ut    ON ut.tema_id = t.tema_id
+      JOIN rol                            r     ON r.rol_id = ut.rol_id
+      WHERE t.carrera_id = v_carrera_id
+        AND ci.anio IS NOT NULL
+        AND ut.asignado = TRUE  -- Solo tesistas asignados
+        AND ut.activo = TRUE    -- Relación activa
+        AND LOWER(r.nombre) = 'tesista'  -- Solo rol tesista
+      GROUP BY sac.area_conocimiento_id, ci.anio  -- Agrupa por AÑO, no por ciclo
     )
     SELECT
-      CAST(ac.nombre AS VARCHAR)    AS area_name,
-      ty.year                        AS year,
-      COUNT(DISTINCT t.tema_id)      AS topic_count
-    FROM area_conocimiento              ac
-    JOIN sub_area_conocimiento          sac  ON sac.area_conocimiento_id       = ac.area_conocimiento_id
-                                            AND sac.activo
-    JOIN sub_area_conocimiento_tema     sact ON sact.sub_area_conocimiento_id   = sac.sub_area_conocimiento_id
-                                            AND sact.activo
-    JOIN tema                           t    ON t.tema_id                     = sact.tema_id
-                                            AND t.activo
-                                            AND t.carrera_id = v_carrera_id
-    JOIN tema_years                     ty   ON ty.tema_id                    = t.tema_id
-    WHERE ac.activo
-    GROUP BY ac.nombre, ty.year
-    ORDER BY ty.year, ac.nombre;
+      CAST(ayc.area_name AS VARCHAR)     AS area_name,
+      ayc.year                           AS year,
+      COALESCE(tc.topic_count, 0)        AS topic_count
+    FROM area_year_combinations ayc
+    LEFT JOIN tema_counts tc ON tc.area_conocimiento_id = ayc.area_conocimiento_id 
+                           AND tc.year = ayc.year
+    ORDER BY ayc.year, ayc.area_name;
 END;
 $BODY$;
 -------------------------------------------------------------------------------------------------------------
@@ -578,11 +629,11 @@ CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id integer)
         primer_apellido character varying,
         segundo_apellido character varying,
         correo_electronico character varying,
-        -- NUEVAS COLUMNAS AGREGADAS
+        -- NUEVAS COLUMNAS AGREGADAS (MANTENIDAS)
         titulo_tema character varying,
         etapa_formativa_nombre text,
         carrera character varying,
-        -- COLUMNAS EXISTENTES
+        -- COLUMNAS EXISTENTES (MANTENIDAS)
         entregable_actual_id integer,
         entregable_actual_nombre character varying,
         entregable_actual_descripcion text,
@@ -597,8 +648,9 @@ AS
 $$
 DECLARE
     v_current_date TIMESTAMP WITH TIME ZONE := NOW();
+    v_limite_asignacion TIMESTAMP WITH TIME ZONE := NOW() - INTERVAL '3 months'; -- Nuevos últimos 3 meses
 BEGIN
-    -- Primera consulta: Tesistas con entregables actuales
+    -- Primera consulta: Tesistas con entregables actuales (SIN CAMBIOS)
     RETURN QUERY
         SELECT
             ut.tema_id,
@@ -661,83 +713,152 @@ BEGIN
         -- Estado del envío del entregable
         LEFT JOIN entregable_x_tema et ON et.tema_id = ut.tema_id AND et.entregable_id = e.entregable_id AND et.activo = TRUE
         WHERE ut.activo = TRUE
-        AND e.entregable_id IS NOT NULL;
+        AND t.activo = TRUE  -- NUEVO: Asegurar que el tema esté activo
+        AND u.activo = TRUE  -- NUEVO: Asegurar que el usuario esté activo
+        AND e.entregable_id IS NOT NULL
 
-    -- Segunda consulta: Tesistas sin entregables actuales pero con próximos entregables
-    RETURN QUERY
-        SELECT
-            ut.tema_id,
-            ut.usuario_id AS tesista_id,
-            u.nombres,
-            u.primer_apellido,
-            u.segundo_apellido,
-            u.correo_electronico,
-            -- NUEVAS COLUMNAS
-            t.titulo AS titulo_tema,
-            ef.nombre AS etapa_formativa_nombre,
-            COALESCE(car.nombre, 'Sin carrera') AS carrera,
-            -- Información del próximo entregable
-            e_next.entregable_id,
-            e_next.nombre,
-            e_next.descripcion,
-            e_next.fecha_inicio,
-            e_next.fecha_fin,
-            e_next.estado::VARCHAR,
-            et_next.estado::VARCHAR,
-            et_next.fecha_envio
-        FROM usuario_tema ut
-        JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
-        JOIN usuario u ON u.usuario_id = ut.usuario_id
-        -- JOIN para obtener datos del tema
-        JOIN tema t ON t.tema_id = ut.tema_id
-        -- JOIN para obtener la carrera del tesista
-        LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
-        LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
-        -- JOIN para obtener la etapa formativa
-        LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
-            SELECT ef2.etapa_formativa_id
-            FROM etapa_formativa ef2
-            WHERE ef2.carrera_id = uc.carrera_id
-            AND ef2.activo = TRUE
-            ORDER BY ef2.fecha_creacion DESC
-            LIMIT 1
-        ) AND efc.activo = TRUE
-        LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
-        -- Obtener el tema de los tesistas asesorados
-        JOIN (
-            SELECT ut2.tema_id
-            FROM usuario_tema ut2
-            JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
-            WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
-        ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
-        -- Verifica que no haya entregable actual
-        LEFT JOIN LATERAL (
-            SELECT e.entregable_id
-            FROM entregable e
-            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-            WHERE et.tema_id = ut.tema_id
-              AND e.fecha_inicio <= v_current_date
-              AND e.fecha_fin >= v_current_date
-              AND e.activo = TRUE
-              AND et.activo = TRUE
-            LIMIT 1
-        ) current_entregable ON TRUE
-        -- Datos del próximo entregable
-        JOIN LATERAL (
-            SELECT e.*
-            FROM entregable e
-            JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
-            WHERE et.tema_id = ut.tema_id
-              AND e.fecha_inicio > v_current_date
-              AND e.activo = TRUE
-              AND et.activo = TRUE
-            ORDER BY e.fecha_inicio ASC
-            LIMIT 1
-        ) e_next ON TRUE
-        -- Estado del envío del entregable
-        LEFT JOIN entregable_x_tema et_next ON et_next.tema_id = ut.tema_id AND et_next.entregable_id = e_next.entregable_id AND et_next.activo = TRUE
-        WHERE ut.activo = TRUE
-        AND current_entregable.entregable_id IS NULL;
+    UNION ALL
+
+    -- Segunda consulta: Tesistas sin entregables actuales pero con próximos entregables (SIN CAMBIOS)
+    SELECT
+        ut.tema_id,
+        ut.usuario_id AS tesista_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        -- NUEVAS COLUMNAS
+        t.titulo AS titulo_tema,
+        ef.nombre AS etapa_formativa_nombre,
+        COALESCE(car.nombre, 'Sin carrera') AS carrera,
+        -- Información del próximo entregable
+        e_next.entregable_id,
+        e_next.nombre,
+        e_next.descripcion,
+        e_next.fecha_inicio,
+        e_next.fecha_fin,
+        e_next.estado::VARCHAR,
+        et_next.estado::VARCHAR,
+        et_next.fecha_envio
+    FROM usuario_tema ut
+    JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    -- JOIN para obtener datos del tema
+    JOIN tema t ON t.tema_id = ut.tema_id
+    -- JOIN para obtener la carrera del tesista
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+    LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+    -- JOIN para obtener la etapa formativa
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+        SELECT ef2.etapa_formativa_id
+        FROM etapa_formativa ef2
+        WHERE ef2.carrera_id = uc.carrera_id
+        AND ef2.activo = TRUE
+        ORDER BY ef2.fecha_creacion DESC
+        LIMIT 1
+    ) AND efc.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    -- Obtener el tema de los tesistas asesorados
+    JOIN (
+        SELECT ut2.tema_id
+        FROM usuario_tema ut2
+        JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+        WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+    ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+    -- Verifica que no haya entregable actual
+    LEFT JOIN LATERAL (
+        SELECT e.entregable_id
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.fecha_inicio <= v_current_date
+          AND e.fecha_fin >= v_current_date
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        LIMIT 1
+    ) current_entregable ON TRUE
+    -- Datos del próximo entregable
+    JOIN LATERAL (
+        SELECT e.*
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.fecha_inicio > v_current_date
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        ORDER BY e.fecha_inicio ASC
+        LIMIT 1
+    ) e_next ON TRUE
+    -- Estado del envío del entregable
+    LEFT JOIN entregable_x_tema et_next ON et_next.tema_id = ut.tema_id AND et_next.entregable_id = e_next.entregable_id AND et_next.activo = TRUE
+    WHERE ut.activo = TRUE
+    AND t.activo = TRUE  -- NUEVO: Asegurar que el tema esté activo
+    AND u.activo = TRUE  -- NUEVO: Asegurar que el usuario esté activo
+    AND current_entregable.entregable_id IS NULL
+
+    UNION ALL
+
+    -- TERCERA CONSULTA NUEVA: Tesistas sin entregables pero asignados recientemente
+    SELECT
+        ut.tema_id,
+        ut.usuario_id AS tesista_id,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        u.correo_electronico,
+        -- NUEVAS COLUMNAS
+        t.titulo AS titulo_tema,
+        ef.nombre AS etapa_formativa_nombre,
+        COALESCE(car.nombre, 'Sin carrera') AS carrera,
+        -- Información de "sin entregables" manteniendo la estructura
+        NULL::integer as entregable_actual_id,
+        'Sin entregables configurados'::VARCHAR as entregable_actual_nombre,
+        'Tesista recién asignado sin entregables'::text as entregable_actual_descripcion,
+        NULL::timestamp with time zone as entregable_actual_fecha_inicio,
+        NULL::timestamp with time zone as entregable_actual_fecha_fin,
+        'sin_entregables'::VARCHAR as entregable_actual_estado,
+        'no_aplica'::VARCHAR as entregable_envio_estado,
+        NULL::timestamp with time zone as entregable_envio_fecha
+    FROM usuario_tema ut
+    JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    -- JOIN para obtener datos del tema
+    JOIN tema t ON t.tema_id = ut.tema_id
+    -- JOIN para obtener la carrera del tesista
+    LEFT JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id AND uc.activo = TRUE
+    LEFT JOIN carrera car ON car.carrera_id = uc.carrera_id
+    -- JOIN para obtener la etapa formativa
+    LEFT JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_id = (
+        SELECT ef2.etapa_formativa_id
+        FROM etapa_formativa ef2
+        WHERE ef2.carrera_id = uc.carrera_id
+        AND ef2.activo = TRUE
+        ORDER BY ef2.fecha_creacion DESC
+        LIMIT 1
+    ) AND efc.activo = TRUE
+    LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    -- Obtener el tema de los tesistas asesorados
+    JOIN (
+        SELECT ut2.tema_id
+        FROM usuario_tema ut2
+        JOIN rol r2 ON ut2.rol_id = r2.rol_id AND (r2.nombre = 'Asesor' OR r2.nombre = 'Coasesor')
+        WHERE ut2.usuario_id = p_asesor_id AND ut2.activo = TRUE
+    ) temas_asesor ON temas_asesor.tema_id = ut.tema_id
+    -- Verificar que NO tiene entregables
+    LEFT JOIN LATERAL (
+        SELECT e.entregable_id
+        FROM entregable e
+        JOIN entregable_x_tema et ON et.entregable_id = e.entregable_id
+        WHERE et.tema_id = ut.tema_id
+          AND e.activo = TRUE
+          AND et.activo = TRUE
+        LIMIT 1
+    ) any_entregable ON TRUE
+    WHERE ut.activo = TRUE
+    AND t.activo = TRUE                               -- NUEVO: Tema activo
+    AND u.activo = TRUE                               -- NUEVO: Usuario activo
+    AND any_entregable.entregable_id IS NULL          -- Sin entregables
+    AND ut.fecha_creacion >= v_limite_asignacion;     -- NUEVO: Asignado recientemente (últimos 3 meses)
 END;
 $$;
 
@@ -1378,5 +1499,63 @@ BEGIN
         OR u.codigo_pucp ILIKE '%' || p_cadena_busqueda || '%'
         OR t.titulo ILIKE '%' || p_cadena_busqueda || '%'
     );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_entregables_con_criterios(p_usuario_id integer)
+ RETURNS TABLE(entregable_id integer, entregable_nombre character varying, fecha_envio timestamp with time zone, nota_global numeric, estado_entrega character varying, criterio_id integer, criterio_nombre character varying, nota_maxima numeric, nota_criterio numeric, etapa_formativa_x_ciclo_id integer, es_evaluable boolean)
+ LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH tema_alumno AS (
+        -- Obtener el tema del alumno
+        SELECT ut.tema_id
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
+        WHERE ut.usuario_id = p_usuario_id
+        AND ut.activo = true
+        AND ut.asignado = true
+        LIMIT 1
+    ),
+    entregables_tema AS (
+        -- Obtener los entregables del tema
+        SELECT
+            e.entregable_id,
+            e.nombre as entregable_nombre,
+            et.fecha_envio,
+            et.nota_entregable as nota_global,
+            et.estado::VARCHAR as estado_entrega,
+            et.entregable_x_tema_id,
+            e.etapa_formativa_x_ciclo_id,
+            e.es_evaluable
+        FROM tema_alumno ta
+        JOIN entregable_x_tema et ON et.tema_id = ta.tema_id
+        JOIN entregable e ON e.entregable_id = et.entregable_id
+        WHERE et.activo = true
+        AND e.activo = true
+    )
+    SELECT
+        et.entregable_id,
+        et.entregable_nombre,
+        et.fecha_envio,
+        et.nota_global,
+        et.estado_entrega,
+        ce.criterio_entregable_id as criterio_id,
+        ce.nombre as criterio_nombre,
+        ce.nota_maxima,
+        rce.nota as nota_criterio,
+        et.etapa_formativa_x_ciclo_id,
+        et.es_evaluable
+    FROM entregables_tema et
+    -- Unir con criterios de entregable
+    LEFT JOIN criterio_entregable ce ON ce.entregable_id = et.entregable_id
+        AND ce.activo = true
+    -- Unir con las notas de los criterios (si existen)
+    LEFT JOIN revision_criterio_entregable rce
+        ON rce.criterio_entregable_id = ce.criterio_entregable_id
+        AND rce.entregable_x_tema_id = et.entregable_x_tema_id
+        AND rce.activo = true
+    ORDER BY et.fecha_envio DESC, ce.criterio_entregable_id;
 END;
 $$;

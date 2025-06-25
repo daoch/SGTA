@@ -63,8 +63,8 @@ export function EntregablesTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Entregable</TableHead>
               <TableHead>Nombre</TableHead>
+              <TableHead>Entregable</TableHead>
               <TableHead>Fecha límite</TableHead>
               <TableHead>Fecha de entrega</TableHead>
               <TableHead>Estado de entrega</TableHead>
@@ -84,10 +84,11 @@ export function EntregablesTable({
             ) : (
               entregablesFiltradas.map((entregable, idx) => (
                 <TableRow key={entregable.entregableId}>
-                  <TableCell>{`E${idx + 1}`}</TableCell>
                   <TableCell className="font-medium max-w-xs truncate">
-                    {entregable.entregableNombre}
-                  </TableCell>
+                {entregable.entregableNombre}
+              </TableCell>
+              {/* Luego el código */}
+              <TableCell>{`E${idx + 1}`}</TableCell>
                   <TableCell>
                     {entregable.entregableFechaFin
                       ? new Date(entregable.entregableFechaFin).toLocaleString(
