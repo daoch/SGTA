@@ -21,4 +21,6 @@ public interface CicloService {
     List<Ciclo> listarCiclosOrdenados();
 
     List<CicloConEtapasDTO> listarCiclosYetapasFormativas();
+    
+    List<CicloDto> listarTodosLosCiclos();
 }

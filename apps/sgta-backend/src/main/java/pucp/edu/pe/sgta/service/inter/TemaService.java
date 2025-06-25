@@ -151,6 +151,7 @@ public interface TemaService {
         String estadoNombre,
         LocalDate fechaCreacionDesde,
         LocalDate fechaCreacionHasta,
+		String filtroRol,
         Integer limit,
         Integer offset
     );
@@ -241,5 +242,6 @@ public interface TemaService {
 								  String comentario);
 
 	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
-
+	void updateSolicitudesCoordinador(String usuarioId,Integer solicitudId,String respuesta);
+	List<UsuarioDto> listarProfesoresPorSubareasConMatch(List<Integer> subareaIds);
 }

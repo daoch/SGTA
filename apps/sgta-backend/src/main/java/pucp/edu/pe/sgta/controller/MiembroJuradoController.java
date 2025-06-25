@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.*;
 import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
 import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
@@ -254,5 +255,11 @@ public class MiembroJuradoController {
     @PutMapping("/nota-revision")
     public ResponseEntity<?> actualizarNotaRevisionFinal(@RequestBody ExposicionNotaRevisionRequest request) {
         return juradoService.actualizarNotaRevisionFinal(request);
+    }
+
+    @PutMapping("/actualizar-link-grabacion")
+    public ResponseEntity<Map<String, Object>> actualizarLinkGrabacion(@RequestBody UpdateLinkGrabacionRequest request) {
+        Map<String, Object> resultado = juradoService.actualizarLinkGrabacion(request);
+        return ResponseEntity.ok(resultado);
     }
 }

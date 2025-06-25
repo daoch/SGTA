@@ -118,10 +118,14 @@ public class OAIController {
     }
     
     /**
-     * Get records by set
+     * Get records by set with pagination support
      */    @GetMapping("/records/set/{setSpec}")
     public ResponseEntity<Map<String, Object>> getRecordsBySet(
             @PathVariable String setSpec,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeTotalCount,
+            @RequestParam(required = false, defaultValue = "oai_dc") String metadataPrefix,
             HttpServletRequest request) {
         
         Map<String, Object> response = new HashMap<>();
@@ -130,11 +134,11 @@ public class OAIController {
             // Validate token and extract user ID
             jwtService.extractSubFromRequest(request);
             
-            // Get records by set
-            List<OAIRecordDto> records = oaiService.getRecordsBySet(setSpec);
+            // Get records by set with pagination
+            Map<String, Object> result = oaiService.getRecordsBySet(setSpec, limit, offset, includeTotalCount, metadataPrefix);
             
             response.put(SUCCESS_KEY, true);
-            response.put("records", records);
+            response.putAll(result);
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
@@ -177,6 +181,100 @@ public class OAIController {
         }
     }
     
+    /**
+     * Get record count for a specific set
+     */
+    @GetMapping("/records/count/{setSpec}")
+    public ResponseEntity<Map<String, Object>> getRecordCount(
+            @PathVariable String setSpec,
+            @RequestParam(required = false, defaultValue = "oai_dc") String metadataPrefix,
+            @RequestParam(required = false, defaultValue = "false") Boolean forceRefresh,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Validate token and extract user ID
+            jwtService.extractSubFromRequest(request);
+            
+            // Get record count
+            Map<String, Object> countResult = oaiService.getRecordCount(setSpec, metadataPrefix, forceRefresh);
+            
+            response.put(SUCCESS_KEY, true);
+            response.putAll(countResult);
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            response.put(ERROR_KEY, "Error al obtener conteo de registros OAI");
+            response.put(DETAILS_KEY, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * Start asynchronous import of records as temas
+     */
+    @PostMapping("/import/async")
+    public ResponseEntity<Map<String, Object>> startAsyncImport(
+            @RequestParam String setSpec,
+            @RequestParam Integer carreraId,
+            @RequestParam(required = false, defaultValue = "oai_dc") String metadataPrefix,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Validate token and extract user ID
+            jwtService.extractSubFromRequest(request);
+            
+            // Start async import
+            Map<String, Object> importResult = oaiService.startAsyncImport(setSpec, carreraId, metadataPrefix);
+            
+            response.put(SUCCESS_KEY, true);
+            response.putAll(importResult);
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            response.put(ERROR_KEY, "Error al iniciar importación asíncrona");
+            response.put(DETAILS_KEY, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * Get status of asynchronous import task
+     */
+    @GetMapping("/import/status/{taskId}")
+    public ResponseEntity<Map<String, Object>> getAsyncImportStatus(
+            @PathVariable String taskId,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Validate token and extract user ID
+            jwtService.extractSubFromRequest(request);
+            
+            // Get import status
+            Map<String, Object> statusResult = oaiService.getAsyncImportStatus(taskId);
+            
+            response.put(SUCCESS_KEY, true);
+            response.putAll(statusResult);
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            response.put(ERROR_KEY, "Error al obtener estado de importación");
+            response.put(DETAILS_KEY, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     /**
      * Get OAI statistics
      */    @GetMapping("/statistics")

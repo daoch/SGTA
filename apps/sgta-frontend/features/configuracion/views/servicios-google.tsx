@@ -25,15 +25,8 @@ export default function ServiciosGoogle() {
             cognitoId: idToken,
           };
         const state = encodeURIComponent(JSON.stringify(stateObj));
-        const authUrl = 
-  `https://accounts.google.com/o/oauth2/auth?` +
-  `response_type=code&client_id=${clientId}` +
-  `&redirect_uri=${redirectUri}` +
-  `&scope=${scope}` +
-  `&access_type=offline` +
-  `&prompt=consent` +
-  `&state=${state}` +
-  `&login_hint=${encodeURIComponent(correo)}`;
+        const authUrl = `https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent&state=${state}&login_hint=${encodeURIComponent(correo)}`;
+
             console.log(authUrl);
             window.location.href = authUrl;
           

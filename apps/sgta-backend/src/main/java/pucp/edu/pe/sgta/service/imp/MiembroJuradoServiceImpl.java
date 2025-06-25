@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.*;
 import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
 import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
@@ -27,6 +28,7 @@ import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
+import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -59,26 +61,27 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
         private final SubAreaConocimientoRepository subAreaConocimientoRepository;
         private final UsuarioXCarreraRepository usuarioXCarreraRepository;
+        private final ExposicionRepository exposicionRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
-                        UsuarioXTemaRepository usuarioXTemaRepository,
-                        RolRepository rolRepository,
-                        TemaRepository temaRepository,
-                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                        EtapaFormativaRepository etapaFormativaRepository,
-                        ExposicionXTemaRepository exposicionXTemaRepository,
-                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
-                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                        ApplicationEventPublisher eventPublisher,
-                        CriterioExposicionRepository criterioExposicionRepository,
-                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
-                        ParametroConfiguracionRepository parametroConfiguracionRepository,
-                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository,
-                        EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
-                        UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
-                        SubAreaConocimientoRepository subAreaConocimientoRepository,
-                        UsuarioXCarreraRepository usuarioXCarreraRepository) {
+                                        UsuarioXTemaRepository usuarioXTemaRepository,
+                                        RolRepository rolRepository,
+                                        TemaRepository temaRepository,
+                                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                                        EtapaFormativaRepository etapaFormativaRepository,
+                                        ExposicionXTemaRepository exposicionXTemaRepository,
+                                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+                                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+                                        ApplicationEventPublisher eventPublisher,
+                                        CriterioExposicionRepository criterioExposicionRepository,
+                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
+                                        ParametroConfiguracionRepository parametroConfiguracionRepository,
+                                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
+                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository,
+                                        EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
+                                        UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
+                                        SubAreaConocimientoRepository subAreaConocimientoRepository,
+                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -99,6 +102,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
                 this.subAreaConocimientoRepository = subAreaConocimientoRepository;
                 this.usuarioXCarreraRepository = usuarioXCarreraRepository;
+            this.exposicionRepository = exposicionRepository;
         }
 
         @Override
@@ -1322,128 +1326,62 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         @Override
         public List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId) {
                 UsuarioDto userDto = usuarioService.findByCognitoId(coordinadorId);
-
                 Usuario usuario = usuarioRepository.findById(userDto.getId())
-                                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-                boolean esCoordinador = usuarioXCarreraRepository
-                                .existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId());
+                UsuarioXCarrera coordinadorRelacion = usuarioXCarreraRepository
+                        .findFirstByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId())
+                        .orElseThrow(() -> new RuntimeException("Este usuario no tiene permisos de coordinador."));
 
-                if (!esCoordinador) {
-                        throw new RuntimeException("Este usuario no tiene permisos de coordinador.");
+                List<Object[]> rows = exposicionRepository.getExposicionesPorCoordinador(usuario.getId());
+                Map<Integer, List<MiembroExposicionDto>> miembrosPorTema = new HashMap<>();
+                Set<Integer> temaIds = rows.stream()
+                        .map(row -> (Integer) row[14])
+                        .collect(Collectors.toSet());
+
+                for (Integer temaId : temaIds) {
+                        List<Object[]> miembrosRaw = exposicionRepository.getMiembrosPorTema(temaId);
+                        List<MiembroExposicionDto> miembros = miembrosRaw.stream().map(m -> new MiembroExposicionDto(
+                                (Integer) m[0],
+                                (String) m[1],
+                                (String) m[2]
+                        )).toList();
+                        miembrosPorTema.put(temaId, miembros);
                 }
 
-                // 1. Obtener las áreas de conocimiento del coordinador
-                List<UsuarioXAreaConocimiento> areasCoordinador = usuarioXAreaConocimientoRepository
-                                .findByUsuario_IdAndActivoTrue(userDto.getId());
-
-                Set<Integer> areaIds = areasCoordinador.stream()
-                                .map(uac -> uac.getAreaConocimiento().getId())
-                                .collect(Collectors.toSet());
-
-                // 2. Obtener los temas relacionados con esas áreas (por subárea)
-                List<SubAreaConocimientoXTema> relaciones = subAreaConocimientoXTemaRepository.findAll()
-                                .stream()
-                                .filter(SubAreaConocimientoXTema::getActivo)
-                                .filter(sact -> areaIds.contains(
-                                                sact.getSubAreaConocimiento().getAreaConocimiento().getId()))
-                                .collect(Collectors.toList());
-
-                Set<Tema> temasFiltrados = relaciones.stream()
-                                .map(SubAreaConocimientoXTema::getTema)
-                                .collect(Collectors.toSet());
-
-                // 3. Obtener exposiciones por tema
                 List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
 
-                for (Tema tema : temasFiltrados) {
-                        List<ExposicionXTema> exposiciones = exposicionXTemaRepository
-                                        .findByTemaIdAndActivoTrue(tema.getId());
-                        for (ExposicionXTema exposicionXTema : exposiciones) {
-                                List<BloqueHorarioExposicion> bloques = bloqueHorarioExposicionRepository
-                                                .findByExposicionXTemaIdAndActivoTrue(exposicionXTema.getId());
+                for (Object[] row : rows) {
+                        ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
+                        dto.setId_exposicion((Integer) row[0]);
+                        dto.setFechahora(((Instant) row[1]).atOffset(ZoneOffset.UTC));
+                        dto.setSala((String) row[2]);
+                        dto.setEstado((String) row[3]);
+                        dto.setId_etapa_formativa((Integer) row[4]);
+                        dto.setNombre_etapa_formativa((String) row[5]);
+                        dto.setTitulo((String) row[6]);
+                        dto.setCiclo_id((Integer) row[7]);
+                        dto.setCiclo_anio((Integer) row[8]);
+                        dto.setCiclo_semestre((String) row[9]);
 
-                                for (BloqueHorarioExposicion bloque : bloques) {
-                                        OffsetDateTime datetimeInicio = bloque.getDatetimeInicio();
-                                        OffsetDateTime datetimeFin = bloque.getDatetimeFin();
+                        // puede venir null si no hay control
+                        String estadoControl = (String) row[10];
+                        dto.setEstado_control(
+                                estadoControl != null ? EstadoExposicionUsuario.valueOf(estadoControl.toUpperCase()) : null
+                        );
 
-                                        OffsetDateTime fechaActual = OffsetDateTime.now(ZoneOffset.UTC);
-                                        if (fechaActual.isAfter(datetimeFin)) {
-                                                exposicionXTema.setEstadoExposicion(EstadoExposicion.COMPLETADA);
-                                                exposicionXTemaRepository.save(exposicionXTema);
-                                        }
+                        dto.setNombre_exposicion((String) row[11]);
+                        dto.setEnlace_grabacion((String) row[12]);
+                        dto.setEnlace_sesion((String) row[13]);
+                        Integer idTema = (Integer) row[14];
+                        dto.setMiembros(miembrosPorTema.getOrDefault(idTema, List.of()));
 
-                                        String salaNombre = "";
-                                        if (bloque.getJornadaExposicionXSala() != null &&
-                                                        bloque.getJornadaExposicionXSala()
-                                                                        .getSalaExposicion() != null) {
-                                                salaNombre = bloque.getJornadaExposicionXSala().getSalaExposicion()
-                                                                .getNombre();
-                                        }
-
-                                        Exposicion exposicion = exposicionXTema.getExposicion();
-
-                                        // Etapa formativa
-                                        EtapaFormativa etapa = exposicion.getEtapaFormativaXCiclo().getEtapaFormativa();
-                                        Integer idEtapaFormativa = etapa.getId();
-                                        String nombreEtapaFormativa = etapa.getNombre();
-                                        Integer idCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getId();
-                                        Integer anioCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo().getAnio();
-                                        String semestreCiclo = exposicion.getEtapaFormativaXCiclo().getCiclo()
-                                                        .getSemestre();
-
-                                        // Miembros
-                                        List<UsuarioXTema> usuarioTemas = usuarioXTemaRepository
-                                                        .findByTemaIdAndActivoTrue(tema.getId());
-                                        List<MiembroExposicionDto> miembros = usuarioTemas.stream().map(ut -> {
-                                                MiembroExposicionDto miembro = new MiembroExposicionDto();
-                                                miembro.setId_persona(ut.getUsuario().getId());
-                                                miembro.setNombre(ut.getUsuario().getNombres() + " "
-                                                                + ut.getUsuario().getPrimerApellido() + " "
-                                                                + ut.getUsuario().getSegundoApellido());
-                                                miembro.setTipo(ut.getRol().getNombre());
-                                                return miembro;
-                                        }).toList();
-
-                                        // Buscar el usuario x tema
-                                        Optional<UsuarioXTema> usuarioXTemaOptional = usuarioXTemaRepository
-                                                        .findByUsuarioIdAndActivoTrue(userDto.getId())
-                                                        .stream()
-                                                        .filter(u -> u.getTema().getId().equals(tema.getId()))
-                                                        .findFirst();
-
-                                        // Obtener estado
-                                        Optional<ControlExposicionUsuarioTema> controlOptional = controlExposicionUsuarioTemaRepository
-                                                        .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
-                                                                        usuarioXTemaOptional.get().getId());
-
-                                        // Crear DTO
-                                        ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
-                                        dto.setId_exposicion(exposicionXTema.getId());
-                                        dto.setNombre_exposicion(exposicion.getNombre());
-                                        dto.setFechahora(datetimeInicio);
-                                        dto.setSala(salaNombre);
-                                        dto.setEstado(exposicionXTema.getEstadoExposicion().toString());
-                                        dto.setId_etapa_formativa(idEtapaFormativa);
-                                        dto.setNombre_etapa_formativa(nombreEtapaFormativa);
-                                        dto.setTitulo(tema.getTitulo());
-                                        dto.setCiclo_id(idCiclo);
-                                        dto.setCiclo_anio(anioCiclo);
-                                        dto.setCiclo_semestre(semestreCiclo);
-                                        dto.setEstado_control(
-                                                        controlOptional.map(
-                                                                        ControlExposicionUsuarioTema::getEstadoExposicion)
-                                                                        .orElse(null));
-                                        dto.setEnlace_grabacion(exposicionXTema.getLinkGrabacion());
-                                        dto.setEnlace_sesion(exposicionXTema.getLinkExposicion());
-                                        dto.setMiembros(miembros);
-
-                                        resultado.add(dto);
-                                }
-                        }
+                        resultado.add(dto);
                 }
+
                 return resultado;
         }
+
 
         @Override
         @Transactional
@@ -1608,5 +1546,29 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
         }
 
+
+        @Override
+        public Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try {
+                        ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(request.getExposicionXTemaId())
+                                .orElseThrow(() -> new EntityNotFoundException("Exposición por tema no encontrada"));
+
+                        exposicionXTema.setLinkGrabacion(request.getNuevoLinkGrabacion());
+                        exposicionXTemaRepository.save(exposicionXTema);
+
+                        response.put("exito", true);
+                        response.put("mensaje", "Se ha actualizado correctamente el link de grabación.");
+                } catch (EntityNotFoundException e) {
+                        response.put("exito", false);
+                        response.put("mensaje", e.getMessage());
+                } catch (Exception e) {
+                        response.put("exito", false);
+                        response.put("mensaje", "Ocurrió un error al actualizar el link de grabación.");
+                }
+
+                return response;
+        }
 
 }

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { useBackStore } from "../../store/configuracion-store";
+import { Switch } from "@/components/ui/switch";
 
 const PARAM_CANT_TESIS_X_JURADO = "CantidadTesisXJurado";
 
@@ -28,6 +29,11 @@ export default function JuradosCards() {
 
   const pesoAsesor = parametros.find(
     (p) => p.parametroConfiguracion.nombre === "Peso Asesor",
+  );
+
+  const CalificacionesJuradoAnonimizada = parametros.find(
+    (p) =>
+      p.parametroConfiguracion.nombre === "Calificaciones Jurado Anonimizadas",
   );
 
   // Estado para el parámetro "Cantidad limite de tesis ppor jurado"
@@ -94,6 +100,22 @@ export default function JuradosCards() {
     setCantLimiteTesisJurado(limTesis);
     if (cantidadLimiteTesisJurado) {
       actualizarParametro(cantidadLimiteTesisJurado.id, limTesis);
+    }
+  };
+
+  const [calificacionAnonima, setCalificacionAnonima] =
+    useState<boolean>(false);
+
+  useEffect(() => {
+    if (CalificacionesJuradoAnonimizada) {
+      setCalificacionAnonima(Boolean(CalificacionesJuradoAnonimizada.valor));
+    }
+  }, [CalificacionesJuradoAnonimizada]);
+
+  const handleHabilitarCalificacionAnonima = (checked: boolean) => {
+    setCalificacionAnonima(checked);
+    if (CalificacionesJuradoAnonimizada) {
+      actualizarParametro(CalificacionesJuradoAnonimizada.id, checked);
     }
   };
 
@@ -212,6 +234,30 @@ export default function JuradosCards() {
               value={cantLimiteTesisJurado}
               onChange={handleCantidadTesisJuradoChange}
               disabled={cargando}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Calificaciones Jurado Anonimizadas</CardTitle>
+          <CardDescription>
+            Configure la habilitación o deshabilitación de la anonimización del
+            jurado, de modo que las calificaciones otorgadas al tema de tesis
+            sean visibles pero el jurado permanezca anónimo
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <Label htmlFor="habilitar-anonimo">
+              Habilitar anonimización del nombre del jurado
+            </Label>
+            <Switch
+              id="habilitar-anonimo"
+              checked={calificacionAnonima}
+              disabled={cargando}
+              onCheckedChange={handleHabilitarCalificacionAnonima}
             />
           </div>
         </CardContent>

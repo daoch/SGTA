@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.*;
 import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
 import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
@@ -70,5 +71,7 @@ public interface MiembroJuradoService {
                         ExposicionCalificacionRequest exposicionCalificacionRequest);
         public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
 
+
+        Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request);
 
 }

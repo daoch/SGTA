@@ -82,7 +82,15 @@
 			<artifactId>nimbus-jose-jwt</artifactId>
 			<version>9.37.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>4.0.0</version>
+		</dependency>
 		    
 		<dependency>
         	<groupId>org.springframework</groupId>
@@ -162,6 +170,25 @@
 			<version>5.2.3</version>
 		</dependency>
 
+		<!-- Dependencias adicionales para gráficos embebidos -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+			<version>5.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>ooxml-schemas</artifactId>
+			<version>1.4</version>
+		</dependency>
+
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cognitoidentityprovider</artifactId>
@@ -201,6 +228,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-quartz</artifactId>
 		</dependency>
+
 
 		<dependency>
 			<groupId>org.apache.poi</groupId>
@@ -246,6 +274,13 @@
 			<groupId>com.google.apis</groupId>
 			<artifactId>google-api-services-gmail</artifactId>
 			<version>v1-rev20230123-2.0.0</version>
+		</dependency>
+		
+		<!-- Spring Boot Mail Starter para envío de correos -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+
 		</dependency>
 	</dependencies>
 

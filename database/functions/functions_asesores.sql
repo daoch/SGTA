@@ -2,10 +2,10 @@ SET search_path TO sgtadb;
 
 --OBTENER LISTA DE CARRERAS POR ID DEL ASESOR
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id INTEGER)
-RETURNS SETOF Carrera AS $$
+RETURNS SETOF carrera AS $$
 BEGIN
     RETURN QUERY
-	Select c.* from Carrera as c
+	Select c.* from carrera as c
 	where c.activo = true
 	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc
@@ -1398,7 +1398,7 @@ SELECT
 END;
 $$ LANGUAGE plpgsql;
 --
-CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_id_cognito TEXT)
+CREATE OR REPLACE FUNCTION obtener_perfil_usuario(p_usuario_id INTEGER)
 RETURNS TABLE (
 	usuario_id INTEGER,
 	nombres TEXT,
@@ -1436,7 +1436,7 @@ BEGIN
 		JOIN carrera_parametro_configuracion cpc ON cpc.carrera_id = c.carrera_id
 		JOIN parametro_configuracion pc ON pc.parametro_configuracion_id = cpc.parametro_configuracion_id
 	WHERE
-		u.id_cognito = p_id_cognito
+		u.usuario_id = p_usuario_id
 		AND pc.nombre = 'LimXasesor'
 		AND u.activo = true
 		AND uc.activo = true
@@ -1549,13 +1549,15 @@ RETURNS TABLE (
     nombre_ciclo TEXT,
     estado_tema TEXT,
     proyecto_id INTEGER,
-    titulo_proyecto TEXT
+    titulo_proyecto TEXT,
+    rol_asesor TEXT
 ) AS $$
 BEGIN
     RETURN QUERY
     WITH temas_del_asesor AS (
         SELECT
-            t.tema_id
+            t.tema_id,
+			upper(r.nombre) AS rol_asesor
         FROM
             tema t
             JOIN usuario_tema ut ON ut.tema_id = t.tema_id
@@ -1577,7 +1579,8 @@ BEGIN
         c.nombre::TEXT AS nombre_ciclo,
         et.nombre::TEXT AS estado_tema,
         p.proyecto_id,
-        p.titulo::TEXT AS titulo_proyecto
+        p.titulo::TEXT AS titulo_proyecto,
+		ta.rol_asesor::TEXT
     FROM
         etapa_formativa_x_ciclo_x_tema efcxt
         JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id

@@ -33,6 +33,14 @@ class OAIService:
             
         self._repository_sets_cache: List[Dict[str, str]] | None = None
         self._sets_cache_last_updated: datetime | None = None
+        
+        # Record count cache for efficient pagination
+        self._record_count_cache: Dict[str, int] = {}  # key: f"{set_spec}:{metadata_prefix}"
+        self._count_cache_last_updated: Dict[str, datetime] = {}
+        
+        # Records cache for recently accessed data
+        self._records_cache: Dict[str, List[OAIRecord]] = {}  # key: f"{set_spec}:{metadata_prefix}:{offset}:{limit}"
+        self._records_cache_last_updated: Dict[str, datetime] = {}
 
     def _is_cache_valid(self, cache_lifetime_seconds: int = 3600) -> bool:
         """Checks if the sets cache is still valid."""
@@ -40,6 +48,48 @@ class OAIService:
             return False
         cache_age = (datetime.now(timezone.utc) - self._sets_cache_last_updated).total_seconds()
         return cache_age < cache_lifetime_seconds
+    
+    def _is_count_cache_valid(self, cache_key: str, cache_lifetime_seconds: int = 7200) -> bool:
+        """Checks if a specific count cache entry is still valid (2 hour default)."""
+        if cache_key not in self._record_count_cache or cache_key not in self._count_cache_last_updated:
+            return False
+        cache_age = (datetime.now(timezone.utc) - self._count_cache_last_updated[cache_key]).total_seconds()
+        return cache_age < cache_lifetime_seconds
+    
+    def _is_records_cache_valid(self, cache_key: str, cache_lifetime_seconds: int = 1800) -> bool:
+        """Checks if a specific records cache entry is still valid (30 min default)."""
+        if cache_key not in self._records_cache or cache_key not in self._records_cache_last_updated:
+            return False
+        cache_age = (datetime.now(timezone.utc) - self._records_cache_last_updated[cache_key]).total_seconds()
+        return cache_age < cache_lifetime_seconds
+    
+    def _get_count_cache_key(self, set_spec: Optional[str], metadata_prefix: str) -> str:
+        """Generate cache key for record counts."""
+        return f"{set_spec or 'all'}:{metadata_prefix}"
+    
+    def _get_records_cache_key(self, set_spec: Optional[str], metadata_prefix: str, 
+                              offset: Optional[int], limit: Optional[int]) -> str:
+        """Generate cache key for records."""
+        return f"{set_spec or 'all'}:{metadata_prefix}:{offset or 0}:{limit or 'all'}"
+    
+    def _cleanup_old_cache_entries(self, max_cache_entries: int = 100) -> None:
+        """Clean up old cache entries to prevent memory issues."""
+        # Clean up records cache if too large
+        if len(self._records_cache) > max_cache_entries:
+            # Remove oldest entries
+            sorted_keys = sorted(self._records_cache_last_updated.items(), key=lambda x: x[1])
+            keys_to_remove = [key for key, _ in sorted_keys[:len(sorted_keys) // 2]]
+            for key in keys_to_remove:
+                self._records_cache.pop(key, None)
+                self._records_cache_last_updated.pop(key, None)
+        
+        # Clean up count cache if too large
+        if len(self._record_count_cache) > max_cache_entries:
+            sorted_keys = sorted(self._count_cache_last_updated.items(), key=lambda x: x[1])
+            keys_to_remove = [key for key, _ in sorted_keys[:len(sorted_keys) // 2]]
+            for key in keys_to_remove:
+                self._record_count_cache.pop(key, None)
+                self._count_cache_last_updated.pop(key, None)
 
     def refresh_repository_sets_cache(self, force_refresh: bool = False) -> bool:
         """
@@ -88,6 +138,47 @@ class OAIService:
             self.refresh_repository_sets_cache(force_refresh=force_refresh)
         
         return self._repository_sets_cache if self._repository_sets_cache is not None else []
+
+    def get_records_count_cached(self, set_spec: Optional[str] = None, 
+                                metadata_prefix: str = 'oai_dc', 
+                                force_refresh: bool = False) -> int:
+        """
+        Get the total count of records for a set with caching.
+        
+        Args:
+            set_spec: The setSpec of the OAI set. If None, counts all records.
+            metadata_prefix: The metadata prefix to use.
+            force_refresh: If True, bypasses cache and fetches fresh count.
+            
+        Returns:
+            Total number of records available.
+        """
+        cache_key = self._get_count_cache_key(set_spec, metadata_prefix)
+        
+        # Return cached count if valid and not forcing refresh
+        if not force_refresh and self._is_count_cache_valid(cache_key):
+            logger.info(f"Returning cached count for {cache_key}: {self._record_count_cache[cache_key]}")
+            return self._record_count_cache[cache_key]
+        
+        # Fetch fresh count
+        logger.info(f"Fetching fresh count for {cache_key}...")
+        try:
+            count = self.oai_tool.count_records(metadata_prefix=metadata_prefix, set_spec=set_spec)
+            
+            # Cache the result
+            self._record_count_cache[cache_key] = count
+            self._count_cache_last_updated[cache_key] = datetime.now(timezone.utc)
+            
+            # Cleanup old entries periodically
+            self._cleanup_old_cache_entries()
+            
+            logger.info(f"Cached fresh count for {cache_key}: {count}")
+            return count
+            
+        except Exception as e:
+            logger.error(f"Error getting cached record count for {cache_key}: {e}", exc_info=True)
+            # Return cached value if available, even if stale
+            return self._record_count_cache.get(cache_key, 0)
 
     def _format_oai_record(self, oai_record_data: Dict[str, Any]) -> Optional[OAIRecord]:
         """
@@ -244,42 +335,84 @@ class OAIService:
                 records=[]
             )
 
-    def get_records_by_set(self, set_spec: str, metadata_prefix: str = 'oai_dc', max_records: Optional[int] = None) -> OAIResponse:
+    def get_records_by_set(self, set_spec: str, metadata_prefix: str = 'oai_dc', 
+                          max_records: Optional[int] = None, offset: Optional[int] = None, 
+                          include_total_count: bool = False) -> OAIResponse:
         """
-        Retrieves records for a specific OAI set.
+        Retrieves records for a specific OAI set with pagination support.
 
         Args:
             set_spec: The setSpec of the OAI set.
             metadata_prefix: The metadata prefix.
             max_records: Optional limit for the number of records to retrieve.
+            offset: Optional number of records to skip before starting to return records.
+            include_total_count: Whether to include total count in response (slower operation).
 
         Returns:
-            An OAIResponse object.
+            An OAIResponse object with pagination information.
         """
         oai_records: List[OAIRecord] = []
         records_harvested_count = 0
-        logger.info(f"Fetching records for set_spec: {set_spec}, prefix: {metadata_prefix}, max_records: {max_records}")
+        total_available = None
+        
+        logger.info(f"Fetching records for set_spec: {set_spec}, prefix: {metadata_prefix}, max_records: {max_records}, offset: {offset}")
+        
+        # Check cache first
+        cache_key = self._get_records_cache_key(set_spec, metadata_prefix, offset, max_records)
+        if not include_total_count and self._is_records_cache_valid(cache_key):
+            logger.info(f"Returning cached records for {cache_key}")
+            cached_records = self._records_cache[cache_key]
+            return OAIResponse(
+                success=True,
+                message=f"Retrieved {len(cached_records)} cached records for set {set_spec}.",
+                total_records_harvested=len(cached_records),
+                total_sets_processed=1,
+                records=cached_records,
+                set_spec_filter=set_spec
+            )
 
         try:
-            records_iterator = self.oai_tool.list_records(metadata_prefix=metadata_prefix, set_spec=set_spec)
-            for i, raw_record_data in enumerate(records_iterator):
-                if max_records is not None and i >= max_records:
-                    logger.info(f"Reached max_records ({max_records}) for set {set_spec}.")
-                    break
+            # Get total count if requested (expensive operation)
+            if include_total_count:
+                total_available = self.get_records_count_cached(set_spec=set_spec, metadata_prefix=metadata_prefix)
+            
+            # Use paginated record fetching
+            records_iterator = self.oai_tool.list_records(
+                metadata_prefix=metadata_prefix, 
+                set_spec=set_spec,
+                limit=max_records,
+                offset=offset
+            )
+            
+            for raw_record_data in records_iterator:
                 formatted_record = self._format_oai_record(raw_record_data)
                 if formatted_record:
                     oai_records.append(formatted_record)
-                    records_harvested_count +=1
+                    records_harvested_count += 1
+            
+            # Cache the results (if reasonable size)
+            if records_harvested_count <= 100:  # Don't cache very large result sets
+                self._records_cache[cache_key] = oai_records
+                self._records_cache_last_updated[cache_key] = datetime.now(timezone.utc)
+                self._cleanup_old_cache_entries()
             
             logger.info(f"Harvested {records_harvested_count} records for set {set_spec}.")
-            return OAIResponse(
+            
+            response = OAIResponse(
                 success=True,
                 message=f"Successfully harvested {records_harvested_count} records for set {set_spec}.",
                 total_records_harvested=records_harvested_count,
-                total_sets_processed=1, # Only one set processed
+                total_sets_processed=1,
                 records=oai_records,
                 set_spec_filter=set_spec
             )
+            
+            # Add pagination metadata if total count was requested
+            if total_available is not None:
+                response.total_available = total_available
+                response.has_more = (offset or 0) + records_harvested_count < total_available
+            
+            return response
         except Exception as e:
             logger.error(f"Error fetching records for set {set_spec}: {e}", exc_info=True)
             return OAIResponse(

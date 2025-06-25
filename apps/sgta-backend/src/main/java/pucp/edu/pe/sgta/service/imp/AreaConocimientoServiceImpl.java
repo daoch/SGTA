@@ -99,6 +99,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         for (Object[] fila : resultados) {
             AreaConocimientoDto dto = new AreaConocimientoDto();
             dto.setId((Integer) fila[0]); // area_id
+            dto.setIdCarrera((Integer) fila[3]);
             dto.setNombre((String) fila[1]); // area_nombre
             dto.setDescripcion((String) fila[2]);
             dto.setActivo(true);// descripcion
