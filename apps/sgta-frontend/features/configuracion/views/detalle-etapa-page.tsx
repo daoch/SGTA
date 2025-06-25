@@ -324,14 +324,20 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
           </div>
 
           {/* Lista de exposiciones */}
-          {exposiciones.map((exposicion) => (
-            <ExposicionCard
-              key={exposicion.id}
-              etapaId={etapaId}
-              exposicion={exposicion}
-              onDelete={() => handleOpenDeleteExposicionModal(exposicion)}
-            />
-          ))}
+          {exposiciones.map((exposicion) => {
+            const entregableAsociado = entregables.find(
+              (e) => String(e.id) === String(exposicion.entregableId),
+            );
+            return (
+              <ExposicionCard
+                key={exposicion.id}
+                etapaId={etapaId}
+                exposicion={exposicion}
+                entregableNombre={entregableAsociado?.nombre ?? ""}
+                onDelete={() => handleOpenDeleteExposicionModal(exposicion)}
+              />
+            );
+          })}
         </TabsContent>
       </Tabs>
       {/* Modal para Nuevo Entregable */}
@@ -348,6 +354,7 @@ const DetalleEtapaPage: React.FC<DetalleEtapaPageProps> = ({ etapaId }) => {
         onClose={() => setIsExposicionModalOpen(false)}
         onSubmit={handleCreateExposicion}
         mode={"create"}
+        entregables={entregables}
       />
 
       <Dialog

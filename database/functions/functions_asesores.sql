@@ -2,10 +2,10 @@ SET search_path TO sgtadb;
 
 --OBTENER LISTA DE CARRERAS POR ID DEL ASESOR
 CREATE OR REPLACE FUNCTION obtener_carreras_activas_por_usuario(p_usuario_id INTEGER)
-RETURNS SETOF Carrera AS $$
+RETURNS SETOF carrera AS $$
 BEGIN
     RETURN QUERY
-	Select c.* from Carrera as c
+	Select c.* from carrera as c
 	where c.activo = true
 	and c.carrera_id in(select uc.carrera_id
 						from usuario_carrera as uc

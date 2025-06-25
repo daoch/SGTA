@@ -20,6 +20,36 @@ const estados = [
   { value: "calificada", label: "Calificada" },
 ];
 
+const expoTest: ExposicionJurado = {
+  id_exposicion: 3,
+  fechahora: new Date("2025-06-25T19:00:00Z"),
+  sala: "V201",
+  estado: "PROGRAMADA",
+  id_etapa_formativa: 1,
+  nombre_etapa_formativa: "Proyecto de fin de carrera 1",
+  titulo:
+    "Modelo de red neuronal convolucional para la clasificación de tipos de nubes en imágenes de webcam",
+  ciclo_id: 4,
+  estado_control: "ESPERANDO_RESPUESTA",
+  nombre_exposicion: "Exposicion parcial",
+  enlace_grabacion: "xd",
+  enlace_sesion:
+    "https://us05web.zoom.us/j/82863224408?pwd=RLr4K3nH5mABrWOuhyI8eRpwPcARkb.1",
+  criterios_calificados: false,
+  miembros: [
+    {
+      id_persona: 73,
+      nombre: "Johan Hinojosa Salazar",
+      tipo: "Tesista",
+    },
+    {
+      id_persona: 70,
+      nombre: "Luis Manuel Falcon Baca",
+      tipo: "Asesor",
+    },
+  ],
+};
+
 export const TabListaExposiciones: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [exposiciones, setExposiciones] = useState<ExposicionJurado[]>([]);
@@ -215,7 +245,6 @@ export const TabListaExposiciones: React.FC = () => {
             </div>
           )}
           <div className="space-y-4">
-            
             {filteredExposiciones.map((exposicion) => (
               <ListExposicionCoordinadorCard
                 key={exposicion.id_exposicion}

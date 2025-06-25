@@ -113,9 +113,12 @@ export function StudentReports() {
                   <div>
                     <p className="text-xs text-gray-500">Fecha límite:</p>
                     <p className="text-sm font-medium">
-                      {studentData.siguienteEntregableFechaFin ?
-                        format(new Date(studentData.siguienteEntregableFechaFin), "dd/MM/yyyy") :
-                        "No hay fecha límite"}
+                      {studentData.siguienteEntregableFechaFin ? (() => {
+                        console.log("Fecha original:", studentData.siguienteEntregableFechaFin);
+                        const fechaFormateada = format(new Date(studentData.siguienteEntregableFechaFin), "dd-MM-yyyy");
+                        console.log("Fecha formateada:", fechaFormateada);
+                        return fechaFormateada;
+                      })() : "No hay fecha límite"}
                     </p>
                   </div>
                 </div>

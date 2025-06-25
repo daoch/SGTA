@@ -107,4 +107,12 @@ public class CicloServiceImpl implements CicloService {
             return dto;
         }).toList();
     }
+
+    @Override
+    public List<CicloDto> listarTodosLosCiclos() {
+        List<Ciclo> ciclos = cicloRepository.findAllCiclosCompletos();
+        return ciclos.stream()
+                .map(CicloMapper::toDto)
+                .toList();
+    }
 }
