@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
-import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
+import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, Download, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AsesorExportModal, AsesorExportOptions } from "../components/asesor-export-modal";
+
 
 // Constants
 const PROGRESS_MAPPING = {
@@ -165,6 +167,29 @@ export function AdvisorReports() {
   const deliveryFilterRef = useRef<HTMLDivElement>(null);
   const careerFilterRef = useRef<HTMLDivElement>(null);
   const stageFilterRef = useRef<HTMLDivElement>(null);
+
+  //Logica para exportar reporte
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  //Solo para probar funcionamiento de modal
+  const advisorName = "Dr. Juan Pérez";
+  const advisorEmail = "juan.perez@pucp.edu.pe";
+
+  const handleExport = async (options: AsesorExportOptions) => {
+  setIsExporting(true);
+    try {
+      // Aquí va tu lógica de exportación (API, descarga, etc)
+      // await exportService.exportToExcel(config);
+      // Mostrar notificación de éxito si lo deseas
+    } catch (error) {
+      // Manejo de error
+      alert("Error al exportar el reporte. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsExporting(false);
+      setIsExportModalOpen(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -384,7 +409,27 @@ export function AdvisorReports() {
       </Card>
 
       <div className="mt-8">
-        <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+        <div className="flex items-center justify-between mb-4 px-1">
+           <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+          <Button 
+            variant="outline" 
+            className="gap-2 text-base"
+            onClick={() => setIsExportModalOpen(true)}
+            disabled={isExporting}
+            > 
+              <Download className="h-4 w-4" />
+              {isExporting ? "Exportando..." : "Exportar Reporte"}
+          </Button>
+        </div>
+
+        <AsesorExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleExport}
+          advisorName={advisorName}
+          advisorEmail={advisorEmail}
+        />
+
 
         <div className="flex items-center space-x-1 mb-4">
           <Input
