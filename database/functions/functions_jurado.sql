@@ -127,7 +127,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION sgtadb.listar_temas_ciclo_actual_x_etapa_formativa(etapa_id integer, expo_id integer)
+CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(etapa_id integer, expo_id integer)
  RETURNS TABLE(tema_id integer, codigo character varying, titulo character varying, usuario_id integer, 
  nombres character varying, apellidos character varying, rol_id integer, 
  rol_nombre character varying,
