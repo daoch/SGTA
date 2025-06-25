@@ -28,4 +28,5 @@ export interface TopicTrend {
   year: number;
   areaName: string;
   topicCount: number;
+  etapasFormativasCount: Record<string, number>;
 } 

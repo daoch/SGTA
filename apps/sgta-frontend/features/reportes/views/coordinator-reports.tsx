@@ -34,6 +34,7 @@ import {
 } from "../services/report-services";
 
 import { ExportModal, type ExportConfig } from "../components/export-modal";
+import { ExcelExportBackendService } from "../services/excel-export-backend.service";
 import type {
   AdvisorDistribution,
   JurorDistribution,
@@ -41,7 +42,6 @@ import type {
   TopicArea as ServiceTopicArea,
   TopicTrend
 } from "../types/coordinator-reports.type";
-import { ExcelExportBackendService } from "../services/excel-export-backend.service";
 
 // Componente de loading centrado
 const CenteredLoading = ({ height = "400px" }: { height?: string }) => (
@@ -73,6 +73,9 @@ export function CoordinatorReports() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] = useState("all"); // Filtro para etapa formativa
+  const [yearRangeStart, setYearRangeStart] = useState<string>("all"); // Año de inicio del rango
+  const [yearRangeEnd, setYearRangeEnd] = useState<string>("all"); // Año de fin del rango
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
@@ -247,7 +250,7 @@ export function CoordinatorReports() {
   // Descripciones para tooltips
   const topicsDescriptions = {
     areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento",
-    trends: "Visualiza la evolución histórica de temas por área a través de los años"
+    trends: "Visualiza la evolución histórica de temas por área a través de los años. Puede filtrarse por etapa formativa específica."
   };
 
   const distributionDescriptions = {
@@ -376,18 +379,40 @@ export function CoordinatorReports() {
   };
 
 
+  // Estado para las etapas formativas disponibles
+  const [availableEtapasFormativas, setAvailableEtapasFormativas] = useState<string[]>([]);
+  // Estado para los años disponibles en los datos de tendencias
+  const [trendsAvailableYears, setTrendsAvailableYears] = useState<number[]>([]);
+
   useEffect(() => {
     // Solo ejecutar si el usuario está disponible
     if (!user?.id) return;
 
-    const transformTrendsData = (responseData: TopicTrend[]) => {
-      const years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
+    const transformTrendsData = (responseData: TopicTrend[], etapaFormativaFilter: string = "all", startYear?: number, endYear?: number) => {
+      let years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
+      
+      // Filtrar años por rango si se especifica
+      if (startYear && endYear) {
+        years = years.filter(year => year >= startYear && year <= endYear);
+      }
+      
       const areas = Array.from(new Set(responseData.map(item => item.areaName)));
 
       return years.map(year => {
         const entry: { name: string; [key: string]: string | number } = { name: year.toString() };
         areas.forEach(area => {
-          entry[area] = findTopicCount(responseData, year, area);
+          if (etapaFormativaFilter === "all") {
+            // Usar el topicCount total como antes
+            entry[area] = findTopicCount(responseData, year, area);
+          } else {
+            // Filtrar por etapa formativa específica
+            const found = responseData.find(item => item.year === year && item.areaName === area);
+            if (found && found.etapasFormativasCount) {
+              entry[area] = found.etapasFormativasCount[etapaFormativaFilter] || 0;
+            } else {
+              entry[area] = 0;
+            }
+          }
         });
         return entry;
       });
@@ -397,7 +422,24 @@ export function CoordinatorReports() {
       try {
         setLoadingLineChart(true);
         const data = await obtenerTendenciasTemas();
-        setLineChartData(transformTrendsData(data));
+        
+        // Extraer todas las etapas formativas únicas
+        const etapasSet = new Set<string>();
+        data.forEach(item => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativas(Array.from(etapasSet).sort());
+        
+        // Extraer años únicos de los datos de tendencias
+        const yearsInData = Array.from(new Set(data.map(item => item.year))).sort((a, b) => a - b);
+        setTrendsAvailableYears(yearsInData);
+        
+        // Aplicar filtros
+        const startYear = yearRangeStart !== "all" ? parseInt(yearRangeStart) : undefined;
+        const endYear = yearRangeEnd !== "all" ? parseInt(yearRangeEnd) : undefined;
+        setLineChartData(transformTrendsData(data, selectedEtapaFormativa, startYear, endYear));
       } catch (error) {
         console.error("Error al cargar los temas por area:", error);
       } finally {
@@ -405,8 +447,19 @@ export function CoordinatorReports() {
       }
     };
     fetchTopicTrends();
-  }, [user?.id]);
+  }, [user?.id, selectedEtapaFormativa, yearRangeStart, yearRangeEnd]);
 
+  // Efecto para validar el rango de años
+  useEffect(() => {
+    if (yearRangeStart !== "all" && yearRangeEnd !== "all") {
+      const startYear = parseInt(yearRangeStart);
+      const endYear = parseInt(yearRangeEnd);
+      if (startYear > endYear) {
+        // Si el año de inicio es mayor que el de fin, ajustar automáticamente
+        setYearRangeEnd(yearRangeStart);
+      }
+    }
+  }, [yearRangeStart, yearRangeEnd]);
 
   const areaNames = lineChartData.length > 0
     ? Object.keys(lineChartData[0]).filter(key => key !== "name")
@@ -543,13 +596,46 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={500}>
         <RechartsLineChart data={lineChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" tickFormatter={toTitleCase} />
-          <YAxis />
-          <Tooltip />
-          <Legend />
+          <YAxis domain={[0, "dataMax + 5"]} allowDecimals={false} />
+          <Tooltip 
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                    <p className="font-medium text-sm">Año: {label}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {selectedEtapaFormativa === "all" 
+                        ? "Todas las etapas formativas" 
+                        : `Etapa: ${toTitleCase(selectedEtapaFormativa)}`
+                      }
+                    </p>
+                    {(yearRangeStart !== "all" || yearRangeEnd !== "all") && (
+                      <p className="text-xs text-gray-500 mb-2">
+                        Rango: {yearRangeStart !== "all" ? yearRangeStart : "Inicio"} - {yearRangeEnd !== "all" ? yearRangeEnd : "Fin"}
+                      </p>
+                    )}
+                    {payload.map((entry, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-sm">
+                          {toTitleCase(String(entry.dataKey))}: {entry.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Legend formatter={(value) => toTitleCase(String(value))} />
           {areaNames.map((area, idx) => (
             <Line
               key={area}
@@ -1195,6 +1281,58 @@ export function CoordinatorReports() {
                 </div>
               ) : (
                 <div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">Rango de años:</label>
+                      <Select value={yearRangeStart} onValueChange={setYearRangeStart}>
+                        <SelectTrigger className="w-[100px] text-sm">
+                          <SelectValue placeholder="Desde" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todos</SelectItem>
+                          {trendsAvailableYears
+                            .filter(year => yearRangeEnd === "all" || year <= parseInt(yearRangeEnd))
+                            .map((year) => (
+                              <SelectItem key={year} value={year.toString()} className="text-sm">
+                                {year}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-gray-500">-</span>
+                      <Select value={yearRangeEnd} onValueChange={setYearRangeEnd}>
+                        <SelectTrigger className="w-[100px] text-sm">
+                          <SelectValue placeholder="Hasta" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todos</SelectItem>
+                          {trendsAvailableYears
+                            .filter(year => yearRangeStart === "all" || year >= parseInt(yearRangeStart))
+                            .map((year) => (
+                              <SelectItem key={year} value={year.toString()} className="text-sm">
+                                {year}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">Etapa Formativa:</label>
+                      <Select value={selectedEtapaFormativa} onValueChange={setSelectedEtapaFormativa}>
+                        <SelectTrigger className="w-[280px] text-sm">
+                          <SelectValue placeholder="Seleccionar etapa formativa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todas las etapas</SelectItem>
+                          {availableEtapasFormativas.map((etapa) => (
+                            <SelectItem key={etapa} value={etapa} className="text-sm">
+                              {toTitleCase(etapa)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   {renderTrendsChart()}
                 </div>
               )}
