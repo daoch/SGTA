@@ -4,12 +4,14 @@ import org.springframework.data.domain.Page;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import org.springframework.web.multipart.MultipartFile;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 public interface UsuarioService {
 
@@ -121,4 +123,5 @@ public interface UsuarioService {
 
     List<UsuarioDto> findAllByIds(Collection<Integer> ids);
 
+    Optional<Carrera> obtenerCarreraCoordinador(String idCognito);
 }

@@ -1848,7 +1848,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return revisores;
     }
 
-
     public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
@@ -1862,5 +1861,18 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .build()
             )
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Carrera> obtenerCarreraCoordinador(String idCognito) {
+        Integer usuarioId = usuarioRepository.findUsuarioIdByIdCognito(idCognito);
+        if (usuarioId == null) {
+            return Optional.empty();
+        }
+        UsuarioXCarrera principal = usuarioXCarreraRepository.getCarreraPrincipalCoordinador(usuarioId);
+        if (principal == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(principal.getCarrera());
     }
 }

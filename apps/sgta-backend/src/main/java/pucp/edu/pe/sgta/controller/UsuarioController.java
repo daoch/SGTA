@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.*;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
@@ -379,6 +381,18 @@ public class UsuarioController {
         String coordinadorId = jwtService.extractSubFromRequest(request);
         UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
         return usuarioService.listarRevisoresPorCarrera(usuarioXCarrera.getCarrera().getId());
+    }
+
+    @GetMapping("/getCarreraCoordinador")
+    public ResponseEntity<Carrera> getCarreraCoordinador(HttpServletRequest request) {
+        try {
+            String idCognito = jwtService.extractSubFromRequest(request);
+            Optional<Carrera> carreraOpt = usuarioService.obtenerCarreraCoordinador(idCognito);
+            return carreraOpt.map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.noContent().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
 }
