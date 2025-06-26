@@ -24,9 +24,9 @@ import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 
 function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
@@ -102,7 +102,7 @@ const RevisionJuradoPage = () => {
             Módulo de Revisión
           </h1>
           <p className="text-muted-foreground">
-            Detección de plagio y verificación de normas APA
+            Detección de similitud de contenido y revisión
           </p>
         </div>
       </div>
