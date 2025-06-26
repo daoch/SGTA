@@ -370,16 +370,37 @@ export function DetalleTemaAlumnoView() {
                     {solicitudes.length === 0 && <div className="text-gray-500">No hay solicitudes pendientes.</div>}
                     {solicitudes.map((solicitud) => {
                       const { cambio, comentario } = getCambioYComentario(solicitud);
+                      const esCambioSubarea = solicitud.tipo_solicitud?.toUpperCase().includes("SUBÁREA");
                       return (
                         <div key={solicitud.solicitud_id} className="border-b pb-3 last:border-b-0 last:pb-0">
                           <div className="font-semibold text-base text-[#0a2342]">{solicitud.descripcion}</div>
                           <div className="text-xs text-gray-500 mb-1">{solicitud.tipo_solicitud}</div>
                           <div className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold mb-1">{solicitud.estado_solicitud}</div>
-                          {cambio && (
-                            <div className="mt-1 text-sm"><span className="font-semibold">Cambio propuesto:</span> {cambio}</div>
+                          {cambio && !esCambioSubarea && (
+                            <div className="mt-1 text-sm">
+                              <span className="font-semibold">Cambio propuesto:</span> {cambio}
+                            </div>
+                          )}
+                          {cambio && esCambioSubarea && (
+                            <div className="mt-1 text-sm">
+                              <span className="font-semibold">Cambio propuesto:</span>{" "}
+                              {
+                                // Si el cambio son IDs, conviértelos a nombres
+                                cambio.split(",").every((id) => /^\d+$/.test(id.trim()))
+                                  ? cambio
+                                      .split(",")
+                                      .map((id) =>
+                                        (tema.subareas || []).find((s) => String(s.id) === id.trim())?.nombre || id.trim()
+                                      )
+                                      .join(", ")
+                                  : cambio
+                              }
+                            </div>
                           )}
                           {comentario && (
-                            <div className="mt-1 text-xs text-gray-600"><span className="font-semibold">Comentario:</span> {comentario}</div>
+                            <div className="mt-1 text-xs text-gray-600">
+                              <span className="font-semibold">Justificación:</span> {comentario}
+                            </div>
                           )}
                         </div>
                       );
