@@ -34,6 +34,7 @@ import {
 } from "../services/report-services";
 
 import { ExportModal, type ExportConfig } from "../components/export-modal";
+import { ExcelExportBackendService } from "../services/excel-export-backend.service";
 import type {
   AdvisorDistribution,
   JurorDistribution,
@@ -41,7 +42,6 @@ import type {
   TopicArea as ServiceTopicArea,
   TopicTrend
 } from "../types/coordinator-reports.type";
-import { ExcelExportBackendService } from "../services/excel-export-backend.service";
 
 // Componente de loading centrado
 const CenteredLoading = ({ height = "400px" }: { height?: string }) => (
@@ -73,6 +73,14 @@ export function CoordinatorReports() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [themeAreaChartType, setThemeAreaChartType] = useState("horizontal-bar"); // 'horizontal-bar', 'pie'
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
+  const [selectedEtapaFormativa, setSelectedEtapaFormativa] = useState<string[]>([]); // Filtro para etapa formativa en tendencias
+  const [selectedEtapaFormativaAreas, setSelectedEtapaFormativaAreas] = useState<string[]>([]); // Filtro para etapa formativa en áreas
+  const [selectedEtapaFormativaAdvisors, setSelectedEtapaFormativaAdvisors] = useState<string[]>([]); // Filtro para etapa formativa en distribución de asesores
+  const [selectedEtapaFormativaJury, setSelectedEtapaFormativaJury] = useState<string[]>([]); // Filtro para etapa formativa en distribución de jurados
+  const [selectedEtapaFormativaPerformance, setSelectedEtapaFormativaPerformance] = useState<string[]>([]); // Filtro para etapa formativa en desempeño de asesores
+  const [selectedEtapaFormativaComparison, setSelectedEtapaFormativaComparison] = useState<string[]>([]); // Filtro para etapa formativa en tabla comparativa
+  const [yearRangeStart, setYearRangeStart] = useState<string>("all"); // Año de inicio del rango
+  const [yearRangeEnd, setYearRangeEnd] = useState<string>("all"); // Año de fin del rango
 
   // Data for thesis topics by area
   const [thesisTopicsByArea, setThesisTopicsByArea] = useState<TopicArea[]>([]);
@@ -128,6 +136,12 @@ export function CoordinatorReports() {
   const [performanceAreaFilter, setPerformanceAreaFilter] = useState<string[]>([]);
   const [isPerformanceAreaDropdownOpen, setIsPerformanceAreaDropdownOpen] = useState(false);
   const [isPerformanceAdvisorDropdownOpen, setIsPerformanceAdvisorDropdownOpen] = useState(false);
+  const [isEtapaDropdownOpen, setIsEtapaDropdownOpen] = useState(false);
+  const [isEtapaTrendsDropdownOpen, setIsEtapaTrendsDropdownOpen] = useState(false);
+  const [isEtapaAreasDropdownOpen, setIsEtapaAreasDropdownOpen] = useState(false);
+  const [isEtapaAdvisorsDropdownOpen, setIsEtapaAdvisorsDropdownOpen] = useState(false);
+  const [isEtapaJuryDropdownOpen, setIsEtapaJuryDropdownOpen] = useState(false);
+  const [isEtapaPerformanceDropdownOpen, setIsEtapaPerformanceDropdownOpen] = useState(false);
   
   // Estados para búsqueda en filtros
   const [advisorSearchTerm, setAdvisorSearchTerm] = useState("");
@@ -235,24 +249,42 @@ export function CoordinatorReports() {
         setIsPerformanceAdvisorDropdownOpen(false);
         setAdvisorSearchTerm("");
       }
+      if (isEtapaDropdownOpen && !target.closest("[data-etapa-dropdown]")) {
+        setIsEtapaDropdownOpen(false);
+      }
+      if (isEtapaTrendsDropdownOpen && !target.closest("[data-etapa-trends-dropdown]")) {
+        setIsEtapaTrendsDropdownOpen(false);
+      }
+      if (isEtapaAreasDropdownOpen && !target.closest("[data-etapa-areas-dropdown]")) {
+        setIsEtapaAreasDropdownOpen(false);
+      }
+      if (isEtapaAdvisorsDropdownOpen && !target.closest("[data-etapa-advisors-dropdown]")) {
+        setIsEtapaAdvisorsDropdownOpen(false);
+      }
+      if (isEtapaJuryDropdownOpen && !target.closest("[data-etapa-jury-dropdown]")) {
+        setIsEtapaJuryDropdownOpen(false);
+      }
+      if (isEtapaPerformanceDropdownOpen && !target.closest("[data-etapa-performance-dropdown]")) {
+        setIsEtapaPerformanceDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isAreaDropdownOpen, isPerformanceAreaDropdownOpen, isPerformanceAdvisorDropdownOpen]);
+  }, [isAreaDropdownOpen, isPerformanceAreaDropdownOpen, isPerformanceAdvisorDropdownOpen, isEtapaDropdownOpen, isEtapaTrendsDropdownOpen, isEtapaAreasDropdownOpen, isEtapaAdvisorsDropdownOpen, isEtapaJuryDropdownOpen, isEtapaPerformanceDropdownOpen]);
 
   const [selectedDistributionChart, setSelectedDistributionChart] = useState("advisors");
   const [activeTab, setActiveTab] = useState("topics");
 
   // Descripciones para tooltips
   const topicsDescriptions = {
-    areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento",
-    trends: "Visualiza la evolución histórica de temas por área a través de los años"
+    areas: "Muestra la cantidad de temas de tesis distribuidos por área de conocimiento. Puede filtrarse por etapa formativa específica.",
+    trends: "Visualiza la evolución histórica de temas por área a través de los años. Puede filtrarse por etapa formativa específica."
   };
 
   const distributionDescriptions = {
-    advisors: "Cantidad de tesistas asignados como asesorados por cada docente",
-    jury: "Número de veces que cada docente ha participado como jurado",
+    advisors: "Cantidad de tesistas asignados como asesorados por cada docente. Puede filtrarse por etapa formativa específica.",
+    jury: "Número de veces que cada docente ha participado como jurado. Puede filtrarse por etapa formativa específica.",
     comparison: "Cantidad de veces que cada docente ha participado como asesor y como jurado"
   };
 
@@ -299,10 +331,33 @@ export function CoordinatorReports() {
       try {
         setLoadingTopicsByArea(true);
         const data = await obtenerTemasPorArea(semesterFilter);
-        const normalized = data.map((item: ServiceTopicArea) => ({
-          area: item.areaName,
-          count: item.topicCount,
-        }));
+        
+        // Extraer etapas formativas únicas de los datos de áreas
+        const etapasAreasSet = new Set<string>();
+        data.forEach((item: ServiceTopicArea) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasAreasSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasAreas(Array.from(etapasAreasSet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const normalized = data.map((item: ServiceTopicArea) => {
+          let count = item.topicCount;
+          
+          // Si hay etapas seleccionadas, sumar solo los conteos de esas etapas
+          if (selectedEtapaFormativaAreas.length > 0 && item.etapasFormativasCount) {
+            count = selectedEtapaFormativaAreas.reduce((sum, etapa) => {
+              return sum + (item.etapasFormativasCount![etapa] || 0);
+            }, 0);
+          }
+          
+          return {
+            area: item.areaName,
+            count: count,
+          };
+        }).filter(item => item.count > 0); // Filtrar áreas sin temas para la etapa seleccionada
+        
         setThesisTopicsByArea(normalized);
       } catch (error) {
         console.log("Error al cargar los temas por area:", error);
@@ -316,11 +371,46 @@ export function CoordinatorReports() {
       try {
         setLoadingAdvisorDistribution(true);
         const data = await obtenerDistribucionAsesores(semesterFilter);
-        setAdvisorDistribution(data.map((item: AdvisorDistribution) => ({
-          name: item.teacherName,
-          count: item.count,
-          department: item.areaName,
-        })));
+        
+        // Extraer etapas formativas únicas de los datos de asesores (para gráfico individual y tabla comparativa)
+        const etapasAdvisorsSet = new Set<string>();
+        data.forEach((item: AdvisorDistribution) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasAdvisorsSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasAdvisors(Array.from(etapasAdvisorsSet).sort());
+        setAvailableEtapasFormativasComparison(Array.from(etapasAdvisorsSet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const transformedData = data.map((item: AdvisorDistribution) => {
+          let count = item.count;
+          
+          // Aplicar filtro de etapa formativa individual o comparativa según el contexto
+          if (selectedDistributionChart === "comparison") {
+            // Para tabla comparativa, sumar conteos de todas las etapas seleccionadas
+            if (selectedEtapaFormativaComparison.length > 0 && item.etapasFormativasCount) {
+              count = selectedEtapaFormativaComparison.reduce((sum, etapa) => {
+                return sum + (item.etapasFormativasCount![etapa] || 0);
+              }, 0);
+            }
+          } else {
+            // Para gráfico individual de asesores
+            if (selectedEtapaFormativaAdvisors.length > 0 && item.etapasFormativasCount) {
+              count = selectedEtapaFormativaAdvisors.reduce((sum, etapa) => {
+                return sum + (item.etapasFormativasCount![etapa] || 0);
+              }, 0);
+            }
+          }
+          
+          return {
+            name: item.teacherName,
+            count: count,
+            department: item.areaName,
+          };
+        }).filter(item => item.count > 0); // Filtrar asesores sin tesistas para la etapa seleccionada
+        
+        setAdvisorDistribution(transformedData);
       } catch (error) {
         console.log("Error al cargar las distribuciones por asesor:", error);
       } finally {
@@ -332,11 +422,45 @@ export function CoordinatorReports() {
       try {
         setLoadingJuryDistribution(true);
         const data = await obtenerDistribucionJurados(semesterFilter);
-        setJuryDistribution(data.map((item: JurorDistribution) => ({
-          name: item.teacherName,
-          count: item.count,
-          department: item.areaName,
-        })));
+        
+        // Extraer etapas formativas únicas de los datos de jurados
+        const etapasJurySet = new Set<string>();
+        data.forEach((item: JurorDistribution) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasJurySet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasJury(Array.from(etapasJurySet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const transformedData = data.map((item: JurorDistribution) => {
+          let count = item.count;
+          
+          // Aplicar filtro de etapa formativa individual o comparativa según el contexto
+          if (selectedDistributionChart === "comparison") {
+            // Para tabla comparativa, sumar conteos de todas las etapas seleccionadas
+            if (selectedEtapaFormativaComparison.length > 0 && item.etapasFormativasCount) {
+              count = selectedEtapaFormativaComparison.reduce((sum, etapa) => {
+                return sum + (item.etapasFormativasCount![etapa] || 0);
+              }, 0);
+            }
+          } else {
+            // Para gráfico individual de jurados
+            if (selectedEtapaFormativaJury.length > 0 && item.etapasFormativasCount) {
+              count = selectedEtapaFormativaJury.reduce((sum, etapa) => {
+                return sum + (item.etapasFormativasCount![etapa] || 0);
+              }, 0);
+            }
+          }
+          
+          return {
+            name: item.teacherName,
+            count: count,
+            department: item.areaName,
+          };
+        }).filter(item => item.count > 0); // Filtrar jurados sin participaciones para la etapa seleccionada
+        
+        setJuryDistribution(transformedData);
       } catch (error) {
         console.log("Error al cargar las distribuciones por jurado:", error);
       } finally {
@@ -348,14 +472,36 @@ export function CoordinatorReports() {
       try {
         setLoadingAdvisorPerformance(true);
         const data = await obtenerDesempenoAsesores(semesterFilter);
-        setAdvisorPerformance(
-          data.map((item: ServiceAdvisorPerformance) => ({
+        
+        // Extraer etapas formativas únicas de los datos de desempeño
+        const etapasPerformanceSet = new Set<string>();
+        data.forEach((item: ServiceAdvisorPerformance) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasPerformanceSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasPerformance(Array.from(etapasPerformanceSet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const transformedData = data.map((item: ServiceAdvisorPerformance) => {
+          let students = item.totalStudents;
+          
+          // Si hay etapas seleccionadas, sumar solo los conteos de esas etapas
+          if (selectedEtapaFormativaPerformance.length > 0 && item.etapasFormativasCount) {
+            students = selectedEtapaFormativaPerformance.reduce((sum, etapa) => {
+              return sum + (item.etapasFormativasCount![etapa] || 0);
+            }, 0);
+          }
+          
+          return {
             name: item.advisorName,
             department: item.areaName,
             progress: item.performancePercentage,
-            students: item.totalStudents,
-          }))
-        );
+            students: students,
+          };
+        }).filter(item => item.students > 0); // Filtrar asesores sin tesistas para la etapa seleccionada
+        
+        setAdvisorPerformance(transformedData);
       } catch (error) {
         console.log("Error al cargar el desempeño:", error);
         setAdvisorPerformance([]);
@@ -368,7 +514,7 @@ export function CoordinatorReports() {
     fetchAdvisorsDistribution();
     fetchJurorsDistribution();
     fetchAdvisorPerformance();
-  }, [semesterFilter, user?.id]);
+  }, [semesterFilter, user?.id, selectedEtapaFormativaAreas, selectedEtapaFormativaAdvisors, selectedEtapaFormativaJury, selectedEtapaFormativaPerformance, selectedEtapaFormativaComparison, selectedDistributionChart]);
 
   const findTopicCount = (responseData: TopicTrend[], year: number, area: string) => {
     const found = responseData.find(item => item.year === year && item.areaName === area);
@@ -376,18 +522,56 @@ export function CoordinatorReports() {
   };
 
 
+  // Estado para las etapas formativas disponibles en tendencias
+  const [availableEtapasFormativas, setAvailableEtapasFormativas] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en áreas
+  const [availableEtapasFormativasAreas, setAvailableEtapasFormativasAreas] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en distribución de asesores
+  const [availableEtapasFormativasAdvisors, setAvailableEtapasFormativasAdvisors] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en distribución de jurados
+  const [availableEtapasFormativasJury, setAvailableEtapasFormativasJury] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en desempeño de asesores
+  const [availableEtapasFormativasPerformance, setAvailableEtapasFormativasPerformance] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en tabla comparativa
+  const [availableEtapasFormativasComparison, setAvailableEtapasFormativasComparison] = useState<string[]>([]);
+  // Estado para los años disponibles en los datos de tendencias
+  const [trendsAvailableYears, setTrendsAvailableYears] = useState<number[]>([]);
+
   useEffect(() => {
     // Solo ejecutar si el usuario está disponible
     if (!user?.id) return;
 
-    const transformTrendsData = (responseData: TopicTrend[]) => {
-      const years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
+    const transformTrendsData = (responseData: TopicTrend[], etapaFormativaFilter: string[] = [], startYear?: number, endYear?: number) => {
+      let years = Array.from(new Set(responseData.map(item => item.year))).sort((a, b) => a - b);
+      
+      // Filtrar años por rango si se especifica
+      if (startYear || endYear) {
+        years = years.filter(year => {
+          const meetsStart = startYear ? year >= startYear : true;
+          const meetsEnd = endYear ? year <= endYear : true;
+          return meetsStart && meetsEnd;
+        });
+      }
+      
       const areas = Array.from(new Set(responseData.map(item => item.areaName)));
 
       return years.map(year => {
         const entry: { name: string; [key: string]: string | number } = { name: year.toString() };
         areas.forEach(area => {
-          entry[area] = findTopicCount(responseData, year, area);
+          if (etapaFormativaFilter.length === 0) {
+            // Usar el topicCount total como antes
+            entry[area] = findTopicCount(responseData, year, area);
+          } else {
+            // Sumar conteos de las etapas formativas seleccionadas
+            const found = responseData.find(item => item.year === year && item.areaName === area);
+            if (found && found.etapasFormativasCount) {
+              entry[area] = etapaFormativaFilter.reduce((sum, etapa) => {
+                return sum + (found.etapasFormativasCount![etapa] || 0);
+              }, 0);
+            } else {
+              entry[area] = 0;
+            }
+          }
         });
         return entry;
       });
@@ -397,7 +581,24 @@ export function CoordinatorReports() {
       try {
         setLoadingLineChart(true);
         const data = await obtenerTendenciasTemas();
-        setLineChartData(transformTrendsData(data));
+        
+        // Extraer todas las etapas formativas únicas
+        const etapasSet = new Set<string>();
+        data.forEach(item => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativas(Array.from(etapasSet).sort());
+        
+        // Extraer años únicos de los datos de tendencias
+        const yearsInData = Array.from(new Set(data.map(item => item.year))).sort((a, b) => a - b);
+        setTrendsAvailableYears(yearsInData);
+        
+        // Aplicar filtros
+        const startYear = yearRangeStart !== "all" ? parseInt(yearRangeStart) : undefined;
+        const endYear = yearRangeEnd !== "all" ? parseInt(yearRangeEnd) : undefined;
+        setLineChartData(transformTrendsData(data, selectedEtapaFormativa, startYear, endYear));
       } catch (error) {
         console.error("Error al cargar los temas por area:", error);
       } finally {
@@ -405,8 +606,19 @@ export function CoordinatorReports() {
       }
     };
     fetchTopicTrends();
-  }, [user?.id]);
+  }, [user?.id, selectedEtapaFormativa, yearRangeStart, yearRangeEnd]);
 
+  // Efecto para validar el rango de años
+  useEffect(() => {
+    if (yearRangeStart !== "all" && yearRangeEnd !== "all") {
+      const startYear = parseInt(yearRangeStart);
+      const endYear = parseInt(yearRangeEnd);
+      if (startYear > endYear) {
+        // Si el año de inicio es mayor que el de fin, ajustar automáticamente
+        setYearRangeEnd(yearRangeStart);
+      }
+    }
+  }, [yearRangeStart, yearRangeEnd]);
 
   const areaNames = lineChartData.length > 0
     ? Object.keys(lineChartData[0]).filter(key => key !== "name")
@@ -426,6 +638,17 @@ export function CoordinatorReports() {
       })
       .join(" ");
   }
+
+  // Función auxiliar para mostrar etapas seleccionadas
+  const getSelectedEtapasText = (selectedEtapas: string[]) => {
+    if (selectedEtapas.length === 0) {
+      return "Todas las etapas formativas";
+    } else if (selectedEtapas.length === 1) {
+      return `Etapa: ${toTitleCase(selectedEtapas[0])}`;
+    } else {
+      return `Etapas: ${selectedEtapas.map(etapa => toTitleCase(etapa)).join(", ")}`;
+    }
+  };
 
   const renderTopicsAreaChart = () => {
     if (loadingTopicsByArea) {
@@ -458,6 +681,22 @@ export function CoordinatorReports() {
             <Tooltip 
               formatter={(value, name) => [`${value}`, "Total"]}
               labelFormatter={(label) => toTitleCase(label)}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                      <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                                          <p className="text-xs text-gray-600 mb-1">
+                      {getSelectedEtapasText(selectedEtapaFormativaAreas)}
+                    </p>
+                      <p className="text-blue-600 text-sm">
+                        Total: {payload[0].value}
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Bar dataKey="count" fill="#006699" />
           </RechartsBarChart>
@@ -496,8 +735,11 @@ export function CoordinatorReports() {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className="bg-white border border-gray-300 rounded-md p-2 shadow-lg">
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
                     <p className="font-medium text-xs sm:text-sm">{toTitleCase(data.area)}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {getSelectedEtapasText(selectedEtapaFormativaAreas)}
+                    </p>
                     <p className="text-blue-600 text-xs sm:text-sm">
                       Total: {data.count}
                     </p>
@@ -543,13 +785,43 @@ export function CoordinatorReports() {
     }
 
     return (
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={500}>
         <RechartsLineChart data={lineChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" tickFormatter={toTitleCase} />
-          <YAxis />
-          <Tooltip />
-          <Legend />
+          <YAxis domain={[0, "dataMax + 5"]} allowDecimals={false} />
+          <Tooltip 
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                    <p className="font-medium text-sm">Año: {label}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {getSelectedEtapasText(selectedEtapaFormativa)}
+                    </p>
+                    {(yearRangeStart !== "all" || yearRangeEnd !== "all") && (
+                      <p className="text-xs text-gray-500 mb-2">
+                        Rango: {yearRangeStart !== "all" ? yearRangeStart : "Inicio"} - {yearRangeEnd !== "all" ? yearRangeEnd : "Fin"}
+                      </p>
+                    )}
+                    {payload.map((entry, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-sm">
+                          {toTitleCase(String(entry.dataKey))}: {entry.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Legend formatter={(value) => toTitleCase(String(value))} />
           {areaNames.map((area, idx) => (
             <Line
               key={area}
@@ -600,6 +872,22 @@ export function CoordinatorReports() {
           <Tooltip 
             formatter={(value, name) => [`${value}`, "Total"]}
             labelFormatter={(label) => toTitleCase(label)}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                    <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {getSelectedEtapasText(selectedEtapaFormativaAdvisors)}
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      Tesistas: {payload[0].value}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Bar dataKey="count" fill="#006699" />
         </RechartsBarChart>
@@ -643,6 +931,22 @@ export function CoordinatorReports() {
           <Tooltip 
             formatter={(value, name) => [`${value}`, "Total"]}
             labelFormatter={(label) => toTitleCase(label)}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                    <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {getSelectedEtapasText(selectedEtapaFormativaJury)}
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      Participaciones como jurado: {payload[0].value}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Bar dataKey="count" fill="#002855" />
         </RechartsBarChart>
@@ -653,9 +957,103 @@ export function CoordinatorReports() {
   const renderDistributionContent = () => {
     switch (selectedDistributionChart) {
       case "advisors":
-        return renderAdvisorDistribution();
+        return (
+          <div>
+            <div className="flex items-center justify-end gap-2 px-4 py-2">
+              <div className="relative w-[280px]" data-etapa-advisors-dropdown>
+                <button
+                  type="button"
+                  onClick={() => setIsEtapaAdvisorsDropdownOpen(!isEtapaAdvisorsDropdownOpen)}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
+                >
+                  <span className="text-gray-700">
+                    {selectedEtapaFormativaAdvisors.length === 0
+                      ? "Filtrar por etapas formativas"
+                      : `${selectedEtapaFormativaAdvisors.length} etapa${selectedEtapaFormativaAdvisors.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativaAdvisors.length > 1 ? "s" : ""}`
+                    }
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaAdvisorsDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isEtapaAdvisorsDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div className="p-3">
+                      <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {availableEtapasFormativasAdvisors.map((etapa) => (
+                          <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            <input
+                              type="checkbox"
+                              checked={selectedEtapaFormativaAdvisors.includes(etapa)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedEtapaFormativaAdvisors(prev => [...prev, etapa]);
+                                } else {
+                                  setSelectedEtapaFormativaAdvisors(prev => prev.filter(item => item !== etapa));
+                                }
+                              }}
+                              className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {renderAdvisorDistribution()}
+          </div>
+        );
       case "jury":
-        return renderJuryDistribution();
+        return (
+          <div>
+            <div className="flex items-center justify-end gap-2 px-4 py-2">
+              <div className="relative w-[280px]" data-etapa-jury-dropdown>
+                <button
+                  type="button"
+                  onClick={() => setIsEtapaJuryDropdownOpen(!isEtapaJuryDropdownOpen)}
+                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
+                >
+                  <span className="text-gray-700">
+                    {selectedEtapaFormativaJury.length === 0
+                      ? "Filtrar por etapas formativas"
+                      : `${selectedEtapaFormativaJury.length} etapa${selectedEtapaFormativaJury.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativaJury.length > 1 ? "s" : ""}`
+                    }
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaJuryDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isEtapaJuryDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div className="p-3">
+                      <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {availableEtapasFormativasJury.map((etapa) => (
+                          <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            <input
+                              type="checkbox"
+                              checked={selectedEtapaFormativaJury.includes(etapa)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedEtapaFormativaJury(prev => [...prev, etapa]);
+                                } else {
+                                  setSelectedEtapaFormativaJury(prev => prev.filter(item => item !== etapa));
+                                }
+                              }}
+                              className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {renderJuryDistribution()}
+          </div>
+        );
       default:
         return (
           <div>
@@ -665,8 +1063,8 @@ export function CoordinatorReports() {
               </div>
             ) : (
               <>
-                {/* Barra de búsqueda y filtros */}
-                <div className="mb-2 flex flex-col sm:flex-row gap-4 px-4 sm:px-6">
+                {/* Filtros en una sola fila */}
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 px-4 sm:px-6">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
@@ -674,14 +1072,55 @@ export function CoordinatorReports() {
                       placeholder="Buscar por nombre de docente..."
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      className="w-full pl-10 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                      className="w-full pl-10 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base h-[48px]"
                     />
+                  </div>
+                  <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-etapa-dropdown>
+                    <button
+                      type="button"
+                      onClick={() => setIsEtapaDropdownOpen(!isEtapaDropdownOpen)}
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
+                    >
+                      <span className="text-gray-700">
+                        {selectedEtapaFormativaComparison.length === 0
+                          ? "Filtrar por etapas formativas"
+                          : `${selectedEtapaFormativaComparison.length} etapa${selectedEtapaFormativaComparison.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativaComparison.length > 1 ? "s" : ""}`
+                        }
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaDropdownOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isEtapaDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                        <div className="p-3">
+                          <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {availableEtapasFormativasComparison.map((etapa) => (
+                              <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedEtapaFormativaComparison.includes(etapa)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedEtapaFormativaComparison(prev => [...prev, etapa]);
+                                    } else {
+                                      setSelectedEtapaFormativaComparison(prev => prev.filter(item => item !== etapa));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-area-dropdown>
                     <button
                       type="button"
                       onClick={() => setIsAreaDropdownOpen(!isAreaDropdownOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
                     >
                       <span className="text-gray-700">
                         {areaFilter.length === 0 
@@ -714,21 +1153,24 @@ export function CoordinatorReports() {
                   </div>
                 </div>
 
-                {/* Botón limpiar filtros - espacio pequeño reservado */}
-                <div className="flex justify-end mb-4 px-4 sm:px-6" style={{ height: "20px" }}>
-                  {(searchFilter || areaFilter.length > 0) && (
+                {/* Botón limpiar filtros */}
+                {(searchFilter || areaFilter.length > 0 || selectedEtapaFormativaComparison.length > 0) && (
+                  <div className="flex justify-end mb-4 px-4 sm:px-6">
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={clearFilters}
-                      className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 h-5 flex items-center gap-1"
+                      onClick={() => {
+                        clearFilters();
+                        setSelectedEtapaFormativaComparison([]);
+                      }}
+                      className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1"
                     >
                       <X className="h-3 w-3" />
                       <span className="hidden sm:inline">Limpiar filtros</span>
                       <span className="sm:hidden">Limpiar</span>
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <div className="overflow-x-auto px-4 sm:px-6 pb-4">
                   <table className="w-full min-w-[600px] border-collapse bg-white rounded-lg shadow-sm">
@@ -786,7 +1228,7 @@ export function CoordinatorReports() {
                         // Crear una lista combinada de todos los docentes únicos
                         const allTeachers = new Map<string, { name: string; department: string; advisorCount: number; juryCount: number }>();
                         
-                        // Agregar asesores
+                        // Agregar asesores (ya están filtrados por selectedEtapaFormativaComparison)
                         advisorDistribution.forEach((advisor) => {
                           allTeachers.set(advisor.name, {
                             name: advisor.name,
@@ -796,7 +1238,7 @@ export function CoordinatorReports() {
                           });
                         });
                         
-                        // Agregar o actualizar con información de jurados
+                        // Agregar o actualizar con información de jurados (ya están filtrados por selectedEtapaFormativaComparison)
                         juryDistribution.forEach((jury) => {
                           if (allTeachers.has(jury.name)) {
                             // Si ya existe como asesor, actualizar el conteo de jurado
@@ -912,7 +1354,7 @@ export function CoordinatorReports() {
             <button
               type="button"
               onClick={() => setIsPerformanceAdvisorDropdownOpen(!isPerformanceAdvisorDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
             >
               <span className="text-gray-700 truncate">
                 {performanceSearchFilter.length === 0 
@@ -962,11 +1404,52 @@ export function CoordinatorReports() {
               </div>
             )}
           </div>
+          <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-etapa-performance-dropdown>
+            <button
+              type="button"
+              onClick={() => setIsEtapaPerformanceDropdownOpen(!isEtapaPerformanceDropdownOpen)}
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
+            >
+              <span className="text-gray-700">
+                {selectedEtapaFormativaPerformance.length === 0
+                  ? "Filtrar por etapas formativas"
+                  : `${selectedEtapaFormativaPerformance.length} etapa${selectedEtapaFormativaPerformance.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativaPerformance.length > 1 ? "s" : ""}`
+                }
+              </span>
+              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaPerformanceDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isEtapaPerformanceDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                <div className="p-3">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {availableEtapasFormativasPerformance.map((etapa) => (
+                      <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedEtapaFormativaPerformance.includes(etapa)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedEtapaFormativaPerformance(prev => [...prev, etapa]);
+                            } else {
+                              setSelectedEtapaFormativaPerformance(prev => prev.filter(item => item !== etapa));
+                            }
+                          }}
+                          className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="relative w-full sm:w-[280px] sm:min-w-[280px] sm:max-w-[280px]" data-performance-area-dropdown>
             <button
               type="button"
               onClick={() => setIsPerformanceAreaDropdownOpen(!isPerformanceAreaDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[48px]"
             >
               <span className="text-gray-700 truncate">
                 {performanceAreaFilter.length === 0 
@@ -1019,7 +1502,7 @@ export function CoordinatorReports() {
         </div>
 
         {/* Botón limpiar filtros */}
-        {(performanceSearchFilter.length > 0 || performanceAreaFilter.length > 0) && (
+        {(performanceSearchFilter.length > 0 || performanceAreaFilter.length > 0 || selectedEtapaFormativaPerformance.length > 0) && (
           <div className="flex justify-end mb-4">
             <Button 
               variant="ghost" 
@@ -1029,6 +1512,7 @@ export function CoordinatorReports() {
                 setPerformanceAreaFilter([]);
                 setAdvisorSearchTerm("");
                 setAreaSearchTerm("");
+                setSelectedEtapaFormativaPerformance([]);
               }}
               className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1"
             >
@@ -1171,30 +1655,154 @@ export function CoordinatorReports() {
             <CardContent className="p-0">
               {selectedTopicsChart === "areas" ? (
                 <div>
-                  <div className="flex items-center justify-end gap-1 px-4 py-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
-                      onClick={() => setThemeAreaChartType("horizontal-bar")}
-                      title="Gráfico de barras horizontal"
-                    >
-                      <BarChartHorizontal className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
-                      onClick={() => setThemeAreaChartType("pie")}
-                      title="Gráfico circular"
-                    >
-                      <PieChart className="h-20 w-20" />
-                    </Button>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-[280px]" data-etapa-areas-dropdown>
+                        <button
+                          type="button"
+                          onClick={() => setIsEtapaAreasDropdownOpen(!isEtapaAreasDropdownOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[42px]"
+                        >
+                          <span className="text-gray-700">
+                            {selectedEtapaFormativaAreas.length === 0
+                              ? "Filtrar por etapas formativas"
+                              : `${selectedEtapaFormativaAreas.length} etapa${selectedEtapaFormativaAreas.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativaAreas.length > 1 ? "s" : ""}`
+                            }
+                          </span>
+                          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaAreasDropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        {isEtapaAreasDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                            <div className="p-3">
+                              <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {availableEtapasFormativasAreas.map((etapa) => (
+                                  <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedEtapaFormativaAreas.includes(etapa)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedEtapaFormativaAreas(prev => [...prev, etapa]);
+                                        } else {
+                                          setSelectedEtapaFormativaAreas(prev => prev.filter(item => item !== etapa));
+                                        }
+                                      }}
+                                      className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${themeAreaChartType === "horizontal-bar" ? "bg-gray-100" : ""}`}
+                        onClick={() => setThemeAreaChartType("horizontal-bar")}
+                        title="Gráfico de barras horizontal"
+                      >
+                        <BarChartHorizontal className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${themeAreaChartType === "pie" ? "bg-gray-100" : ""}`}
+                        onClick={() => setThemeAreaChartType("pie")}
+                        title="Gráfico circular"
+                      >
+                        <PieChart className="h-20 w-20" />
+                      </Button>
+                    </div>
                   </div>
                   {renderTopicsAreaChart()}
                 </div>
               ) : (
                 <div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">Rango de años:</label>
+                      <Select value={yearRangeStart} onValueChange={setYearRangeStart}>
+                        <SelectTrigger className="w-[100px] text-sm">
+                          <SelectValue placeholder="Desde" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todos</SelectItem>
+                          {trendsAvailableYears
+                            .filter(year => yearRangeEnd === "all" || year <= parseInt(yearRangeEnd))
+                            .map((year) => (
+                              <SelectItem key={year} value={year.toString()} className="text-sm">
+                                {year}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-gray-500">-</span>
+                      <Select value={yearRangeEnd} onValueChange={setYearRangeEnd}>
+                        <SelectTrigger className="w-[100px] text-sm">
+                          <SelectValue placeholder="Hasta" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-sm">Todos</SelectItem>
+                          {trendsAvailableYears
+                            .filter(year => yearRangeStart === "all" || year >= parseInt(yearRangeStart))
+                            .map((year) => (
+                              <SelectItem key={year} value={year.toString()} className="text-sm">
+                                {year}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-[280px]" data-etapa-trends-dropdown>
+                        <button
+                          type="button"
+                          onClick={() => setIsEtapaTrendsDropdownOpen(!isEtapaTrendsDropdownOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-[42px]"
+                        >
+                          <span className="text-gray-700">
+                            {selectedEtapaFormativa.length === 0
+                              ? "Filtrar por etapas formativas"
+                              : `${selectedEtapaFormativa.length} etapa${selectedEtapaFormativa.length > 1 ? "s" : ""} seleccionada${selectedEtapaFormativa.length > 1 ? "s" : ""}`
+                            }
+                          </span>
+                          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isEtapaTrendsDropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        {isEtapaTrendsDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                            <div className="p-3">
+                              <div className="text-sm font-medium text-gray-700 mb-2">Seleccionar etapas formativas:</div>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {availableEtapasFormativas.map((etapa) => (
+                                  <label key={etapa} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedEtapaFormativa.includes(etapa)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedEtapaFormativa(prev => [...prev, etapa]);
+                                        } else {
+                                          setSelectedEtapaFormativa(prev => prev.filter(item => item !== etapa));
+                                        }
+                                      }}
+                                      className="rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{toTitleCase(etapa)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   {renderTrendsChart()}
                 </div>
               )}
@@ -1281,13 +1889,32 @@ export function CoordinatorReports() {
                         width={100}
                       />
                       <Tooltip 
-                        formatter={(value, name) => {
-                          if (name === "Progreso (%)") {
-                            return value === 0 ? ["Sin progreso", name] : [`${value}%`, name];
-                          } else if (name === "Tesistas") {
-                            return value === 0 ? ["Sin tesistas", name] : [value, name];
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                                <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                                <p className="text-xs text-gray-600 mb-1">
+                                  {getSelectedEtapasText(selectedEtapaFormativaPerformance)}
+                                </p>
+                                {payload.map((entry, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <div 
+                                      className="w-3 h-3 rounded-full" 
+                                      style={{ backgroundColor: entry.color }}
+                                    />
+                                    <span className="text-sm">
+                                      {entry.dataKey === "progress" 
+                                        ? `Progreso: ${entry.value}%`
+                                        : `Tesistas: ${entry.value}`
+                                      }
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            );
                           }
-                          return [value, name];
+                          return null;
                         }}
                       />
                       <Legend wrapperStyle={{fontSize: "12px", marginTop: "50px", paddingTop: "50px"}}/>
