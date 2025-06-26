@@ -5040,3 +5040,59 @@ BEGIN
 END;
 $function$
 ;
+
+
+CREATE OR REPLACE FUNCTION listar_profesores_por_subareas_con_match(
+    p_sub_area_ids INTEGER[]
+)
+RETURNS TABLE(
+    usuario_id           INTEGER,
+    nombres              TEXT,
+    primer_apellido      TEXT,
+    segundo_apellido     TEXT,
+    correo_electronico   TEXT,
+    subarea_ids          INTEGER[],
+    subarea_nombres      TEXT[]
+)
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT
+      u.usuario_id,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      u.correo_electronico,
+
+      -- IDs de subáreas (ordenados por sub_area_conocimiento_id)
+      ARRAY_AGG(usac.sub_area_conocimiento_id
+                ORDER BY usac.sub_area_conocimiento_id)     AS subarea_ids,
+
+      -- Nombres de esas mismas subáreas, con el mismo ORDER BY
+      ARRAY_AGG(sac.nombre
+                ORDER BY usac.sub_area_conocimiento_id)     AS subarea_nombres
+
+    FROM usuario u
+    JOIN tipo_usuario tu
+      ON u.tipo_usuario_id = tu.tipo_usuario_id
+    JOIN usuario_sub_area_conocimiento usac
+      ON u.usuario_id = usac.usuario_id
+         AND usac.activo = TRUE
+         AND usac.sub_area_conocimiento_id = ANY(p_sub_area_ids)
+    JOIN sub_area_conocimiento sac
+      ON sac.sub_area_conocimiento_id = usac.sub_area_conocimiento_id
+      AND sac.activo = TRUE
+    WHERE tu.nombre ILIKE 'profesor'
+      AND u.activo = TRUE
+      
+
+    GROUP BY
+      u.usuario_id,
+      u.nombres,
+      u.primer_apellido,
+      u.segundo_apellido,
+      u.correo_electronico
+
+    ORDER BY
+      u.usuario_id;
+$$;

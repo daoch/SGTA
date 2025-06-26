@@ -9,6 +9,7 @@ import { FilterExposicionCoordinador } from "./filters-exposicion-coordinador";
 import { getCiclos } from "../services/exposicion-service";
 import { Ciclo } from "@/features/jurado/types/juradoDetalle.types";
 import { toast } from "sonner";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 const estados = [
   { value: "todos", label: "Todos" },
@@ -203,8 +204,10 @@ export const TabListaExposiciones: React.FC = () => {
     if (!selectedExposicion) return;
     setSaving(true);
     try {
-      // TODO: Llamar al endpoint para guardar el enlace de grabación
-
+      axiosInstance.put("/jurado/actualizar-link-grabacion", {
+        exposicionXTemaId: selectedExposicion.id_exposicion,
+        nuevoLinkGrabacion: enlaceGrabacion,
+      });
       setExposiciones((prev) =>
         prev.map((expo) =>
           expo.id_exposicion === selectedExposicion.id_exposicion
@@ -242,18 +245,6 @@ export const TabListaExposiciones: React.FC = () => {
             </div>
           )}
           <div className="space-y-4">
-            {/*<ListExposicionCoordinadorCard
-              key="placeholder"
-              exposicion={exposicionTest}
-              onClick={() => handleOpenModal(exposicionTest)}
-            />*/}
-
-            <ListExposicionCoordinadorCard
-              key="1"
-              exposicion={expoTest}
-              onClick={() => handleOpenModal(expoTest)}
-            />
-
             {filteredExposiciones.map((exposicion) => (
               <ListExposicionCoordinadorCard
                 key={exposicion.id_exposicion}

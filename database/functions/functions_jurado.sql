@@ -625,25 +625,29 @@ where ef.etapa_formativa_id = p_id_etapa_formativa;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
-	id_exposicion integer
-)
-RETURNS TABLE(
-	id_estado_planificacion integer,
-    nombre  text,
-   	activo bool   	
-) AS $$
+CREATE OR REPLACE FUNCTION get_estado_exposicion_by_id_exposicion(id_exposicion integer)
+ RETURNS TABLE(
+ 	id_estado_planificacion integer, 
+ 	nombre text,
+ 	fecha_creacion timestamptz,
+ 	fecha_modificacion timestamptz,
+ 	activo boolean
+ )
+AS $$
 BEGIN
     RETURN QUERY
  SELECT 
 		ep.estado_planificacion_id,
 		ep.nombre,
+		e.fecha_creacion,
+		e.fecha_modificacion,
 		ep.activo
     FROM estado_planificacion ep
 	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
 	where e.exposicion_id = id_exposicion;	   
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
  RETURNS void
@@ -1585,3 +1589,81 @@ BEGIN
 
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION get_exposiciones_coordinador(cod_usuario INTEGER)
+RETURNS TABLE (
+    id_exposicion INT,
+    fechahora TIMESTAMPTZ,
+    sala TEXT,
+    estado TEXT,
+    id_etapa_formativa INT,
+    nombre_etapa_formativa TEXT,
+    titulo VARCHAR(255),
+    ciclo_id INT,
+    ciclo_anio INT,
+    ciclo_semestre VARCHAR(10),
+    estado_control TEXT,
+    nombre_exposicion TEXT,
+    enlace_grabacion TEXT,
+    enlace_sesion TEXT,
+    id_tema INT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ext.exposicion_x_tema_id AS id_exposicion,
+        bhe.datetime_inicio AS fechahora,
+        COALESCE(se.nombre, '') AS sala,
+        ext.estado_exposicion::TEXT AS estado,
+        ef.etapa_formativa_id,
+        ef.nombre,
+        t.titulo,
+        c.ciclo_id,
+        c.anio,
+        c.semestre,
+        ceut.estado_exposicion_usuario::TEXT AS estado_control,
+        e.nombre AS nombre_exposicion,
+        ext.link_grabacion,
+        ext.link_exposicion,
+        t.tema_id
+    FROM usuario u
+    JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+    JOIN carrera ca ON uc.carrera_id = ca.carrera_id
+    JOIN tema t ON t.carrera_id = ca.carrera_id AND t.activo = TRUE
+    JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = TRUE
+    JOIN exposicion e ON e.exposicion_id = ext.exposicion_id
+    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    JOIN ciclo c ON c.ciclo_id = efc.ciclo_id
+    JOIN bloque_horario_exposicion bhe ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id AND bhe.activo = TRUE
+    LEFT JOIN jornada_exposicion_x_sala_exposicion jes ON jes.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+    LEFT JOIN sala_exposicion se ON se.sala_exposicion_id = jes.sala_exposicion_id
+    LEFT JOIN usuario_tema ut ON ut.tema_id = t.tema_id AND ut.usuario_id = u.usuario_id
+    LEFT JOIN control_exposicion_usuario ceut ON ceut.usuario_x_tema_id = ut.usuario_tema_id AND ceut.exposicion_x_tema_id = ext.exposicion_x_tema_id
+    WHERE u.usuario_id = cod_usuario
+      AND uc.es_coordinador = TRUE
+      AND uc.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE function get_miembros_por_tema(id_tema INTEGER)
+RETURNS TABLE (
+    id_persona INT,
+    nombre TEXT,
+    tipo varchar(100)
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.usuario_id,
+        u.nombres || ' ' || u.primer_apellido || ' ' || u.segundo_apellido AS nombre,
+        r.nombre AS tipo
+    FROM usuario_tema ut
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.tema_id = id_tema
+      AND ut.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql STABLE;

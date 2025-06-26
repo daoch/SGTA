@@ -117,6 +117,7 @@ public class TemaServiceImpl implements TemaService {
 	private JdbcTemplate jdbcTemplate;
 
 	@Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository; // Para validar permiso del coordinador
+	@Autowired private NotificacionService notificacionService;
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(SolicitudServiceImpl.class);
 
@@ -189,6 +190,7 @@ public class TemaServiceImpl implements TemaService {
 					.forEach(tesista -> dto.getCoasesores().add(tesista));
 			listarUsuariosPorTemaYRol(dto.getId(), RolEnum.Coasesor.name())
 					.forEach(tesista -> dto.getCoasesores().add(tesista));
+			dto.setSubareas(listarSubAreasPorTema(dto.getId())); // agregamos las subáreas
 			return dto;
 		}
 		return null;
@@ -321,8 +323,6 @@ public class TemaServiceImpl implements TemaService {
 		// areaEspecializacion
 		temaRepository.save(tema);
 
-		// Start historial tema
-		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
 
 		// 1) Subáreas de conocimiento
 		saveSubAreas(tema, dto.getSubareas());
@@ -338,6 +338,9 @@ public class TemaServiceImpl implements TemaService {
 		// 4) Save cotesistas
 
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
+		// Start historial tema
+		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
+
 		return tema.getId();// return tema id
 	}
 
@@ -1239,6 +1242,7 @@ public class TemaServiceImpl implements TemaService {
 			String apellidos = (String) fila[5];
 			Integer rolId = (Integer) fila[6];
 			String rolNombre = (String) fila[7];
+			String correo = (String) fila[8];
 
 			// Si el tema no ha sido creado aún en el mapa, se crea
 			TemaConAsesorJuradoDTO dto = mapaTemas.get(temaId);
@@ -1247,6 +1251,7 @@ public class TemaServiceImpl implements TemaService {
 				dto.setId(temaId);
 				dto.setCodigo(codigo);
 				dto.setTitulo(titulo);
+
 				dto.setUsuarios(new ArrayList<>());
 				List<AreaConocimientoDto> areas = areaConocimientoService.getAllByTemaId(temaId);
 				dto.setAreasConocimiento(areas);
@@ -1258,7 +1263,7 @@ public class TemaServiceImpl implements TemaService {
 			usuarioDto.setIdUsario(usuarioId);
 			usuarioDto.setNombres(nombres);
 			usuarioDto.setApellidos(apellidos);
-
+			usuarioDto.setCorreo(correo);
 			RolDto rolDto = new RolDto();
 			rolDto.setId(rolId);
 			rolDto.setNombre(rolNombre);
@@ -1582,11 +1587,11 @@ public class TemaServiceImpl implements TemaService {
 				.getSingleResult();
 		entityManager.flush();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " START");
-		//String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
+		String queryRechazo = "SELECT rechazar_postulaciones_propuesta_general_tesista(:uid)";
 
-		//entityManager.createNativeQuery(queryRechazo)
-		//		.setParameter("uid", idTesista)
-		//		.getSingleResult();
+		entityManager.createNativeQuery(queryRechazo)
+				.setParameter("uid", dto.getId())
+				.getSingleResult();
 		logger.info("Eliminando postulaciones a propuesta de usuario: " + idTesista + " FINISH");
 		logger.info("Eliminando postulaciones de usuario: " + idTesista);
 
@@ -3696,26 +3701,26 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
             usAsesorNuevo.setFechaModificacion(OffsetDateTime.now());
             usuarioXSolicitudRepository.save(usAsesorNuevo);
 		
-		// // Enviar notificación al nuevo asesor propuesto
-		// String mensajeNotificacion = String.format(
-		// 		"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
-		// 		nuevoAsesorPropuesto.getNombres(),
-		// 		nuevoAsesorPropuesto.getPrimerApellido(),
-		// 		temaAfectado.getTitulo()
-		// );
+		// Enviar notificación al nuevo asesor propuesto
+		String mensajeNotificacion = String.format(
+				"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
+				nuevoAsesorPropuesto.getNombres(),
+				nuevoAsesorPropuesto.getPrimerApellido(),
+				temaAfectado.getTitulo()
+		);
 
-		// // Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
-		// String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
-		// notificacionService.crearNotificacionParaUsuario(
-		// 		nuevoAsesorPropuestoId,
-		// 		SgtaConstants.MODULO_ASESORIA_TEMA, // O un módulo específico para "Propuestas de Asesoría"
-		// 		SgtaConstants.TIPO_NOTIF_INFORMATIVA, // O un tipo específico "NuevaPropuestaAsesoria"
-		// 		mensajeNotificacion,
-		// 		"SISTEMA",
-		// 		enlace
-		// );
+		// Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
+		String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
+		notificacionService.crearNotificacionParaUsuario(
+				nuevoAsesorPropuestoId,
+				"Asesores", // O un módulo específico para "Propuestas de Asesoría"
+				"informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+				mensajeNotificacion,
+				"SISTEMA",
+				enlace
+		);
 
-		// log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
+		log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
 	}
 
 	private void validarPermisoCoordinadorSobreSolicitud(Usuario coordinador, Solicitud solicitud) {
@@ -3777,7 +3782,55 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 	}
 
-
-
-
+	@Override
+	public List<UsuarioDto> listarProfesoresPorSubareasConMatch(List<Integer> subareaIds) {
+		if (subareaIds == null || subareaIds.isEmpty()) {
+			return new ArrayList<>();
+		}
+		
+		Integer[] subareaArray = subareaIds.toArray(new Integer[0]);
+		
+		String sql = "SELECT usuario_id, nombres, primer_apellido, segundo_apellido, " +
+					"correo_electronico, subarea_ids, subarea_nombres " +
+					"FROM listar_profesores_por_subareas_con_match(:subareaIds)";
+		
+		@SuppressWarnings("unchecked")
+		List<Object[]> resultados = entityManager
+				.createNativeQuery(sql)
+				.setParameter("subareaIds", subareaArray)
+				.getResultList();
+		
+		List<UsuarioDto> profesores = new ArrayList<>();
+		
+		for (Object[] fila : resultados) {
+			// Extraer arrays de IDs y nombres de subáreas
+			Integer[] subareaIdsArray = (Integer[]) fila[5];
+			String[] subareaNombresArray = (String[]) fila[6];
+			
+			// Construir lista de SubAreaConocimientoDto
+			List<SubAreaConocimientoDto> subareasList = new ArrayList<>();
+			if (subareaIdsArray != null && subareaNombresArray != null) {
+				for (int i = 0; i < subareaIdsArray.length; i++) {
+					SubAreaConocimientoDto subarea = SubAreaConocimientoDto.builder()
+							.id(subareaIdsArray[i])
+							.nombre(subareaNombresArray[i])
+							.build();
+					subareasList.add(subarea);
+				}
+			}
+			
+			UsuarioDto profesor = UsuarioDto.builder()
+					.id((Integer) fila[0])
+					.nombres((String) fila[1])
+					.primerApellido((String) fila[2])
+					.segundoApellido((String) fila[3])
+					.correoElectronico((String) fila[4])
+					.subareas(subareasList) // Ahora con las subáreas pobladas
+					.build();
+					
+			profesores.add(profesor);
+		}
+		
+		return profesores;
+	}
 }

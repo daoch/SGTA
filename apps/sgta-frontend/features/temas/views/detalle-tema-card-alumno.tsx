@@ -167,11 +167,19 @@ export function DetalleTemaAlumnoView() {
     (a: Coasesor) => `${a.nombres} ${a.primerApellido}${a.segundoApellido ? " " + a.segundoApellido : ""}`
   ).join(", ");
 
+  const estadoNombre = tema.estadoTemaNombre === "EN_PROGRESO"
+    ? "EN PROGRESO"
+    : tema.estadoTemaNombre;
+
   const estadoColor =
-    tema.estadoTemaNombre === "REGISTRADO"
-      ? "bg-green-100 text-green-700"
-      : tema.estadoTemaNombre === "INSCRITO"
+    estadoNombre === "REGISTRADO"
+      ? "bg-green-100 text-green-800"
+      : estadoNombre === "INSCRITO"
       ? "bg-purple-100 text-purple-700"
+      : estadoNombre === "OBSERVADO"
+      ? "bg-yellow-100 text-yellow-800"
+      : estadoNombre === "EN PROGRESO"
+      ? "bg-blue-100 text-blue-800"
       : "bg-gray-100 text-gray-700";
 
   // Prepara los datos del tema para el modal
@@ -184,6 +192,7 @@ export function DetalleTemaAlumnoView() {
       id: tema.area?.id || tema.subareas?.[0]?.id || 0,
       nombre: tema.area?.nombre || tema.subareas?.[0]?.nombre || "",
     },
+    subareas: tema.subareas || [], 
     asesor: {
       id: (tema.coasesores?.find((a: Coasesor) => a.rol === "Asesor")?.id ?? "") + "",
       nombre:
@@ -262,7 +271,7 @@ export function DetalleTemaAlumnoView() {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${estadoColor}`}
                     >
-                      {tema.estadoTemaNombre}
+                      {estadoNombre}
                     </span>
                     <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">
                       #{tema.codigo}
@@ -361,16 +370,37 @@ export function DetalleTemaAlumnoView() {
                     {solicitudes.length === 0 && <div className="text-gray-500">No hay solicitudes pendientes.</div>}
                     {solicitudes.map((solicitud) => {
                       const { cambio, comentario } = getCambioYComentario(solicitud);
+                      const esCambioSubarea = solicitud.tipo_solicitud?.toUpperCase().includes("SUBÁREA");
                       return (
                         <div key={solicitud.solicitud_id} className="border-b pb-3 last:border-b-0 last:pb-0">
                           <div className="font-semibold text-base text-[#0a2342]">{solicitud.descripcion}</div>
                           <div className="text-xs text-gray-500 mb-1">{solicitud.tipo_solicitud}</div>
                           <div className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold mb-1">{solicitud.estado_solicitud}</div>
-                          {cambio && (
-                            <div className="mt-1 text-sm"><span className="font-semibold">Cambio propuesto:</span> {cambio}</div>
+                          {cambio && !esCambioSubarea && (
+                            <div className="mt-1 text-sm">
+                              <span className="font-semibold">Cambio propuesto:</span> {cambio}
+                            </div>
+                          )}
+                          {cambio && esCambioSubarea && (
+                            <div className="mt-1 text-sm">
+                              <span className="font-semibold">Cambio propuesto:</span>{" "}
+                              {
+                                // Si el cambio son IDs, conviértelos a nombres
+                                cambio.split(",").every((id) => /^\d+$/.test(id.trim()))
+                                  ? cambio
+                                      .split(",")
+                                      .map((id) =>
+                                        (tema.subareas || []).find((s) => String(s.id) === id.trim())?.nombre || id.trim()
+                                      )
+                                      .join(", ")
+                                  : cambio
+                              }
+                            </div>
                           )}
                           {comentario && (
-                            <div className="mt-1 text-xs text-gray-600"><span className="font-semibold">Comentario:</span> {comentario}</div>
+                            <div className="mt-1 text-xs text-gray-600">
+                              <span className="font-semibold">Justificación:</span> {comentario}
+                            </div>
                           )}
                         </div>
                       );
@@ -380,25 +410,18 @@ export function DetalleTemaAlumnoView() {
               </Dialog>
 
               {/* Acciones Disponibles */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                <div className="font-semibold mb-2">Acciones Disponibles</div>
-                <Button
-                  className={`w-full bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2
-                    ${["REGISTRADO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre)
-                      ? "bg-[#ffb347] text-white hover:bg-[#ffac2f] cursor-pointer"
-                      : "bg-[#ffb347] text-white opacity-60 cursor-not-allowed"
-                    }`}
-                  disabled={!["REGISTRADO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre)}
-                  onClick={() => {
-                    if (["REGISTRADO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre)) {
-                      setOpenEditModal(true);
-                    }
-                  }}
-                >
-                  <Edit className="w-5 h-5" />
-                  Editar Tema
-                </Button>
-              </div>
+              {["REGISTRADO", "INSCRITO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre) && (
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                  <div className="font-semibold mb-2">Acciones Disponibles</div>
+                  <Button
+                    className="w-full bg-[#ffb347] text-white hover:bg-[#ffac2f] border border-amber-300 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    onClick={() => setOpenEditModal(true)}
+                  >
+                    <Edit className="w-5 h-5" />
+                    Editar Tema
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

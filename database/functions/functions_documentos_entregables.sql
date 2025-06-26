@@ -4,6 +4,7 @@ DROP FUNCTION IF EXISTS listar_etapas_formativas_alumno;
 DROP FUNCTION IF EXISTS obtener_entregables_alumno;
 DROP FUNCTION IF EXISTS listar_documentos_x_entregable;
 DROP FUNCTION IF EXISTS entregar_entregable;
+DROP FUNCTION IF EXISTS listar_criterio_entregable_x_revisionID;
 
 CREATE OR REPLACE FUNCTION listar_etapas_formativas_alumno(p_usuario_id INTEGER)
 RETURNS TABLE (
@@ -427,6 +428,45 @@ BEGIN
       AND c.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE FUNCTION sgtadb.listar_criterio_entregable_x_revisionID(revision_entregable_id integer)
+ RETURNS TABLE(revision_documento_id integer,usuario_id integer,entregable_x_tema_id integer, entregable_id integer ,descripcion_entregable text, criterio_entregable_id integer, descripcion_criterio text, nombre_criterio text,nota_maxima numeric )
+ LANGUAGE plpgsql
+AS $function$
+declare
+	
+BEGIN	
+	
+    RETURN QUERY
+ 	select 
+    	rev.revision_documento_id,
+    	rev.usuario_id,
+		ext.entregable_x_tema_id as entregable_x_tema_id,
+    	e.entregable_id,
+    	e.descripcion::text as descripcion_entregable,
+    	ce.criterio_entregable_id,
+    	ce.descripcion::text as descripcion_criterio,
+    	ce.nombre::text as nombre_criterio,
+    	ce.nota_maxima
+    from revision_documento rev
+    inner join version_documento ver
+    on rev.version_documento_id = ver.version_documento_id
+    inner join entregable_x_tema ext 
+    on ext.entregable_x_tema_id = ver.entregable_x_tema_id
+    inner join entregable e 
+    on e.entregable_id =ext.entregable_id
+    inner join criterio_entregable ce 
+    on ce.entregable_id =e.entregable_id
+    where rev.revision_documento_id =revision_entregable_id
+	and rev.activo = true
+    and e.activo = true
+    and ce.activo =true
+	order by ce.fecha_creacion;  
+END;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION asociar_temas_a_entregable(
     p_entregable_id INTEGER,

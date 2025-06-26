@@ -164,4 +164,7 @@ public interface UsuarioXTemaRepository extends JpaRepository<UsuarioXTema, Inte
                 @Param("usuarioId") Integer usuarioId,
                 @Param("rolId") Integer rolId
         );
+
+        List<UsuarioXTema> findByTemaIdInAndActivoTrue(List<Integer> temaIds);
+
 }
