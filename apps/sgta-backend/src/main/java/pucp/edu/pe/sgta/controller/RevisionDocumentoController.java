@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -63,6 +64,13 @@ public class RevisionDocumentoController {
         String asesorId = jwtService.extractSubFromRequest(request);
         System.out.println("AsesorId extraído del token: " + asesorId);
         return revisionDocumentoService.listarRevisionDocumentosPorAsesor(asesorId);
+    }
+
+    @GetMapping("/revisor")
+    public List<RevisionDocumentoRevisorDto> listarRevisionDocumentosPorRevisor(HttpServletRequest request) {
+        String revisorId = jwtService.extractSubFromRequest(request);
+        System.out.println("RevisorId extraído del token: " + revisorId);
+        return revisionDocumentoService.listarRevisionDocumentosPorRevisor(revisorId);
     }
 
     @PutMapping("/{id}/estado")
