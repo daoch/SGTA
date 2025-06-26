@@ -143,14 +143,14 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Modifying
     @Transactional
     @Query(value = """
-        UPDATE revision_documento
-        SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
-        WHERE version_documento_id = (
-            SELECT version_documento_id
-            FROM revision_documento
-            WHERE revision_documento_id = :revisionId
-        )
-        """, nativeQuery = true)
+            UPDATE revision_documento
+            SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
+            WHERE version_documento_id = (
+                SELECT version_documento_id
+                FROM revision_documento
+                WHERE revision_documento_id = :revisionId
+            )
+            """, nativeQuery = true)
     void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId,
             @Param("nuevoEstado") String nuevoEstado);
 
@@ -165,13 +165,18 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = "SELECT crear_revisiones_revisores(:entregableXTemaId)", nativeQuery = true)
     void crearRevisionesRevisores(@Param("entregableXTemaId") Integer entregableXTemaId);
 
+    @Query(value = "SELECT crear_revisiones_jurado(:entregableXTemaId)", nativeQuery = true)
+    void crearRevisionesJurado(@Param("entregableXTemaId") Integer entregableXTemaId);
+
     @Query(value = "SELECT * FROM obtener_alumnos_por_revision(:revision_id)", nativeQuery = true)
     List<Object[]> getStudentsByRevisor(@Param("revision_id") Integer revision_id);
 
-    Optional<RevisionDocumento>
-    findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
+    Optional<RevisionDocumento> findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
 
-    // Buscar todas las revisiones_documento del tema y del asesor anterior
-    @Query("SELECT rd FROM RevisionDocumento rd WHERE rd.versionDocumento.tema.id = :temaId AND rd.usuario.id = :asesorId AND rd.activo = true")
-    List<RevisionDocumento> findByTemaIdAndAsesorId(@Param("temaId") Integer temaId, @Param("asesorId") Integer asesorId);
+    @Query("SELECT rd FROM RevisionDocumento rd WHERE rd.versionDocumento.entregableXTema.tema.id = :temaId AND rd.usuario.id = :asesorId AND rd.activo = true")
+    List<RevisionDocumento> findByTemaIdAndAsesorId(@Param("temaId") Integer temaId,
+            @Param("asesorId") Integer asesorId);
+
+    @Query(value = "SELECT * FROM obtener_documentos_jurado(:juradoId)", nativeQuery = true)
+    List<Object[]> listarRevisionDocumentosPorJurado(@Param("juradoId") Integer juradoId);
 }

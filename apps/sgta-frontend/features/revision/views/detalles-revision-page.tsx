@@ -33,9 +33,10 @@ function formatFecha(fecha: string) {
     .padStart(2, "0")}/${date.getFullYear()}`;
 }
 
-// Extiende IHighlight para permitir el campo corregido
+// Extiende IHighlight para permitir el campo corregido y resuelto
 interface IHighlightConCorregido extends IHighlight {
   corregido?: boolean;
+  resuelto?: boolean;
 }
 
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
@@ -106,7 +107,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           parrafo: 0,
           texto: h.content.text ?? "",
           tipo: mapTipoObservacion(h.comment.text),
-          resuelto: (h as any).resuelto ?? h.corregido ?? false, // Cambiado aquí
+          resuelto: h.resuelto ?? h.corregido ?? false,
           corregido: h.corregido ?? false,
         }));
         setObservacionesList(observaciones);

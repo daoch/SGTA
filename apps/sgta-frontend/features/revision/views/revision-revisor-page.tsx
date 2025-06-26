@@ -21,34 +21,30 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import "../../../features/revision/types/colors.css";
-import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
-import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
 import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
-import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { RevisionDocumentoRevisorDto } from "../dtos/RevisionDocumentoRevisorDto";
 
-function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
+function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
-  // Cambiar el orden: primero entregable, luego título (documento)
   data.forEach((item) => {
     if (!mapa.has(item.id)) {
       mapa.set(item.id, {
         id: item.id,
-        entregable: item.entregable, // primero entregable
-        titulo: item.titulo,         // luego documento
+        entregable: item.entregable,
+        titulo: item.titulo,
         curso: item.curso,
-        porcentajeSimilitud: item.porcentajeSimilitud,
-        porcentajeGenIA: item.porcentajeGenIA,
+        porcentajeSimilitud: null, // No disponible para revisor
+        porcentajeGenIA: null, // No disponible para revisor
         fechaEntrega: item.fechaEntrega,
         fechaLimiteEntrega: item.fechaLimiteEntrega,
         fechaRevision: item.fechaRevision,
         fechaLimiteRevision: item.fechaLimiteRevision,
         ultimoCiclo: item.ultimoCiclo,
         estado: item.estado,
-        formatoValido: item.formatoValido,
-        citadoCorrecto: item.citadoCorrecto,
+        formatoValido: false, // No disponible para revisor
+        citadoCorrecto: false, // No disponible para revisor
         urlDescarga: item.urlDescarga,
         estudiantes: [],
       });
@@ -61,55 +57,31 @@ function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrup
   return Array.from(mapa.values());
 }
 
-const estadosPorRol = {
-  asesor: [
-    { value: "por_aprobar", label: "Por Aprobar" },
-    { value: "aprobado", label: "Aprobados" },
-    { value: "rechazado", label: "Rechazados" },
-    { value: "revisado", label: "Revisados" },
-    { value: "todas", label: "Todas" },
-  ],
-  revisor: [
-    { value: "pendiente", label: "Pendientes" },
-    { value: "en_proceso", label: "En Proceso" },
-    { value: "completada", label: "Completadas" },
-    { value: "todas", label: "Todas" },
-  ],
-  jurado: [
-    { value: "pendiente", label: "Pendientes" },
-    { value: "en_proceso", label: "En Proceso" },
-    { value: "completada", label: "Completadas" },
-    { value: "todas", label: "Todas" },
-  ],
-};
+const estados = [
+  { value: "pendiente", label: "Pendientes" },
+  { value: "en_proceso", label: "En Proceso" },
+  { value: "completada", label: "Completadas" },
+  { value: "todas", label: "Todas" },
+];
 
-const RevisionPage = () => {
-  const pathname = usePathname();
-  let rol: "asesor" | "revisor" | "jurado" = "asesor";
-  if (pathname.includes("/revisor/")) rol = "revisor";
-  else if (pathname.includes("/jurado/")) rol = "jurado";
-
+const RevisionRevisorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
   const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
-  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
 
   useEffect(() => {
     const fetchDocumentos = async () => {
       try {
         const { idToken } = useAuthStore.getState();
-		console.log(idToken);
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
-        // Endpoint dinámico según rol
-        let endpoint = "/revision/asesor";
-        if (rol === "revisor") endpoint = "/revision/revisor";
-        else if (rol === "jurado") endpoint = "/revision/jurado";
-        const response = await axiosInstance.get(endpoint, {
-          headers: { Authorization: `Bearer ${idToken}` },
+        const response = await axiosInstance.get("/revision/revisor", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
         });
         const agrupados = agruparPorDocumento(response.data);
         setDocumentos(agrupados);
@@ -118,47 +90,26 @@ const RevisionPage = () => {
       }
     };
     fetchDocumentos();
-  }, [rol]);
+  }, []);
 
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
-  const estados = estadosPorRol[rol];
   const defaultTab = estados[0].value;
 
-  // Selección de componente de tabla según rol
-  const TableComponent = rol === "asesor" ? RevisionesTableAsesor : RevisionesTableJurado;
+  // Usa la tabla de jurado/revisor (ajusta si tienes una específica para revisor)
+  const TableComponent = RevisionesTableJurado;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold " style={{ color: "#042354" }}>
-            Módulo de Revisión
+            Módulo de Revisión (Revisor)
           </h1>
           <p className="text-muted-foreground">
-            Detección de plagio y verificación de normas APA
+            Documentos asignados para revisión
           </p>
         </div>
       </div>
-      {/* Botón de rúbrica solo para asesores */}
-      {rol === "asesor" && (
-        <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
-          NOTAS
-        </Button>
-      )}
-      {/* Modal de Rúbrica (comentado, descomenta si tienes el componente RubricaEvaluacion) */}
-      {/*
-      {rol === "asesor" && (
-        <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader></DialogHeader>
-            <RubricaEvaluacion
-              revisionId={4}
-              onCancel={() => setShowRubricaDialog(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-      */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -219,11 +170,7 @@ const RevisionPage = () => {
               <CardHeader>
                 <CardTitle>Documentos {estado.label}</CardTitle>
                 <CardDescription>
-                  {rol === "asesor"
-                    ? "Documentos filtrados por estado para asesores"
-                    : rol === "revisor"
-                    ? "Documentos filtrados por estado para revisores"
-                    : "Documentos filtrados por estado para jurados"}
+                  Documentos filtrados por estado para revisores
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -235,12 +182,7 @@ const RevisionPage = () => {
                     cursoFilter={cursoFilter}
                   />
                 ) : (
-                  <RevisionesCardsAsesor
-                    data={documentos}
-                    filter={estado.value === "todas" ? undefined : estado.value}
-                    searchQuery={searchQuery}
-                    cursoFilter={cursoFilter}
-                  />
+                  <div>Vista de tarjetas no implementada para revisor</div>
                 )}
               </CardContent>
             </Card>
@@ -251,4 +193,4 @@ const RevisionPage = () => {
   );
 };
 
-export default RevisionPage;
+export default RevisionRevisorPage;

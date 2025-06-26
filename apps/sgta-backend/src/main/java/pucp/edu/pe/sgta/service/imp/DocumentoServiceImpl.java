@@ -100,6 +100,7 @@ public class DocumentoServiceImpl implements DocumentoService {
                 versionXDocumentoService.create(version);
                 revisionDocumentoService.crearRevisiones(entregableXTemaId);
                 revisionDocumentoService.crearRevisionesRevisores(entregableXTemaId);
+                revisionDocumentoService.crearRevisionesJurado(entregableXTemaId);
             } catch (Exception e) {
                 return ResponseEntity.status(500).body("Error al crear el documento: " + e.getMessage());
             }

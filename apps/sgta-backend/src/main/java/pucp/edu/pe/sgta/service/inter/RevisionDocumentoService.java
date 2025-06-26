@@ -40,8 +40,11 @@ public interface RevisionDocumentoService {
     RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId);
 
     void crearRevisiones(int entregableXTemaId);
+    void crearRevisionesJurado(int entregableXTemaId);
 
     void crearRevisionesRevisores(int entregableXTemaId);
 
     List<UsuarioDto> getStudentsByRevisor(Integer revisionId);
+
+    List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId);
 }

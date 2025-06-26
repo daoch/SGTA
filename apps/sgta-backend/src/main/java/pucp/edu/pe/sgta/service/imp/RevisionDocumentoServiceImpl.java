@@ -392,6 +392,11 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     }
 
     @Override
+    public void crearRevisionesJurado(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisionesJurado(entregableXTemaId);
+    }
+
+    @Override
     public void crearRevisionesRevisores(int entregableXTemaId) {
         revisionDocumentoRepository.crearRevisionesRevisores(entregableXTemaId);
         logger.warning("Revisiones creadas para los revisores en el entregable con ID: " + entregableXTemaId);
@@ -433,13 +438,52 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             dto.setEstudiante((String) row[3]); // estudiante
             dto.setCodigo((String) row[4]); // código PUCP
             dto.setCurso((String) row[5]); // curso
-            dto.setFechaEntrega(row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaEntrega(
+                    row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
             dto.setEstado((String) row[7]); // estado_revision
-            dto.setFechaLimiteEntrega(row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaRevision(row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaLimiteRevision(row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaLimiteEntrega(
+                    row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaRevision(
+                    row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaLimiteRevision(
+                    row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
             dto.setUltimoCiclo(null);
             dto.setUrlDescarga(null);
+            documentos.add(dto);
+        }
+        return documentos;
+    }
+
+    public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(juradoId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + juradoId);
+        }
+
+        Usuario user = usuario.get();
+        List<Object[]> result = revisionDocumentoRepository.listarRevisionDocumentosPorJurado(user.getId());
+        List<RevisionDocumentoAsesorDto> documentos = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisionDocumentoAsesorDto dto = new RevisionDocumentoAsesorDto();
+
+            dto.setId((Integer) row[0]); // revision_id
+            dto.setTitulo((String) row[1]); // tema
+            dto.setEntregable((String) row[2]); // entregable
+            dto.setEstudiante((String) row[3]); // estudiante
+            dto.setCodigo((String) row[4]); // código PUCP
+            dto.setCurso((String) row[5]); // curso
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_carga
+
+            dto.setEstado((String) row[7]); // estado_revision
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_limite
+
             documentos.add(dto);
         }
         return documentos;

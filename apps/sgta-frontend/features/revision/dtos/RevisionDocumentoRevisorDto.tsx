@@ -10,6 +10,6 @@ export interface RevisionDocumentoRevisorDto {
   fechaRevision: string;
   fechaLimiteRevision: string;
   ultimoCiclo: string;
-  estado: 'pendiente' | 'en_proceso' | 'completada';
+  estado: "pendiente" | "en_proceso" | "completada";
   urlDescarga: string;
 }

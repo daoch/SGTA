@@ -1,10 +1,10 @@
 "use client";
 
-import RevisionPage from "@/features/revision/views/revision-page";
+import RevisionAsesorPage from "@/features/revision/views/revision-asesor-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <RevisionPage />;
+  return RevisionAsesorPage();
 };
 
 export default Page;

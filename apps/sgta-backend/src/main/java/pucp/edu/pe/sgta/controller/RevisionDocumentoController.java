@@ -95,4 +95,11 @@ public class RevisionDocumentoController {
     public List<UsuarioDto> getStudentsByRevisor(@RequestParam("revisionId") Integer revisionId) {
         return revisionDocumentoService.getStudentsByRevisor(revisionId);
     }
+
+    @GetMapping("/jurado")
+    public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(HttpServletRequest request) {
+        String juradoId = jwtService.extractSubFromRequest(request);
+        System.out.println("JuradoId extraído del token: " + juradoId);
+        return revisionDocumentoService.listarRevisionDocumentosPorJurado(juradoId);
+    }
 }
