@@ -386,6 +386,11 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         revisionDocumentoRepository.crearRevisiones(entregableXTemaId);
         logger.warning("Revisiones creadas para el entregable con ID: " + entregableXTemaId);
     }
+    
+    @Override
+    public void crearRevisionesJurado(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisionesJurado(entregableXTemaId);
+    }
 
     @Override
     public List<UsuarioDto> getStudentsByRevisor(Integer revisionId) {
@@ -404,5 +409,42 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             usuarios.add(dto);
         }
         return usuarios;
+    }
+
+    @Override
+    public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(juradoId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + juradoId);
+        }
+
+        Usuario user = usuario.get();
+        List<Object[]> result = revisionDocumentoRepository.listarRevisionDocumentosPorJurado(user.getId());
+        List<RevisionDocumentoAsesorDto> documentos = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisionDocumentoAsesorDto dto = new RevisionDocumentoAsesorDto();
+
+            dto.setId((Integer) row[0]);                          // revision_id
+            dto.setTitulo((String) row[1]);                       // tema
+            dto.setEntregable((String) row[2]);                   // entregable
+            dto.setEstudiante((String) row[3]);                   // estudiante
+            dto.setCodigo((String) row[4]);                       // código PUCP
+            dto.setCurso((String) row[5]);                        // curso
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null);                                      // fecha_carga
+
+            dto.setEstado((String) row[7]);                       // estado_revision
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null);                                      // fecha_limite
+
+            documentos.add(dto);
+        }
+
+        return documentos;
     }
 }
