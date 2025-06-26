@@ -19,4 +19,5 @@ export interface EntregableAlumnoDto {
   entregableFechaEnvio: string | null;
   entregableComentario: string | null;
   entregableXTemaId: number;
+  corregido: boolean;
 }

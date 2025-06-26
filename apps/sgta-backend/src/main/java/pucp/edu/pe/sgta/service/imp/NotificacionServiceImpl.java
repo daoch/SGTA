@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.service.inter.NotificacionService;
 import pucp.edu.pe.sgta.service.inter.EmailService;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ public class NotificacionServiceImpl implements NotificacionService {
     private final EntregableRepository entregableRepository;
     private final EntregableXTemaRepository entregableXTemaRepository;
     private final UsuarioXTemaRepository usuarioXTemaRepository;
+    private final ReunionRepository reunionRepository;
+    private final UsuarioXReunionRepository usuarioXReunionRepository;
     private final ConfiguracionRecordatorioRepository configRepo;
     private final EmailService emailService;
 
@@ -490,5 +493,137 @@ public class NotificacionServiceImpl implements NotificacionService {
         log.info("Notificación guardada con ID: {}", notificacionGuardada.getId());
 
         return notificacionGuardada;
+    }
+
+    private boolean yaExisteNotificacionEventoHoy(Integer usuarioId, String tipoNotificacion, String tituloEvento,
+                                                String fechaInicio, String horaFin, int minutosRestantes) {
+        try {
+            Optional<Modulo> moduloOpt = moduloRepository.findByNombre("Gestion");
+            Optional<TipoNotificacion> tipoOpt = tipoNotificacionRepository.findByNombre(tipoNotificacion);
+            
+            if (moduloOpt.isPresent() && tipoOpt.isPresent()) {
+                OffsetDateTime ahoraLima = OffsetDateTime.now(ZoneId.of("America/Lima"));
+
+                String encabezado;
+                if (minutosRestantes >= 1440) {
+                    encabezado = "Dentro de 1 día:";
+                } else if (minutosRestantes >= 30) {
+                    encabezado = "Próximo evento en 30 minutos:";
+                } else {
+                    encabezado = "Próximo evento en 5 minutos:";
+                }
+
+                String mensaje = String.format(
+                    "%s\nReunión: %s\n%s - %s",
+                    encabezado,
+                    tituloEvento,
+                    fechaInicio,
+                    horaFin
+                );
+
+                return notificacionRepository.existsByUsuarioModuloEventoTipoFecha(
+                        usuarioId,
+                        moduloOpt.get().getId(),
+                        tipoOpt.get().getId(),
+                        ahoraLima,
+                        mensaje
+                );
+            }
+        } catch (Exception e) {
+            log.error("Error al verificar existencia de notificación de evento: {}", e.getMessage(), e);
+        }
+        return false;
+    }
+
+    private void crearNotificacionEvento(Integer usuarioId, String tipoNotificacion, String mensaje) {
+        try {
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+            Optional<Modulo> moduloOpt = moduloRepository.findByNombre("Gestion");
+            Optional<TipoNotificacion> tipoOpt = tipoNotificacionRepository.findByNombre(tipoNotificacion);
+            
+            if (usuarioOpt.isPresent() && moduloOpt.isPresent() && tipoOpt.isPresent()) {
+                Notificacion notificacion = new Notificacion();
+                notificacion.setUsuario(usuarioOpt.get());
+                notificacion.setModulo(moduloOpt.get());
+                notificacion.setTipoNotificacion(tipoOpt.get());
+                notificacion.setMensaje(mensaje);
+                notificacion.setCanal(CANAL_UI);
+                notificacion.setActivo(true);
+                
+                notificacionRepository.save(notificacion);
+                log.debug("Notificación de evento creada: {} para usuario {}", mensaje, usuarioId);
+            } else {
+                log.error("No se pudo crear la notificación de evento. Usuario: {}, Módulo: {}, Tipo: {}", 
+                         usuarioOpt.isPresent(), moduloOpt.isPresent(), tipoOpt.isPresent());
+            }
+        } catch (Exception e) {
+            log.error("Error al crear notificación de evento para usuario {}: {}", usuarioId, e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void crearNotificacionRecordatorioEvento(Integer usuarioId, String tituloEvento,
+                                                    String fechaInicio, String horaFin, int minutosRestantes) {
+        String encabezado;
+        if (minutosRestantes >= 1440) {
+            encabezado = "Dentro de 1 día:";
+        } else if (minutosRestantes >= 30) {
+            encabezado = "Próximo evento en 30 minutos:";
+        } else {
+            encabezado = "Próximo evento en 5 minutos:";
+        }
+
+        String mensaje = String.format(
+            "%s\nReunión: %s\n%s - %s",
+            encabezado,
+            tituloEvento,
+            fechaInicio,
+            horaFin
+        );
+
+        crearNotificacionEvento(usuarioId, TIPO_RECORDATORIO, mensaje);
+    }
+
+
+    @Transactional
+    public void generarRecordatoriosAutomaticosEventos() {
+        log.info("Iniciando generación de recordatorios automáticos de eventos");
+        ZoneId zonaLima = ZoneId.of("America/Lima");
+        OffsetDateTime ahoraLima = OffsetDateTime.now(ZoneId.of("America/Lima"));
+        
+        // Recordatorios para 1 día, 30 minutos y 5 minutos antes
+        int[] minutosAntes = {1440, 30, 5};
+        
+        for (int min : minutosAntes) {
+           
+            OffsetDateTime inicio = ahoraLima.plusMinutes(min - 2);
+            OffsetDateTime fin = ahoraLima.plusMinutes(min + 2);
+
+            
+            List<Reunion> reuniones = reunionRepository.findByActivoTrueOrderByFechaHoraInicioDesc();
+            log.info("Encontrados {} eventos", reuniones.size());
+            
+            for (Reunion reunion : reuniones) {
+                List<UsuarioXReunion> usuarioXreunion = usuarioXReunionRepository.findByReunionIdAndActivoTrue(reunion.getId());
+
+                for (UsuarioXReunion uxr : usuarioXreunion) {
+                    Integer usuarioId = uxr.getUsuario().getId();
+                    OffsetDateTime fechaHoraInicio = reunion.getFechaHoraInicio().atZoneSameInstant(zonaLima).toOffsetDateTime();
+                    String fechaInicioFormateada = fechaHoraInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                    OffsetDateTime fechaHoraFin = reunion.getFechaHoraFin().atZoneSameInstant(zonaLima).toOffsetDateTime();
+                    String fechaFinFormateada = fechaHoraFin.format(DateTimeFormatter.ofPattern("HH:mm"));
+
+                    if(!yaExisteNotificacionEventoHoy(usuarioId, TIPO_RECORDATORIO, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min)) {
+                                                
+                        if (fechaHoraInicio.isAfter(inicio) && fechaHoraInicio.isBefore(fin)) {
+                            crearNotificacionRecordatorioEvento(usuarioId, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min);
+                            log.info("Recordatorio creado para usuario {} - reunión {} ({} minutos)", 
+                                    usuarioId, reunion.getTitulo(), min);
+                        }
+                    }
+                }
+            }
+        }
+        log.info("Finalizada generación de recordatorios automáticos de eventos");
     }
 }

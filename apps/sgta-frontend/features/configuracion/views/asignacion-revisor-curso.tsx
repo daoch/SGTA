@@ -110,6 +110,7 @@ const AsignacionRevisorCursoPage: React.FC = () => {
         await axiosInstance.post(
           `/etapaFormativaXCicloXUsuarioRol/asignarRevisor/curso/${cursoSeleccionado.id}/revisor/${revisor.id}`,
         );
+        console.log("Revisores seleccionados:", revisoresSeleccionados);
         exitos++;
       } catch (error) {
         console.error(
@@ -136,7 +137,10 @@ const AsignacionRevisorCursoPage: React.FC = () => {
   // Filtrado por input
   const revisoresFiltrados = revisores.filter((r) => {
     const filtroLower = filtro.toLowerCase();
+    const nombreCompleto =
+      `${r.nombres} ${r.primerApellido} ${r.segundoApellido}`.toLowerCase();
     return (
+      nombreCompleto.includes(filtroLower) ||
       r.nombres.toLowerCase().includes(filtroLower) ||
       r.primerApellido.toLowerCase().includes(filtroLower) ||
       r.segundoApellido.toLowerCase().includes(filtroLower) ||
@@ -144,10 +148,6 @@ const AsignacionRevisorCursoPage: React.FC = () => {
       r.codigoPucp.toLowerCase().includes(filtroLower)
     );
   });
-
-  useEffect(() => {
-    setRevisoresSeleccionados([]);
-  }, [filtro]);
 
   if (loadingEtapas || loadingRevisores) {
     return <AppLoading />;
@@ -189,41 +189,49 @@ const AsignacionRevisorCursoPage: React.FC = () => {
       {/* Card con tabla de cursos y checkbox para seleccionar uno */}
       <Card className="mb-6">
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead></TableHead>
-                <TableHead>Nombre del curso</TableHead>
-                <TableHead>Ciclo</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cursos.length === 0 ? (
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[700px] w-full table-fixed">
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className="text-center text-muted-foreground py-4"
-                  >
-                    No hay cursos para mostrar.
-                  </TableCell>
+                  <TableHead className="w-1/32"></TableHead>
+                  <TableHead className="w-29/32 text-left">
+                    Nombre del curso
+                  </TableHead>
+                  <TableHead className="w-1/16 text-left">Ciclo</TableHead>
                 </TableRow>
-              ) : (
-                cursos.map((curso) => (
-                  <TableRow key={curso.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={cursoSeleccionado?.id === curso.id}
-                        onCheckedChange={() => handleSelectCurso(curso)}
-                        aria-label={`Seleccionar curso ${curso.etapaFormativaNombre} (${curso.cicloNombre})`}
-                      />
+              </TableHeader>
+              <TableBody>
+                {cursos.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={3}
+                      className="text-center text-muted-foreground py-4"
+                    >
+                      No hay cursos para mostrar.
                     </TableCell>
-                    <TableCell>{curso.etapaFormativaNombre}</TableCell>
-                    <TableCell>{curso.cicloNombre}</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  cursos.map((curso) => (
+                    <TableRow key={curso.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={cursoSeleccionado?.id === curso.id}
+                          onCheckedChange={() => handleSelectCurso(curso)}
+                          aria-label={`Seleccionar curso ${curso.etapaFormativaNombre} (${curso.cicloNombre})`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-left">
+                        {curso.etapaFormativaNombre}
+                      </TableCell>
+                      <TableCell className="text-left">
+                        {curso.cicloNombre}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -231,20 +239,21 @@ const AsignacionRevisorCursoPage: React.FC = () => {
       <div className="mb-2 flex items-center gap-2">
         <span className="font-medium">Filtrar revisores:</span>
         <Input
-          placeholder="Buscar por nombre, apellido, correo o código PUCP"
+          placeholder="Buscar por nombres, apellidos, correo o código PUCP"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          className="max-w-xs"
+          className="max-w-92"
         />
       </div>
 
       {/* Card con tabla de revisores y checkbox para seleccionar todos */}
       <Card>
         <CardContent>
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="min-w-[700px] w-full table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>
+                <TableHead className="w-1/16">
                   <Checkbox
                     checked={
                       revisoresSeleccionados !== null &&
@@ -257,13 +266,13 @@ const AsignacionRevisorCursoPage: React.FC = () => {
                     id="select-all-checkbox"
                   />
                 </TableHead>
-                <TableHead>Código PUCP</TableHead>
-                <TableHead>Nombres</TableHead>
-                <TableHead>Primer Apellido</TableHead>
-                <TableHead>Segundo Apellido</TableHead>
-                <TableHead>Correo</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Carrera</TableHead>
+                <TableHead className="w-37/288">Código PUCP</TableHead>
+                <TableHead className="w-37/288">Nombres</TableHead>
+                <TableHead className="w-37/288">Primer Apellido</TableHead>
+                <TableHead className="w-37/288">Segundo Apellido</TableHead>
+                <TableHead className="w-1/6">Correo</TableHead>
+                <TableHead className="w-37/288">Rol</TableHead>
+                <TableHead className="w-37/288">Carrera</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -302,6 +311,7 @@ const AsignacionRevisorCursoPage: React.FC = () => {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

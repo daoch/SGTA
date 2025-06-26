@@ -89,4 +89,9 @@ public interface NotificacionService {
             String canal,
             String enlaceRedireccion
     );
+
+    /**
+     * Genera recordatorios automáticos para eventos próximos
+    */
+    void generarRecordatoriosAutomaticosEventos();
 } 
