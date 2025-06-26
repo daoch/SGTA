@@ -34,4 +34,6 @@ public interface BloqueHorarioExposicionService {
             DistribucionRequestDTO request);
 
     boolean verificarSalaOcupada(Integer salaId, OffsetDateTime inicio, OffsetDateTime fin);
+
+    void crearReunionesZoom(int exposicionId);
 }
