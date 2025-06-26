@@ -1768,7 +1768,15 @@ public class TemaServiceImpl implements TemaService {
 		dto.setResumen((String) result[2]);
 		dto.setMetodologia((String) result[3]);
 		dto.setObjetivos((String) result[4]);
-		java.sql.Date sqlDate = (java.sql.Date) result[5]; // fecha_limite
+		java.sql.Date sqlDate = (java.sql.Date) result[5]; // fecha_creacion
+		if (sqlDate != null) {
+			LocalDate localDate = sqlDate.toLocalDate();
+			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+			dto.setFechaLimite(offsetDateTime);
+		} else {
+			dto.setFechaCreacion(null);
+		}
+		sqlDate = (java.sql.Date) result[6]; // fecha_limite
 		if (sqlDate != null) {
 			LocalDate localDate = sqlDate.toLocalDate();
 			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
@@ -1776,8 +1784,8 @@ public class TemaServiceImpl implements TemaService {
 		} else {
 			dto.setFechaLimite(null);
 		}
-		dto.setRequisitos((String) result[6]);
-		dto.setEstadoTemaNombre((String) result[12]);
+		dto.setRequisitos((String) result[7]);
+		dto.setEstadoTemaNombre((String) result[13]);
 
 		// Asegurar listas no sean null
 		if (dto.getSubareas() == null) {
@@ -1794,10 +1802,10 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Asesor
-		Integer asesorId = (Integer) result[7];
+		Integer asesorId = (Integer) result[8];
 
 		// Subareas
-		Integer[] subareaArray = (Integer[]) result[8];
+		Integer[] subareaArray = (Integer[]) result[9];
 		if (subareaArray != null) {
 			for (Integer subareaId : subareaArray) {
 				// SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
@@ -1807,7 +1815,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Coasesores
-		Integer[] coasesoresArray = (Integer[]) result[9];
+		Integer[] coasesoresArray = (Integer[]) result[10];
 
 		// Lista final coasesores con asesor primero
 		if (asesorId != null) {
@@ -1822,14 +1830,14 @@ public class TemaServiceImpl implements TemaService {
 				dto.getCoasesores().add(coasesorDto);
 			}
 		}
-		Integer carreraId = (Integer) result[10];
+		Integer carreraId = (Integer) result[11];
 		if (carreraId != null) {
 			CarreraDto carreraDTO = carreraServiceImpl.findById(carreraId);
 			dto.setCarrera(carreraDTO);
 		}
 
 		// Tesistas
-		Integer[] tesistasArray = (Integer[]) result[11];
+		Integer[] tesistasArray = (Integer[]) result[12];
 		if (tesistasArray != null) {
 			for (Integer tesistaId : tesistasArray) {
 				UsuarioDto tesistaDto = usuarioService.findUsuarioById(tesistaId);
