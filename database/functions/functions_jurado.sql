@@ -1718,7 +1718,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE control_exposicion_usuario 
-    SET estado_exposicion_usuario = 'Aceptado',
+    SET estado_exposicion_usuario = 'aceptado',
         token_unico = NULL
     WHERE token_unico = p_id_token;
 END;
@@ -1729,7 +1729,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE control_exposicion_usuario 
-    SET estado_exposicion_usuario = 'Rechazado',
+    SET estado_exposicion_usuario = 'rechazado',
         token_unico = NULL
     WHERE token_unico = p_id_token;
 END;
