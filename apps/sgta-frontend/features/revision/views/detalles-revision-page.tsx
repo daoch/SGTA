@@ -490,6 +490,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
     </div>
   );
 }

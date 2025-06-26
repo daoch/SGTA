@@ -8,11 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -29,7 +24,6 @@ import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
-import { RubricaEvaluacion } from "../components/RubricaEvluacion";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
@@ -85,11 +79,7 @@ const RevisionAsesorPage = () => {
     } catch (error) {
       console.error("Error al guardar la evaluación de la rúbrica:", error)
     }
-  }
-  
-  
-  
-  
+  }  
   //
 
 
@@ -161,20 +151,17 @@ const RevisionAsesorPage = () => {
         </Select>
       </div>
       {/* Modal de Rúbrica */}
-      <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
+      {/* <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              {/* <DialogTitle>Evaluación de Rúbrica</DialogTitle>
-              <DialogDescription>
-                Complete la evaluación de la rúbrica para el entregable {"TEST"}
-              </DialogDescription> */}
+             
             </DialogHeader>
             <RubricaEvaluacion
               revisionId={4}
               onCancel={() => setShowRubricaDialog(false)}
             />  
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
       <Tabs defaultValue="por_aprobar" className="w-full">
         <div className="flex justify-between items-center mb-2">
           <TabsList>
