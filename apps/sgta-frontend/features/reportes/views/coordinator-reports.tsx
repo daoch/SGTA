@@ -295,13 +295,11 @@ export function CoordinatorReports() {
     const fetchCiclos = async () => {
       try {
         setLoadingCiclos(true);
-        const data = await ciclosService.getAll();
-        // Filtrar solo los ciclos activos
-        const ciclosActivos = data.filter((ciclo: {activo: boolean}) => ciclo.activo === true);
-        setCiclos(ciclosActivos);
+        const data = await ciclosService.getAllYears();
+        setCiclos(data);
         // Si no hay año/semestre seleccionado y hay ciclos disponibles, seleccionar el primero
-        if (!selectedYear && !selectedSemester && ciclosActivos.length > 0) {
-          const primerCiclo = ciclosActivos[0];
+        if (!selectedYear && !selectedSemester && data.length > 0) {
+          const primerCiclo = data[0];
           setSelectedYear(primerCiclo.anio.toString());
           setSelectedSemester(primerCiclo.semestre);
         }
