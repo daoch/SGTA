@@ -121,7 +121,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
                 .setParameter("p_observacion", criterioEntregable.getObservacion())
                 .getResultList();
     }
-    
+
     @Transactional
     @Override
     public void delete(Integer id) {
