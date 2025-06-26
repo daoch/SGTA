@@ -1,4 +1,4 @@
--- Active: 1746915573232@@dbsgtajurado.cvxpelnrmqov.us-east-1.rds.amazonaws.com@5432@postgres@sgtadb
+-- Active: 1749440258230@@db-sgta-dev-do-user-22559436-0.d.db.ondigitalocean.com@25060@sgtadb@sgtadb
 -- SET search_path TO sgtadb;
 
 -- Active: 1748374313012@@localhost@5432@postgres@sgtadb
@@ -643,7 +643,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
  RETURNS void
  LANGUAGE plpgsql
@@ -1248,7 +1247,6 @@ BEGIN
 END;
 $function$;
 
-
 CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
  RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer,
  es_bloque_reservado boolean, es_bloque_bloqueado boolean, 
@@ -1327,7 +1325,6 @@ RETURN QUERY
 END;
 $function$
 ;
-
 
 CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
     IN p_exposicion_id INTEGER,
@@ -1555,8 +1552,6 @@ $function$;
 
 $$;
 
-
-
 CREATE OR REPLACE PROCEDURE set_refresh_token(p_id_usuario INT, p_refresh_token TEXT)
 LANGUAGE plpgsql
 AS $$
@@ -1593,6 +1588,51 @@ BEGIN
     END IF;
 
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_datos_exposicion(
+    p_exposicion_id integer
+)
+RETURNS TABLE(
+    etapa_formativa text,
+    tipo_exposicion text
+)
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ef.nombre AS etapa_formativa,
+        e.nombre AS tipo_exposicion
+    FROM exposicion e
+    JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
+    WHERE e.exposicion_id = p_exposicion_id
+      AND e.activo = TRUE
+      AND ef.activo = TRUE;
+END
+$$;
+
+CREATE OR REPLACE FUNCTION obtener_link_exposicion_tema_x_bloque_id(
+    p_bloque_horario_exposicion_id integer
+)
+RETURNS TABLE(
+    link_exposicion text
+)
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        COALESCE(et.link_exposicion, 'No disponible')
+    FROM bloque_horario_exposicion bhe
+    JOIN exposicion_x_tema et ON bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
+    WHERE bhe.bloque_horario_exposicion_id = p_bloque_horario_exposicion_id
+      AND et.activo = TRUE
+      AND bhe.activo = TRUE;
+END
 $$;
 
 CREATE OR REPLACE FUNCTION get_exposiciones_coordinador(cod_usuario INTEGER)
@@ -1673,7 +1713,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-
 CREATE OR REPLACE PROCEDURE aceptar_invitacion_correo(p_id_token VARCHAR)
 LANGUAGE plpgsql
 AS $$
@@ -1684,9 +1723,6 @@ BEGIN
     WHERE token_unico = p_id_token;
 END;
 $$;
-
-
-
 
 CREATE OR REPLACE PROCEDURE rechazar_invitacion_correo(p_id_token VARCHAR)
 LANGUAGE plpgsql
