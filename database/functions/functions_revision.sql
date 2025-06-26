@@ -474,3 +474,41 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+
+drop function if exists insertar_actualizar_criterio_entregable_id;
+CREATE OR REPLACE FUNCTION sgtadb.insertar_actualizar_criterio_entregable_id(p_revision_criterio_entregable_id integer,p_entregable_x_tema_id integer,p_criterio_entregable_id integer, p_revision_documento_id integer,p_usuario_id integer,p_nota numeric,p_observacion text)
+returns VOID LANGUAGE plpgsql 
+AS $function$
+	
+BEGIN	
+ 	IF p_revision_criterio_entregable_id IS NULL THEN
+		INSERT INTO revision_criterio_entregable (entregable_x_tema_id,criterio_entregable_id,revision_documento_id,usuario_id,nota,observacion,activo)
+		VALUES (p_entregable_x_tema_id,p_criterio_entregable_id, p_revision_documento_id,p_usuario_id ,p_nota,p_observacion, TRUE );
+	ELSE
+        UPDATE revision_criterio_entregable rce
+        SET entregable_x_tema_id = p_entregable_x_tema_id,
+            criterio_entregable_id = p_criterio_entregable_id,
+            revision_documento_id = p_revision_documento_id,
+            usuario_id = p_usuario_id,
+            nota = p_nota,
+            observacion = p_observacion
+        WHERE rce.revision_criterio_entregable_id = p_revision_criterio_entregable_id;
+    END IF;
+
+	UPDATE entregable_x_tema ext
+	SET nota_entregable = tmp.notaFinal
+	FROM (
+	    SELECT entregable_x_tema_id, AVG(nota) AS notaFinal
+	    FROM (
+	        SELECT revision_documento_id, entregable_x_tema_id, SUM(COALESCE(nota, 0)) AS nota
+	        FROM revision_criterio_entregable
+	        WHERE entregable_x_tema_id = p_entregable_x_tema_id
+	        GROUP BY revision_documento_id, entregable_x_tema_id
+	    ) sub
+	    GROUP BY entregable_x_tema_id
+	) tmp
+	WHERE ext.entregable_x_tema_id = tmp.entregable_x_tema_id;
+END;
+$function$
+;
