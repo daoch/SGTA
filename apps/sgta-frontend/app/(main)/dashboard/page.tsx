@@ -11,6 +11,7 @@ import {
   FileCheck2,
   FileText,
   LockKeyhole,
+  LucideIcon,
   MailQuestion,
   MessageSquare,
   Search,
@@ -62,7 +63,7 @@ const estadisticas = [
     },
   ];
 
-  const modulosPorRol: Record<string, { title: string; description: string; icon: any; href: string }[]> = {
+  const modulosPorRol: Record<string, { title: string; description: string; icon: LucideIcon; href: string }[]> = {
     administrador: [
       { title: "Configuración", 
         description: "Administra los parámetros generales del sistema.", 
