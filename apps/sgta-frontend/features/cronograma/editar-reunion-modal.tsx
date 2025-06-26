@@ -242,7 +242,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
       const reunionId = obtenerIdReal(evento.id); // solo extrae el número, ej: "reunion-45" → 45
   
       // Obtener el usuarioXReunionId real desde el backend
-      const response = await axiosInstance.get(`/api/reuniones/buscarUsuarioReunion`, {
+      const response = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion", {
         params: { reunionId },
       });
   
@@ -250,7 +250,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
   
       // Llamar a la actualización
       await axiosInstance.put(
-        `/api/reuniones/updateEstadoAsistencia`,
+        "/api/reuniones/updateEstadoAsistencia",
         {
           estadoAsistencia: formData.estadoAsistencia,
           estadoDetalle: formData.estadoDetalle,
