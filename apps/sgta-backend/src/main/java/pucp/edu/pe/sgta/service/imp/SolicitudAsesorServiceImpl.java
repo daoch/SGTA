@@ -58,6 +58,9 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
     @Autowired
     private EstadoSolicitudRepository estadoSolicitudRepository;
 
+    @Autowired
+    private RevisionDocumentoRepository revisionDocumentoRepository;
+
     private static final String ROL_NOMBRE_ASESOR = "Asesor";
     private static final String ROL_NOMBRE_TESISTA = "Tesista";
 
@@ -519,5 +522,18 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
                     temaAReasignar.getTitulo(), solicitudOriginalId, asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido());
             notificacionService.crearNotificacionParaUsuario(asesorOriginalQueCeso.getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
         }
+
+        // --- REASIGNACIÓN DE REVISIONES_DOCUMENTO AL NUEVO ASESOR ---
+        // Buscar todas las revisiones_documento del tema y del asesor anterior
+        List<RevisionDocumento> revisionesDelAsesorAnterior = revisionDocumentoRepository.findByTemaIdAndAsesorId(
+                temaAReasignar.getId(), asesorOriginalQueCeso.getId()
+        );
+        for (RevisionDocumento revision : revisionesDelAsesorAnterior) {
+            revision.setUsuario(asesorQueAcepta); // Cambia el asesor responsable
+            revision.setFechaModificacion(OffsetDateTime.now());
+            revisionDocumentoRepository.save(revision);
+            log.info("RevisiónDocumento ID {} reasignada del asesor {} al {}", revision.getId(), asesorOriginalQueCeso.getId(), asesorQueAcepta.getId());
+        }
+        // --- FIN REASIGNACIÓN DE REVISIONES_DOCUMENTO ---
     }
 }

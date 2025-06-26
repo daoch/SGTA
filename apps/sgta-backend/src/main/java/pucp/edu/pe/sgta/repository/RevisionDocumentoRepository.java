@@ -168,4 +168,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     Optional<RevisionDocumento>
     findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
 
+    // Buscar todas las revisiones_documento del tema y del asesor anterior
+    @Query("SELECT rd FROM RevisionDocumento rd WHERE rd.versionDocumento.tema.id = :temaId AND rd.usuario.id = :asesorId AND rd.activo = true")
+    List<RevisionDocumento> findByTemaIdAndAsesorId(@Param("temaId") Integer temaId, @Param("asesorId") Integer asesorId);
 }
