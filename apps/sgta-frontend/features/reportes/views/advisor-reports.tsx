@@ -180,8 +180,8 @@ export function AdvisorReports() {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // 1. Obtén los IDs de los estudiantes filtrados/ordenados
-      const studentIds = sortedStudents.map(s => s.tesistaId);
+      // 1. Obtén los IDs de los estudiantes filtrados/ordenados (solo únicos)
+      const studentIds = [...new Set(sortedStudents.map(s => s.tesistaId))];
 
       // 2. Obtén los detalles de cada estudiante
       const studentDetails = await Promise.all(
@@ -245,7 +245,13 @@ export function AdvisorReports() {
       try {
         setLoading(true);
         const data = await advisorService.getAdvisorStudents();
-        setStudents(data);
+        
+        // Filtrar solo tesistas con IDs únicos
+        const uniqueStudents = data.filter((student, index, self) => 
+          index === self.findIndex(s => s.tesistaId === student.tesistaId)
+        );
+        
+        setStudents(uniqueStudents);
       } catch (error) {
         console.error("Error al cargar los tesistas:", error);
         setStudents([]);
