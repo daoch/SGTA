@@ -118,7 +118,7 @@ const MiCronogramaPage = () => {
         const response = await axiosInstance.get("/api/eventos/tesista");
 
         //Response hardcodeado para pruebas
-        //const response = await axiosInstance.get("/api/eventos/tesista/23"); // donde el numero es el ID del usuario tesista
+        //const response = await axiosInstance.get("/api/eventos/tesista/74"); // donde el numero es el ID del usuario tesista
   
         const eventosRaw: Evento[] = response.data;
   
@@ -141,14 +141,15 @@ const MiCronogramaPage = () => {
                   `/api/reuniones/${evento.id}`
                 );
                 url = reunionResponse.data.url || "";
-                console.log(url);
+                //console.log(url);
               } catch (error) {
                 console.warn(`No se pudo obtener la URL de la reunión con ID ${evento.id}`, error);
               }
             }
   
             return {
-              id: (index + 1).toString(), // ID único generado en frontend
+              //id: (index + 1).toString(), // ID único generado en frontend
+              id: `${tipoEvento.toLowerCase()}-${evento.id}`,
               title: evento.nombre || "Sin título",
               description: evento.descripcion || "",
               start: startDate,
