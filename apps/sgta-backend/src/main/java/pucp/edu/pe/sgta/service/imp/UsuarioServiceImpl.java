@@ -1,14 +1,11 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import org.apache.coyote.BadRequestException;
-import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import jakarta.persistence.Query;
@@ -203,6 +200,55 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(UsuarioMapper::toDto)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<UserDto> findAllUsers() {
+        List<Object[]> resultados = usuarioRepository.obtenerTodosLosUsuarios();
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
+            UserDto dto = UserDto.builder()
+                    .id((Integer) fila[0])
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
+                            .build())
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
+                    .build();
+            usuarios.add(dto);
+        }
+        return usuarios;
+    }
+
+    @Override
+    public List<UserDto> findAllUsers(String usuarioId) {
+        //buscar usuarios por id de coordinador
+        List<Object[]> resultados = usuarioRepository.obtenerUsuariosPorCoordinador(usuarioId);
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
+            UserDto dto = UserDto.builder()
+                    .id((Integer) fila[0])
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
+                            .build())
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
+                    .build();
+            usuarios.add(dto);
+        }
+        return usuarios;
     }
 
     @Override
@@ -1802,7 +1848,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return revisores;
     }
 
-
     public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
@@ -1816,5 +1861,18 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .build()
             )
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Carrera> obtenerCarreraCoordinador(String idCognito) {
+        Integer usuarioId = usuarioRepository.findUsuarioIdByIdCognito(idCognito);
+        if (usuarioId == null) {
+            return Optional.empty();
+        }
+        UsuarioXCarrera principal = usuarioXCarreraRepository.getCarreraPrincipalCoordinador(usuarioId);
+        if (principal == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(principal.getCarrera());
     }
 }

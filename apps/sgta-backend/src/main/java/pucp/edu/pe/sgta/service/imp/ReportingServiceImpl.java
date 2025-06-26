@@ -687,26 +687,29 @@ public class ReportingServiceImpl implements IReportService {
                     .fechaEnvio(r[2] != null
                             ? ((java.time.Instant) r[2]).atOffset(java.time.ZoneOffset.UTC)
                             : null)
-                    .notaGlobal(r[3] != null
-                            ? ((Number) r[3]).doubleValue()
+                    .fechaFin(r[3] != null
+                            ? ((java.time.Instant) r[3]).atOffset(java.time.ZoneOffset.UTC)
                             : null)
-                    .estadoEntrega((String) r[4])
+                    .notaGlobal(r[4] != null
+                            ? ((Number) r[4]).doubleValue()
+                            : null)
+                    .estadoEntrega((String) r[5])
                     .criterios(new ArrayList<>())
-                    .etapaFormativaXCicloId(r[9] != null ? (Integer) r[9] : null)
-                    .esEvaluable(r[10] != null ? (Boolean) r[10] : null)
+                    .etapaFormativaXCicloId(r[10] != null ? (Integer) r[10] : null)
+                    .esEvaluable(r[11] != null ? (Boolean) r[11] : null)
                     .build()
             );
-            if (r[5] != null) {
+            if (r[6] != null) {
                 EntregableCriteriosDetalleDto e = map.get(id);
                 e.getCriterios().add(
                         CriterioEntregableDetalleDto.builder()
-                                .criterioId((Integer) r[5])
-                                .criterioNombre((String) r[6])
-                                .notaMaxima(r[7] != null
-                                        ? ((Number) r[7]).doubleValue()
-                                        : null)
-                                .notaCriterio(r[8] != null
+                                .criterioId((Integer) r[6])
+                                .criterioNombre((String) r[7])
+                                .notaMaxima(r[8] != null
                                         ? ((Number) r[8]).doubleValue()
+                                        : null)
+                                .notaCriterio(r[9] != null
+                                        ? ((Number) r[9]).doubleValue()
                                         : null)
                                 .build()
                 );

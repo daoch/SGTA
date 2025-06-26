@@ -9,6 +9,7 @@ import org.springframework.http.ContentDisposition;
 
 import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -86,6 +87,13 @@ public class RevisionDocumentoController {
         return revisionDocumentoService.listarRevisionDocumentosPorAsesor(asesorId);
     }
 
+    @GetMapping("/revisor")
+    public List<RevisionDocumentoRevisorDto> listarRevisionDocumentosPorRevisor(HttpServletRequest request) {
+        String revisorId = jwtService.extractSubFromRequest(request);
+        System.out.println("RevisorId extraído del token: " + revisorId);
+        return revisionDocumentoService.listarRevisionDocumentosPorRevisor(revisorId);
+    }
+
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
         try {
@@ -155,5 +163,12 @@ public class RevisionDocumentoController {
             .build());
 
         return new ResponseEntity<>(annotatedPdf, headers, HttpStatus.OK);
+    }
+  
+    @GetMapping("/jurado")
+    public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(HttpServletRequest request) {
+        String juradoId = jwtService.extractSubFromRequest(request);
+        System.out.println("JuradoId extraído del token: " + juradoId);
+        return revisionDocumentoService.listarRevisionDocumentosPorJurado(juradoId);
     }
 }

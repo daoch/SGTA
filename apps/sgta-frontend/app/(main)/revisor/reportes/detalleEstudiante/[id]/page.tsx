@@ -3,14 +3,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import {  ArrowLeft, Check, Clock, User } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 
 import { LineaTiempoReporte } from "@/features/reportes/components/general/linea-tiempo";
-import { findStudentsForReviewer } from "@/features/reportes/services/report-services";
+import { findStudentsForReviewer, getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
 import { AlumnoReviewer } from "@/features/reportes/types/Alumno.type";
-import { getEntregablesAlumnoSeleccionado } from "@/features/reportes/services/report-services";
 
 interface Entregable {
   esEvaluable: boolean;
@@ -111,7 +110,6 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-[#002855]">Detalles de Entregas</h1>
-          <p className="text-gray-600">Revisor - Seguimiento de progreso del estudiante</p>
         </div>
       </div>
 

@@ -41,6 +41,73 @@ public class EventoServiceImpl implements EventoService {
         this.asesorTesistaRepository = asesorTesistaRepository;
     }
 
+    //Creado para pruebas
+    @Override
+    public List<EventoDto> listarEventosXTesistaPorId(Integer usuarioId) {
+        List<EventoDto> eventos = new ArrayList<>();
+
+        // 1. Reuniones
+        List<UsuarioXReunion> reuniones = usuarioXReunionRepo.findByUsuarioIdAndActivoTrue(usuarioId);
+        for (UsuarioXReunion ur : reuniones) {
+            Reunion reunion = ur.getReunion();
+            if (reunion.getActivo()) {
+                EventoDto evento = new EventoDto();
+                evento.setId(reunion.getId());
+                evento.setNombre(reunion.getTitulo());
+                evento.setDescripcion(reunion.getDescripcion());
+                evento.setTipo(TipoEventoEnum.REUNION);
+                evento.setFechaInicio(reunion.getFechaHoraInicio());
+                evento.setFechaFin(reunion.getFechaHoraFin());
+                evento.setActivo(true);
+                eventos.add(evento);
+            }
+        }
+
+        // 2. Entregables
+        List<Object[]> entregables = entregableRepo.listarEntregablesXUsuario(usuarioId);
+        for (Object[] obj : entregables) {
+            Integer entregableId = (Integer) obj[0];
+            String nombre = (String) obj[1];
+            String descripcion = (String) obj[2];
+            OffsetDateTime fechaInicio = OffsetDateTime.ofInstant((Instant) obj[3], ZoneId.systemDefault());
+            OffsetDateTime fechaFin = OffsetDateTime.ofInstant((Instant) obj[4], ZoneId.systemDefault());
+
+            EventoDto evento = new EventoDto();
+            evento.setId(entregableId);
+            evento.setNombre(nombre);
+            evento.setDescripcion(descripcion);
+            evento.setTipo(TipoEventoEnum.ENTREGABLE);
+            evento.setFechaInicio(fechaInicio);
+            evento.setFechaFin(fechaFin);
+            evento.setActivo(true);
+
+            eventos.add(evento);
+        }
+
+        // 3. Exposiciones
+        List<Object[]> exposiciones = exposicionRepo.listarExposicionesXUsuario(usuarioId);
+        for (Object[] obj : exposiciones) {
+            Integer exposicionId = (Integer) obj[0];
+            String nombre = (String) obj[1];
+            String descripcion = (String) obj[2];
+            OffsetDateTime fechaInicio = OffsetDateTime.ofInstant((Instant) obj[3], ZoneId.systemDefault());
+            OffsetDateTime fechaFin = OffsetDateTime.ofInstant((Instant) obj[4], ZoneId.systemDefault());
+
+            EventoDto evento = new EventoDto();
+            evento.setId(exposicionId);
+            evento.setNombre(nombre);
+            evento.setDescripcion(descripcion);
+            evento.setTipo(TipoEventoEnum.EXPOSICION);
+            evento.setFechaInicio(fechaInicio);
+            evento.setFechaFin(fechaFin);
+            evento.setActivo(true);
+
+            eventos.add(evento);
+        }
+
+        return eventos;
+    }
+
     @Override
     public List<EventoDto> listarEventosXTesista(String id) {
         List<EventoDto> eventos = new ArrayList<>();

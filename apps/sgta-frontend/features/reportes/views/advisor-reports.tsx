@@ -5,10 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
-import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
+import { saveAs } from "file-saver";
+import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, Download, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import * as XLSX from "xlsx";
+import { AsesorExportModal } from "../components/asesor-export-modal";
 
 // Constants
 const PROGRESS_MAPPING = {
@@ -166,12 +169,89 @@ export function AdvisorReports() {
   const careerFilterRef = useRef<HTMLDivElement>(null);
   const stageFilterRef = useRef<HTMLDivElement>(null);
 
+  //Logica para exportar reporte
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  //Solo para probar funcionamiento de modal
+  const advisorName = "Lucia Alessandra Del Castillo Monroy";
+  const advisorEmail = "lucia.delcastillom@pucp.edu.pe";
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      // 1. Obtén los IDs de los estudiantes filtrados/ordenados (solo únicos)
+      const studentIds = [...new Set(sortedStudents.map(s => s.tesistaId))];
+
+      // 2. Obtén los detalles de cada estudiante
+      const studentDetails = await Promise.all(
+        studentIds.map(id => advisorService.getStudentDetails(id))
+      );
+
+      // 3. Crea una hoja por estudiante
+      const studentSheets = studentDetails.map((student) => {
+        // Ajusta los campos según lo que retorna getStudentDetails
+        const info = [
+          ["Información del Tesista"],
+          ["Nombre completo", `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`],
+          ["Código PUCP", student.codigoPucp],
+          ["Correo", student.correoElectronico],
+          ["Nivel de Estudios", student.nivelEstudios],
+          ["Carrera", student.tituloTema],
+          ["Ciclo", student.cicloNombre],
+          ["Etapa", student.etapaFormativaNombre],
+          [],
+          ["Información de la Tesis"],
+          ["Título de Tesis", student.tituloTema],
+          ["Resumen", student.resumenTema],
+          ["Área", student.areaConocimiento],
+          ["Subárea", student.subAreaConocimiento],
+          [],
+          ["Asesoría"],
+          ["Asesor", student.asesorNombre],
+          ["Correo Asesor", student.asesorCorreo],
+          ...(student.coasesorNombre
+            ? [
+                ["Co-asesor", student.coasesorNombre],
+                ["Correo Co-asesor", student.coasesorCorreo],
+              ]
+            : []),
+        ];
+        return {
+          sheet: XLSX.utils.aoa_to_sheet(info),
+          //name: `${student.nombres} ${student.primerApellido}`.substring(0, 31),
+          name: `${student.codigoPucp}`.substring(0, 31),
+        };
+      });
+
+      // 4. Arma el libro y exporta
+      const wb = XLSX.utils.book_new();
+      studentSheets.forEach(({ sheet, name }) => {
+        XLSX.utils.book_append_sheet(wb, sheet, name);
+      });
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), "reporte_tesistas.xlsx");
+    } catch (error) {
+      alert("Error al exportar el reporte. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsExporting(false);
+      setIsExportModalOpen(false);
+    }
+  };
+
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
         const data = await advisorService.getAdvisorStudents();
-        setStudents(data);
+        
+        // Filtrar solo tesistas con IDs únicos
+        const uniqueStudents = data.filter((student, index, self) => 
+          index === self.findIndex(s => s.tesistaId === student.tesistaId)
+        );
+        
+        setStudents(uniqueStudents);
       } catch (error) {
         console.error("Error al cargar los tesistas:", error);
         setStudents([]);
@@ -384,7 +464,27 @@ export function AdvisorReports() {
       </Card>
 
       <div className="mt-8">
-        <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+        <div className="flex items-center justify-between mb-4 px-1">
+           <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+          <Button 
+            variant="outline" 
+            className="gap-2 text-base"
+            onClick={() => setIsExportModalOpen(true)}
+            disabled={isExporting}
+            > 
+              <Download className="h-4 w-4" />
+              {isExporting ? "Exportando..." : "Exportar Reporte"}
+          </Button>
+        </div>
+
+        <AsesorExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleExport}
+          advisorName={advisorName}
+          advisorEmail={advisorEmail}
+        />
+
 
         <div className="flex items-center space-x-1 mb-4">
           <Input
