@@ -166,7 +166,7 @@ export default function CursoDetailPage({ }: { params: Promise<{ id: string }> }
                             </div>
                           </div>
                         </div>
-                        <Link href={`/configuracion/general/exposiciones/${exposicion.id}`}>
+                        <Link href={`/apps/sgta-frontend/app/(main)/alumno/configuracion/general/exposiciones/${exposicion.id}`}>
                           <Button variant="outline" size="sm">
                             Ver detalles
                           </Button>

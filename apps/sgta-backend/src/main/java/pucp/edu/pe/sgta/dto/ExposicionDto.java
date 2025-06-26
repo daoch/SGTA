@@ -20,4 +20,6 @@ public class ExposicionDto {
     private String descripcion;
 
     private Integer estadoPlanificacionId;
+
+    private Integer entregableId;
 }

@@ -13,6 +13,8 @@ import { Tema } from "../types/temas/entidades";
 
 import { TemasDetalleExposiciones } from "@/features/jurado/components/temas-detalle-exposiciones";
 import { EstadoTemaNombre } from "../types/temas/enums";
+import { DetalleTema } from "../components/asesor/detalle-tema-card";
+import HistorialTemaCard from "../components/asesor/historial-tema-card";
 
 enum TabValues {
   INFO = "informacion",
@@ -51,24 +53,40 @@ const DetalleTemasCoordinadorPage: React.FC<
         </TabsList>
         <TabsContent value={TabValues.INFO}>
           <Card>
-            <CardHeader>
+            {/* <CardHeader>
               <CardTitle>Todos los temas</CardTitle>
               <CardDescription>
                 Lista de todos los temas de tesis
               </CardDescription>
-            </CardHeader>
-            <CardContent>{tema?.titulo}</CardContent>
+            </CardHeader> */}
+            <CardContent>
+              {tema ? (
+                <DetalleTema tema={tema} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay tema seleccionado.
+                </p>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value={TabValues.HISTORIAL}>
           <Card>
-            <CardHeader>
+            {/* <CardHeader>
               <CardTitle>Temas inscritos</CardTitle>
               <CardDescription>
                 Temas de tesis en los que estás inscrito
               </CardDescription>
-            </CardHeader>
-            <CardContent></CardContent>
+            </CardHeader> */}
+            <CardContent>
+              {tema ? (
+                <HistorialTemaCard idTema={tema.id} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay tema seleccionado.
+                </p>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value={TabValues.DETALLE_EXPO}>

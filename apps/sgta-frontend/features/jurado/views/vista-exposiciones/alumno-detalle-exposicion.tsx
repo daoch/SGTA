@@ -73,6 +73,7 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
 
   // const [cantJuradoMax, setCantJuradoMax] = useState(0);
   const [pesoAsesor, setPesoAsesor] = useState(0);
+  const [habilitarJuradoAnonimo, setHabilitarJuradoAnonimo] = useState(true);
 
   const fetchParametrosConfiguracion = async () => {
     try {
@@ -88,6 +89,14 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
           (param) => param.parametroConfiguracion.nombre === "Peso Asesor",
         );
         setPesoAsesor(Number(pesoAsesorParam?.valor));
+
+        const habilitarJuradoAnonimoParam = parametrosConfig.find(
+          (param) =>
+            param.parametroConfiguracion.nombre ===
+            "Calificaciones Jurado Anonimizadas",
+        );
+        setHabilitarJuradoAnonimo(habilitarJuradoAnonimoParam?.valor === true);
+
         // console.log("Cantidad de jurados:", juradoMax?.valor);
         // console.log("Peso del asesor:", pesoAsesorParam?.valor);
       } else {
@@ -300,7 +309,15 @@ const DetalleExposicion: React.FC<DetalleExposicionProps> = ({
                       <div className="bg-gray-100 p-4 rounded-full mb-3">
                         <User className="h-8 w-8 text-gray-500" />
                       </div>
-                      <h3 className="font-medium text-base text-black-500">{`Jurado ${index + 1}`}</h3>
+
+                      <h3 className="font-medium text-base text-black-500">
+                        {habilitarJuradoAnonimo
+                          ? `Jurado ${index + 1}`
+                          : miembro.nombre}
+                      </h3>
+
+                      {/* <h3 className="font-medium text-base text-black-500">{`Jurado ${index + 1}`}</h3> */}
+
                       {/* <h3 className="font-medium text-base text-gray-500">
                         {miembro.tipo}
                       </h3> */}

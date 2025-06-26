@@ -25,6 +25,8 @@ export interface ReunionFormData {
   descripcion: string;
   disponible: number;
   url: string;
+  estadoAsistencia: string;
+  estadoDetalle: string;
 }
 interface Asesor {
   id: string;
@@ -79,6 +81,8 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
     descripcion: "",
     disponible: 1,
     url: "",
+    estadoAsistencia: "",
+    estadoDetalle: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<ReunionFormData>>({});
@@ -100,9 +104,46 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
         descripcion: evento.description || "",
         disponible: 1,
         url: evento.url || "",
+        estadoAsistencia: "",
+        estadoDetalle: "",
       });
     }
   }, [evento, isOpen]);
+
+  useEffect(() => {
+    const fetchDatosAsistencia = async () => {
+      if (!evento || !isOpen) return;
+  
+      const reunionId = obtenerIdReal(evento.id);
+  
+      try {
+        // Obtener el id de la relación usuario-reunión
+        const responseUsuarioReunion = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion", {
+          params: { reunionId },
+        });
+  
+        const usuarioReunionId = responseUsuarioReunion.data.id;
+  
+        // Obtener los datos de asistencia de esa relación
+        const responseAsistencia = await axiosInstance.get("/api/reuniones/getUsuarioXReunion", {
+          params: { usuarioReunionId },
+        });
+  
+        const { estadoAsistencia, estadoDetalle } = responseAsistencia.data;
+  
+        setFormData(prev => ({
+          ...prev,
+          estadoAsistencia: estadoAsistencia || "Pendiente",
+          estadoDetalle: estadoDetalle || "",
+        }));
+      } catch (error) {
+        console.error("Error al obtener datos de asistencia:", error);
+      }
+    };
+  
+    fetchDatosAsistencia();
+  }, [evento, isOpen]);
+  
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -113,6 +154,8 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
         descripcion: "",
         disponible: 1,
         url: "",
+        estadoAsistencia: "",
+        estadoDetalle: "",
       });
       setErrors({});
       onClose();
@@ -183,27 +226,52 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const obtenerIdReal = (id: string) => parseInt(id.split("-")[1], 10);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+  
     try {
-      await axiosInstance.post(
-        `/api/reuniones/crearReunionConUsuarios?usuarioIds=${asesorId}`,
+      if (!evento) {
+        console.error("No se ha proporcionado un evento para editar");
+        return;
+      }
+  
+      const reunionId = obtenerIdReal(evento.id); // solo extrae el número, ej: "reunion-45" → 45
+  
+      // Obtener el usuarioXReunionId real desde el backend
+      const response = await axiosInstance.get(`/api/reuniones/buscarUsuarioReunion`, {
+        params: { reunionId },
+      });
+  
+      const usuarioReunionId = response.data.id; // id de la tabla usuario_reunion
+  
+      // Llamar a la actualización
+      await axiosInstance.put(
+        `/api/reuniones/updateEstadoAsistencia`,
         {
-          ...formData,
-          fechaHoraInicio: toOffsetDateTime(formData.fechaHoraInicio),
-          fechaHoraFin: toOffsetDateTime(formData.fechaHoraFin),
-          disponible: 1,
+          estadoAsistencia: formData.estadoAsistencia,
+          estadoDetalle: formData.estadoDetalle,
         },
+        {
+          params: {
+            usuarioReunionId,
+          },
+        }
       );
-      handleOpenChange(false);
+  
+      handleOpenChange(false); // cerrar modal
     } catch (error) {
-      console.error("Error al actualizar la reunión:", error);
+      console.error("Error al actualizar asistencia:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  
+  
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -214,14 +282,15 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar reunión</DialogTitle>
+          <DialogTitle>Detalles de la reunión</DialogTitle>
           <DialogDescription>
-            Complete el formulario para editar la reunión. Todos los campos marcados con * son obligatorios.
+            Se muestran los detalles de la reunión. Puede marcar su asistencia y brindar detalles adicionales.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            {/* Campos originales (deshabilitados) */}
             <div className="grid gap-2">
               <Label htmlFor="titulo">Título <span className="text-red-500">*</span></Label>
               <Input
@@ -231,6 +300,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
                 value={formData.titulo}
                 onChange={handleInputChange}
                 className={errors.titulo ? "border-red-500" : ""}
+                disabled
               />
               {errors.titulo && <p className="text-sm text-red-500">{errors.titulo}</p>}
             </div>
@@ -245,6 +315,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
                 onChange={handleInputChange}
                 min={getCurrentDateTime()}
                 className={errors.fechaHoraInicio ? "border-red-500" : ""}
+                disabled
               />
               {errors.fechaHoraInicio && <p className="text-sm text-red-500">{errors.fechaHoraInicio}</p>}
             </div>
@@ -259,6 +330,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
                 onChange={handleInputChange}
                 min={formData.fechaHoraInicio || getCurrentDateTime()}
                 className={errors.fechaHoraFin ? "border-red-500" : ""}
+                disabled
               />
               {errors.fechaHoraFin && <p className="text-sm text-red-500">{errors.fechaHoraFin}</p>}
             </div>
@@ -272,6 +344,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
                 value={formData.descripcion}
                 onChange={handleInputChange}
                 className={`min-h-[100px] ${errors.descripcion ? "border-red-500" : ""}`}
+                disabled
               />
               {errors.descripcion && <p className="text-sm text-red-500">{errors.descripcion}</p>}
             </div>
@@ -286,11 +359,66 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
                 value={formData.url}
                 onChange={handleInputChange}
                 className={errors.url ? "border-red-500" : ""}
+                disabled
               />
               {errors.url && <p className="text-sm text-red-500">{errors.url}</p>}
               <p className="text-xs text-muted-foreground">
                 Opcional: Enlace para reunión virtual (Google Meet, Zoom, etc.)
               </p>
+            </div>
+
+            {/* Nuevos campos (habilitados) */}
+            <div className="grid gap-2">
+              <Label>Asistencia <span className="text-red-500">*</span></Label>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="estadoAsistencia"
+                    value="Asistió"
+                    checked={formData.estadoAsistencia === "Asistió"}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Asistió</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="estadoAsistencia"
+                    value="No asistió"
+                    checked={formData.estadoAsistencia === "No asistió"}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>No asistió</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="estadoAsistencia"
+                    value="Pendiente"
+                    checked={formData.estadoAsistencia === "Pendiente"}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Pendiente</span>
+                </label>
+              </div>
+              {errors.estadoAsistencia && <p className="text-sm text-red-500">{errors.estadoAsistencia}</p>}
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="estadoDetalle">Detalles de la asistencia</Label>
+              <Textarea
+                id="estadoDetalle"
+                name="estadoDetalle"
+                placeholder="Observaciones sobre la asistencia..."
+                value={formData.estadoDetalle}
+                onChange={handleInputChange}
+                className={`min-h-[100px] ${errors.estadoDetalle ? "border-red-500" : ""}`}
+              />
+              {errors.estadoDetalle && <p className="text-sm text-red-500">{errors.estadoDetalle}</p>}
             </div>
           </div>
 

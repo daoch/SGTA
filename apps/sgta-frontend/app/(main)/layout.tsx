@@ -8,19 +8,15 @@ import { Toaster } from "sonner";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen w-screen">
-      <SidebarProvider>
-        <div className="w-fit">
-          <AppSidebar />
-        </div>
-        <div className="flex flex-col w-full h-full overflow-auto">
-          <AppHeader />
-          <SidebarInset className="flex-1">
-            <AppMain>{children}</AppMain>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        <main className="flex-1 overflow-auto">
+          <AppMain>{children}</AppMain>
+        </main>
+      </SidebarInset>
       <Toaster position="bottom-right" richColors />
-    </div>
+    </SidebarProvider>
   );
 }

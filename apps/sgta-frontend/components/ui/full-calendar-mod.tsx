@@ -43,42 +43,8 @@ import {
   EditarReunionModal,
   type ReunionFormData,
 } from "@/features/cronograma/editar-reunion-modal";
-import { addHours } from "date-fns";
 
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
-
-/*
-const handleRegistrarReunion = async (reunionData: ReunionFormData) => {
-  try {
-    // Here you would typically make an API call to save the meeting
-    console.log("Registrando reunión:", reunionData);
-
-    // For now, we'll just add it to the local events state
-    const newEvent: CalendarEvent = {
-      id: (events.length + 1).toString(),
-      title: reunionData.titulo,
-      description: reunionData.descripcion,
-      start: new Date(reunionData.fechaHoraInicio),
-      end: new Date(reunionData.fechaHoraFin),
-      tipoEvento: "REUNION",
-    };
-
-    setEvents((prev) => [...prev, newEvent]);
-
-    // You could also make an API call here:
-    // await axiosInstance.post("/api/reuniones", reunionData);
-
-    // Close the modal
-    setIsReunionModalOpen(false);
-
-    // You could show a success message here
-    console.log("Reunión registrada exitosamente");
-  } catch (error) {
-    console.error("Error al registrar la reunión:", error);
-    throw error; // Re-throw to let the modal handle the error
-  }
-};
-*/
 
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
@@ -289,16 +255,11 @@ const EventGroup = ({
       }}
     >
       {tesistasOrdenados.map((tesista, index) => {
-        const eventos = events.filter((event) => {
-          const start = event.start ?? event.end;
-          const end = event.end;
-          return (
-            start <= addHours(hour, 1) &&
-            end >= hour &&
+        const eventos = events.filter(
+          (event) =>
+            isSameHour(event.start ?? event.end, hour) &&
             event.tesista === tesista
-          );
-        });
-        
+        );
 
         return (
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
@@ -314,9 +275,9 @@ const EventGroup = ({
                 <div
                   key={event.id}
                   className={cn(
-                    "h-2 relative flex flex-col p-1 overflow-hidden",
+                    "relative flex flex-col p-1 overflow-hidden",
                     dayEventVariants({ variant: event.color }),
-                    isClickable && "cursor-pointer",
+                    isClickable && "cursor-pointer z-20",
                     isDeadline && "border-t-4 border-t-dashed"
                   )}
                   style={{
@@ -333,7 +294,7 @@ const EventGroup = ({
                   {event.type && (
                     <span
                       className={cn(
-                        "mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit",
+                        "mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit cursor-inherit",
                         getTipoColor(event.type)
                       )}
                     >
@@ -342,30 +303,30 @@ const EventGroup = ({
                     </span>
                   )}
 
-                  <strong className="font-medium text-xs truncate">
+                  <strong className="font-medium text-xs truncate cursor-inherit">
                     {event.title}
                   </strong>
 
                   {event.description &&
                     tipoVista !== "Semana" &&
                     tipoUsuario === "Alumno" && (
-                      <p className="text-xs opacity-80 truncate">
+                      <p className="text-xs opacity-80 truncate cursor-inherit">
                         {event.description}
                       </p>
                     )}
 
                   {event.tesista !== "X" && (
-                    <p className="text-xs opacity-80 truncate">
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       Tsta.: {event.tesista}
                     </p>
                   )}
 
                   {!isDeadline ? (
-                    <p className="text-xs opacity-80 truncate">
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       {`${format(event.start!, "HH:mm")} - ${format(event.end, "HH:mm")}`}
                     </p>
                   ) : (
-                    <p className="text-xs opacity-80 truncate">
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       {`Fin: ${format(event.end, "HH:mm")}`}
                     </p>
                   )}
@@ -393,6 +354,7 @@ const EventGroup = ({
     </div>
   );
 };
+
 
 
 

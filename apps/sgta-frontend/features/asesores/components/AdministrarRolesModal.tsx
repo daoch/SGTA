@@ -1,3 +1,7 @@
+// /components/features/asesores/AdministrarRolesModal.tsx
+
+"use client";
+
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,14 +21,18 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
   const [roles, setRoles] = useState<("asesor" | "jurado")[]>([]);
   const [alerta, setAlerta] = useState<string | null>(null);
 
+  // Sincroniza el estado de los roles con el profesor seleccionado
   useEffect(() => {
-    if (profesor) setRoles(profesor.rolesAsignados);
+    if (profesor) {
+      setRoles(profesor.rolesAsignados);
+    }
   }, [profesor]);
 
+  // Limpia el estado del modal cuando se cierra
   useEffect(() => {
     if (!isOpen) {
       setRoles([]);
-      setAlerta(null); // Limpia la alerta al cerrar el modal
+      setAlerta(null);
     }
   }, [isOpen]);
 
@@ -32,20 +40,30 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
     setRoles((prev) =>
       prev.includes(rol) ? prev.filter((r) => r !== rol) : [...prev, rol]
     );
-    setAlerta(null); // Limpia la alerta si el usuario cambia algo
+    // Limpia la alerta si el usuario realiza un cambio, dándole la oportunidad de corregir.
+    setAlerta(null);
   };
 
   const handleSave = () => {
     if (!profesor) return;
-    const desactivandoRol =
-      (profesor.rolesAsignados.includes("asesor") && !roles.includes("asesor")) ||
-      (profesor.rolesAsignados.includes("jurado") && !roles.includes("jurado"));
 
-    if (desactivandoRol && profesor.tesisActivas > 0) {
-      setAlerta("No puedes desactivar el rol porque el profesor tiene tesis activas.");
-      return; // Bloquea el guardado
+    // --- LÓGICA DE VALIDACIÓN MEJORADA ---
+    const estaDesactivandoAsesor = profesor.rolesAsignados.includes("asesor") && !roles.includes("asesor");
+    const estaDesactivandoJurado = profesor.rolesAsignados.includes("jurado") && !roles.includes("jurado");
+
+    // Valida si se puede desactivar el rol de ASESOR
+    if (estaDesactivandoAsesor && profesor.tesisAsesor > 0) {
+      setAlerta("No se puede desactivar el rol de Asesor porque el profesor tiene tesis activas como asesor.");
+      return;
     }
 
+    // Valida si se puede desactivar el rol de JURADO
+    if (estaDesactivandoJurado && profesor.tesisJurado > 0) {
+      setAlerta("No se puede desactivar el rol de Jurado porque el profesor tiene tesis activas como jurado.");
+      return;
+    }
+
+    // Si pasa las validaciones, guarda los cambios
     onSave(profesor.id, roles);
     onClose();
   };
@@ -54,39 +72,45 @@ export default function AdministrarRolesModal({ profesor, isOpen, onClose, onSav
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Administrar Roles</DialogTitle>
+          <DialogTitle>Administrar Roles de {profesor?.nombres}</DialogTitle>
         </DialogHeader>
 
         {alerta && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="my-4">
             <AlertTitle>Acción no permitida</AlertTitle>
             <AlertDescription>{alerta}</AlertDescription>
           </Alert>
         )}
 
         <div className="space-y-4 py-2">
-          <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="asesor">Asesor</Label>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <Label htmlFor="asesor" className="font-medium">
+              Rol: Asesor
+            </Label>
             <Switch
               id="asesor"
               checked={roles.includes("asesor")}
               onCheckedChange={() => toggleRole("asesor")}
+              aria-label="Activar o desactivar rol de asesor"
             />
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="jurado">Jurado</Label>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <Label htmlFor="jurado" className="font-medium">
+              Rol: Jurado
+            </Label>
             <Switch
               id="jurado"
               checked={roles.includes("jurado")}
               onCheckedChange={() => toggleRole("jurado")}
+              aria-label="Activar o desactivar rol de jurado"
             />
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleSave}>Guardar</Button>
+          <Button onClick={handleSave}>Guardar Cambios</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
