@@ -59,7 +59,8 @@ RETURNS TABLE (
     tema_id INTEGER,
     fecha_envio TIMESTAMP WITH TIME ZONE,
     comentario TEXT,
-	entregable_x_tema_id INTEGER
+    entregable_x_tema_id INTEGER,
+    corregido BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -83,7 +84,8 @@ BEGIN
         et.tema_id,
         et.fecha_envio,
         et.comentario,
-		et.entregable_x_tema_id
+        et.entregable_x_tema_id,
+        et.corregido
     FROM usuario_tema ut
     JOIN entregable_x_tema et ON et.tema_id = ut.tema_id
     JOIN entregable e ON e.entregable_id = et.entregable_id
@@ -91,10 +93,12 @@ BEGIN
     JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
     JOIN ciclo c ON c.ciclo_id = efc.ciclo_id
     JOIN tema t ON t.tema_id = ut.tema_id
+    JOIN estado_tema est ON t.estado_tema_id = est.estado_tema_id
     WHERE ut.usuario_id = p_usuario_id
       AND ut.asignado = TRUE
       AND ut.rechazado = FALSE
-      AND t.estado_tema_id IN (6, 10, 11, 12);
+      AND est.nombre IN ('REGISTRADO', 'EN_PROGRESO', 'PAUSADO', 'FINALIZADO')
+    ORDER BY e.fecha_fin ASC;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -195,7 +199,7 @@ BEGIN
     FROM etapa_formativa_x_ciclo efc
     INNER JOIN etapa_formativa ef ON efc.etapa_formativa_id = ef.etapa_formativa_id
     INNER JOIN ciclo c ON efc.ciclo_id = c.ciclo_id
-    WHERE ef.carrera_id = p_carrera_id AND efc.activo = true AND ef.activo = true AND c.activo = true
+    WHERE ef.carrera_id = p_carrera_id AND efc.activo = true AND ef.activo = true AND c.activo = true AND c.anio >= EXTRACT(YEAR FROM CURRENT_DATE)
     ORDER BY c.anio DESC, c.semestre DESC, ef.nombre;
 END;
 $$;
