@@ -5,6 +5,7 @@ import pucp.edu.pe.sgta.dto.UsuarioNombresDTO;
 import pucp.edu.pe.sgta.model.UsuarioXReunion;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UsuarioXReunionService {
 
@@ -29,4 +30,6 @@ public interface UsuarioXReunionService {
     UsuarioXReunion update(Integer id, UsuarioXReunion usuarioXReunionActualizada) throws Exception;
 
     void delete(Integer id) throws Exception;
+
+    Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId, Integer usuarioId);
 }

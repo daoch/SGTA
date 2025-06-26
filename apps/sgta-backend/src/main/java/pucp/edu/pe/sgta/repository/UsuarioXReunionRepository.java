@@ -39,4 +39,5 @@ public interface UsuarioXReunionRepository extends JpaRepository<UsuarioXReunion
     @Query(value = "SELECT * FROM obtener_asesor_por_alumno(:alumnoId)", nativeQuery = true)
     List<Object[]> getAsesoresXAlumno(@Param("alumnoId") Integer alumnoId);
 
+    Optional<UsuarioXReunion> findByReunionIdAndUsuarioIdAndActivoTrue(Integer reunionId, Integer usuarioId);
 }

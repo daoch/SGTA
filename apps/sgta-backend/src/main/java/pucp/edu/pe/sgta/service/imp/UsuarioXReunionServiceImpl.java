@@ -136,4 +136,9 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
         usuarioXReunion.setActivo(false);
         usuarioXReunionRepository.save(usuarioXReunion);
     }
+
+    @Override
+    public Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId, Integer usuarioId) {
+        return usuarioXReunionRepository.findByReunionIdAndUsuarioIdAndActivoTrue(reunionId, usuarioId);
+    }
 }
