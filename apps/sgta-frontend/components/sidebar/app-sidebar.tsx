@@ -33,7 +33,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarTrigger />
+        <SidebarTrigger className="hidden md:flex" />
       </SidebarFooter>
     </Sidebar>
   );

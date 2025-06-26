@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.calificacion.*;
+import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
+import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -24,6 +28,10 @@ import pucp.edu.pe.sgta.service.inter.MiembroJuradoService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.EstadoExposicion;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionDto;
+import pucp.edu.pe.sgta.util.EstadoExposicionUsuario;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -48,22 +56,32 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final ParametroConfiguracionRepository parametroConfiguracionRepository;
         private final CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
         private final UsuarioService usuarioService;
+        private final UsuarioXRolRepository usuarioRolRepository;
+        private final EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository;
+        private final UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository;
+        private final SubAreaConocimientoRepository subAreaConocimientoRepository;
+        private final UsuarioXCarreraRepository usuarioXCarreraRepository;
+        private final ExposicionRepository exposicionRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
-                        UsuarioXTemaRepository usuarioXTemaRepository,
-                        RolRepository rolRepository,
-                        TemaRepository temaRepository,
-                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
-                        EtapaFormativaRepository etapaFormativaRepository,
-                        ExposicionXTemaRepository exposicionXTemaRepository,
-                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
-                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                        ApplicationEventPublisher eventPublisher,
-                        CriterioExposicionRepository criterioExposicionRepository,
-                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
-                        ParametroConfiguracionRepository parametroConfiguracionRepository,
-                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                        UsuarioService usuarioService) {
+                                        UsuarioXTemaRepository usuarioXTemaRepository,
+                                        RolRepository rolRepository,
+                                        TemaRepository temaRepository,
+                                        SubAreaConocimientoXTemaRepository subAreaConocimientoXTemaRepository,
+                                        EtapaFormativaRepository etapaFormativaRepository,
+                                        ExposicionXTemaRepository exposicionXTemaRepository,
+                                        BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+                                        ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+                                        ApplicationEventPublisher eventPublisher,
+                                        CriterioExposicionRepository criterioExposicionRepository,
+                                        RevisionCriterioExposicionRepository revisionCriterioExposicionRepository,
+                                        ParametroConfiguracionRepository parametroConfiguracionRepository,
+                                        CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
+                                        UsuarioService usuarioService, UsuarioXRolRepository usuarioRolRepository,
+                                        EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
+                                        UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
+                                        SubAreaConocimientoRepository subAreaConocimientoRepository,
+                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -79,6 +97,12 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.parametroConfiguracionRepository = parametroConfiguracionRepository;
                 this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
                 this.usuarioService = usuarioService;
+                this.usuarioRolRepository = usuarioRolRepository;
+                this.etapaFormativaXCicloXTemaRepository = etapaFormativaXCicloXTemaRepository;
+                this.usuarioXAreaConocimientoRepository = usuarioXAreaConocimientoRepository;
+                this.subAreaConocimientoRepository = subAreaConocimientoRepository;
+                this.usuarioXCarreraRepository = usuarioXCarreraRepository;
+            this.exposicionRepository = exposicionRepository;
         }
 
         @Override
@@ -483,13 +507,23 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 .map(ut -> ut.getTema().getId())
                                 .collect(Collectors.toSet());
 
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository
+                                .findByNombre("Cantidad Jurados")
+                                .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                                .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "No se encontro carrera x parametro configuración"));
+
                 Map<Integer, UsuarioXTema> relacionesJurado = usuarioXTemaRepository.findAll().stream()
                                 .filter(ut -> ut.getActivo())
                                 .filter(ut -> ut.getRol().getId().equals(4))
                                 // .filter(ut -> !ut.getUsuario().getId().equals(usuarioId))
                                 .filter(ut -> !temasDelUsuario.contains(ut.getTema().getId()))
                                 .filter(ut -> esEstadoTemaValido(ut.getTema().getEstadoTema()))
-                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema().getId()) < 3)
+                                .filter(ut -> usuarioXTemaRepository.obtenerJuradosPorTema(ut.getTema()
+                                                .getId()) < Integer.parseInt(carreraXParametroConfiguracion.getValor()))
                                 .collect(Collectors.toMap(
                                                 ut -> ut.getTema().getId(), // clave: ID del tema
                                                 ut -> ut,
@@ -998,6 +1032,20 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                                                         criterio.getId(),
                                                                         userDto.getId());
 
+                                        System.out.println(
+                                                        "Buscando revisionCriterioExposicion para criterio: "
+                                                                        + criterio.getId());
+                                        System.out.println(
+                                                        "ExposicionXTema ID: "
+                                                                        + exposicionCalificacionRequest
+                                                                                        .getExposicion_tema_id());
+                                        System.out.println("Usuario ID: " + userDto.getId());
+
+                                        if (revisionOpt.isEmpty()) {
+                                                System.out.println(
+                                                                "Revision not found for criterio: " + criterio.getId());
+                                        }
+
                                         RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
                                         CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
@@ -1164,11 +1212,13 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                                                 RevisionCriterioExposicion revision = revisionOpt.orElse(null);
 
-                                                // SI NO HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
-                                                if (revision == null) {
+                                                // SI HAY CRITERIOS DE CALIFICACION, ENTONCES EL JURADO HA CALIFICADO
+                                                if (revision != null && revision.getNota() == null) {
                                                         juradoCalificacion.setCalificado(false);
-                                                } else {
+                                                } else if (revision != null && revision.getNota() != null) {
                                                         juradoCalificacion.setCalificado(true);
+                                                } else {
+                                                        juradoCalificacion.setCalificado(false);
                                                 }
 
                                                 CriteriosCalificacionDto dto = new CriteriosCalificacionDto();
@@ -1209,9 +1259,316 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         + miembro.getSegundoApellido());
                         juradoCalificacion.setCriterios(criteriosCalificacionDtos);
                         juradoCalificacion.setObservaciones_finales(observacionesFinales);
+                        juradoCalificacion.setCalificacion_final(controlExposicion.getNotaRevision());
                         exposicionesCalificacion.add(juradoCalificacion);
                 }
 
                 return ResponseEntity.ok(exposicionesCalificacion);
         }
+
+        @Override
+        public List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId) {
+                try {
+                        UsuarioDto userDto = usuarioService.findByCognitoId(usuarioId);
+
+                        Usuario usuario = usuarioRepository.findById(userDto.getId())
+                                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+                        // 1. Obtener las áreas de conocimiento del coordinador
+                        List<UsuarioXAreaConocimiento> areasCoordinador = usuarioXAreaConocimientoRepository
+                                        .findByUsuario_IdAndActivoTrue(userDto.getId());
+
+                        Set<Integer> areaIds = areasCoordinador.stream()
+                                        .map(uac -> uac.getAreaConocimiento().getId())
+                                        .collect(Collectors.toSet());
+
+                        // 1. Subáreas
+                        List<SubAreaConocimiento> subAreas = subAreaConocimientoRepository
+                                        .findByAreaConocimiento_IdIn(areaIds);
+                        if (subAreas.isEmpty())
+                                return Collections.emptyList();
+                        Set<Integer> subAreaIds = subAreas.stream().map(SubAreaConocimiento::getId)
+                                        .collect(Collectors.toSet());
+
+                        // 2. Subárea-Tema
+                        List<SubAreaConocimientoXTema> subAreaTemas = subAreaConocimientoXTemaRepository
+                                        .findBySubAreaConocimiento_IdIn(subAreaIds);
+                        if (subAreaTemas.isEmpty())
+                                return Collections.emptyList();
+                        Set<Integer> temaIds = subAreaTemas.stream()
+                                        .map(sub -> sub.getTema().getId())
+                                        .collect(Collectors.toSet());
+
+                        // 3. EtapaFormativaXCicloXTema
+                        List<EtapaFormativaXCicloXTema> etapaTemaList = etapaFormativaXCicloXTemaRepository
+                                        .findByTema_IdIn(temaIds);
+                        if (etapaTemaList.isEmpty())
+                                return Collections.emptyList();
+
+                        // 4. EtapaFormativa (vía EtapaFormativaXCiclo)
+                        Set<EtapaFormativa> etapas = etapaTemaList.stream()
+                                        .map(et -> et.getEtapaFormativaXCiclo().getEtapaFormativa())
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.toSet());
+
+                        // 5. Map a DTO
+                        return etapas.stream()
+                                        .distinct()
+                                        .map(e -> new EtapasFormativasDto(e.getId(), e.getNombre()))
+                                        .collect(Collectors.toList());
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return Collections.emptyList();
+                }
+        }
+
+        @Override
+        public List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId) {
+                UsuarioDto userDto = usuarioService.findByCognitoId(coordinadorId);
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+                UsuarioXCarrera coordinadorRelacion = usuarioXCarreraRepository
+                        .findFirstByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(usuario.getId())
+                        .orElseThrow(() -> new RuntimeException("Este usuario no tiene permisos de coordinador."));
+
+                List<Object[]> rows = exposicionRepository.getExposicionesPorCoordinador(usuario.getId());
+                Map<Integer, List<MiembroExposicionDto>> miembrosPorTema = new HashMap<>();
+                Set<Integer> temaIds = rows.stream()
+                        .map(row -> (Integer) row[14])
+                        .collect(Collectors.toSet());
+
+                for (Integer temaId : temaIds) {
+                        List<Object[]> miembrosRaw = exposicionRepository.getMiembrosPorTema(temaId);
+                        List<MiembroExposicionDto> miembros = miembrosRaw.stream().map(m -> new MiembroExposicionDto(
+                                (Integer) m[0],
+                                (String) m[1],
+                                (String) m[2]
+                        )).toList();
+                        miembrosPorTema.put(temaId, miembros);
+                }
+
+                List<ExposicionCoordinadorDto> resultado = new ArrayList<>();
+
+                for (Object[] row : rows) {
+                        ExposicionCoordinadorDto dto = new ExposicionCoordinadorDto();
+                        dto.setId_exposicion((Integer) row[0]);
+                        dto.setFechahora(((Instant) row[1]).atOffset(ZoneOffset.UTC));
+                        dto.setSala((String) row[2]);
+                        dto.setEstado((String) row[3]);
+                        dto.setId_etapa_formativa((Integer) row[4]);
+                        dto.setNombre_etapa_formativa((String) row[5]);
+                        dto.setTitulo((String) row[6]);
+                        dto.setCiclo_id((Integer) row[7]);
+                        dto.setCiclo_anio((Integer) row[8]);
+                        dto.setCiclo_semestre((String) row[9]);
+
+                        // puede venir null si no hay control
+                        String estadoControl = (String) row[10];
+                        dto.setEstado_control(
+                                estadoControl != null ? EstadoExposicionUsuario.valueOf(estadoControl.toUpperCase()) : null
+                        );
+
+                        dto.setNombre_exposicion((String) row[11]);
+                        dto.setEnlace_grabacion((String) row[12]);
+                        dto.setEnlace_sesion((String) row[13]);
+                        Integer idTema = (Integer) row[14];
+                        dto.setMiembros(miembrosPorTema.getOrDefault(idTema, List.of()));
+
+                        resultado.add(dto);
+                }
+
+                return resultado;
+        }
+
+
+        @Override
+        @Transactional
+        public ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try {
+                        RevisionCriterioExposicion revisionCriterioExposicion = revisionCriterioExposicionRepository
+                                        .findById(request.getId())
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró una revisionXcriterio con ese id"));
+
+                        ExposicionXTema exposicionXTema = revisionCriterioExposicion.getExposicionXTema();
+                        Integer usuarioId = revisionCriterioExposicion.getUsuario().getId();
+                        Integer temaId = exposicionXTema.getTema().getId();
+
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository.findByUsuario_IdAndTema_Id(usuarioId, temaId)
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró usuarioXTema con ese id"));
+
+                        ControlExposicionUsuarioTema controlExposicionUsuarioTema = controlExposicionUsuarioTemaRepository
+                                        .findByExposicionXTema_IdAndUsuario_Id(exposicionXTema.getId(),
+                                                        usuarioXTema.getId())
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró controlExposicionUsuarioTema"));
+
+                        controlExposicionUsuarioTema.setNotaRevision(request.getNota_revision());
+                        controlExposicionUsuarioTemaRepository.save(controlExposicionUsuarioTema);
+                        response.put("mensaje", "Se actualizo correctamente la nota revisión");
+                        response.put("exito", true);
+                } catch (ResponseStatusException e) {
+                        response.put("mensaje", e.getReason());
+                        response.put("exito", false);
+                } catch (Exception e) {
+                        response.put("mensaje", "Ocurrió un error inesperado al actualizar la observacion final.");
+                        response.put("exito", false);
+                }
+
+                return ResponseEntity.ok(response);
+        }
+
+        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId) {
+
+                ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
+                request.setExposicion_tema_id(exposicionId);
+                List<ExposicionCalificacionJuradoDTO> calificaciones = obtenerCalificacionExposicionJurado(request)
+                                .getBody();
+
+                if (calificaciones == null || calificaciones.isEmpty()) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body("No se encontraron calificaciones para la exposición con ID: "
+                                                        + exposicionId);
+                }
+
+                ParametroConfiguracion parametroConfiguracion = parametroConfiguracionRepository
+                                .findByNombre("Peso Asesor")
+                                .orElseThrow(() -> new RuntimeException("Parámetro no encontrado"));
+
+                CarreraXParametroConfiguracion carreraXParametroConfiguracion = carreraXParametroConfiguracionRepository
+                                .findFirstByParametroConfiguracionId(parametroConfiguracion.getId())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "No se encontro carrera x parametro configuración"));
+
+                ExposicionXTema exposicionXTema = exposicionXTemaRepository
+                                .findById(exposicionId)
+                                .orElseThrow(() -> new RuntimeException("No se encontró exposicion_x_tema con id: "
+                                                + exposicionId));
+
+                int pesoAsesor = Integer.parseInt(carreraXParametroConfiguracion.getValor()) - 1;
+
+                BigDecimal notaFinal = BigDecimal.ZERO;
+                BigDecimal notaAsesor = null;
+                List<BigDecimal> notasJurados = new ArrayList<>();
+
+                for (ExposicionCalificacionJuradoDTO calificacion : calificaciones) {
+
+                        UsuarioXTema usuarioXTema = usuarioXTemaRepository
+                                        .findByUsuarioIdAndTemaIdAndRolIdIn(calificacion.getUsuario_id(),
+                                                        exposicionXTema.getTema().getId(), List.of(1, 2))
+                                        .orElseThrow(() -> new ResponseStatusException(
+                                                        HttpStatus.NOT_FOUND,
+                                                        "No se encontró una relación UsuarioXTema con los IDs proporcionados y rol 1 o 2"));
+
+                        BigDecimal nota = calificacion.getCalificacion_final();
+
+                        if (usuarioXTema.getRol().getId() == 1) { // nota del asesor
+                                if (nota != null) {
+                                        notaAsesor = nota;
+                                }
+                        } else if (usuarioXTema.getRol().getId() == 2) { // vamos agregando las notas del jurado
+                                notasJurados.add(nota);
+                        }
+                }
+
+                // filtramos solo las notas validas por el jurado
+                List<BigDecimal> notasJuradosValidas = notasJurados.stream()
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                // obtenemos la cantidad de jurados que han calificado
+                int juradosCalificados = notasJuradosValidas.size();
+
+                // CASUISTICAS
+                if (notaAsesor != null && juradosCalificados == 0) {
+                        // si solo el asesor ha calificado entonces se toma la nota del asesor
+                        notaFinal = notaAsesor;
+                        exposicionXTema.setNotaFinal(notaFinal);
+                        exposicionXTemaRepository.save(exposicionXTema);
+                        return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+                }
+
+                if (notaAsesor == null && juradosCalificados == 1) {
+                        // si solo un jurado ha calificado y no hay nota del asesor, se toma la nota del
+                        // jurado
+                        notaFinal = notasJuradosValidas.get(0);
+                        exposicionXTema.setNotaFinal(notaFinal);
+                        exposicionXTemaRepository.save(exposicionXTema);
+                        return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+                }
+
+                // reemplazamos notas faltantes del jurado con el promedio
+                BigDecimal promedioJurados = BigDecimal.ZERO;
+                if (juradosCalificados > 0) {
+                        promedioJurados = notasJuradosValidas.stream()
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                                        .divide(BigDecimal.valueOf(juradosCalificados), 4, RoundingMode.HALF_UP);
+                }
+
+                List<BigDecimal> notasJuradosCompletas = new ArrayList<>();
+                for (BigDecimal nota : notasJurados) {
+                        notasJuradosCompletas.add(nota != null ? nota : promedioJurados);
+                }
+
+                int totalJurados = notasJuradosCompletas.size();
+
+                // calculamos los pesos finales
+                BigDecimal pesoAsesorFinal = notaAsesor != null
+                                ? new BigDecimal(pesoAsesor).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
+
+                BigDecimal pesoJuradosFinal = BigDecimal.ONE.subtract(pesoAsesorFinal); // 1 - pesoAsesorFinal
+                BigDecimal pesoPorJurado = totalJurados > 0
+                                ? pesoJuradosFinal.divide(BigDecimal.valueOf(totalJurados), 4, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
+
+                // calculamos la nota final
+                if (notaAsesor != null) {
+                        notaFinal = notaFinal.add(notaAsesor.multiply(pesoAsesorFinal));
+                }
+
+                for (BigDecimal notaJurado : notasJuradosCompletas) {
+                        notaFinal = notaFinal.add(notaJurado.multiply(pesoPorJurado));
+                }
+
+                // actualizamos la nota final en la BD
+                exposicionXTema.setNotaFinal(notaFinal);
+                exposicionXTemaRepository.save(exposicionXTema);
+
+                return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
+        }
+
+
+        @Override
+        public Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request) {
+                Map<String, Object> response = new HashMap<>();
+
+                try {
+                        ExposicionXTema exposicionXTema = exposicionXTemaRepository.findById(request.getExposicionXTemaId())
+                                .orElseThrow(() -> new EntityNotFoundException("Exposición por tema no encontrada"));
+
+                        exposicionXTema.setLinkGrabacion(request.getNuevoLinkGrabacion());
+                        exposicionXTemaRepository.save(exposicionXTema);
+
+                        response.put("exito", true);
+                        response.put("mensaje", "Se ha actualizado correctamente el link de grabación.");
+                } catch (EntityNotFoundException e) {
+                        response.put("exito", false);
+                        response.put("mensaje", e.getMessage());
+                } catch (Exception e) {
+                        response.put("exito", false);
+                        response.put("mensaje", "Ocurrió un error al actualizar el link de grabación.");
+                }
+
+                return response;
+        }
+
 }

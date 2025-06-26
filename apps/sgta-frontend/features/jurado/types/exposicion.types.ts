@@ -45,8 +45,8 @@ export type ExposicionAlumno = {
   exposicionId: number;
   temaId: number;
   estado: ExposicionEstado;
-  link_exposicion: string;
-  link_grabacion: string;
+  linkExposicion: string;
+  linkGrabacion: string;
   datetimeInicio: Date; // o Date si ya viene parseado
   datetimeFin: Date;    // igual que arriba
   sala: string;
@@ -55,4 +55,5 @@ export type ExposicionAlumno = {
   ciclo: string;
   miembrosJurado: Miembro[];
   tipoExposicion: string;
+  notaFinal: number;
 };

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import pucp.edu.pe.sgta.model.EntregableXTema;
 
 @Entity
 @Getter
@@ -43,4 +44,15 @@ public class VersionDocumento {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "entregable_x_tema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_version_documento_entregable_x_tema"))
+    private EntregableXTema entregableXTema;
+    // agregare 3 columnas a version documento, porcentajeSimilitud , porcentajeIA , estadoProcesamiento
+    @Column(name = "porcentaje_similitud")
+    private Double porcentajeSimilitud = 0.0;
+    @Column(name = "porcentaje_ia")
+    private Double porcentajeIA = 0.0;
+    @Column(name = "estado_procesamiento")
+    private String estadoProcesamiento = "PENDING"; // PENDING, IN_PROGRESS, COMPLE
 } 

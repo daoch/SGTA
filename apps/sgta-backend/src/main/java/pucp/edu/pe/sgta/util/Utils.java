@@ -13,6 +13,30 @@ public class Utils {
         return arrayStr;
     }
 
+    public static <T> String convertListToPostgresArray(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return "{}";
+        }
+
+        StringBuilder sb = new StringBuilder("{");
+        for (int i = 0; i < list.size(); i++) {
+            T element = list.get(i);
+
+            // Si es String, agregar comillas
+            if (element instanceof String) {
+                sb.append("\"").append(element.toString().replace("\"", "\\\"")).append("\"");
+            } else {
+                sb.append(element.toString());
+            }
+
+            if (i < list.size() - 1) {
+                sb.append(",");
+            }
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
     static public String convertByteArrayToStringBase64(byte[] array) {
         return array != null? Base64.getEncoder().encodeToString(array) : null;
     }

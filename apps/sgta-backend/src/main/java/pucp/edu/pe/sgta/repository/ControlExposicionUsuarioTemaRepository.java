@@ -22,6 +22,22 @@ public interface ControlExposicionUsuarioTemaRepository extends JpaRepository<Co
 
     @Modifying
     @Query(value = "CALL update_estado_exposicion_usuario(:p_exposicion_id, :p_tema_id)", nativeQuery = true)
-    void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
-            @Param("p_exposicion_id") Integer etapaFormativa);
+    default void updateEstadoRespuestaExposicion(@Param("p_exposicion_id") Integer exposicionId,
+                                                 @Param("p_exposicion_id") Integer etapaFormativa) {
+
+    }
+
+    @Modifying
+    @Query(value = "CALL aceptar_invitacion_correo(:p_token_unico)",nativeQuery = true)
+    void aceptarInvitacionCorreo(@Param("p_token_unico") String tokenUnico);
+
+    @Modifying
+    @Query(value = "CALL rechazar_invitacion_correo(:p_token_unico)",nativeQuery = true)
+    void rechazarInvitacionCorreo(@Param("p_token_unico") String tokenUnico);
+
+    @Modifying
+    @Query(value = "CALL set_token_unico(:p_id_usuario,:p_token_unico,:p_id_exposicion,:p_id_tema)",nativeQuery = true)
+    void setTokenUnico(@Param("p_id_usuario") Integer idUsuario, @Param("p_token_unico") String tokenUnico ,@Param("p_id_exposicion") Integer idExposicion,@Param("p_id_tema") Integer idTema);
+
+
 }

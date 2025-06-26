@@ -12,6 +12,7 @@ import java.util.Map;
 
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
+import pucp.edu.pe.sgta.model.Tema;
 
 public interface TemaService {
 	List<TemaDto> getAll();
@@ -150,6 +151,7 @@ public interface TemaService {
         String estadoNombre,
         LocalDate fechaCreacionDesde,
         LocalDate fechaCreacionHasta,
+		String filtroRol,
         Integer limit,
         Integer offset
     );
@@ -175,7 +177,7 @@ public interface TemaService {
 
 	void guardarSimilitudes(String cognitoId, List<TemaSimilarDto> similitudes);
 
-	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario);
+	Integer createInscripcionTemaV2(TemaDto dto, String idUsuario, Boolean reinscribir);
 
 	List<TemaDto> listarTemasSimilares(Integer temaId);
 
@@ -212,4 +214,34 @@ public interface TemaService {
 
 	String listarSolicitudesPendientesPorUsuario(String usuarioId, int offset, int limit);
 
+	/**
+	 * Creates a new tema from OAI record data with FINALIZADO state
+	 * @param temaDto The tema data created from OAI record
+	 * @param carreraId The career ID to associate with the tema
+	 * @return The ID of the created tema
+	 */
+	Integer createTemaFromOAI(TemaDto temaDto, Integer carreraId);
+
+	/**
+	 * Registra una propuesta de reasignación para una solicitud de cese ya aprobada.
+	 * Actualiza la solicitud original con el asesor propuesto y un estado de reasignación.
+	 * Notifica al asesor propuesto.
+	 *
+	 * @param solicitudDeCeseOriginalId El ID de la Solicitud de cese que fue aprobada.
+	 * @param nuevoAsesorPropuestoId El ID del Usuario (profesor) que se propone como nuevo asesor.
+	 * @param coordinadorCognitoSub El Cognito Sub del coordinador que realiza la propuesta (para auditoría/validación).
+	 */
+	void proponerReasignacionParaSolicitudCese(
+			Integer solicitudDeCeseOriginalId,
+			Integer nuevoAsesorPropuestoId,
+			String coordinadorCognitoSub
+	);
+
+	Tema actualizarTemaYHistorial(Integer temaId,
+								  String nuevoEstadoNombre,
+								  String comentario);
+
+	String listarSolicitudesPendientesTemaAlumnos(String usuarioId, int offset, int limit);
+	void updateSolicitudesCoordinador(String usuarioId,Integer solicitudId,String respuesta);
+	List<UsuarioDto> listarProfesoresPorSubareasConMatch(List<Integer> subareaIds);
 }

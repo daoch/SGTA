@@ -1,19 +1,12 @@
 import AppLoading from "@/components/loading/app-loading";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { useEffect, useState } from "react";
@@ -34,7 +27,10 @@ const EntregablesAlumnoPage = () => {
   const [etapasFormativas, setEtapasFormativas] = useState<
     EtapaFormativaAlumnoDto[]
   >([]);
-  const [tabValue, setTabValue] = useState<keyof typeof TABS_VALUES>("todos");
+  const [entregaTab, setEntregaTab] =
+    useState<keyof typeof ENTREGA_TABS>("todos");
+  const [correccionTab, setCorreccionTab] =
+    useState<keyof typeof CORRECCION_TABS>("todos");
 
   const fetchEtapasFormativas = async () => {
     try {
@@ -97,18 +93,56 @@ const EntregablesAlumnoPage = () => {
     }
   }, [etapasFormativas]);
 
+  const hoy = new Date();
+
   const entregablesFiltrados = entregables
-    .slice() // para no mutar el array original
+    .slice()
     .sort(
       (a, b) =>
         new Date(a.entregableFechaFin).getTime() -
         new Date(b.entregableFechaFin).getTime(),
     )
-    .filter(
-      (entregable) =>
-        cicloSeleccionado === "" ||
-        entregable.cicloNombre === cicloSeleccionado,
-    );
+    .filter((entregable) => {
+      // Filtro por ciclo
+      if (
+        cicloSeleccionado !== "" &&
+        entregable.cicloNombre !== cicloSeleccionado
+      ) {
+        return false;
+      }
+
+      // Filtro por estado de entrega
+      if (entregaTab !== "todos") {
+        if (entregaTab === "por_enviar") {
+          // Solo mostrar si estado es no_enviado, fecha actual < fecha límite y fecha de entrega es null
+          const fechaLimite = new Date(entregable.entregableFechaFin);
+          if (
+            !(
+              entregable.entregableEstado === "no_enviado" &&
+              hoy < fechaLimite &&
+              entregable.entregableFechaEnvio === null
+            )
+          ) {
+            return false;
+          }
+        } else if (entregaTab === "enviado") {
+          if (entregable.entregableEstado !== "enviado_a_tiempo") return false;
+        } else if (entregaTab === "no_enviado") {
+          // No enviado: fecha actual > fecha límite y fecha de entrega es null
+          const fechaLimite = new Date(entregable.entregableFechaFin);
+          if (!(entregable.entregableFechaEnvio === null && hoy > fechaLimite))
+            return false;
+        }
+      }
+
+      // Filtro por estado de corrección
+      if (correccionTab !== "todos") {
+        if (entregable.corregido !== CORRECCION_TABS[correccionTab].filter)
+          return false;
+      }
+
+      return true;
+    });
 
   if (loading) {
     return <AppLoading />;
@@ -151,81 +185,72 @@ const EntregablesAlumnoPage = () => {
         </div>
       </div>
 
-      {/* Mostrar el nombre del tema asociado a la etapa formativa seleccionada */}
       <div className="text-lg font-medium text-[#042354]">
         {(() => {
-          // Busca la etapa formativa seleccionada según el ciclo
           const etapa = etapasFormativas.find(
             (e) => e.cicloNombre === cicloSeleccionado,
           );
-          return etapa?.temaTitulo
-            ? `Tema: ${etapa.temaTitulo}`
-            : "No hay tema asociado";
+          return (
+            <>
+              {etapa?.temaTitulo
+                ? `Curso: ${etapa.etapaFormativaNombre}`
+                : "No hay curso asociado"}
+              <br />
+              {etapa?.temaTitulo
+                ? `Tema: ${etapa.temaTitulo}`
+                : "No hay tema asociado"}
+            </>
+          );
         })()}
       </div>
 
-      <Tabs
-        value={tabValue}
-        onValueChange={(value) =>
-          setTabValue(value as keyof typeof TABS_VALUES)
-        }
-        className="w-full"
-      >
-        <TabsList>
-          <TabsTrigger value="no_iniciado">Pendientes</TabsTrigger>
-          <TabsTrigger value="entregados">Entregados</TabsTrigger>
-          <TabsTrigger value="revision">En Revisión</TabsTrigger>
-          <TabsTrigger value="revisados">Revisados</TabsTrigger>
-          <TabsTrigger value="todos">Todos</TabsTrigger>
-        </TabsList>
-        <TabsContent value={tabValue}>
-          <Card>
-            <CardHeader>
-              <CardTitle>{TABS_VALUES[tabValue].title}</CardTitle>
-              <CardDescription>
-                {TABS_VALUES[tabValue].description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EntregablesTable
-                filter={TABS_VALUES[tabValue].filter}
-                entregables={entregablesFiltrados}
-                setEntregables={setEntregables}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <Tabs
+          value={entregaTab}
+          onValueChange={(v) => setEntregaTab(v as keyof typeof ENTREGA_TABS)}
+        >
+          <TabsList>
+            {Object.entries(ENTREGA_TABS).map(([key, val]) => (
+              <TabsTrigger key={key} value={key}>
+                {val.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <Tabs
+          value={correccionTab}
+          onValueChange={(v) =>
+            setCorreccionTab(v as keyof typeof CORRECCION_TABS)
+          }
+        >
+          <TabsList>
+            {Object.entries(CORRECCION_TABS).map(([key, val]) => (
+              <TabsTrigger key={key} value={key}>
+                {val.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+      <EntregablesTable
+        entregables={entregablesFiltrados}
+        setEntregables={setEntregables}
+      />
     </div>
   );
 };
 
 export default EntregablesAlumnoPage;
 
-const TABS_VALUES = {
-  no_iniciado: {
-    title: "Pendientes",
-    description: "Lista de entregables pendientes de revisión",
-    filter: "no_iniciado",
-  },
-  entregados: {
-    title: "Entregados",
-    description: "Lista de entregables presentados",
-    filter: "Entregado",
-  },
-  revision: {
-    title: "En Revisión",
-    description: "Lista de entregables en revisión",
-    filter: "En Revisión",
-  },
-  revisados: {
-    title: "Revisados",
-    description: "Lista de entregables revisados",
-    filter: "Revisado",
-  },
-  todos: {
-    title: "Todos",
-    description: "Lista completa de entregables",
-    filter: "Todos",
-  },
+const ENTREGA_TABS = {
+  todos: { title: "Todos", filter: "todos" },
+  por_enviar: { title: "Por enviar", filter: "por_enviar" },
+  enviado: { title: "Enviado", filter: "enviado" },
+  no_enviado: { title: "No enviado", filter: "no_enviado" },
+};
+
+const CORRECCION_TABS = {
+  todos: { title: "Todos", filter: "todos" },
+  por_revisar: { title: "Por revisar", filter: false },
+  revisado: { title: "Revisado", filter: true },
 };

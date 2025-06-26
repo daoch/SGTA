@@ -32,6 +32,12 @@ public class EntregableXTema {
     @JoinColumn(name = "tema_id", foreignKey = @ForeignKey(name = "fk_entregable_x_tema_tema"))
     private Tema tema;
 
+    @Column(name = "entregable_id", insertable = false, updatable = false)
+    private Integer entregableId;
+
+    @Column(name = "tema_id", insertable = false, updatable = false)
+    private Integer temaId;
+
     @Column(name = "fecha_envio", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaEnvio;
 
@@ -39,10 +45,10 @@ public class EntregableXTema {
     private String comentario;
 
     @Column(name = "estado", nullable = false)
-    private String estadoStr = "no_enviado";
+    private String estado = "no_enviado";
 
     @Transient
-    private EstadoEntrega estado;
+    private EstadoEntrega estadoEnum;
 
     @Column(name = "nota_entregable")
     private BigDecimal notaEntregable;
@@ -55,19 +61,22 @@ public class EntregableXTema {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+    
+    @Column(name = "corregido")
+    private Boolean corregido = false;
 
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;
 
     @PostLoad
     void fillTransient() {
-        if (estadoStr != null) {
+        if (estado != null) {
             try {
-                this.estado = EstadoEntrega.valueOf(estadoStr);
+                this.estadoEnum = EstadoEntrega.valueOf(estado);
             } catch (IllegalArgumentException e) {
                 // Manejar el caso donde el valor en la base de datos no coincide con la
                 // enumeración
-                this.estado = EstadoEntrega.no_enviado;
+                this.estadoEnum = EstadoEntrega.no_enviado;
             }
         }
     }
@@ -75,19 +84,19 @@ public class EntregableXTema {
     @PrePersist
     @PreUpdate
     void fillPersistent() {
-        if (estado != null) {
-            this.estadoStr = estado.name();
+        if (estadoEnum != null) {
+            this.estado = estadoEnum.name();
         }
     }
 
-    public EstadoEntrega getEstado() {
-        return this.estado;
+    public EstadoEntrega getEstadoEnum() {
+        return this.estadoEnum;
     }
 
-    public void setEstado(EstadoEntrega estado) {
-        this.estado = estado;
-        if (estado != null) {
-            this.estadoStr = estado.name();
+    public void setEstadoEnum(EstadoEntrega estadoEnum) {
+        this.estadoEnum = estadoEnum;
+        if (estadoEnum != null) {
+            this.estado = estadoEnum.name();
         }
     }
 }

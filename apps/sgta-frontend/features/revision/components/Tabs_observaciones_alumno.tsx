@@ -79,11 +79,14 @@ export default function TabsObservacionesAlumno({
       return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime(); // default: fecha
     });
 
+  // Filtrado para asesor/coasesor
   const obsAsesor = obsFiltradas.filter(
-    (obs) => obs.roles.length === 1 && obs.roles[0] === 1
+    (obs) => obs.roles?.includes(1) || obs.roles?.includes(5)
   );
+
+  // Filtrado para revisor/jurado
   const obsRevisor = obsFiltradas.filter(
-    (obs) => obs.roles.includes(4) || (obs.roles.length > 1 || (obs.roles.length === 1 && obs.roles[0] !== 1))
+    (obs) => obs.roles?.includes(3) || (obs.roles?.includes(2) && !obs.roles?.includes(3))
   );
 
   const opcionesOrden = [
@@ -127,7 +130,23 @@ export default function TabsObservacionesAlumno({
     };
       const totalPagesAsesor = Math.ceil(obsAsesor.length / pageSize);
   const comentariosAsesor = obsAsesor.slice((pageAsesor - 1) * pageSize, pageAsesor * pageSize);
+function getRolTextoAsesor(roles: number[]) {
+  if (roles.includes(1) && roles.includes(5))
+    return <span className="font-bold">(Asesor)</span>;
+  if (roles.includes(1))
+    return <span className="font-bold">(Asesor)</span>;
+  if (roles.includes(5))
+    return <span className="font-bold">(Coasesor)</span>;
+  return null;
+}
 
+function getRolTextoRevisor(roles: number[]) {
+  if (roles.includes(3))
+    return <span className="font-bold">(Revisor)</span>;
+  if (roles.includes(2))
+    return <span className="font-bold">(Jurado)</span>;
+  return null;
+}
   // Paginación para Revisor
   const totalPagesRevisor = Math.ceil(obsRevisor.length / pageSize);
   const comentariosRevisor = obsRevisor.slice((pageRevisor - 1) * pageSize, pageRevisor * pageSize);
@@ -171,7 +190,7 @@ useEffect(() => {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold mb-1">Ver:</label>
+                    <label className="block text-xs font-semibold mb-1">Estado:</label>
                     <Select value={filtroCorregido} onValueChange={v => setFiltroCorregido(v as "todos" | "corregidos" | "sin_corregir")}>
                       <SelectTrigger className="w-48 border rounded px-2 py-1 text-sm">
                         <SelectValue placeholder="Filtrar por estado" />
@@ -255,11 +274,10 @@ useEffect(() => {
                             <div className="flex flex-col justify-center min-w-[170px] ml-4">
                               <h4 className="font-bold text-xs text-black">Comentado por</h4>
                               <p className="text-xs text-black">
-                                {obs.nombres} {obs.primerApellido} {obs.segundoApellido}
-                                {obs.roles && obs.roles.length === 1 && obs.roles[0] === 1 && " (Asesor)"}
-                                {obs.roles && obs.roles.includes(2) && " (Jurado)"}
-                                {obs.roles && obs.roles.includes(4) && " (Revisor)"}
-                              </p>
+                            {obs.nombres} {obs.primerApellido} {obs.segundoApellido}
+                            {" "}
+                            {getRolTextoAsesor(obs.roles)}
+                          </p>
                             </div>
                           </div>
                           {/* SEPARADOR */}
@@ -338,67 +356,25 @@ useEffect(() => {
       </TabsContent>
 
       <TabsContent value="revisor">
-        {/* Usa aquí mismo Card y contenido de Revisor */}
         <Card>
-              <CardHeader>
-                <CardTitle>Observaciones por Revisor/Jurado</CardTitle>
-                <CardDescription>Observaciones realizadas por revisores o jurados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Filtros dentro del Card */}
-                <div className="flex flex-col md:flex-row gap-2 mb-4">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1">Ordenar por:</label>
-                    <Select value={orden} onValueChange={setOrden}>
-                      <SelectTrigger className="w-48 border rounded px-2 py-1 text-sm">
-                        <SelectValue placeholder="Ordenar por..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcionesOrden.map((op) => (
-                          <SelectItem key={op.value} value={op.value}>
-                            {op.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1">Ver:</label>
-                    <Select value={filtroCorregido} onValueChange={v => setFiltroCorregido(v as "todos" | "corregidos" | "sin_corregir")}>
-                      <SelectTrigger className="w-48 border rounded px-2 py-1 text-sm">
-                        <SelectValue placeholder="Filtrar por estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcionesCorregido.map((op) => (
-                          <SelectItem key={op.value} value={op.value}>
-                            {op.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold mb-1">Buscar:</label>
-                    <input
-                      type="text"
-                      className="border rounded px-2 py-1 w-full text-sm"
-                      placeholder="Buscar por comentario, texto o tipo..."
-                      value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                    />
-                  </div>
-                </div>
-                {/* Observaciones */}
-                <div className="space-y-2">
+          <CardHeader>
+            <CardTitle>Observaciones por Revisor/Jurado</CardTitle>
+            <CardDescription>Observaciones realizadas por revisores o jurados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
               {comentariosRevisor.length === 0 ? (
                 <div className="text-sm text-muted-foreground">No hay observaciones registradas.</div>
               ) : (
                 comentariosRevisor.map((obs, idx) => (
-                      <div
-                        key={obs.observacionId ?? idx}
-                        className="bg-white border border-gray-200 rounded-md p-3 space-y-2"
-                      >
-                        <div className="flex justify-between items-center">
+                  <div
+                    key={obs.observacionId ?? idx}
+                    className="bg-white border border-gray-200 rounded-md p-3"
+                  >
+                    <div className="flex flex-row items-stretch">
+                      {/* IZQUIERDA: info de la observación */}
+                      <div className="flex-1 flex flex-row gap-4">
+                        <div className="flex flex-col justify-center flex-1">
                           <div className="flex gap-2 items-center">
                             <p className="text-base font-bold text-black">Página {obs.numeroPaginaInicio}</p>
                             <Badge
@@ -431,58 +407,63 @@ useEffect(() => {
                               {obs.corregido ? "Resuelto" : "No resuelto"}
                             </Badge>
                           </div>
-                          <div className="text-xs text-black font-semibold text-right">
-                            <div>Comentado por:</div>
-                            <div>
-                              {obs.nombres} {obs.primerApellido} {obs.segundoApellido}
-                              {obs.roles && obs.roles.length === 1 && obs.roles[0] === 1 && " (Asesor)"}
-                              {obs.roles && obs.roles.includes(2) && " (Jurado)"}
-                              {obs.roles && obs.roles.includes(4) && " (Revisor)"}
-                            </div>
-                            <div className="flex flex-col items-center mt-2">
-                              <span
-                                className={
-                                  "text-[10px] mb-1 transition-colors " +
-                                  (obs.corregido
-                                    ? "text-muted-foreground hover:text-red-600"
-                                    : "text-muted-foreground hover:text-green-600")
-                                }
-                              >
-                                {obs.corregido ? "Desmarcar" : "Marcar como corregido"}
-                              </span>
-                              <Button
-                                size="icon"
-                                variant={obs.corregido ? "outline" : "ghost"}
-                                className={
-                                  (obs.corregido
-                                    ? "text-green-600 hover:text-red-600"
-                                    : "text-gray-400 hover:text-green-600") +
-                                  " transition-colors"
-                                }
-                                title={obs.corregido ? "Desmarcar" : "Marcar como corregido"}
-                                onClick={() => marcarComoCorregido(obs.observacionId!, !obs.corregido)}
-                              >
-                                {obs.corregido ? (
-                                  <CheckCircle className="w-5 h-5" />
-                                ) : (
-                                  <XCircle className="w-5 h-5" />
-                                )}
-                              </Button>
-                            </div>
+                          <div className="mt-2">
+                            <h4 className="font-bold text-xs text-black">Comentario</h4>
+                            <p className="text-xs text-black">{obs.comentario}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-xs text-black mt-2">Texto comentado</h4>
+                            <p className="text-xs text-black">{obs.contenido}</p>
                           </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Comentario</h4>
-                          <p className="text-xs text-black">{obs.comentario}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-black mt-2">Texto comentado</h4>
-                          <p className="text-xs text-black">{obs.contenido}</p>
+                        {/* Comentado por alineado con comentario */}
+                        <div className="flex flex-col justify-center min-w-[170px] ml-4">
+                          <h4 className="font-bold text-xs text-black">Comentado por</h4>
+                          <p className="text-xs text-black">
+                            {obs.nombres} {obs.primerApellido} {obs.segundoApellido}
+                            {" "}
+                            {getRolTextoRevisor(obs.roles)}
+                          </p>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                      {/* SEPARADOR */}
+                      <div className="border-l border-gray-300 mx-4" />
+                      {/* DERECHA: botón marcar como corregido */}
+                      <div className="flex flex-col items-center justify-center min-w-[100px]">
+                        <span
+                          className={
+                            "text-[10px] mb-1 transition-colors " +
+                            (obs.corregido
+                              ? "text-muted-foreground hover:text-red-600"
+                              : "text-muted-foreground hover:text-green-600")
+                          }
+                        >
+                          {obs.corregido ? "Desmarcar" : "Marcar como corregido"}
+                        </span>
+                        <Button
+                          size="icon"
+                          variant={obs.corregido ? "outline" : "ghost"}
+                          className={
+                            (obs.corregido
+                              ? "text-green-600 hover:text-red-600"
+                              : "text-gray-400 hover:text-green-600") +
+                            " transition-colors"
+                          }
+                          title={obs.corregido ? "Desmarcar" : "Marcar como corregido"}
+                          onClick={() => marcarComoCorregido(obs.observacionId!, !obs.corregido)}
+                        >
+                          {obs.corregido ? (
+                            <CheckCircle className="w-5 h-5" />
+                          ) : (
+                            <XCircle className="w-5 h-5" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
                 {totalPagesRevisor > 1 && (
                   <Pagination className="mt-4">
                     <PaginationContent>

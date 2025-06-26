@@ -16,11 +16,23 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { Curso } from "../dtos/curso";
 import { TemaPorAsociar } from "../dtos/tema-por-asociar";
 import { toast } from "sonner";
 import AppLoading from "@/components/loading/app-loading";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ESTADOS = [
   { value: "REGISTRADO", label: "Registrado" },
@@ -45,6 +57,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
     TemaPorAsociar[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [filtroCodigo, setFiltroCodigo] = useState("");
 
   useEffect(() => {
     const fetchCursos = async () => {
@@ -146,9 +159,26 @@ const AsociacionTemaCursoPage: React.FC = () => {
     setLoading(false);
   };
 
-  const temasFiltrados = temas.filter((tema) =>
-    tabEstado === "" ? true : tema.estadoTemaNombre === tabEstado,
-  );
+  const temasFiltrados = temas.filter((tema) => {
+    // Filtrado por estado
+    const estadoOk =
+      tabEstado === "" ? true : tema.estadoTemaNombre === tabEstado;
+
+    // Filtrado por códigos separados por coma
+    if (filtroCodigo.trim() === "") return estadoOk;
+
+    // Procesar los códigos ingresados
+    const codigos = filtroCodigo
+      .split(",")
+      .map((c) => c.trim().toLowerCase())
+      .filter((c) => c.length > 0);
+
+    // Si no hay códigos válidos, no filtrar por código
+    if (codigos.length === 0) return estadoOk;
+
+    // Verifica si el código del tema está en la lista
+    return estadoOk && codigos.includes((tema.codigo ?? "").toLowerCase());
+  });
 
   useEffect(() => {
     // Busca el input interno del Checkbox de shadcn/ui
@@ -207,41 +237,47 @@ const AsociacionTemaCursoPage: React.FC = () => {
       {/* Card con tabla de cursos y checkbox para seleccionar uno */}
       <Card className="mb-6">
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead></TableHead>
-                <TableHead>Nombre del curso</TableHead>
-                <TableHead>Ciclo</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cursos.length === 0 ? (
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[700px] w-full table-fixed">
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className="text-center text-muted-foreground py-4"
-                  >
-                    No hay cursos para mostrar.
-                  </TableCell>
+                  <TableHead className="w-1/32"></TableHead>
+                  <TableHead className="w-29/32 text-left">Nombre del curso</TableHead>
+                  <TableHead className="w-1/16 text-left">Ciclo</TableHead>
                 </TableRow>
-              ) : (
-                cursos.map((curso) => (
-                  <TableRow key={curso.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={cursoSeleccionado?.id === curso.id}
-                        onCheckedChange={() => handleSelectCurso(curso)}
-                        aria-label={`Seleccionar curso ${curso.etapaFormativaNombre} (${curso.cicloNombre})`}
-                      />
+              </TableHeader>
+              <TableBody>
+                {cursos.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={3}
+                      className="text-center text-muted-foreground py-4"
+                    >
+                      No hay cursos para mostrar.
                     </TableCell>
-                    <TableCell>{curso.etapaFormativaNombre}</TableCell>
-                    <TableCell>{curso.cicloNombre}</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  cursos.map((curso) => (
+                    <TableRow key={curso.id}>
+                      <TableCell className="w-12">
+                        <Checkbox
+                          checked={cursoSeleccionado?.id === curso.id}
+                          onCheckedChange={() => handleSelectCurso(curso)}
+                          aria-label={`Seleccionar curso ${curso.etapaFormativaNombre} (${curso.cicloNombre})`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-left">
+                        {curso.etapaFormativaNombre}
+                      </TableCell>
+                      <TableCell className="text-left">
+                        {curso.cicloNombre}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -261,71 +297,147 @@ const AsociacionTemaCursoPage: React.FC = () => {
         </TabsList>
       </Tabs>
 
+      <div className="mb-2 flex items-center gap-2">
+        <span className="font-medium">Buscar temas por código:</span>
+        <Input
+          placeholder="Ingrese el código de los temas separados por comas"
+          value={filtroCodigo}
+          onChange={(e) => setFiltroCodigo(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
       {/* Card con tabla de temas y checkbox para seleccionar todos */}
       <Card>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Checkbox
-                    checked={
-                      temasSeleccionados !== null &&
-                      temasSeleccionados.length === temasFiltrados.length &&
-                      temasFiltrados.length > 0
-                    }
-                    onCheckedChange={handleSelectAllTemas}
-                    aria-label="Seleccionar todos los temas"
-                    id="select-all-checkbox"
-                  />
-                </TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {temasFiltrados.length === 0 ? (
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[700px] w-full table-fixed">
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No hay temas para mostrar.
-                  </TableCell>
+                  <TableHead className="w-1/16">
+                    <Checkbox
+                      checked={
+                        temasSeleccionados !== null &&
+                        temasSeleccionados.length === temasFiltrados.length &&
+                        temasFiltrados.length > 0
+                      }
+                      onCheckedChange={handleSelectAllTemas}
+                      aria-label="Seleccionar todos los temas"
+                      id="select-all-checkbox"
+                    />
+                  </TableHead>
+                  <TableHead className="w-1/8">Código</TableHead>
+                  <TableHead className="w-5/8">Título</TableHead>
+                  <TableHead className="w-1/8 text-left">Tesista</TableHead>
+                  <TableHead className="w-1/16 text-left">Estado</TableHead>
                 </TableRow>
-              ) : (
-                temasFiltrados.map((tema) => (
-                  <TableRow key={tema.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={temasSeleccionados?.some(
-                          (t) => t.id === tema.id,
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleTemaCheckbox(tema, !!checked)
-                        }
-                        aria-label={`Seleccionar tema ${tema.titulo}`}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{tema.titulo}</TableCell>
-                    <TableCell>{tema.codigo}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          estadoColors[tema.estadoTemaNombre] ||
-                          "bg-gray-100 text-gray-800"
-                        }
-                      >
-                        {ESTADOS.find((e) => e.value === tema.estadoTemaNombre)
-                          ?.label ?? tema.estadoTemaNombre}
-                      </Badge>
+              </TableHeader>
+              <TableBody>
+                {temasFiltrados.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      No hay temas para mostrar.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  temasFiltrados.map((tema) => (
+                    <TableRow key={tema.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={temasSeleccionados?.some(
+                            (t) => t.id === tema.id,
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleTemaCheckbox(tema, !!checked)
+                          }
+                          aria-label={`Seleccionar tema ${tema.titulo}`}
+                        />
+                      </TableCell>
+                      <TableCell>{tema.codigo}</TableCell>
+                      <TableCell className="font-medium truncate max-w-[180px]">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="truncate block cursor-pointer">
+                                {tema.titulo}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{tema.titulo}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell className="text-left">
+                        {tema.tesistas && tema.tesistas.length > 0 ? (
+                          <div className="flex items-centergap-2">
+                            <span>
+                              {tema.tesistas[0].nombres +
+                                " " +
+                                tema.tesistas[0].primerApellido}{" "}
+                              {/* Muestra el primer tesista */}
+                            </span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 p-0"
+                                  aria-label="Ver todos los tesistas"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-56">
+                                <div>
+                                  <span className="font-semibold text-sm mb-2 block">
+                                    Tesistas:
+                                  </span>
+                                  <ul className="list-disc pl-4">
+                                    {tema.tesistas.map(
+                                      (tesista: {
+                                        nombres: string;
+                                        primerApellido: string;
+                                        id: string;
+                                      }) => (
+                                        <li key={tesista.id}>
+                                          {tesista.nombres +
+                                            " " +
+                                            tesista.primerApellido}
+                                        </li>
+                                      ),
+                                    )}
+                                  </ul>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            Sin tesistas
+                          </span>
+                        )}
+                      </TableCell>
+
+                      <TableCell className="text-left">
+                        <Badge
+                          className={
+                            estadoColors[tema.estadoTemaNombre] ||
+                            "bg-gray-100 text-gray-800"
+                          }
+                        >
+                          {ESTADOS.find(
+                            (e) => e.value === tema.estadoTemaNombre,
+                          )?.label ?? tema.estadoTemaNombre}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

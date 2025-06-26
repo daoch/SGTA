@@ -4,8 +4,13 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;          // ← IMPORT Jakarta
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,16 +26,20 @@ import pucp.edu.pe.sgta.dto.TopicTrendDTO;
 import pucp.edu.pe.sgta.dto.TesistasPorAsesorDTO;
 import pucp.edu.pe.sgta.dto.EntregableEstudianteDto;
 import pucp.edu.pe.sgta.dto.EntregableCriteriosDetalleDto;
+import pucp.edu.pe.sgta.dto.ExcelExportConfigDto;
 import java.util.NoSuchElementException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 
 import pucp.edu.pe.sgta.service.inter.IReportService;
+import pucp.edu.pe.sgta.service.inter.IExcelExportService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 
 @RestController
@@ -38,14 +47,58 @@ import java.util.Map;
 public class ReportsController {
 
     private final IReportService reportingService;
-
+    private final IExcelExportService excelExportService;
     private final JwtService      jwtService;
     private static final Logger logger = LoggerFactory.getLogger(ReportsController.class);
 
     @Autowired
-    public ReportsController(IReportService reportingService, JwtService jwtService) {
+    public ReportsController(IReportService reportingService, IExcelExportService excelExportService, JwtService jwtService) {
         this.reportingService = reportingService;
+        this.excelExportService = excelExportService;
         this.jwtService       = jwtService;
+    }
+
+    /**
+     * Endpoint para exportar reportes a Excel con gráficos embebidos
+     */
+    @PostMapping("/export-excel")
+    public ResponseEntity<byte[]> exportExcelReport(
+            @RequestParam String ciclo,
+            @RequestBody ExcelExportConfigDto config,
+            HttpServletRequest request) {
+        
+        try {
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            
+
+            ByteArrayOutputStream excelFile;
+            if ("tables".equals(config.getContentType())) {
+                excelFile = excelExportService.generateExcelWithTables(config, cognitoSub, ciclo);
+            } else {
+                excelFile = excelExportService.generateExcelWithCharts(config, cognitoSub, ciclo);
+            }
+            
+            // Configurar headers para descarga
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDisposition(ContentDisposition
+                    .attachment()
+                    .filename("Reporte_Coordinador_" + ciclo + "_" + java.time.LocalDate.now() + ".xlsx")
+                    .build());
+            
+            logger.info("Reporte Excel generado exitosamente para usuario: {}, ciclo: {}", cognitoSub, ciclo);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelFile.toByteArray());
+                    
+        } catch (IOException e) {
+            logger.error("Error al generar reporte Excel para ciclo: " + ciclo, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            logger.error("Error inesperado al generar reporte Excel", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /** RF1: estadísticas de temas por área para un coordinador */
@@ -100,6 +153,7 @@ public class ReportsController {
         return reportingService.getAdvisorPerformance(sub, ciclo);
     }
 
+    
     /** RF4: lista de tesistas por asesor */
     @GetMapping("/advisors/tesistas")
     public ResponseEntity<List<TesistasPorAsesorDTO>> getTesistasPorAsesor(
@@ -180,12 +234,30 @@ public class ReportsController {
 
 
 
-    /** RF9: entregables con criterios de un tesista - NO AGREGAR ID COGNITO*/
-    @GetMapping("/entregables-criterios/{idUsuario}")
+    /** RF9: entregables con criterios de un tesista*/
+    @GetMapping("/entregables-criterios")
     public ResponseEntity<List<EntregableCriteriosDetalleDto>> getEntregablesConCriterios(
-           @PathVariable Integer  idUsuario) {
+           HttpServletRequest request) {
+        String idUsuario = jwtService.extractSubFromRequest(request);
         List<EntregableCriteriosDetalleDto> list =
             reportingService.getEntregablesConCriterios(idUsuario);
         return ResponseEntity.ok(list);
+
     }
+
+    /** RF10: Obtener estado de revisión de entregable */
+    @GetMapping("/entregables/estado-revision")
+    public ResponseEntity<?> getEstadoRevisionPorEntregableXTema(@RequestParam Integer entregableXTemaId) {
+        try {
+            return ResponseEntity.ok(reportingService.getEstadoRevisionPorEntregable(entregableXTemaId));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of("error", "No se encontró revisión para este entregable"));
+        } catch (Exception e) {
+            logger.error("Error al obtener estado de revisión:", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
 }

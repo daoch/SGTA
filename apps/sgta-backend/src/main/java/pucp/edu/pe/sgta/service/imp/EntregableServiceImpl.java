@@ -97,6 +97,7 @@ public class EntregableServiceImpl implements EntregableService {
             entregable.setEstado(EstadoActividad.no_iniciado);
         }
         entregableRepository.save(entregable);
+        entregableRepository.asociarTemasAEntregable(entregable.getId(), etapaFormativaXCicloId);
         return entregable.getId();
     }
 
@@ -183,19 +184,13 @@ public class EntregableServiceImpl implements EntregableService {
             }
             dto.setEntregableComentario((String) row[18]);
             dto.setEntregableXTemaId((Integer) row[19]);
+            dto.setCorregido((Boolean) row[20]);
             entregables.add(dto);
         }
 
         return entregables;
     }
 
-    @Transactional
-    @Override
-    public void entregarEntregable(Integer entregableXTemaId, EntregableSubidoDto entregableDto) {
-        entregableRepository.entregarEntregable(entregableXTemaId,
-                entregableDto.getComentario(),
-                entregableDto.getEstado());
-    }
     @Override
     public EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId) {
         List<Object[]> resultados = entregableRepository.obtenerDetalleXTema(entregableId, temaId);

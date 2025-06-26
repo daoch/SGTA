@@ -58,39 +58,43 @@ export function EntregablesTable({
   };
 
   return (
-    <div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+  <div>
+    <div className="rounded-md border overflow-x-auto">
+      <Table className="min-w-[800px] w-full">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/12">Entregable</TableHead>
+            <TableHead className="w-1/4">Nombre</TableHead>
+            <TableHead className="w-1/6">Fecha límite</TableHead>
+            <TableHead className="w-1/6">Fecha de entrega</TableHead>
+            <TableHead className="w-1/6">Estado de entrega</TableHead>
+            <TableHead className="w-1/6">Estado de revisión</TableHead>
+            <TableHead className="w-1/12">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {entregablesFiltradas.length === 0 ? (
             <TableRow>
-              <TableHead>Entregable</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Fecha límite</TableHead>
-              <TableHead>Fecha de entrega</TableHead>
-              <TableHead>Estado de entrega</TableHead>
-              <TableHead>Acciones</TableHead>
+              <TableCell
+                colSpan={7}
+                className="text-center py-8 text-muted-foreground"
+              >
+                No hay entregables disponibles
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {entregablesFiltradas.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No hay entregables disponibles
+          ) : (
+            entregablesFiltradas.map((entregable, idx) => (
+              <TableRow key={entregable.entregableId}>
+                {/* Entregable */}
+                <TableCell>{`E${idx + 1}`}</TableCell>
+                {/* Nombre */}
+                <TableCell className="font-medium max-w-xs truncate">
+                  {entregable.entregableNombre}
                 </TableCell>
-              </TableRow>
-            ) : (
-              entregablesFiltradas.map((entregable, idx) => (
-                <TableRow key={entregable.entregableId}>
-                  <TableCell>{`E${idx + 1}`}</TableCell>
-                  <TableCell className="font-medium max-w-xs truncate">
-                    {entregable.entregableNombre}
-                  </TableCell>
-                  <TableCell>
-                    {entregable.entregableFechaFin
-                      ? new Date(entregable.entregableFechaFin).toLocaleString(
+                {/* Fecha límite */}
+                <TableCell>
+                  {entregable.entregableFechaFin
+                    ? new Date(entregable.entregableFechaFin).toLocaleString(
                         "es-PE",
                         {
                           day: "2-digit",
@@ -100,11 +104,12 @@ export function EntregablesTable({
                           minute: "2-digit",
                         },
                       )
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {entregable.entregableFechaEnvio
-                      ? new Date(
+                    : "-"}
+                </TableCell>
+                {/* Fecha de entrega */}
+                <TableCell>
+                  {entregable.entregableFechaEnvio
+                    ? new Date(
                         entregable.entregableFechaEnvio,
                       ).toLocaleString("es-PE", {
                         day: "2-digit",
@@ -113,103 +118,115 @@ export function EntregablesTable({
                         hour: "2-digit",
                         minute: "2-digit",
                       })
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {(() => {
-                      let badgeClass = "";
-                      let estadoTexto = "";
+                    : "-"}
+                </TableCell>
+                {/* Estado de entrega */}
+                <TableCell>
+                  {(() => {
+                    let badgeClass = "";
+                    let estadoTexto = "";
 
-                      // Determinar el texto a mostrar y el color
-                      if (
-                        entregable.entregableEstado === "no_enviado" &&
-                        new Date() > new Date(entregable.entregableFechaFin)
-                      ) {
-                        estadoTexto = "No enviado";
-                        badgeClass = "bg-red-100 text-red-800 hover:bg-red-100"; // Rojo
-                      } else if (entregable.entregableEstado === "no_enviado") {
-                        estadoTexto = "Pendiente";
-                        badgeClass =
-                          "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"; // Amarillo
-                      } else if (
-                        entregable.entregableEstado === "enviado_a_tiempo"
-                      ) {
-                        estadoTexto = "Enviado a tiempo";
-                        badgeClass =
-                          "bg-green-100 text-green-800 hover:bg-green-100"; // Verde
-                      } else if (
-                        entregable.entregableEstado === "enviado_tarde"
-                      ) {
-                        estadoTexto = "Enviado tarde";
-                        badgeClass =
-                          "bg-orange-100 text-orange-800 hover:bg-orange-100"; // Naranja
-                      } else if (entregable.entregableEstado === "enviado") {
-                        estadoTexto = "Enviado";
-                        badgeClass =
-                          "bg-gray-100 text-gray-800 hover:bg-gray-100";
-                      } else {
-                        estadoTexto =
-                          estadoLabels[entregable.entregableEstado] ||
-                          entregable.entregableEstado;
-                        badgeClass =
-                          "bg-gray-100 text-gray-800 hover:bg-gray-100";
-                      }
+                    if (
+                      entregable.entregableEstado === "no_enviado" &&
+                      new Date() > new Date(entregable.entregableFechaFin)
+                    ) {
+                      estadoTexto = "No enviado";
+                      badgeClass = "bg-red-100 text-red-800 hover:bg-red-100";
+                    } else if (entregable.entregableEstado === "no_enviado") {
+                      estadoTexto = "Pendiente";
+                      badgeClass =
+                        "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+                    } else if (
+                      entregable.entregableEstado === "enviado_a_tiempo"
+                    ) {
+                      estadoTexto = "Enviado a tiempo";
+                      badgeClass =
+                        "bg-green-100 text-green-800 hover:bg-green-100";
+                    } else if (
+                      entregable.entregableEstado === "enviado_tarde"
+                    ) {
+                      estadoTexto = "Enviado tarde";
+                      badgeClass =
+                        "bg-orange-100 text-orange-800 hover:bg-orange-100";
+                    } else if (entregable.entregableEstado === "enviado") {
+                      estadoTexto = "Enviado";
+                      badgeClass =
+                        "bg-gray-100 text-gray-800 hover:bg-gray-100";
+                    } else {
+                      estadoTexto =
+                        estadoLabels[entregable.entregableEstado] ||
+                        entregable.entregableEstado;
+                      badgeClass =
+                        "bg-gray-100 text-gray-800 hover:bg-gray-100";
+                    }
 
-                      return (
-                        <Badge variant="outline" className={badgeClass}>
-                          {estadoTexto}
-                        </Badge>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-end gap-2">
-                      {entregable.entregableEstado != "no_enviado" && (
-                        <Dialog>
-                          <Link
-                           href={{
-                            pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,                                
-                            query: { tema: entregable.temaId }
-                            }}
-                            > 
-                            <Button variant="ghost" size="icon">
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">Ver detalles</span>
-                            </Button>
-                          </Link>
-                        </Dialog>
-                      )}
-                      {new Date() <=
-                        new Date(entregable.entregableFechaFin) && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenDialog(entregable)}
-                              >
-                                <Upload className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            {selectedEntregable && (
-                              <EntregablesModal
-                                entregable={selectedEntregable}
-                                setSelectedEntregable={setSelectedEntregable}
-                                handleUpdateEntregable={handleUpdateEntregable}
-                              ></EntregablesModal>
-                            )}
-                          </Dialog>
+                    return (
+                      <Badge variant="outline" className={badgeClass}>
+                        {estadoTexto}
+                      </Badge>
+                    );
+                  })()}
+                </TableCell>
+                {/* Estado de revisión */}
+                <TableCell>
+                  {entregable.corregido ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Revisado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                      Por revisar
+                    </Badge>
+                  )}
+                </TableCell>
+                {/* Acciones */}
+                <TableCell className="text-center">
+                  <div className="flex justify-end gap-2">
+                    {entregable.entregableEstado != "no_enviado" && (
+                      <Dialog>
+                        <Link
+                          href={{
+                            pathname: `/alumno/mi-proyecto/entregables/${entregable.entregableId}`,
+                            query: { tema: entregable.temaId },
+                          }}
+                        >
+                          <Button variant="ghost" size="icon">
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Ver detalles</span>
+                          </Button>
+                        </Link>
+                      </Dialog>
+                    )}
+                    {new Date() <= new Date(entregable.entregableFechaFin) && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(entregable)}
+                          >
+                            <Upload className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        {selectedEntregable && (
+                          <EntregablesModal
+                            entregable={selectedEntregable}
+                            setSelectedEntregable={setSelectedEntregable}
+                            handleUpdateEntregable={handleUpdateEntregable}
+                          ></EntregablesModal>
                         )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      </Dialog>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
-  );
+  </div>
+);
 }
 
 const estadoLabels: Record<string, string> = {

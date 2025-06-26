@@ -2,11 +2,10 @@ package pucp.edu.pe.sgta.service.inter;
 
 import org.springframework.http.ResponseEntity;
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionDto;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionJuradoDTO;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionCalificacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.ExposicionObservacionRequest;
-import pucp.edu.pe.sgta.dto.calificacion.RevisionCriteriosRequest;
+import pucp.edu.pe.sgta.dto.calificacion.*;
+import pucp.edu.pe.sgta.dto.coordinador.ExposicionCoordinadorDto;
+import pucp.edu.pe.sgta.dto.coordinador.UpdateLinkGrabacionRequest;
+import pucp.edu.pe.sgta.dto.etapas.EtapasFormativasDto;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoControlExposicionRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.EstadoExposicionJuradoRequest;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
@@ -19,49 +18,60 @@ import java.util.Optional;
 
 public interface MiembroJuradoService {
 
-    public List<MiembroJuradoDto> obtenerUsuarioTemaInfo();
+        public List<MiembroJuradoDto> obtenerUsuarioTemaInfo();
 
-    public List<Object[]> findAreaConocimientoByUsuarioId(Integer usuarioId);
+        public List<Object[]> findAreaConocimientoByUsuarioId(Integer usuarioId);
 
-    public List<MiembroJuradoDto> obtenerUsuariosPorEstado(Boolean activoParam);
+        public List<MiembroJuradoDto> obtenerUsuariosPorEstado(Boolean activoParam);
 
-    public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
+        public List<MiembroJuradoDto> obtenerUsuariosPorAreaConocimiento(Integer areaConocimientoId);
 
-    public Optional<Map<String, Object>> deleteUserJurado(Integer usuarioId);
+        public Optional<Map<String, Object>> deleteUserJurado(Integer usuarioId);
 
-    public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
+        public List<JuradoXAreaConocimientoDto> findAreaConocimientoByUser(Integer usuarioId);
 
-    ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
+        ResponseEntity<?> asignarJuradoATema(AsignarJuradoRequest request);
 
-    List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
+        List<MiembroJuradoXTemaDto> findByUsuarioIdAndActivoTrueAndRolId(Integer usuarioId);
 
-    List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
+        List<MiembroJuradoXTemaTesisDto> findTemaTesisByUsuario(Integer usuarioId);
 
-    List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
+        List<MiembroJuradoXTemaDto> findTemasDeOtrosJurados(Integer usuarioId);
 
-    ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
+        ResponseEntity<?> desasignarJuradoDeTema(AsignarJuradoRequest request);
 
-    // Va para temas pero lo he colocado aquí
-    public DetalleTemaDto obtenerDetalleTema(Integer temaId);
+        // Va para temas pero lo he colocado aquí
+        public DetalleTemaDto obtenerDetalleTema(Integer temaId);
 
-    ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
+        ResponseEntity<?> desasignarJuradoDeTemaTodos(Integer usuarioId);
 
-    // Detalle exposición Jurado
-    List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
+        // Detalle exposición Jurado
+        List<ExposicionTemaMiembrosDto> listarExposicionXJuradoId(String juradoId);
 
-    ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
+        ResponseEntity<?> actualizarEstadoExposicionJurado(EstadoExposicionJuradoRequest request);
 
-    ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request, String juradoId);
+        ResponseEntity<?> actualizarEstadoControlExposicion(EstadoControlExposicionRequest request, String juradoId);
 
-    List<EstadoExposicionDto> listarEstados();
+        List<EstadoExposicionDto> listarEstados();
 
-    ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
-            ExposicionCalificacionRequest exposicionCalificacionRequest, String juradoId);
+        ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
+                        ExposicionCalificacionRequest exposicionCalificacionRequest, String juradoId);
 
-    ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
+        ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
 
-    ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
+        ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
 
-    public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
-            ExposicionCalificacionRequest exposicionCalificacionRequest);
+        List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
+
+        List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
+
+        ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
+
+        public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
+                        ExposicionCalificacionRequest exposicionCalificacionRequest);
+        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
+
+
+        Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request);
+
 }

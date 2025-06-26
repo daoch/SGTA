@@ -17,6 +17,7 @@ import pucp.edu.pe.sgta.dto.asesores.TemaConAsesorDto;
 import pucp.edu.pe.sgta.dto.exposiciones.ExposicionTemaMiembrosDto;
 import pucp.edu.pe.sgta.dto.temas.TemasComprometidosDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
+import pucp.edu.pe.sgta.service.imp.TemaServiceImpl;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.SimilarityService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
@@ -25,6 +26,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +53,8 @@ public class TemaController {
 
 	@Autowired
 	UsuarioXCarreraService usuarioXCarreraService;
+    @Autowired
+    private TemaServiceImpl temaServiceImpl;
 
 	@GetMapping("/findByUser") // finds topics by user
 	public List<TemaDto> findByUser(@RequestParam(name = "idUsuario") Integer idUsuario) {
@@ -90,7 +94,7 @@ public class TemaController {
 			HttpServletRequest request
 	) {
 		String idUsuarioCreador = jwtService.extractSubFromRequest(request);
-		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador);
+		return temaService.createInscripcionTemaV2(dto, idUsuarioCreador, false);
 	}
 
 	@PutMapping("/update") // updates a topic
@@ -323,7 +327,7 @@ public class TemaController {
 	}
 
 	@GetMapping("/listarTemaActivoConAsesor/{idAlumno}")
-	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno) {
+	public ResponseEntity<TemaConAsesorDto> listarTemas(@PathVariable Integer idAlumno, HttpServletRequest request) {
 		TemaConAsesorDto temas = temaService.obtenerTemaActivoPorAlumno(idAlumno);
 		return ResponseEntity.ok(temas);
 	}
@@ -508,6 +512,7 @@ public class TemaController {
 			@RequestParam(value = "estadoNombre", required = false) String estadoNombre,
 			@RequestParam(value = "fechaCreacionDesde", required = false) String fechaCreacionDesdeStr,
 			@RequestParam(value = "fechaCreacionHasta", required = false) String fechaCreacionHastaStr,
+			@RequestParam(value = "rolNombre", required = false) String rolNombre,
 			@RequestParam(value = "limit", defaultValue = "10") Integer limit,
 			@RequestParam(value = "offset", defaultValue = "0") Integer offset,
 			HttpServletRequest request
@@ -535,6 +540,7 @@ public class TemaController {
 				filtroEstado,
 				fechaDesde,
 				fechaHasta,
+				rolNombre,
 				limit,
 				offset
 		);
@@ -834,6 +840,67 @@ public class TemaController {
                 "No autorizado para listar pendientes: " + e.getMessage());
         }
     }
+
+	@GetMapping("/listarSolicitudesPendientesTemaAlumnos")
+	public ResponseEntity<String> listarSolicitudesPendientesTemaAlumnos(
+			@RequestParam(value = "offset", defaultValue = "0") int offset,
+			@RequestParam(value = "limit",  defaultValue = "10") int limit,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			String json = temaService.listarSolicitudesPendientesTemaAlumnos(usuarioId, offset, limit);
+			return ResponseEntity.ok(json);
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"No autorizado para listar pendientes: " + e.getMessage());
+		}
+	}
+
+
+	@PostMapping("/updatesolicitudesCoordinador")
+	public void updateSolicitudesCoordinador(
+			@RequestParam("solicitudId") Integer solicitudId,
+			@RequestParam("respuesta") String respuesta,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId, respuesta);
+
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"Ocurrió un error: " + e.getMessage());
+		}
+	}
+
+
+	@GetMapping("/profesores-por-subareas")
+    public ResponseEntity<List<UsuarioDto>> listarProfesoresPorSubareasGet(
+            @RequestParam("subareaIds") List<Integer> subareaIds) {
+        try {
+            List<UsuarioDto> profesores = temaService.listarProfesoresPorSubareasConMatch(subareaIds);
+            return ResponseEntity.ok(profesores);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+						HttpStatus.UNAUTHORIZED,
+						"Ocurrió un error: " + e.getMessage());
+        }
+    }
+
+	@PostMapping("/profesores-por-subareas")
+	public ResponseEntity<?> listarProfesoresPorSubareas(
+			@RequestBody List<Integer> subareaIds) {
+		try {
+			List<UsuarioDto> profesores = temaService.listarProfesoresPorSubareasConMatch(subareaIds);
+			return ResponseEntity.ok(profesores);
+		} catch (Exception e) {
+			throw new ResponseStatusException(
+						HttpStatus.UNAUTHORIZED,
+						"Ocurrió un error: " + e.getMessage());
+		}
+	}
+
 
 }
 

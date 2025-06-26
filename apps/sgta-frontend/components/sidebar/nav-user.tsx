@@ -1,7 +1,5 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,12 +19,15 @@ import {
 } from "@/components/ui/sidebar";
 import { User } from "@/features/auth";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const { logout, redirectToLogin } = useAuth();
   const router = useRouter();
+
+ 
 
   console.log("user", user);
 
@@ -44,7 +45,11 @@ export function NavUser({ user }: { user: User }) {
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight gap-1">
-                <span className="truncate font-semibold">{user.name}</span>
+                <span className="truncate font-semibold">
+                  {user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user.email}
+                </span>
                 <div className="flex flex-wrap gap-1 w-full">
                   {user?.roles?.map((role, index) => (
                     <Badge
@@ -73,7 +78,11 @@ export function NavUser({ user }: { user: User }) {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate font-semibold">
+                    {user.firstName && user.lastName 
+                      ? `${user.firstName} ${user.lastName}` 
+                      : user.email}
+                  </span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
@@ -89,7 +98,9 @@ export function NavUser({ user }: { user: User }) {
                 Perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />            <DropdownMenuItem
+            <DropdownMenuSeparator />   
+                      
+            <DropdownMenuItem
               onClick={() => {
                 // First logout to clear all tokens and state
                 logout();

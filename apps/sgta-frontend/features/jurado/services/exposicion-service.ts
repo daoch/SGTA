@@ -177,8 +177,8 @@ export const getExposicionesEstudiantesByEstudianteId = async (
       exposicionId: item.exposicionId,
       tema_id: item.temaId,
       estado: item.estado,
-      link_exposicion: item.link_exposicion,
-      link_grabacion: item.link_grabacion,
+      linkExposicion: item.linkExposicion,
+      linkGrabacion: item.linkGrabacion,
       datetimeInicio: new Date(item.datetimeInicio),
       datetimeFin: new Date(item.datetimeFin),
       sala: item.sala,
@@ -191,6 +191,7 @@ export const getExposicionesEstudiantesByEstudianteId = async (
         nombre: miembro.nombre,
         tipo: miembro.tipo,
       })),
+      notaFinal: item.notaFinal,
     }));
   } catch (error) {
     console.error(

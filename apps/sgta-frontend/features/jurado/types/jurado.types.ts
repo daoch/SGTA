@@ -61,6 +61,8 @@ export interface TimeSlot {
 export interface EstadoPlanificacion {
   id: number;
   nombre: string;
+  fechaCreacion?: Date;
+  fechaModificacion?: Date;
   activo: boolean;
 }
 
@@ -104,6 +106,7 @@ export interface Usuario {
   apellidos: string;
   rol: Rol;
   estadoRespuesta: "esperando_respuesta" | "aceptado" | "rechazado";
+  correo : string;
 }
 
 export interface Rol {
@@ -154,7 +157,7 @@ export interface CriterioEvaluacion {
   id: number;
   titulo: string;
   descripcion: string;
-  calificacion: number| null;
+  calificacion: number | null;
   nota_maxima: number;
   observacion: string;
 }
@@ -165,4 +168,5 @@ export interface CalificacionesJurado {
   observaciones_finales: string;
   criterios: CriterioEvaluacion[];
   calificado: boolean;
+  calificacion_final: number | null;
 }

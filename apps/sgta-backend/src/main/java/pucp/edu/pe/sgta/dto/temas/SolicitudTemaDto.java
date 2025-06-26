@@ -77,5 +77,6 @@ public class SolicitudTemaDto {
     public static class Tema {
         private String titulo;
         private String resumen;
+        private String objetivos;
     }
 }

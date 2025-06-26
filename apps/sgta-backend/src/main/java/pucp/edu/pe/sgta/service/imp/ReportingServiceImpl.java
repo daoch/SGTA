@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.model.UsuarioXTema;
 import pucp.edu.pe.sgta.repository.*;
-import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    // ← IMPORT añadido
+import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;    
 import pucp.edu.pe.sgta.service.inter.IReportService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 
@@ -29,6 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pucp.edu.pe.sgta.dto.RevisionDocumentoDto;
+import pucp.edu.pe.sgta.model.RevisionDocumento;
+import pucp.edu.pe.sgta.model.VersionXDocumento;
+import pucp.edu.pe.sgta.repository.VersionXDocumentoRepository;
+import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+
 
 @Service
 public class ReportingServiceImpl implements IReportService {
@@ -37,6 +43,13 @@ public class ReportingServiceImpl implements IReportService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private VersionXDocumentoRepository versionXDocumentoRepository;
+
+    @Autowired
+    private RevisionDocumentoRepository revisionDocumentoRepository;
+
 
     private final UsuarioService usuarioService;
     private final TopicAreaStatsRepository topicAreaStatsRepository;
@@ -67,7 +80,8 @@ public class ReportingServiceImpl implements IReportService {
             EntregableXTemaRepository entregableXTemaRepository,
             RevisionCriterioEntregableRepository revisionCriterioEntregableRepository,
             CriterioEntregableService criterioEntregableService,
-            EntregablesCriteriosRepository entregablesCriteriosRepository) {
+            EntregablesCriteriosRepository entregablesCriteriosRepository,
+            VersionXDocumentoRepository versionXDocumentoRepository) {
         this.usuarioService                    = usuarioService;
         this.topicAreaStatsRepository          = topicAreaStatsRepository;
         this.advisorDistributionRepository     = advisorDistributionRepository;
@@ -82,6 +96,7 @@ public class ReportingServiceImpl implements IReportService {
         this.revisionCriterioEntregableRepository = revisionCriterioEntregableRepository;
         this.criterioEntregableService         = criterioEntregableService;
         this.entregablesCriteriosRepository    = entregablesCriteriosRepository;
+        this.versionXDocumentoRepository = versionXDocumentoRepository;
     }
 
     @Override
@@ -90,8 +105,73 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = topicAreaStatsRepository
                 .getTopicAreaStatsByUserAndCiclo(usuarioId, cicloNombre);
         return results.stream()
-                .map(r -> new TopicAreaStatsDTO((String) r[0], ((Number) r[1]).intValue()))
+                .map(r -> {
+                    String etapasFormativasJson = (String) r[2];
+                    Map<String, Integer> etapasFormativas = parseEtapasFormativasMap(etapasFormativasJson);
+                    return new TopicAreaStatsDTO((String) r[0], ((Number) r[1]).intValue(), etapasFormativas);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private Map<String, Integer> parseEtapasFormativasMap(String jsonStr) {
+        Map<String, Integer> result = new HashMap<>();
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("{}") || jsonStr.equals("null")) {
+            return result;
+        }
+        try {
+            // Parsing del JSON simple {"Tesis 1": 10, "Tesis 2": 8}
+            String cleanJson = jsonStr.trim();
+            if (cleanJson.startsWith("{") && cleanJson.endsWith("}")) {
+                cleanJson = cleanJson.substring(1, cleanJson.length() - 1);
+                if (!cleanJson.trim().isEmpty()) {
+                    String[] pairs = cleanJson.split(",");
+                    for (String pair : pairs) {
+                        String[] keyValue = pair.split(":");
+                        if (keyValue.length == 2) {
+                            String key = keyValue[0].trim().replace("\"", "");
+                            String value = keyValue[1].trim();
+                            try {
+                                int count = Integer.parseInt(value);
+                                result.put(key, count);
+                            } catch (NumberFormatException e) {
+                                logger.warn("Invalid number format in JSON: {}", value);
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            logger.warn("Error parsing etapas formativas JSON: {}", jsonStr, e);
+            return result;
+        }
+    }
+
+    private List<String> parseAreasConocimientoList(String jsonStr) {
+        List<String> result = new ArrayList<>();
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("[]") || jsonStr.equals("null")) {
+            return result;
+        }
+        try {
+            // Parsing del JSON array ["Ciencias de la Computación", "Ingeniería de Software"]
+            String cleanJson = jsonStr.trim();
+            if (cleanJson.startsWith("[") && cleanJson.endsWith("]")) {
+                cleanJson = cleanJson.substring(1, cleanJson.length() - 1);
+                if (!cleanJson.trim().isEmpty()) {
+                    String[] areas = cleanJson.split(",");
+                    for (String area : areas) {
+                        String cleanArea = area.trim().replace("\"", "");
+                        if (!cleanArea.isEmpty()) {
+                            result.add(cleanArea);
+                        }
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            logger.warn("Error parsing areas conocimiento JSON: {}", jsonStr, e);
+            return result;
+        }
     }
 
     @Override
@@ -99,7 +179,13 @@ public class ReportingServiceImpl implements IReportService {
         Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
         List<Object[]> results = topicAreaStatsRepository.getTopicTrendsByUser(usuarioId);
         return results.stream()
-                .map(r -> new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String etapasFormativasJson = (String) r[3]; // El campo etapas_formativas_json es el índice 3
+                    Map<String, Integer> etapasFormativas = parseEtapasFormativasMap(etapasFormativasJson);
+                    TopicTrendDTO dto = new TopicTrendDTO((String) r[0], ((Number) r[1]).intValue(), ((Number) r[2]).intValue());
+                    dto.setEtapasFormativasCount(etapasFormativas);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -109,7 +195,17 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> rows = advisorDistributionRepository
                 .getAdvisorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
-                .map(r -> new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String areasConocimientoJson = (String) r[2]; // Campo areas_conocimiento_json 
+                    String etapasFormativasJson = (String) r[6]; // Campo etapas_formativas_json (ahora índice 6)
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
+                    List<String> areasConocimiento = parseAreasConocimientoList(areasConocimientoJson);
+                    
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[3]).intValue());
+                    dto.setAreasConocimiento(areasConocimiento);
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -119,7 +215,17 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> rows = jurorDistributionRepository
                 .getJurorDistributionByCoordinatorAndCiclo(usuarioId, cicloNombre);
         return rows.stream()
-                .map(r -> new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[2]).intValue()))
+                .map(r -> {
+                    String areasConocimientoJson = (String) r[2]; // Campo areas_conocimiento_json 
+                    String etapasFormativasJson = (String) r[6]; // Campo etapas_formativas_json (ahora índice 6)
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
+                    List<String> areasConocimiento = parseAreasConocimientoList(areasConocimientoJson);
+                    
+                    TeacherCountDTO dto = new TeacherCountDTO((String) r[0], (String) r[1], ((Number) r[3]).intValue());
+                    dto.setAreasConocimiento(areasConocimiento);
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -128,22 +234,57 @@ public class ReportingServiceImpl implements IReportService {
         var advisors = getAdvisorDistribution(cognitoSub, cicloNombre);
         var jurors   = getJurorDistribution(cognitoSub, cicloNombre);
         Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map = new HashMap<>();
-        processTeachers(advisors, map, true);
-        processTeachers(jurors,   map, false);
+        
+        // Mapas separados para asesores y jurados
+        Map<String, Map<String, Integer>> etapasFormativasAsesorPorProfesor = new HashMap<>();
+        Map<String, Map<String, Integer>> etapasFormativasJuradoPorProfesor = new HashMap<>();
+        Map<String, Set<String>> areasConocimientoPorProfesor = new HashMap<>();
+        
+        processTeachersEnhanced(advisors, map, true, etapasFormativasAsesorPorProfesor, areasConocimientoPorProfesor);
+        processTeachersEnhanced(jurors, map, false, etapasFormativasJuradoPorProfesor, areasConocimientoPorProfesor);
+        
         return map.values().stream()
                 .map(b -> {
                     AreaFinalDTO d = b.build();
                     d.setTotalCount(d.getAdvisorCount() + d.getJurorCount());
+                    
+                    String key = d.getTeacherName();  // Solo por profesor, no por área
+                    
+                    // Configurar múltiples áreas
+                    Set<String> areas = areasConocimientoPorProfesor.get(key);
+                    d.setAreasConocimiento(areas != null ? new ArrayList<>(areas) : Collections.emptyList());
+                    
+                    // Configurar contadores separados por etapa formativa
+                    d.setEtapasFormativasAsesorCount(
+                        etapasFormativasAsesorPorProfesor.getOrDefault(key, Collections.emptyMap())
+                    );
+                    d.setEtapasFormativasJuradoCount(
+                        etapasFormativasJuradoPorProfesor.getOrDefault(key, Collections.emptyMap())
+                    );
+                    
+                    // DEPRECATED: Para compatibilidad
+                    d.setAreaName(areas != null && !areas.isEmpty() ? areas.iterator().next() : "Área no definida");
+                    
+                    // Combinar todas las etapas para compatibilidad
+                    Set<String> todasEtapas = new HashSet<>();
+                    if (d.getEtapasFormativasAsesorCount() != null) {
+                        todasEtapas.addAll(d.getEtapasFormativasAsesorCount().keySet());
+                    }
+                    if (d.getEtapasFormativasJuradoCount() != null) {
+                        todasEtapas.addAll(d.getEtapasFormativasJuradoCount().keySet());
+                    }
+                    d.setEtapasFormativas(new ArrayList<>(todasEtapas));
+                    
                     return d;
                 })
-                .sorted(Comparator.comparing(AreaFinalDTO::getAreaName)
-                        .thenComparing(AreaFinalDTO::getTeacherName))
+                .sorted(Comparator.comparing(AreaFinalDTO::getTeacherName))
                 .collect(Collectors.toList());
     }
 
     private void processTeachers(List<TeacherCountDTO> list,
                                  Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map,
-                                 boolean isAdvisor) {
+                                 boolean isAdvisor,
+                                 Map<String, Set<String>> etapasFormativasPorProfesor) {
         for (var t : list) {
             String name = t.getTeacherName(),
                     area = t.getAreaName(),
@@ -157,6 +298,59 @@ public class ReportingServiceImpl implements IReportService {
             var b = map.get(key);
             if (isAdvisor) b.advisorCount(t.getCount());
             else           b.jurorCount(t.getCount());
+            
+            // Agregar etapas formativas desde el mapa de contadores
+            if (t.getEtapasFormativasCount() != null && !t.getEtapasFormativasCount().isEmpty()) {
+                etapasFormativasPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .addAll(t.getEtapasFormativasCount().keySet());
+            }
+        }
+    }
+
+    private void processTeachersEnhanced(List<TeacherCountDTO> list,
+                                       Map<String, AreaFinalDTO.AreaFinalDTOBuilder> map,
+                                       boolean isAdvisor,
+                                       Map<String, Map<String, Integer>> etapasFormativasPorProfesor,
+                                       Map<String, Set<String>> areasConocimientoPorProfesor) {
+        for (var t : list) {
+            String name = t.getTeacherName();
+            String key = name; // Clave solo por nombre de profesor
+            
+            // Configurar builder del DTO
+            map.computeIfAbsent(key, k -> AreaFinalDTO.builder()
+                    .teacherName(name)
+                    .advisorCount(0)
+                    .jurorCount(0)
+                    .totalCount(0));
+            
+            var b = map.get(key);
+            // Necesitamos acumular los valores correctamente
+            AreaFinalDTO temp = b.build();
+            if (isAdvisor) {
+                b.advisorCount(temp.getAdvisorCount() + t.getCount());
+            } else {
+                b.jurorCount(temp.getJurorCount() + t.getCount());
+            }
+            
+            // Agregar áreas de conocimiento
+            if (t.getAreasConocimiento() != null && !t.getAreasConocimiento().isEmpty()) {
+                areasConocimientoPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .addAll(t.getAreasConocimiento());
+            } else if (t.getAreaName() != null) {
+                // Fallback a área simple
+                areasConocimientoPorProfesor.computeIfAbsent(key, k -> new HashSet<>())
+                    .add(t.getAreaName());
+            }
+            
+            // Agregar etapas formativas específicas (asesor o jurado)
+            if (t.getEtapasFormativasCount() != null && !t.getEtapasFormativasCount().isEmpty()) {
+                // Agregar/sumar contadores por etapa formativa
+                Map<String, Integer> existingCounts = etapasFormativasPorProfesor.getOrDefault(key, new HashMap<>());
+                for (Map.Entry<String, Integer> entry : t.getEtapasFormativasCount().entrySet()) {
+                    existingCounts.merge(entry.getKey(), entry.getValue(), Integer::sum);
+                }
+                etapasFormativasPorProfesor.put(key, existingCounts);
+            }
         }
     }
 
@@ -166,10 +360,16 @@ public class ReportingServiceImpl implements IReportService {
         List<Object[]> results = advisorPerformanceRepository
                 .getAdvisorPerformanceByUser(usuarioId, cicloNombre);
         return results.stream()
-                .map(r -> new AdvisorPerformanceDto(
-                        (String) r[0], (String) r[1],
-                        Optional.ofNullable((Number) r[2]).map(Number::doubleValue).orElse(0.0),
-                        ((Number) r[3]).intValue()))
+                .map(r -> {
+                    String etapasFormativasJson = (String) r[4]; // Campo etapas_formativas_json
+                    Map<String, Integer> etapasFormativasCount = parseEtapasFormativasMap(etapasFormativasJson);
+                    AdvisorPerformanceDto dto = new AdvisorPerformanceDto(
+                            (String) r[0], (String) r[1],
+                            Optional.ofNullable((Number) r[2]).map(Number::doubleValue).orElse(0.0),
+                            ((Number) r[3]).intValue());
+                    dto.setEtapasFormativasCount(etapasFormativasCount);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -338,34 +538,42 @@ public class ReportingServiceImpl implements IReportService {
 
         // 3) Recuperamos y mapeamos los entregables de ese tema
         return entregableXTemaRepository.findByTemaIdWithEntregable(temaId).stream()
-            .map(et -> {
-                int exId = et.getEntregableXTemaId();
-                Double notaGlobal = et.getNotaEntregable() != null
-                    ? et.getNotaEntregable().doubleValue()
-                    : null;
-                boolean esEvaluable     = et.getEntregable().isEsEvaluable();
-                String estadoEntregable = et.getEntregable().getEstadoStr();
-                String estadoXTema      = et.getEstado().name();
+                .map(et -> {
+                    int exId = et.getEntregableXTemaId();
+                    Double notaGlobal = et.getNotaEntregable() != null
+                            ? et.getNotaEntregable().doubleValue()
+                            : null;
+                    boolean esEvaluable      = et.getEntregable().isEsEvaluable();
+                    String estadoEntregable  = et.getEntregable().getEstado().name();
+                    String estadoXTema       = et.getEstado();
 
-                    List<CriterioEntregableDto> criterios = criterioEntregableService
-                            .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
-                            .stream()
-                            .map(c -> {
-                                Double nota = revisionCriterioEntregableRepository
-                                        .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
-                                        .map(BigDecimal::doubleValue)
-                                        .orElse(null);
-                                CriterioEntregableDto copy = new CriterioEntregableDto();
-                                copy.setId(c.getId());
-                                copy.setNombre(c.getNombre());
-                                copy.setDescripcion(c.getDescripcion());
-                                copy.setNotaMaxima(c.getNotaMaxima());
-                                copy.setNota(nota);
-                                return copy;
-                            })
-                            .collect(Collectors.toList());
+                List<CriterioEntregableDto> criterios = criterioEntregableService
+                        .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
+                        .stream()
+                        .map(c -> {
+                            Double nota = revisionCriterioEntregableRepository
+                                    .findNotaByEntregableXTemaIdAndCriterioEntregableId(exId, c.getId())
+                                    .map(BigDecimal::doubleValue)
+                                    .orElse(null);
+                            CriterioEntregableDto copy = new CriterioEntregableDto();
+                            copy.setId(c.getId());
+                            copy.setNombre(c.getNombre());
+                            copy.setDescripcion(c.getDescripcion());
+                            copy.setNotaMaxima(c.getNotaMaxima());
+                            copy.setNota(nota);
+                            return copy;
+                        })
+                        .collect(Collectors.toList());
+                
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
+
 
                 return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),           
+                    et.getTema().getId(), 
                     et.getEntregable().getNombre(),
                     estadoEntregable,
                     estadoXTema,
@@ -374,7 +582,9 @@ public class ReportingServiceImpl implements IReportService {
                         : null,
                     notaGlobal,
                     esEvaluable,
-                    criterios
+                    criterios,
+                    revisionId,                        
+                    estadoRevision   
                 );
             })
             .collect(Collectors.toList());
@@ -417,8 +627,8 @@ public class ReportingServiceImpl implements IReportService {
                     : null;
 
                 boolean esEvaluable = et.getEntregable().isEsEvaluable();
-                String estadoEntregable = et.getEntregable().getEstadoStr();
-                String estadoXTema = et.getEstado().name();
+                String estadoEntregable = et.getEntregable().getEstado().name();
+                String estadoXTema = et.getEstado();
 
                 List<CriterioEntregableDto> criterios = criterioEntregableService
                     .listarCriteriosEntregableXEntregable(et.getEntregable().getId())
@@ -438,15 +648,22 @@ public class ReportingServiceImpl implements IReportService {
                         return copy;
                     })
                     .collect(Collectors.toList());
-
+                RevisionDocumentoDto revisionDto = getEstadoRevisionPorEntregable(et.getEntregableXTemaId());
+                Integer revisionId = (revisionDto != null) ? revisionDto.getId() : null;
+                String estadoRevision = (revisionDto != null) ? revisionDto.getEstadoRevision() : null;
                 return new EntregableEstudianteDto(
+                    et.getEntregableXTemaId(), 
+                    et.getEntregable().getId(),
+                    et.getTema().getId(),
                     et.getEntregable().getNombre(),
                     estadoEntregable,
                     estadoXTema,
                     et.getFechaEnvio() != null ? et.getFechaEnvio().toLocalDateTime() : null,
                     notaGlobal,
                     esEvaluable,
-                    criterios
+                    criterios,
+                    revisionId,
+                    estadoRevision
                 );
             })
             .collect(Collectors.toList());
@@ -455,8 +672,10 @@ public class ReportingServiceImpl implements IReportService {
 
 
     @Override
-    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(Integer idUsuario) {
-        //Integer usuarioId = usuarioService.findByCognitoId(cognitoSub).getId();
+    public List<EntregableCriteriosDetalleDto> getEntregablesConCriterios(String cognitoSub) {
+
+        Integer idUsuario = usuarioService.findByCognitoId(cognitoSub).getId();
+
         List<Object[]> results = entregablesCriteriosRepository.getEntregablesConCriterios(idUsuario);
 
         Map<Integer, EntregableCriteriosDetalleDto> map = new LinkedHashMap<>();
@@ -473,6 +692,8 @@ public class ReportingServiceImpl implements IReportService {
                             : null)
                     .estadoEntrega((String) r[4])
                     .criterios(new ArrayList<>())
+                    .etapaFormativaXCicloId(r[9] != null ? (Integer) r[9] : null)
+                    .esEvaluable(r[10] != null ? (Boolean) r[10] : null)
                     .build()
             );
             if (r[5] != null) {
@@ -493,4 +714,42 @@ public class ReportingServiceImpl implements IReportService {
         }
         return new ArrayList<>(map.values());
     }
+
+    @Override
+    public RevisionDocumentoDto getEstadoRevisionPorEntregable(Integer entregableXTemaId) {
+
+        // 1) Última versión que pertenece a este entregable-tema
+        VersionXDocumento version = versionXDocumentoRepository
+                .findTopByEntregableXTema_EntregableXTemaIdOrderByFechaCreacionDesc(entregableXTemaId)
+                .orElse(null);
+
+        if (version == null) {
+            return null;           // No hay versión o no tiene revisión ligada
+        }
+
+        // 2) Revisión asociada a esa versión
+        RevisionDocumento revision = revisionDocumentoRepository
+                .findTopByVersionDocumento_IdOrderByFechaCreacionDesc(version.getId())
+                .orElse(null);
+
+        if (revision == null) {
+            return null;
+        }
+
+        // 3) Construir y devolver el DTO
+        return new RevisionDocumentoDto(
+                revision.getId(),
+                revision.getUsuario().getId(),
+                revision.getVersionDocumento().getId(),
+                revision.getFechaLimiteRevision(),
+                revision.getFechaRevision(),
+                revision.getEstadoRevision().name().toLowerCase(),
+                revision.getLinkArchivoRevision(),
+                revision.getActivo(),
+                revision.getFechaCreacion(),
+                revision.getFechaModificacion()
+        );
+    }
+
+
 }

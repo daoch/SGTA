@@ -32,6 +32,10 @@ public class RevisionCriterioEntregable {
     private CriterioEntregable criterioEntregable;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "revision_documento_id", foreignKey = @ForeignKey(name = "fk_revision_documento"))
+    private RevisionDocumento revisionDocumento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", foreignKey = @ForeignKey(name = "fk_revision_criterio_usuario"))
     private Usuario usuario;
 

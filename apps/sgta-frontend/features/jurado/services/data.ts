@@ -7,7 +7,7 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function listarTemasCicloActualXEtapaFormativa(
   etapaFormativaId: number | undefined,
-  exposicionId : number,
+  exposicionId: number,
 ) {
   try {
     const response = await fetch(
@@ -248,7 +248,7 @@ export async function distribuirBloquesExposicion(
       const mensaje =
         error.response?.data?.message || error.response?.data || error.message;
       console.error("Error al distribuir bloques de exposición:", mensaje);
-      throw new Error(mensaje); 
+      throw new Error(mensaje);
     } else {
       console.error("Error inesperado al distribuir bloques:", error);
       throw new Error("Error inesperado al distribuir bloques.");
