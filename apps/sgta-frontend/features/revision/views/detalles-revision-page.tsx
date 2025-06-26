@@ -33,6 +33,11 @@ function formatFecha(fecha: string) {
     .padStart(2, "0")}/${date.getFullYear()}`;
 }
 
+// Extiende IHighlight para permitir el campo corregido
+interface IHighlightConCorregido extends IHighlight {
+  corregido?: boolean;
+}
+
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
@@ -95,13 +100,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
     const fetchObservaciones = async () => {
       try {
         const highlights = await obtenerObservacionesRevision(Number(params.id));
-        const observaciones: Observacion[] = highlights.map((h) => ({
+        const observaciones: Observacion[] = (highlights as IHighlightConCorregido[]).map((h) => ({
           id: String(h.id),
           pagina: h.position.pageNumber,
           parrafo: 0,
           texto: h.content.text ?? "",
           tipo: mapTipoObservacion(h.comment.text),
           resuelto: false,
+          corregido: h.corregido ?? false,
         }));
         setObservacionesList(observaciones);
       } catch (error) {

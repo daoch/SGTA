@@ -2,19 +2,8 @@
 
 SET search_path TO sgtadb;
 
-CREATE OR REPLACE FUNCTION obtener_documentos_asesor(asesorid integer)
- RETURNS TABLE(
-    revision_id INTEGER,
-    tema TEXT,
-    entregable TEXT,
-    estudiante TEXT,
-    codigo TEXT,
-    curso TEXT,
-    fecha_carga TIMESTAMP WITH TIME ZONE,
-    estado_revision TEXT,
-    entrega_a_tiempo BOOLEAN,
-    fecha_limite TIMESTAMP WITH TIME ZONE
- )
+CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_asesor(asesorid integer)
+ RETURNS TABLE(revision_id integer, tema text, entregable text, estudiante text, codigo text, curso text, fecha_carga timestamp with time zone, estado_revision text, entrega_a_tiempo boolean, fecha_limite timestamp with time zone, similitud double precision, ia double precision)
  LANGUAGE plpgsql
 AS $function$
 BEGIN
@@ -27,13 +16,15 @@ BEGIN
         u.codigo_pucp::TEXT AS codigo,
         ef.nombre::TEXT AS curso,
         vd.fecha_ultima_subida,
-        rd.estado_revision::TEXT AS estado_revision,
+        rd.estado_revision::TEXT AS estado_revision,        
         CASE 
             WHEN rd.fecha_limite_revision IS NOT NULL 
                  AND vd.fecha_ultima_subida::DATE <= rd.fecha_limite_revision THEN TRUE
             ELSE FALSE
         END AS entrega_a_tiempo,
-        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE  -- ← Aquí el cambio
+        rd.fecha_limite_revision::TIMESTAMP WITH TIME zone,
+        vd.porcentaje_similitud,
+        vd.porcentaje_ia
     FROM usuario_tema ut_asesor
     JOIN tema t ON ut_asesor.tema_id = t.tema_id
     JOIN usuario_tema ut_estudiante 

@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, FileWarning, Quote, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface Observacion {
   id: string;
@@ -13,6 +14,7 @@ export interface Observacion {
   texto: string;
   tipo: "contenido" | "similitud" | "citado" | "inteligencia";
   resuelto: boolean;
+  corregido?: boolean;
 }
 
 interface ObservacionesListProps {
@@ -23,13 +25,20 @@ interface ObservacionesListProps {
 export function ObservacionesList({ observaciones, editable = false }: ObservacionesListProps) {
   const [filtro, setFiltro] = useState<string>("");
   const [observacionesState, setObservacionesState] = useState<Observacion[]>(observaciones);
+  const [tab, setTab] = useState<'todas' | 'pendientes' | 'corregidas'>("todas");
 
-  const observacionesFiltradas = observacionesState.filter(
+  let observacionesFiltradas = observacionesState.filter(
     (obs) =>
       obs.texto.toLowerCase().includes(filtro.toLowerCase()) ||
       obs.pagina.toString().includes(filtro) ||
       obs.tipo.includes(filtro.toLowerCase()),
   );
+
+  if (tab === 'pendientes') {
+    observacionesFiltradas = observacionesFiltradas.filter((obs) => !obs.corregido);
+  } else if (tab === 'corregidas') {
+    observacionesFiltradas = observacionesFiltradas.filter((obs) => obs.corregido);
+  }
 
   const handleToggleResuelto = (id: string) => {
     if (!editable) return;
@@ -86,6 +95,13 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 
   return (
     <div className="space-y-4">
+      <Tabs value={tab} onValueChange={setTab} className="mb-2">
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="todas">Todas</TabsTrigger>
+          <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
+          <TabsTrigger value="corregidas">Corregidas</TabsTrigger>
+        </TabsList>
+      </Tabs>
       <div className="flex items-center gap-2">
         <Input
           placeholder="Filtrar observaciones..."
@@ -102,7 +118,7 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
           {observacionesFiltradas.map((observacion) => (
             <div
               key={observacion.id}
-              className={"p-4 border rounded-lg bg-white"}
+              className={`p-4 border rounded-lg ${observacion.corregido ? "bg-green-50 border-green-300" : "bg-white"}`}
             >
               <div className="flex items-start gap-3">
                 {editable && (
@@ -116,15 +132,14 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
                   <div className="flex items-center gap-2 mb-1">
                     {getIconByTipo(observacion.tipo)}
                     <span className="font-medium">
-                      Página {observacion.pagina}{/*, Párrafo {observacion.parrafo}*/}
+                      Página {observacion.pagina}
                     </span>
                     {getBadgeByTipo(observacion.tipo)}
-                    {/*observacion.resuelto && (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-red-100">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Resuelto
+                    {observacion.corregido && (
+                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 ml-2">
+                        Corregido
                       </Badge>
-                    )*/}
+                    )}
                   </div>
                   <p className="text-sm">{observacion.texto}</p>
                 </div>
