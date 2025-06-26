@@ -16,8 +16,8 @@ public class RevisionDocumentoAsesorDto {
 	private String estudiante;
 	private String codigo;
 	private String curso;
-	private Integer porcentajeSimilitud;
-	private Integer porcentajeGenIA;
+	private Double porcentajeSimilitud;
+	private Double porcentajeGenIA;
 	private OffsetDateTime fechaEntrega;
 	private OffsetDateTime fechaLimiteEntrega;
 	private OffsetDateTime fechaRevision;
