@@ -384,11 +384,17 @@ public class UsuarioController {
     }
 
     @GetMapping("/getCarreraCoordinador")
-    public ResponseEntity<Carrera> getCarreraCoordinador(HttpServletRequest request) {
+    public ResponseEntity<CarreraDto> getCarreraCoordinador(HttpServletRequest request) {
         try {
             String idCognito = jwtService.extractSubFromRequest(request);
             Optional<Carrera> carreraOpt = usuarioService.obtenerCarreraCoordinador(idCognito);
-            return carreraOpt.map(ResponseEntity::ok)
+            return carreraOpt
+                    .map(carrera -> {
+                        CarreraDto dto = new CarreraDto();
+                        dto.setId(carrera.getId());
+                        dto.setNombre(carrera.getNombre());
+                        return ResponseEntity.ok(dto);
+                    })
                     .orElseGet(() -> ResponseEntity.noContent().build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
