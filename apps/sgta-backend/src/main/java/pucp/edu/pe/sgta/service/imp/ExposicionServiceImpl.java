@@ -337,7 +337,7 @@ public class ExposicionServiceImpl implements ExposicionService {
         List<ListBloqueHorarioExposicionSimpleDTO> listaFiltrada = lista.stream().filter(l -> l.getExpo() != null)
                 .toList();
 
-        Object[] datos_expo = exposicionRepository.obtener_datos_exposicion(expoId);
+        List<Object[]> datos_expo = exposicionRepository.obtener_datos_exposicion(expoId);
 
         // oner orden: etapa formativa, tipo de exposición, asesor, alumno, jurados,
         // fecha, hora, cambiar el nombre de cabecera salón a aula, un campo con el
@@ -369,9 +369,9 @@ public class ExposicionServiceImpl implements ExposicionService {
             for (ListBloqueHorarioExposicionSimpleDTO dto : listaFiltrada) {
                 Row dataRow = sheet.createRow(rowNum++);
                 // etapa formativa
-                dataRow.createCell(0).setCellValue(datos_expo[0].toString());
+                dataRow.createCell(0).setCellValue(datos_expo.get(0)[0].toString());
                 // tipo de exposicion
-                dataRow.createCell(1).setCellValue(datos_expo[1].toString());
+                dataRow.createCell(1).setCellValue(datos_expo.get(0)[1].toString());
                 // fecha, hora y aula
                 String[] partes = dto.getKey().split("\\|");
                 String fecha = partes[0];
@@ -411,12 +411,6 @@ public class ExposicionServiceImpl implements ExposicionService {
                         }
                     }
                 }
-                if (jurado1 != null) {
-                    dataRow.createCell(9).setCellValue(jurado1.getNombres() + " " + jurado1.getApellidos());
-                }
-                if (jurado2 != null) {
-                    dataRow.createCell(10).setCellValue(jurado2.getNombres() + " " + jurado2.getApellidos());
-                }
 
                 if (asesor != null) {
                     dataRow.createCell(7).setCellValue(asesor.getNombres() + " " + asesor.getApellidos());
@@ -424,6 +418,12 @@ public class ExposicionServiceImpl implements ExposicionService {
 
                 if (tesista != null) {
                     dataRow.createCell(8).setCellValue(tesista.getNombres() + " " + tesista.getApellidos());
+                }
+                if (jurado1 != null) {
+                    dataRow.createCell(9).setCellValue(jurado1.getNombres() + " " + jurado1.getApellidos());
+                }
+                if (jurado2 != null) {
+                    dataRow.createCell(10).setCellValue(jurado2.getNombres() + " " + jurado2.getApellidos());
                 }
                 // if (revisor1 != null) {
                 // dataRow.createCell(8).setCellValue(revisor1.getNombres() + " " +
@@ -434,8 +434,9 @@ public class ExposicionServiceImpl implements ExposicionService {
                 // revisor2.getApellidos());
                 // }
 
-                Object[] link_expo = exposicionRepository.obtener_link_exposicion_tema_x_bloque_id(dto.getIdBloque());
-                dataRow.createCell(11).setCellValue(link_expo.toString());
+                List<Object[]> link_expo = exposicionRepository
+                        .obtener_link_exposicion_tema_x_bloque_id(dto.getIdBloque());
+                dataRow.createCell(11).setCellValue(link_expo.get(0)[0].toString());
             }
 
             // Convertir a byte array
