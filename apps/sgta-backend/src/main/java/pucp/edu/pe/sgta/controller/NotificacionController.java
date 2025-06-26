@@ -16,6 +16,8 @@ import java.util.Map;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.service.inter.EmailService;
+import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+
 
 @Slf4j
 @RestController
@@ -28,6 +30,8 @@ public class NotificacionController {
     private final JwtService          jwtService;
     private final UsuarioService      usuarioService;
     private final EmailService        emailService;
+    private final RevisionDocumentoRepository revisionDocumentoRepository;
+
 
     /**
      * Obtiene todas las notificaciones no leídas del usuario autenticado
@@ -234,4 +238,86 @@ public class NotificacionController {
                                   .body(Map.of("error", "Error al enviar correo de prueba: " + e.getMessage()));
         }
     }
+
+
+    @PostMapping("/send-email-a-revisor")
+    public ResponseEntity<?> enviarCorreoARevisor(HttpServletRequest request, @RequestParam Integer revisionId,
+            @RequestParam String nombreDocumento,
+            @RequestParam String nombreEntregable,
+            @RequestParam String estado) {
+        try {
+            String cognitoSub = jwtService.extractSubFromRequest(request);
+            
+            // Obtener datos del usuario
+            var usuario = usuarioService.findByCognitoId(cognitoSub);
+            String correoElectronico = usuario.getCorreoElectronico();
+            String nombreCompleto = usuario.getNombres() + " " + usuario.getPrimerApellido();
+
+            var alumnos = revisionDocumentoRepository.getStudentsByRevisor(revisionId);
+
+            for (Object[] alumno : alumnos) {
+                String nombres = (String) alumno[1];
+                String apellidoPaterno = (String) alumno[2];
+                String apellidoMaterno = (String) alumno[3];
+                String correo = (String) alumno[5];
+
+                String nombreCompletoAlumno = nombres + " " + apellidoPaterno + " " + apellidoMaterno;
+
+                emailService.enviarNotificacionEstadoEntregableRevisor(
+                    correoElectronico,
+                    nombreCompleto,
+                    nombreCompletoAlumno,
+                    nombreDocumento,
+                    nombreEntregable,
+                    estado
+                );
+            }
+
+            return ResponseEntity.ok(Map.of("message", "Correos enviados a los alumnos"));
+        } catch (Exception e) {
+            log.error("Error al enviar correos a los estudiantes: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                                .body(Map.of("error", "Error al enviar correos: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/notificar-estado")
+    public ResponseEntity<Map<String, String>> notificarEstadoEntregable(
+            @RequestParam Integer revisionId,
+            @RequestParam String nombreDocumento,
+            @RequestParam String nombreEntregable,
+            @RequestParam String estado) {
+        try {
+            var alumnos = revisionDocumentoRepository.getStudentsByRevisor(revisionId);
+
+            for (Object[] alumno : alumnos) {
+                String nombres = (String) alumno[1];
+                String apellidoPaterno = (String) alumno[2];
+                String apellidoMaterno = (String) alumno[3];
+                String correo = (String) alumno[5];
+
+                String nombreCompleto = nombres + " " + apellidoPaterno + " " + apellidoMaterno;
+
+                emailService.enviarNotificacionEstadoEntregable(
+                    correo,
+                    nombreCompleto,
+                    nombreDocumento,
+                    nombreEntregable,
+                    estado
+                );
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "message", "Correos enviados exitosamente"
+            ));
+        } catch (Exception e) {
+            log.error("Error al enviar correos de notificación: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "No se pudieron enviar los correos"
+            ));
+        }
+    }
+
+
+
 }
