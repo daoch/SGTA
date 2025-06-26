@@ -3,4 +3,5 @@ export interface Exposicion {
   estadoPlanificacionId: number;
   nombre: string;
   descripcion: string;
+  entregableId: number;
 };

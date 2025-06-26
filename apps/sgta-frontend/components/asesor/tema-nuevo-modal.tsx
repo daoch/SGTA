@@ -375,10 +375,8 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
     setAreaSeleccionada(selectedArea || null);
   };
 
-  const onEstudianteSeleccionado = (nombres: string) => {
-    const selectedEstudiante = estudiantesDisponibles.find(
-      (e) => e.nombres === nombres,
-    );
+  const onEstudianteSeleccionado = (id: number) => {
+    const selectedEstudiante = estudiantesDisponibles.find((e) => e.id === id);
     setEstudianteSeleccionado(selectedEstudiante || null);
   };
 
@@ -678,8 +676,10 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                     <Label>Estudiantes</Label>
                     <div className="flex gap-2">
                       <Select
-                        value={estudianteSeleccionado?.nombres}
-                        onValueChange={onEstudianteSeleccionado}
+                        value={estudianteSeleccionado?.id.toString()}
+                        onValueChange={(id) =>
+                          onEstudianteSeleccionado(Number(id))
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Seleccione un estudiante" />
@@ -696,7 +696,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                             .map((estudiante) => (
                               <SelectItem
                                 key={estudiante.id}
-                                value={estudiante.nombres}
+                                value={estudiante.id.toString()}
                               >
                                 {estudiante.nombres} {estudiante.primerApellido}{" "}
                                 {estudiante.segundoApellido}{" "}

@@ -229,20 +229,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
-	etapa_id integer	,
-	expo_id integer
-)
-RETURNS TABLE(
-	tema_id integer,
-    codigo  varchar,
-    titulo  varchar,
-    usuario_id integer,
-     nombres varchar,
-  apellidos varchar,
-  rol_id integer,
-  rol_nombre varchar    
-) AS $$
+CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(etapa_id integer, expo_id integer)
+ RETURNS TABLE(tema_id integer, codigo character varying, titulo character varying, usuario_id integer, 
+ nombres character varying, apellidos character varying, rol_id integer, 
+ rol_nombre character varying,
+ correo_electronico character varying)
+ LANGUAGE plpgsql
+AS $function$
 declare
 	
 BEGIN
@@ -257,7 +250,8 @@ BEGIN
 		u.nombres,
 		u.primer_apellido,
 		r.rol_id,
-		r.nombre
+		r.nombre,
+		u.correo_electronico
     FROM tema t
     inner join etapa_formativa_x_ciclo_x_tema  efct on t.tema_id = efct.tema_id 
 	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
@@ -270,7 +264,8 @@ BEGIN
 	and t.tema_id in  (select po.tema_id from exposicion_x_tema po where po.exposicion_id = expo_id)
 	order by t.tema_id;  
 END;
-$$ LANGUAGE plpgsql;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
@@ -625,19 +620,22 @@ where ef.etapa_formativa_id = p_id_etapa_formativa;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
-	id_exposicion integer
-)
-RETURNS TABLE(
-	id_estado_planificacion integer,
-    nombre  text,
-   	activo bool   	
-) AS $$
+CREATE OR REPLACE FUNCTION get_estado_exposicion_by_id_exposicion(id_exposicion integer)
+ RETURNS TABLE(
+ 	id_estado_planificacion integer, 
+ 	nombre text,
+ 	fecha_creacion timestamptz,
+ 	fecha_modificacion timestamptz,
+ 	activo boolean
+ )
+AS $$
 BEGIN
     RETURN QUERY
  SELECT 
 		ep.estado_planificacion_id,
 		ep.nombre,
+		e.fecha_creacion,
+		e.fecha_modificacion,
 		ep.activo
     FROM estado_planificacion ep
 	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
@@ -1250,7 +1248,14 @@ END;
 $function$;
 
 CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
- RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer, es_bloque_reservado boolean, es_bloque_bloqueado boolean, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, sala_nombre text, tema_id integer, tema_codigo character varying, tema_titulo character varying, usuario_id integer, nombres character varying, apellidos character varying, rol_id integer, rol_nombre character varying, estado_usuario_expo character varying)
+ RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer,
+ es_bloque_reservado boolean, es_bloque_bloqueado boolean, 
+ datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, 
+ sala_nombre text, tema_id integer, tema_codigo character varying, 
+ tema_titulo character varying, usuario_id integer, nombres character varying, 
+ apellidos character varying, rol_id integer, rol_nombre character varying, 
+ estado_usuario_expo character varying,
+ correo_electronico character varying)
  LANGUAGE plpgsql
  STABLE
 AS $function$
@@ -1280,7 +1285,8 @@ RETURN QUERY
         u.primer_apellido,
         r.rol_id,
         r.nombre,
-        ceu.estado_exposicion_usuario
+        ceu.estado_exposicion_usuario,
+		u.correo_electronico
     FROM bloque_horario_exposicion bhe
     INNER JOIN jornada_exposicion_x_sala_exposicion jexse
         ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
@@ -1627,4 +1633,169 @@ BEGIN
       AND et.activo = TRUE
       AND bhe.activo = TRUE;
 END
+$$;
+
+CREATE OR REPLACE FUNCTION get_exposiciones_coordinador(cod_usuario INTEGER)
+RETURNS TABLE (
+    id_exposicion INT,
+    fechahora TIMESTAMPTZ,
+    sala TEXT,
+    estado TEXT,
+    id_etapa_formativa INT,
+    nombre_etapa_formativa TEXT,
+    titulo VARCHAR(255),
+    ciclo_id INT,
+    ciclo_anio INT,
+    ciclo_semestre VARCHAR(10),
+    estado_control TEXT,
+    nombre_exposicion TEXT,
+    enlace_grabacion TEXT,
+    enlace_sesion TEXT,
+    id_tema INT
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ext.exposicion_x_tema_id AS id_exposicion,
+        bhe.datetime_inicio AS fechahora,
+        COALESCE(se.nombre, '') AS sala,
+        ext.estado_exposicion::TEXT AS estado,
+        ef.etapa_formativa_id,
+        ef.nombre,
+        t.titulo,
+        c.ciclo_id,
+        c.anio,
+        c.semestre,
+        ceut.estado_exposicion_usuario::TEXT AS estado_control,
+        e.nombre AS nombre_exposicion,
+        ext.link_grabacion,
+        ext.link_exposicion,
+        t.tema_id
+    FROM usuario u
+    JOIN usuario_carrera uc ON uc.usuario_id = u.usuario_id
+    JOIN carrera ca ON uc.carrera_id = ca.carrera_id
+    JOIN tema t ON t.carrera_id = ca.carrera_id AND t.activo = TRUE
+    JOIN exposicion_x_tema ext ON ext.tema_id = t.tema_id AND ext.activo = TRUE
+    JOIN exposicion e ON e.exposicion_id = ext.exposicion_id
+    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    JOIN ciclo c ON c.ciclo_id = efc.ciclo_id
+    JOIN bloque_horario_exposicion bhe ON bhe.exposicion_x_tema_id = ext.exposicion_x_tema_id AND bhe.activo = TRUE
+    LEFT JOIN jornada_exposicion_x_sala_exposicion jes ON jes.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
+    LEFT JOIN sala_exposicion se ON se.sala_exposicion_id = jes.sala_exposicion_id
+    LEFT JOIN usuario_tema ut ON ut.tema_id = t.tema_id AND ut.usuario_id = u.usuario_id
+    LEFT JOIN control_exposicion_usuario ceut ON ceut.usuario_x_tema_id = ut.usuario_tema_id AND ceut.exposicion_x_tema_id = ext.exposicion_x_tema_id
+    WHERE u.usuario_id = cod_usuario
+      AND uc.es_coordinador = TRUE
+      AND uc.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE function get_miembros_por_tema(id_tema INTEGER)
+RETURNS TABLE (
+    id_persona INT,
+    nombre TEXT,
+    tipo varchar(100)
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.usuario_id,
+        u.nombres || ' ' || u.primer_apellido || ' ' || u.segundo_apellido AS nombre,
+        r.nombre AS tipo
+    FROM usuario_tema ut
+    JOIN usuario u ON u.usuario_id = ut.usuario_id
+    JOIN rol r ON r.rol_id = ut.rol_id
+    WHERE ut.tema_id = id_tema
+      AND ut.activo = TRUE;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE PROCEDURE aceptar_invitacion_correo(p_id_token VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE control_exposicion_usuario 
+    SET estado_exposicion_usuario = 'Aceptado',
+        token_unico = NULL
+    WHERE token_unico = p_id_token;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE rechazar_invitacion_correo(p_id_token VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE control_exposicion_usuario 
+    SET estado_exposicion_usuario = 'Rechazado',
+        token_unico = NULL
+    WHERE token_unico = p_id_token;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE set_token_unico(
+    p_id_usuario INTEGER,
+    p_token_unico VARCHAR,
+    p_id_exposicion INTEGER,
+    p_id_tema INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    var_exposicion_x_tema_id INT;
+    var_usuario_x_tema_id INT;
+    filas_actualizadas INT;
+    var_asignado BOOLEAN;
+BEGIN
+    -- Verificar si el usuario_tema está asignado
+    SELECT asignado
+    INTO var_asignado
+    FROM usuario_tema
+    WHERE usuario_id = p_id_usuario
+      AND tema_id = p_id_tema;
+
+    -- Si no se encuentra, simplemente termina
+    IF NOT FOUND OR NOT var_asignado THEN
+        RAISE NOTICE 'Usuario no asignado al tema o no se encontró usuario_tema. Salida sin cambios.';
+        RETURN;
+    END IF;
+
+    -- Validar exposición
+    SELECT exposicion_x_tema_id
+    INTO var_exposicion_x_tema_id
+    FROM exposicion_x_tema
+    WHERE exposicion_id = p_id_exposicion 
+      AND tema_id = p_id_tema;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró exposicion_x_tema con exposicion_id=%', p_id_exposicion;
+    END IF;
+
+    -- Validar usuario
+    SELECT usuario_tema_id
+    INTO var_usuario_x_tema_id
+    FROM usuario_tema
+    WHERE usuario_id = p_id_usuario
+      AND tema_id = p_id_tema;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_tema con usuario_id=%', p_id_usuario;
+    END IF;
+
+    -- Hacer update
+    UPDATE control_exposicion_usuario
+    SET token_unico = p_token_unico
+    WHERE exposicion_x_tema_id = var_exposicion_x_tema_id
+      AND usuario_x_tema_id = var_usuario_x_tema_id
+    RETURNING * INTO filas_actualizadas;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró coincidencia en control_exposicion_usuario para exposicion_x_tema_id=% y usuario_tema_id=%', var_exposicion_x_tema_id, var_usuario_x_tema_id;
+    END IF;
+
+    -- Mensaje opcional en consola
+    RAISE NOTICE 'Token actualizado correctamente para usuario_id=%, exposicion_id=%', p_id_usuario, p_id_exposicion;
+END;
 $$;

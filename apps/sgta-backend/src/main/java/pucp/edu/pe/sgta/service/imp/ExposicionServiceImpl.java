@@ -10,10 +10,7 @@ import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
 import pucp.edu.pe.sgta.dto.exposiciones.MiembroExposicionDto;
 import pucp.edu.pe.sgta.mapper.ExposicionMapper;
-import pucp.edu.pe.sgta.model.EstadoPlanificacion;
-import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
-import pucp.edu.pe.sgta.model.Exposicion;
-import pucp.edu.pe.sgta.model.UsuarioXTema;
+import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
@@ -55,7 +52,8 @@ public class ExposicionServiceImpl implements ExposicionService {
                         ((Number) resultado[1]).intValue(), // id etapa formativa x ciclo
                         (String) resultado[2], // nombre
                         (String) resultado[3], // descripcion
-                        ((Number) resultado[4]).intValue() // id estado planificacion
+                        ((Number) resultado[4]).intValue(), // id estado planificacion
+                        ((Number) resultado[5]).intValue() // id entregable
                 ))
                 .collect(Collectors.toList());
     }
@@ -81,9 +79,13 @@ public class ExposicionServiceImpl implements ExposicionService {
         EtapaFormativaXCiclo efc = new EtapaFormativaXCiclo();
         efc.setId(etapaFormativaXCicloId);
         exposicion.setEtapaFormativaXCiclo(efc);
+        Entregable entregable = new Entregable();
+        entregable.setId(dto.getEntregableId());
+        exposicion.setEntregable(entregable);
         exposicion.setFechaCreacion(OffsetDateTime.now());
 
         exposicionRepository.save(exposicion);
+        exposicionRepository.asociarTemasAExposicion(exposicion.getId(), etapaFormativaXCicloId);
         return exposicion.getId();
     }
 
@@ -98,6 +100,10 @@ public class ExposicionServiceImpl implements ExposicionService {
         EstadoPlanificacion estadoPlanificacion = new EstadoPlanificacion();
         estadoPlanificacion.setId(dto.getEstadoPlanificacionId());
         exposicionToUpdate.setEstadoPlanificacion(estadoPlanificacion);
+
+        Entregable entregable = new Entregable();
+        entregable.setId(dto.getEntregableId());
+        exposicionToUpdate.setEntregable(entregable);
 
         exposicionToUpdate.setDescripcion(dto.getDescripcion());
         exposicionToUpdate.setFechaModificacion(OffsetDateTime.now());

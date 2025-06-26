@@ -1,8 +1,13 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
+import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
+import pucp.edu.pe.sgta.dto.TemaDto;
+import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CriterioEntregableMapper;
 import pucp.edu.pe.sgta.model.CriterioEntregable;
 import pucp.edu.pe.sgta.model.Entregable;
@@ -10,7 +15,10 @@ import pucp.edu.pe.sgta.repository.CriterioEntregableRepository;
 import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
@@ -19,6 +27,9 @@ import java.util.Optional;
 public class CriterioEntregableServiceImpl implements CriterioEntregableService {
 
     private final CriterioEntregableRepository criterioEntregableRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository) {
         this.criterioEntregableRepository = criterioEntregableRepository;
@@ -54,6 +65,35 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         criterioEntregableToUpdate.setDescripcion(criterioEntregableDto.getDescripcion());
         criterioEntregableToUpdate.setFechaModificacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregableToUpdate);
+    }
+
+    @Override
+    public List<CriterioEntregableDto> listar_criterio_entregable_x_revisionID(Integer revision_entregable_id) {
+
+
+        String sql = "SELECT * FROM listar_criterio_entregable_x_revisionID(:revision_entregable_id)";
+
+        List<Object[]> resultados = entityManager
+                .createNativeQuery(sql)
+                .setParameter("revision_entregable_id", revision_entregable_id)
+                .getResultList();
+        List<CriterioEntregableDto> listaCriterios = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            CriterioEntregableDto dto = new CriterioEntregableDto();
+            dto.setRevision_documento_id((Integer) fila[0]);
+            dto.setUsuario_revisor_id((Integer) fila[1]);
+            dto.setTema_x_entregable_id((Integer) fila[2]);
+            dto.setEntregable_id((Integer) fila[3]);
+            dto.setEntregable_descripcion((String) fila[4]);
+            dto.setId((Integer)fila[5]);
+            dto.setDescripcion((String)fila[6]);
+            dto.setNombre((String)fila[7]);
+            dto.setNotaMaxima((BigDecimal)fila[8]);
+            listaCriterios.add(dto);
+        }
+
+        return listaCriterios;
     }
 
     @Transactional

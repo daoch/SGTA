@@ -93,7 +93,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
     <div className="flex flex-wrap gap-4 pb-4 items-end">
       {/* Buscador */}
       <div>
-        <Label htmlFor="buscador" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="buscador" className="leading-none font-semibold mb-2">
           Buscar
         </Label>
         <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Curso */}
       <div>
-        <Label htmlFor="curso" className="text-sm font-semibold mb-2">
+        <Label htmlFor="curso" className="leading-none font-semibold mb-2">
           Curso
         </Label>
         <Controller
@@ -153,7 +153,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Periodo */}
       <div>
-        <Label htmlFor="periodo" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="periodo" className="leading-none font-semibold mb-2">
           Período
         </Label>
         <Controller
@@ -181,7 +181,7 @@ export const FilterExposicionJurado: React.FC<Props> = ({
 
       {/* Estado */}
       <div>
-        <Label htmlFor="estado" className="text-sm font-semibold block mb-2">
+        <Label htmlFor="estado" className="leading-none font-semibold mb-2">
           Estado
         </Label>
         <Controller

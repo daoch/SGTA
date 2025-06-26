@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.time.OffsetDateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
@@ -51,7 +52,7 @@ public class NotificacionScheduler {
      * Tarea de prueba que se ejecuta cada 5 minutos (solo para desarrollo/testing)
      * Comentar o eliminar en producción
      */
-    // @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void tareaTestRecordatorios() {
         log.info("=== TAREA DE PRUEBA: Generando recordatorios (cada 5 minutos) ===");
         try {
@@ -60,6 +61,25 @@ public class NotificacionScheduler {
             log.info("=== COMPLETADA TAREA DE PRUEBA ===");
         } catch (Exception e) {
             log.error("Error en la tarea de prueba: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Tarea diaria a las 08:00 AM para generar recordatorios automáticos de eventos
+     * Genera recordatorios 5, 30 y 1 día antes de cada fecha agendada
+     * 
+     * Expresión cron: "0 0 8 * * *" = segundo 0, minuto 0, hora 8, cualquier día del mes, cualquier mes, cualquier día de la semana
+     */
+
+    // @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
+    public void generarRecordatoriosDiariosEventos() {
+        log.info("=== INICIANDO TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
+        try {
+            notificacionService.generarRecordatoriosAutomaticosEventos();
+            log.info("=== COMPLETADA TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
+        } catch (Exception e) {
+            log.error("Error en la tarea programada de recordatorios diarios de eventos: {}", e.getMessage(), e);
         }
     }
 } 

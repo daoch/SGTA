@@ -25,8 +25,6 @@ const PlanificacionEstadoStepper: React.FC<Props> = React.memo(
     const isActive = (stepId: number) => stepId === estadoPlan.id;
     const isSuccess = (stepId: number) => stepId < estadoPlan.id;
 
-    console.log("estadoPlan", estadoPlan);
-
     return (
       <div data-hs-stepper="" className="w-full">
         <ul className="relative flex flex-row gap-x-2">
@@ -64,16 +62,66 @@ const PlanificacionEstadoStepper: React.FC<Props> = React.memo(
                     </svg>
                   )}
                 </span>
-                <span className="ms-2 text-sm font-medium text-gray-800">
-                  {stepLabels[index]}
-                </span>
+                <div className="ms-2 flex flex-col">
+                  <span className="text-sm font-medium text-gray-800">
+                    {stepLabels[index]}
+                  </span>
+                  {step.id === 2 && estadoPlan.fechaCreacion && (
+                    <span>
+                      {new Date(estadoPlan.fechaCreacion).toLocaleString(
+                        "es-PE",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        },
+                      )}
+                    </span>
+                  )}
+                  {step.id === estadoPlan.id - 1 &&
+                    step.id !== 2 &&
+                    estadoPlan.id !== 5 &&
+                    estadoPlan.fechaModificacion && (
+                      <span>
+                        {new Date(estadoPlan.fechaModificacion).toLocaleString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          },
+                        )}
+                      </span>
+                    )}
+                  {estadoPlan.id === 5 &&
+                    step.id === 5 &&
+                    estadoPlan.fechaModificacion && (
+                      <span>
+                        {new Date(estadoPlan.fechaModificacion).toLocaleString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          },
+                        )}
+                      </span>
+                    )}
+                </div>
               </span>
               {index < steps.length - 1 && (
                 <div
-                  className={`w-full h-px flex-1 
-                ${isSuccess(step.id) ? "bg-primary" : "bg-gray-200"}
-              `}
-                ></div>
+                  className={`w-full h-px flex-1 ${isSuccess(step.id) ? "bg-primary" : "bg-gray-200"}`}
+                />
               )}
             </li>
           ))}

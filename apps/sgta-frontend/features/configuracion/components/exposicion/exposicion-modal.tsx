@@ -16,6 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { Exposicion } from "../../dtos/exposicion";
 import { toast } from "sonner";
+import { Entregable } from "../../dtos/entregable";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ExposicionModalProps {
   isOpen: boolean;
@@ -23,6 +31,7 @@ interface ExposicionModalProps {
   onSubmit: (exposicion: Exposicion) => Promise<void>;
   exposicion?: Exposicion | null;
   mode: "create" | "edit";
+  entregables: Entregable[];
 }
 
 export const ExposicionModal: React.FC<ExposicionModalProps> = ({
@@ -31,6 +40,7 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
   onSubmit,
   exposicion,
   mode,
+  entregables,
 }) => {
   const isEditMode = mode === "edit";
 
@@ -39,6 +49,7 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
     estadoPlanificacionId: 1,
     nombre: "",
     descripcion: "",
+    entregableId: 0,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,6 +61,7 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
         nombre: exposicion.nombre,
         descripcion: exposicion.descripcion,
         estadoPlanificacionId: exposicion.estadoPlanificacionId,
+        entregableId: exposicion.entregableId,
       });
     } else {
       // Resetear el formulario en modo creación
@@ -58,6 +70,7 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
         nombre: "",
         descripcion: "",
         estadoPlanificacionId: 1,
+        entregableId: 0,
       });
     }
   }, [exposicion, isEditMode, isOpen]);
@@ -79,7 +92,8 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
     try {
       await onSubmit(formData);
       toast.success(
-        `Exposición ${isEditMode ? "actualizada" : "creada"} exitosamente`,);
+        `Exposición ${isEditMode ? "actualizada" : "creada"} exitosamente`,
+      );
     } catch (error) {
       console.error(
         `Error al ${isEditMode ? "actualizar" : "crear"} la exposición:`,
@@ -94,10 +108,7 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
   };
 
   const isFormValid = () => {
-    if (
-      !formData.nombre ||
-      !formData.descripcion
-    ) {
+    if (!formData.nombre || !formData.descripcion || !formData.entregableId) {
       return false;
     }
     return true;
@@ -147,6 +158,40 @@ export const ExposicionModal: React.FC<ExposicionModalProps> = ({
                 onChange={handleInputChange}
                 required
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="entregable">Entregable asociado</Label>
+              <Select
+                value={
+                  formData.entregableId && formData.entregableId !== 0
+                    ? formData.entregableId.toString()
+                    : ""
+                }
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    entregableId: Number(value),
+                  }))
+                }
+                required
+              >
+                <SelectTrigger
+                  id="entregable"
+                  className="border rounded px-2 py-1"
+                >
+                  <SelectValue placeholder="Seleccione un entregable" />
+                </SelectTrigger>
+                <SelectContent>
+                  {entregables.map((entregable) => (
+                    <SelectItem
+                      key={entregable.id}
+                      value={entregable.id?.toString() ?? ""}
+                    >
+                      {entregable.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

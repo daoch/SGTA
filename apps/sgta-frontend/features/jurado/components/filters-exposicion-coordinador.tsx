@@ -71,12 +71,6 @@ export const FilterExposicionCoordinador: React.FC<Props> = ({
     fetchCiclos();
   }, []);
 
-  useEffect(() => {
-    console.log("Etapas Formativas:", etapasFormativas);
-    console.log("Ciclos:", ciclos);
-    console.log("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-  }, [ciclos, etapasFormativas]);
-
   return (
     <div className="flex flex-wrap gap-4 pb-4 items-end">
       {/* Buscador */}
