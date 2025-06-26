@@ -7,7 +7,7 @@ export const useDownloadAnnotated = (revisionId: number) => {
       const response = await axiosInstance.get(
         `/revision/${revisionId}/annotated-pdf`,
         {
-          responseType: 'blob'
+          responseType: "blob"
         }
       );
       
