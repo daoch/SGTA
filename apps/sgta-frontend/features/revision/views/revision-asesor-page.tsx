@@ -8,6 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,9 +29,9 @@ import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RubricaEvaluacion } from "../components/RubricaEvluacion";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-
 function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
 
@@ -67,6 +72,28 @@ const RevisionAsesorPage = () => {
   const [cursoFilter, setCursoFilter] = useState("todos");
   const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
 
+
+  //DIALOG
+  const [showRubricaDialog, setShowRubricaDialog] = useState(false)
+  const handleRubricaComplete = async () => {
+    try {
+      // En una aplicación real, aquí se enviaría la evaluación de la rúbrica al backend
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Redirigimos al usuario a la página de detalles de la revisión
+      //router.push(`/revision/${4}`)
+    } catch (error) {
+      console.error("Error al guardar la evaluación de la rúbrica:", error)
+    }
+  }
+  
+  
+  
+  
+  //
+
+
+
   useEffect(() => {
     const fetchDocumentos = async () => {
       try {
@@ -101,11 +128,13 @@ const RevisionAsesorPage = () => {
             Módulo de Revisión
           </h1>
           <p className="text-muted-foreground">
-            Detección de plagio y verificación de normas APA
+            Detección de similitud de contenido y revision de entregables
           </p>
         </div>
       </div>
-
+      <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+                NOTAS
+      </Button> 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -131,7 +160,21 @@ const RevisionAsesorPage = () => {
           </SelectContent>
         </Select>
       </div>
-
+      {/* Modal de Rúbrica */}
+      <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              {/* <DialogTitle>Evaluación de Rúbrica</DialogTitle>
+              <DialogDescription>
+                Complete la evaluación de la rúbrica para el entregable {"TEST"}
+              </DialogDescription> */}
+            </DialogHeader>
+            <RubricaEvaluacion
+              revisionId={4}
+              onCancel={() => setShowRubricaDialog(false)}
+            />  
+          </DialogContent>
+        </Dialog>
       <Tabs defaultValue="por_aprobar" className="w-full">
         <div className="flex justify-between items-center mb-2">
           <TabsList>

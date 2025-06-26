@@ -138,6 +138,21 @@ export interface HighlightDto {
   };
 }
 
+export interface RevisionCriterioEntregableDto {
+  id: number;
+  nombre : string;
+  notaMaxima: number;
+  descripcion : string;
+  nota : number|null;
+  revision_documento_id:number;
+  usuario_revisor_id :number;
+  tema_x_entregable_id: number;
+  entregable_id : number;
+  entregable_descripcion:string;
+  revision_criterio_entrebable_id : number|null;
+  observacion:string|null;
+}
+
 // Mapea el DTO a IHighlight
 function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
   return {
@@ -200,4 +215,13 @@ export async function getJsonPlagio(revisionId: number): Promise<PlagioApiRespon
   const response = await axiosInstance.get(`/s3/archivos/get-plagio-json/${revisionId}`);
   return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
 
+}
+
+export async function listarCriterioEntregablesNotas(revisionId:number) : Promise<RevisionCriterioEntregableDto[]> {
+  const response = await axiosInstance.get(`/criterio-entregable/revision/${revisionId}`);
+  return response.data;
+}
+export async function guardarNota( listaCriterios:RevisionCriterioEntregableDto[]):Promise<void>{
+  console.log(listaCriterios);
+  await axiosInstance.post('/criterio-entregable/revision_nota/registrar_nota',listaCriterios);
 }

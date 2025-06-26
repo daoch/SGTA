@@ -90,12 +90,38 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
             dto.setDescripcion((String)fila[6]);
             dto.setNombre((String)fila[7]);
             dto.setNotaMaxima((BigDecimal)fila[8]);
+            dto.setRevision_criterio_entregable_id((Integer) fila[9]);
+            //dto.setNota(Double.valueOf((String)fila[10]));
+            if (fila[10] != null) {
+                dto.setNota(((BigDecimal) fila[10]).doubleValue());
+            } else {
+                dto.setNota(null);
+            }
+            dto.setObservacion((String)fila[11]);
             listaCriterios.add(dto);
         }
 
         return listaCriterios;
     }
+    @Transactional
+    @Override
+    public void insertar_actualizar_revision_criterio_entregable(CriterioEntregableDto criterioEntregable) {
 
+
+        String sql = "SELECT insertar_actualizar_criterio_entregable_id(:p_revision_criterio_entregable_id ,:p_entregable_x_tema_id ,:p_criterio_entregable_id, :p_revision_documento_id,:p_usuario_id ,:p_nota,:p_observacion)";
+
+        entityManager
+                .createNativeQuery(sql)
+                .setParameter("p_revision_criterio_entregable_id", criterioEntregable.getRevision_criterio_entregable_id())
+                .setParameter("p_entregable_x_tema_id", criterioEntregable.getTema_x_entregable_id())
+                .setParameter("p_criterio_entregable_id", criterioEntregable.getId())
+                .setParameter("p_revision_documento_id", criterioEntregable.getRevision_documento_id())
+                .setParameter("p_usuario_id", criterioEntregable.getUsuario_revisor_id())
+                .setParameter("p_nota", BigDecimal.valueOf(criterioEntregable.getNota()))
+                .setParameter("p_observacion", criterioEntregable.getObservacion())
+                .getResultList();
+    }
+    
     @Transactional
     @Override
     public void delete(Integer id) {

@@ -47,4 +47,11 @@ public class CriterioEntregableController {
         return criterioEntregableService.listar_criterio_entregable_x_revisionID(revision_entregable_id);
     }
 
+    @PostMapping("/revision_nota/registrar_nota")
+    public void upsertRevisionCriterioEntregable(@RequestBody List<CriterioEntregableDto> listaCriterioEntregable) {
+        for (CriterioEntregableDto dto : listaCriterioEntregable) {
+            criterioEntregableService.insertar_actualizar_revision_criterio_entregable(dto);
+        }
+    }
+
 }
