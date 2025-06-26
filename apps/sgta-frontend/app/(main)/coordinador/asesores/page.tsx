@@ -12,38 +12,38 @@ import Link from "next/link";
 const cards = [
   {
     title: "Directorio de Asesores",
-    description: "Gestiona la habilitación de profesores como asesores.",
+    description: "Gestiona la habilitación de profesores como asesores",
     href: "/coordinador/asesores/directorio-de-asesores",
     icon: Users,
   },
   {
     title: "Cese de Asesoría",
-    description: "Administra solicitudes de cese de función de asesoría.",
+    description: "Administra solicitudes de cese de función de asesoría",
     href: "/coordinador/asesores/cese-de-asesoria",
     icon: UserX2,
   },
   {
     title: "Áreas Temáticas",
-    description: "Configura las áreas temáticas disponibles para tesis.",
+    description: "Configura las áreas temáticas disponibles para tesis",
     href: "/coordinador/asesores/areas-tematicas",
     icon: BookOpen,
   },
 
   {
     title: "Cese de Tema",
-    description: "Gestiona solicitudes de cese de tema de tesis.",
+    description: "Gestiona solicitudes de cese de tema de tesis",
     href: "/coordinador/asesores/cese-tema",
     icon: UserX2,
   },
   {
     title: "Cambio de Asesor",
-    description: "Administra solicitudes de cambio de asesor académico.",
+    description: "Administra solicitudes de cambio de asesor académico",
     href: "/coordinador/asesores/cambio-asesor",
     icon: RefreshCcw,
   },
   {
     title: "Reuniones",
-    description: "Visualiza las reuniones de asesores con sus tesistas.",
+    description: "Visualiza las reuniones de asesores con sus tesistas",
     href: "/coordinador/asesores/reuniones",
     icon: CalendarIcon,
   },  

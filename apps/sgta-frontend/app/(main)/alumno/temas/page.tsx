@@ -12,19 +12,19 @@ import Link from "next/link";
 const cards = [
   {
     title: "Catálogo de temas libres",
-    description: "Explora temas propuestos de forma libre.",
+    description: "Explora temas propuestos de forma libre",
     href: "/alumno/temas/catalogo-de-temas",
     icon: FolderOpen,
   },
   {
     title: "Temas",
-    description: "Visualiza y gestiona los detalles de tu tema asignado.",
+    description: "Visualiza y gestiona tus temas, postulaciones y propuestas",
     href: "/alumno/temas/temas",
     icon: FileText,
   },
   {
     title: "Postulaciones de asesores",
-    description: "Consulta las postulaciones de los asesores.",
+    description: "Consulta las postulaciones de los asesores",
     href: "/alumno/temas/postulaciones-de-asesores",
     icon: CheckSquare,
   },

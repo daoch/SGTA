@@ -12,25 +12,25 @@ import Link from "next/link";
 const cards = [
   {
     title: "Directorio de Asesores",
-    description: "Gestiona la habilitación de profesores como asesores.",
+    description: "Gestiona la habilitación de profesores como asesores",
     href: "/asesor/asesores/directorio-de-asesores",
     icon: Users,
   },
   {
     title: "Cese de Asesoría",
-    description: "Administra solicitudes de cese de función de asesoría.",
+    description: "Administra solicitudes de cese de función de asesoría",
     href: "/asesor/asesores/cese-de-asesoria",
     icon: UserX2,
   },
   {
     title: "Cese de Tema",
-    description: "Gestiona solicitudes de cese de tema de tesis.",
+    description: "Gestiona solicitudes de cese de tema de tesis",
     href: "/asesor/asesores/cese-tema",
     icon: UserX2,
   },
   {
     title: "Cambio de Asesor",
-    description: "Administra solicitudes de cambio de asesor académico.",
+    description: "Administra solicitudes de cambio de asesor académico",
     href: "/asesor/asesores/cambio-asesor",
     icon: RefreshCcw,
   },

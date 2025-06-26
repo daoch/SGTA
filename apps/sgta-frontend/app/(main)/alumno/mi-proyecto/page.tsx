@@ -13,31 +13,31 @@ import { title } from "process";
 const cards = [
   {
     title: "Información del proyecto",
-    description: "Visualiza el detalle de tu proyecto.",
+    description: "Visualiza el detalle de tu proyecto",
     href: "/alumno/mi-proyecto/informacion-del-proyecto",
     icon: FileText,
   },
   {
     title: "Cronograma",
-    description: "Consulta y registra tus eventos.",
+    description: "Consulta y registra tus eventos",
     href: "/alumno/mi-proyecto/cronograma",
     icon: Calendar,
   },
   {
     title: "Entregables",
-    description: "Revisa y entrega tus documentos.",
+    description: "Revisa y entrega tus documentos",
     href: "/alumno/mi-proyecto/entregables",
     icon: FileSpreadsheet,
   },
   {
     title: "Exposiciones",
-    description: "Consulta tus exposiciones.",
+    description: "Consulta tus exposiciones",
     href: "/alumno/mi-proyecto/exposiciones",
     icon: MessageSquare,
   },
   {
     title: "Reuniones",
-    description: "Accede al historial de tus reuniones.",
+    description: "Accede al historial de tus reuniones",
     href: "/alumno/mi-proyecto/reuniones",
     icon: Users,
   },
