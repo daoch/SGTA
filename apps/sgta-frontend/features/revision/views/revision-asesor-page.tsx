@@ -91,6 +91,8 @@ const RevisionAsesorPage = () => {
     fetchDocumentos();
   }, []);
 
+  console.log(documentos);
+
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
 
   return (

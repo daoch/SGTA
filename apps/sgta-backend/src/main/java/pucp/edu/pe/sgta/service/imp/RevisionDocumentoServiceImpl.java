@@ -388,6 +388,12 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     }
 
     @Override
+    public void crearRevisionesRevisores(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisionesRevisores(entregableXTemaId);
+        logger.warning("Revisiones creadas para los revisores en el entregable con ID: " + entregableXTemaId);
+    }
+
+    @Override
     public List<UsuarioDto> getStudentsByRevisor(Integer revisionId) {
 
         List<Object[]> result = revisionDocumentoRepository.getStudentsByRevisor(revisionId);

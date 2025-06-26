@@ -38,5 +38,7 @@ public interface RevisionDocumentoService {
 
     void crearRevisiones(int entregableXTemaId);
 
+    void crearRevisionesRevisores(int entregableXTemaId);
+
     List<UsuarioDto> getStudentsByRevisor(Integer revisionId);
 }
