@@ -219,6 +219,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .segundoApellido((String) fila[6])
                     .correoElectronico((String) fila[7])
                     .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
                     .build();
             usuarios.add(dto);
         }
@@ -243,6 +244,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .segundoApellido((String) fila[6])
                     .correoElectronico((String) fila[7])
                     .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
                     .build();
             usuarios.add(dto);
         }

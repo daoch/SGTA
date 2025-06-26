@@ -16,4 +16,5 @@ public class UserDto {
     private String segundoApellido;
     private String correoElectronico;
     private List<String> roles;
+    private Boolean activo;
 }
