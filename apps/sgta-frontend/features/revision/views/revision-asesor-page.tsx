@@ -122,9 +122,10 @@ const RevisionAsesorPage = () => {
           </p>
         </div>
       </div>
-      {/* <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+
+      {/*<Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
                 NOTAS
-      </Button>  */}
+      </Button> */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

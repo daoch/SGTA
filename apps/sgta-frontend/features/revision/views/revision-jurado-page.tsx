@@ -69,28 +69,44 @@ const RevisionJuradoPage = () => {
   const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
 
   useEffect(() => {
-    const fetchDocumentos = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        console.log(idToken);
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        const response = await axiosInstance.get("/revision/asesor", {
-          headers: {
-            Authorization: `Bearer ${idToken}`
-          }
-        });
-
-        const agrupados = agruparPorDocumento(response.data);
-        setDocumentos(agrupados);
-      } catch (error) {
-        console.error("Error al cargar los documentos:", error);
+  const fetchDocumentos = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      console.log(idToken);
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
-    fetchDocumentos();
-  }, []);
+
+      const response = await axiosInstance.get("/revision/jurado", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      const agrupados = agruparPorDocumento(response.data);
+      setDocumentos(agrupados);
+      console.log("Documentos del jurado cargados:", agrupados);
+    } catch (error) {
+      console.error("Error al cargar los documentos del jurado:", error);
+    }
+  };
+
+  fetchDocumentos();
+}, []);
+const documentosTransformados = documentos.map(doc => ({
+  ...doc,
+  estado:
+    doc.estado === "por_aprobar" || doc.estado === "aprobado"
+      ? "pendiente"
+      : doc.estado === "revisado"
+        ? "en_proceso"
+        : doc.estado === "rechazado"
+          ? "completados"
+          : doc.estado, // para mantener otros valores si existen
+}));
+console.log("Documentos transformados:", documentosTransformados);
+
 
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
 
@@ -177,21 +193,12 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+              data={documentosTransformados}
+              filter="pendiente"
+              searchQuery={searchQuery}
+              cursoFilter={cursoFilter}
+            />
             </CardContent>
           </Card>
         </TabsContent>
@@ -204,21 +211,12 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentosTransformados}
+                filter="en_proceso"
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -231,21 +229,12 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentosTransformados}
+                filter="completados"
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -256,19 +245,11 @@ const RevisionJuradoPage = () => {
               <CardDescription>Lista completa de documentos</CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentosTransformados}
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>

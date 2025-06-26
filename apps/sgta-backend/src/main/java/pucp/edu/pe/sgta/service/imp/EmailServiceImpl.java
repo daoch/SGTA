@@ -274,4 +274,130 @@ public class EmailServiceImpl implements EmailService {
             emailDto.getAsunto(), nombreApp, emailDto.getAsunto(), 
             emailDto.getNombreDestinatario(), emailDto.getMensaje(), urlApp);
     }
+
+    @Override
+    public void enviarNotificacionEstadoEntregable(String destinatario, String nombreCompleto,String nombreDocumento, String nombreEntregable, String estado) {
+        try {
+            if (!esEmailValido(destinatario)) {
+                log.warn("Correo electrónico inválido: {}", destinatario);
+                return;
+            }
+
+            String asunto = String.format("📢 Entregable %s ha sido %s", nombreEntregable, estado.toUpperCase());
+            String contenidoHtml = construirHtmlNotificacionEstado(nombreCompleto,nombreDocumento, nombreEntregable, estado);
+
+            enviarCorreoHtml(destinatario, asunto, contenidoHtml);
+
+            log.info("Notificación de estado enviada a {} para entregable: {}", destinatario, nombreEntregable);
+        } catch (Exception e) {
+            log.error("Error al enviar notificación de estado a {}: {}", destinatario, e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void enviarNotificacionEstadoEntregableRevisor(String destinatario, String nombreCompleto, String nombreCompletoAlumno,String nombreDocumento, String nombreEntregable, String estado) {
+        try {
+            if (!esEmailValido(destinatario)) {
+                log.warn("Correo electrónico inválido: {}", destinatario);
+                return;
+            }
+
+            String asunto = String.format("📢 El entregable %s ha sido %s", nombreEntregable, estado.toUpperCase());
+            String contenidoHtml = construirHtmlNotificacionEstadoRevisor(nombreCompleto,nombreCompletoAlumno,nombreDocumento, nombreEntregable, estado);
+
+            enviarCorreoHtml(destinatario, asunto, contenidoHtml);
+
+            log.info("Notificación de estado enviada a {} para entregable: {}", destinatario, nombreEntregable);
+        } catch (Exception e) {
+            log.error("Error al enviar notificación de estado a {}: {}", destinatario, e.getMessage(), e);
+        }
+    }
+
+    private String construirHtmlNotificacionEstado(String nombreCompleto,String nombreDocumento, String nombreEntregable, String estado) {
+        String colorEstado = estado.equalsIgnoreCase("aprobado") ? "#28a745" : "#dc3545";
+        String textoEstado = estado.equalsIgnoreCase("aprobado") ? "APROBADO ✅" : "RECHAZADO ❌";
+
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<head>" +
+            "<meta charset=\"UTF-8\">" +
+            "<title>Estado del Entregable</title>" +
+            "<style>" +
+            "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }" +
+            ".container { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }" +
+            ".header { text-align: center; margin-bottom: 30px; }" +
+            ".logo { color: #007bff; font-size: 24px; font-weight: bold; }" +
+            ".estado { color: %s; font-size: 20px; font-weight: bold; margin: 20px 0; }" +
+            ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 12px; }" +
+            ".btn { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }" +
+            "</style>" +
+            "</head>" +
+            "<body>" +
+            "<div class=\"container\">" +
+            "<div class=\"header\">" +
+            "<div class=\"logo\">📢 Estado del Entregable</div>" +
+            "</div>" +
+            "<p>Hola <strong>%s</strong>,</p>" +
+            "<p>Te informamos que tu documento <strong>%s</strong>, perteneciente a tu entregable <strong>%s</strong> ha sido:</p>" +
+            "<p class=\"estado\">%s</p>" +
+            "<div style=\"text-align: center;\">" +
+            "<a href=\"%s\" class=\"btn\">Ir al Sistema</a>" +
+            "</div>" +
+            "<div class=\"footer\">" +
+            "<p>Este es un mensaje automático del Sistema de Gestión de Tesis y Asesorías (SGTA)</p>" +
+            "<p>Por favor no respondas a este correo.</p>" +
+            "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            colorEstado, nombreCompleto, nombreDocumento,nombreEntregable, textoEstado, urlApp
+        );
+    }
+
+    private String construirHtmlNotificacionEstadoRevisor(String nombreCompleto,String nombreCompletoAlumno,String nombreDocumento, String nombreEntregable, String estado) {
+        String colorEstado = estado.equalsIgnoreCase("aprobado") ? "#28a745" : "#dc3545";
+        String textoEstado = estado.equalsIgnoreCase("aprobado") ? "APROBADO ✅" : "RECHAZADO ❌";
+
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<head>" +
+            "<meta charset=\"UTF-8\">" +
+            "<title>Estado del Entregable</title>" +
+            "<style>" +
+            "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }" +
+            ".container { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }" +
+            ".header { text-align: center; margin-bottom: 30px; }" +
+            ".logo { color: #007bff; font-size: 24px; font-weight: bold; }" +
+            ".estado { color: %s; font-size: 20px; font-weight: bold; margin: 20px 0; }" +
+            ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; font-size: 12px; }" +
+            ".btn { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }" +
+            "</style>" +
+            "</head>" +
+            "<body>" +
+            "<div class=\"container\">" +
+            "<div class=\"header\">" +
+            "<div class=\"logo\">📢 Estado del Entregable</div>" +
+            "</div>" +
+            "<p>Hola <strong>%s</strong>,</p>" +
+            "<p>Te informamos que has corregido el documento <strong>%s</strong>, perteneciente al entregable <strong>%s</strong> del alumno <strong>%s</strong> y ha sido:</p>" +
+            "<p class=\"estado\">%s</p>" +
+            "<div style=\"text-align: center;\">" +
+            "<a href=\"%s\" class=\"btn\">Ir al Sistema</a>" +
+            "</div>" +
+            "<div class=\"footer\">" +
+            "<p>Este es un mensaje automático del Sistema de Gestión de Tesis y Asesorías (SGTA)</p>" +
+            "<p>Por favor no respondas a este correo.</p>" +
+            "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>",
+            colorEstado, nombreCompleto, nombreDocumento,nombreEntregable,nombreCompletoAlumno,textoEstado, urlApp
+        );
+    }
+
+
+
+
 } 

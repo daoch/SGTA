@@ -34,6 +34,12 @@ function formatFecha(fecha: string) {
     .padStart(2, "0")}/${date.getFullYear()}`;
 }
 
+// Extiende IHighlight para permitir el campo corregido y resuelto
+interface IHighlightConCorregido extends IHighlight {
+  corregido?: boolean;
+  resuelto?: boolean;
+}
+
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
@@ -100,13 +106,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
     const fetchObservaciones = async () => {
       try {
         const highlights = await obtenerObservacionesRevision(Number(params.id));
-        const observaciones: Observacion[] = highlights.map((h) => ({
+        const observaciones: Observacion[] = (highlights as IHighlightConCorregido[]).map((h) => ({
           id: String(h.id),
           pagina: h.position.pageNumber,
           parrafo: 0,
           texto: h.content.text ?? "",
           tipo: mapTipoObservacion(h.comment.text),
-          resuelto: false,
+          resuelto: h.resuelto ?? h.corregido ?? false,
+          corregido: h.corregido ?? false,
         }));
         setObservacionesList(observaciones);
       } catch (error) {
@@ -227,14 +234,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <TabsTrigger value="jurado">Del Profesor o Jurado</TabsTrigger>
                   </TabsList>
                   <TabsContent value="asesor">
-                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} onChange={setObservacionesList} />
                   </TabsContent>
                   <TabsContent value="jurado">
-                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} onChange={setObservacionesList} />
                   </TabsContent>
                 </Tabs>
               ) : (
-                <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={true} onChange={setObservacionesList} />
               )}
             </CardContent>
           </Card>
@@ -369,12 +376,12 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <div>
                       <span className="text-sm text-muted-foreground">Total</span>
                       <div className="text-xs">
-                        <span className="text-green-600">
-                          {observacionesList.filter((o) => o.resuelto).length} resueltas
-                        </span>
-                        {" / "}
                         <span className="text-red-600">
                           {observacionesList.filter((o) => !o.resuelto).length} pendientes
+                        </span>
+                        {" / "}
+                        <span className="text-green-600">
+                          {observacionesList.filter((o) => o.resuelto).length} resueltas
                         </span>
                       </div>
                     </div>
@@ -463,8 +470,20 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               className="bg-[#042354] hover:bg-pucp-light"
               onClick={async () => {
                 try {
+                  const elestado = showConfirmDialog === "aprobar" ? "aprobado" : "rechazado";
+
                   // Llamada al backend para actualizar el estado de la revisión
                   await actualizarEstadoRevision(Number(params.id), showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
+                  
+                  // 2. Envía correo de notificación (al usuario logueado que es el asesor)
+                  await axiosInstance.post(
+                    `/notifications/send-email-a-revisor?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
+                  );
+
+                  // 3. Envía correo a estudiantes asociados a la revisión
+                  await axiosInstance.post(
+                    `/notifications/notificar-estado?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
+                  );
 
                   // Actualiza el estado local de la revisión (si lo estás usando en la vista)
                   setRevision({ ...revision, estado: showConfirmDialog === "aprobar" ? "aprobado" : "rechazado" });
