@@ -51,7 +51,32 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
   const [selectedTab, setSelectedTab] = useState("asesor");
   const [observaciones, setObservaciones] = useState<IHighlight[]>([]);
   const [observacionesList, setObservacionesList] = useState<Observacion[]>([]);
-
+  async function descargarReporte() {
+    try {
+      const response = await axiosInstance.get(
+        `/s3/archivos/get-reporte-similitud/${encodeURIComponent(String(params.id))}`,
+        { responseType: "blob" }
+      );
+      console.log("Descargando reporte de similitud", response);
+      if (response.status !== 200) {
+        throw new Error("Error al descargar el reporte de similitud");
+      }
+      const url = window.URL.createObjectURL(response.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_similitud_${encodeURIComponent(String(params.id))}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("No se pudo descargar");
+      }
+    }
+  }
   useEffect(() => {
     async function fetchData() {
       try {
@@ -171,6 +196,10 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                 <Button variant="outline" className="gap-2">
                   <Download className="h-4 w-4" />
                   Descargar
+                </Button>
+                <Button variant="outline" className="gap-2" onClick={descargarReporte}>
+                  <Download className="h-4 w-4" />
+                  Descarga reporte de similitud
                 </Button>
               </CardTitle>
               <CardDescription>Información del documento bajo revisión</CardDescription>
@@ -453,7 +482,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
 
                   // Llamada al backend para actualizar el estado de la revisión
                   await actualizarEstadoRevision(Number(params.id), showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
-                  
+
                   // 2. Envía correo de notificación (al usuario logueado que es el asesor)
                   await axiosInstance.post(
                     `/notifications/send-email-a-revisor?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
@@ -509,7 +538,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
     </div>
   );
 }
