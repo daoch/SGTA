@@ -8,9 +8,11 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 // import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { crearCalendar, listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
   reunionesZoom,
@@ -24,13 +26,11 @@ import {
   TimeSlot,
   TipoAccion,
 } from "../../types/jurado.types";
+import { getFechaHoraFromKey } from "../../utils/get-fecha-hora-from-key";
 import { DragContext } from "./DragContext";
 import { DragMonitor } from "./DragMonitor";
 import PlanificationPanel from "./planification-panel";
 import TemasList from "./temas-list";
-import { getFechaHoraFromKey } from "../../utils/get-fecha-hora-from-key";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 interface Props {
   temas: Tema[];
@@ -278,10 +278,11 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     });
 
     try {
-      await updateBloquesNextPhase(bloquesListToInsert);
+      await updateBloquesNextPhase(bloquesListToInsert,exposicionId);
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
         await reunionesZoom(exposicionId);
+        await crearCalendar(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);
