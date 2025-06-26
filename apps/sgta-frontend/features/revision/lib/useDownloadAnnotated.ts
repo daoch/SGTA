@@ -1,20 +1,19 @@
 import { saveAs } from "file-saver";
+import axiosInstance from "@/lib/axios/axios-instance";
 
 export const useDownloadAnnotated = (revisionId: number) => {
   return async () => {
     try {
-      console.log("revisionId", revisionId);
-      console.log(`${process.env.NEXT_PUBLIC_API_URL}revision/${revisionId}/annotated-pdf`);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}revision/${revisionId}/annotated-pdf`,
-        { headers: { /* Authorization: `Bearer ${token}` if you need it */ } }
+      const response = await axiosInstance.get(
+        `/revision/${revisionId}/annotated-pdf`,
+        {
+          responseType: 'blob'
+        }
       );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      saveAs(blob, `revision_${revisionId}_comentado.pdf`);
+      
+      saveAs(response.data, `revision_${revisionId}_comentado.pdf`);
     } catch (err) {
       console.error("Descarga falló:", err);
-      // optional toast
     }
   };
 };
