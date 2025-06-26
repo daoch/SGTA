@@ -1,9 +1,10 @@
 "use client";
 
-import { ProtectedRoute } from "@/features/auth/components/protected-route";
+import RevisionRevisorPage from "@/features/revision/views/revision-revisor-page";
+import React from "react";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <ProtectedRoute requiredRoles={["revisor"]}>{children}</ProtectedRoute>
-  );
-}
+const Page: React.FC = () => {
+  return RevisionRevisorPage();
+};
+
+export default Page;

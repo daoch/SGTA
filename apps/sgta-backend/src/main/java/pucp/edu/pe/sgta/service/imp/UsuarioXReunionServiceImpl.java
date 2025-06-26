@@ -136,4 +136,23 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
         usuarioXReunion.setActivo(false);
         usuarioXReunionRepository.save(usuarioXReunion);
     }
+
+    @Override
+    public Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId, String id) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(id);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + id);
+        }
+
+        Usuario user = usuario.get();
+        Integer usuarioId = user.getId();
+        return usuarioXReunionRepository.findByReunionIdAndUsuarioIdAndActivoTrue(reunionId, usuarioId);
+    }
+
+    //Agregado
+    @Override
+    public Optional<UsuarioXReunion> findById(Integer id) {
+        return usuarioXReunionRepository.findByIdAndActivoTrue(id);
+    }
+
 }
