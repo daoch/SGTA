@@ -1,14 +1,22 @@
 package pucp.edu.pe.sgta.controller;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
+
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.logging.Logger;
 
 @RestController
@@ -133,7 +141,7 @@ public class S3FileController {
         // al final del nombre del archivo original 
         // Ejemplo: si el archivo original es "documento.pdf", el archivo de IA sería
         // "documento_ia.json"
-
+        
         String jsonKey = key.replaceAll("\\.[^.]+$", "_ia.json");
 
         byte[] data  = downloadService.download(jsonKey);
@@ -142,7 +150,7 @@ public class S3FileController {
                 .body("Archivo de plagio no encontrado o vacío.");
         }
         String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        
         return ResponseEntity.ok(json);
-
     }
 }

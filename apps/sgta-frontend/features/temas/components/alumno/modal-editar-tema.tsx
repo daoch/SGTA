@@ -6,10 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/features/auth/store/auth-store";
-import { Check, Edit, Save, X } from "lucide-react";
+import { Check, Edit, Info, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,18 +24,18 @@ interface TemaData {
     id: number;
     nombre: string;
   };
+  subareas: { id: number; nombre: string }[]; 
   asesor: {
     id: string;
     nombre: string;
   };
 }
 
-
 interface EditTemaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tema: TemaData;
-  onTemaUpdated?: (updatedTema: TemaData) => void; 
+  onTemaUpdated?: (updatedTema: TemaData) => void;
 }
 
 export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) {
@@ -49,7 +51,11 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
   const [completedFields, setCompletedFields] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
+  const [subareas, setSubareas] = useState<{ id: number; nombre: string }[]>([]);
+  const [selectedSubareas, setSelectedSubareas] = useState<{ id: number; nombre: string }[]>(tema.subareas || []);
   const [errores, setErrores] = useState<Record<string, boolean>>({});
+  const [areasConocimiento, setAreasConocimiento] = useState<{ id: number; nombre: string }[]>([]);
+  const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -73,6 +79,82 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
     }
     fetchAreas();
   }, [open, idToken]);
+
+  useEffect(() => {
+    if (!open) return;
+    async function fetchSubareas() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario`,
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) throw new Error("Error cargando subáreas");
+        const data: Array<{ id: number; nombre: string }> = await res.json();
+        setSubareas(data);
+      } catch (err) {
+        toast.error("Error cargando subáreas");
+      }
+    }
+    fetchSubareas();
+  }, [open, idToken]);
+
+  useEffect(() => {
+    if (!open) return;
+    async function fetchAreasConocimiento() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/areaConocimiento/listarPorUsuarioSub`,
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) throw new Error("Error cargando áreas de conocimiento");
+        const data: Array<{ id: number; nombre: string }> = await res.json();
+        setAreasConocimiento(data);
+      } catch (err) {
+        toast.error("Error cargando áreas de conocimiento");
+      }
+    }
+    fetchAreasConocimiento();
+  }, [open, idToken]);
+
+  useEffect(() => {
+    if (!open || !selectedAreaId) {
+      setSubareas([]);
+      return;
+    }
+    async function fetchSubareas() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/list/${selectedAreaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) throw new Error("Error cargando subáreas");
+        const data: Array<{ id: number; nombre: string }> = await res.json();
+        setSubareas(data);
+      } catch (err) {
+        toast.error("Error cargando subáreas");
+      }
+    }
+    fetchSubareas();
+  }, [open, idToken, selectedAreaId]);
+
+  useEffect(() => {
+    setSelectedSubareas([]);
+  }, [selectedAreaId]);
 
   const fields = ["titulo", "resumen", "objetivos", "area"];
 
@@ -127,14 +209,15 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
       case "objetivos":
         return formData.objetivos !== tema.objetivos;
       case "area":
-        return formData.area_id !== tema.area.id;
+        const currentIds = (tema.subareas || []).map((s) => s.id).sort().join(",");
+        const selectedIds = selectedSubareas.map((s) => s.id).sort().join(",");
+        return currentIds !== selectedIds;
       default:
         return false;
     }
   };
 
   const canSubmit = (): boolean => {
-    // Solo permite guardar si todos los campos editados tienen justificación y han cambiado
     for (const field of editingFields) {
       if (!isFieldChanged(field) || !justificaciones[field]?.trim()) {
         return false;
@@ -144,7 +227,6 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
   };
 
   const submitAllChanges = async () => {
-    // Marca errores en los campos que faltan justificación
     const newErrores: Record<string, boolean> = {};
     let hasError = false;
     editingFields.forEach((field) => {
@@ -181,12 +263,14 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
           case "area":
             return {
               tipo_solicitud_id: 8,
-              area_nueva: formData.area_id,
+              subarea_nueva: `${selectedSubareas.map((s) => s.id).join(",")}|@@|${justificaciones[field]}`,
             };
           default:
             return null;
         }
       }).filter(Boolean);
+
+      console.log("Solicitudes a enviar:", solicitudes);
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/temas/registrarSolicitudesModificacionTema?temaId=${tema.id}`,
@@ -221,7 +305,7 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
       case "objetivos":
         return tema.objetivos;
       case "area":
-        return tema.area.nombre;
+        return (tema.subareas || []).map((s) => s.nombre).join(", ");
       default:
         return "";
     }
@@ -240,6 +324,16 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
       default:
         return "";
     }
+  };
+
+  const handleSubareaSelect = (id: number, nombre: string) => {
+    if (!selectedSubareas.some((s) => s.id === id)) {
+      setSelectedSubareas([...selectedSubareas, { id, nombre }]);
+    }
+  };
+
+  const handleSubareaRemove = (id: number) => {
+    setSelectedSubareas(selectedSubareas.filter((s) => s.id !== id));
   };
 
   return (
@@ -296,7 +390,10 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
                   <>
                     <Separator className="my-3" />
                     <div>
-                      <Label htmlFor={`${field}-new`}>Nuevo valor:</Label>
+                      {/* Solo mostrar el Label para campos que no sean "area" */}
+                      {field !== "area" && (
+                        <Label htmlFor={`${field}-new`}>Nuevo valor:</Label>
+                      )}
                       {field === "titulo" && (
                         <Input
                           id={`${field}-new`}
@@ -324,18 +421,86 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
                         />
                       )}
                       {field === "area" && (
-                        <select
-                          className="mt-1 border rounded px-2 py-1 w-full"
-                          value={formData.area_id}
-                          onChange={(e) => handleInputChange("area_id", e.target.value)}
-                        >
-                          <option value="">Seleccionar área</option>
-                          {areas.map((area) => (
-                            <option key={area.id} value={area.id}>
-                              {area.nombre}
-                            </option>
-                          ))}
-                        </select>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1 justify-between">
+                            <Label htmlFor="subareas-new">Nuevo valor:</Label>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Info className="w-4 h-4 text-blue-500 cursor-pointer" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Las subáreas que escojas reemplazarán a las anteriores.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          {/* Agrega mt-4 aquí para más espacio */}
+                          <div className="mb-2 mt-4">
+                            <Label className="text-sm">Área de conocimiento:</Label>
+                            <Select
+                              value={selectedAreaId ? String(selectedAreaId) : ""}
+                              onValueChange={(value) => setSelectedAreaId(Number(value))}
+                            >
+                              <SelectTrigger className="w-full mt-1">
+                                <SelectValue placeholder="Selecciona un área de conocimiento" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {areasConocimiento.map((area) => (
+                                  <SelectItem key={area.id} value={String(area.id)}>
+                                    {area.nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {selectedAreaId && (
+                            <>
+                              <Input
+                                type="text"
+                                placeholder="Buscar subárea..."
+                                className="mb-2"
+                                onChange={(e) => {
+                                  const value = e.target.value.toLowerCase();
+                                  setSubareas(
+                                    value
+                                      ? subareas.filter((s) => s.nombre.toLowerCase().includes(value))
+                                      : subareas
+                                  );
+                                }}
+                              />
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {selectedSubareas.map((s) => (
+                                  <Badge
+                                    key={s.id}
+                                    className="bg-blue-100 text-blue-800 cursor-pointer"
+                                    onClick={() => handleSubareaRemove(s.id)}
+                                  >
+                                    {s.nombre} <X className="w-3 h-3 ml-1" />
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="max-h-64 min-h-[120px] overflow-y-auto border rounded p-2 bg-white">
+                                {subareas
+                                  .filter((s) => !selectedSubareas.some((sel) => sel.id === s.id))
+                                  .map((s) => (
+                                    <div
+                                      key={s.id}
+                                      className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded text-xs"
+                                      onClick={() => handleSubareaSelect(s.id, s.nombre)}
+                                    >
+                                      {s.nombre}
+                                    </div>
+                                  ))}
+                                {subareas.length === 0 && (
+                                  <div className="text-gray-400 text-sm">No hay subáreas disponibles</div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="mt-2">
