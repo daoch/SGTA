@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
@@ -26,7 +26,7 @@ import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
-// ...otros imports...
+import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
@@ -414,6 +414,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     ));
   };
 
+  const downloadAnnotated = useDownloadAnnotated(params.id_revision);
+
   const handleNewHighlight = async (highlight: IHighlight) => {
     console.log("New highlight received:", highlight);
 
@@ -682,30 +684,38 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         <div className="lg:col-span-2">
           <Card className="min-h-[800px]">
             <CardHeader>
-              <CardTitle>{revision2?.titulo}</CardTitle>
-              <CardDescription>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <span>
-                    Estudiantes:
-                    {alumnos.length > 0 ? (
-                      alumnos.map((alumno, index) => (
-                        <span key={alumno.id}>
-                          {alumno.nombres} {alumno.primerApellido} {alumno.segundoApellido} ({alumno.codigoPucp})
-                          {index < alumnos.length - 1 ? ", " : " "}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">No hay estudiantes asignados</span>
-                    )}
-                  </span>
-                  <Badge variant="outline" className="w-fit">
-                    {revision2?.curso}
-                  </Badge>
-                  <Badge variant="outline" className="w-fit bg-blue-100 text-blue-800">
-                    {revision2?.entregable}
-                  </Badge>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle>{revision2?.titulo}</CardTitle>
+                  <CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span>
+                        Estudiantes:
+                        {alumnos.length > 0 ? (
+                          alumnos.map((alumno, index) => (
+                            <span key={alumno.id}>
+                              {alumno.nombres} {alumno.primerApellido} {alumno.segundoApellido} ({alumno.codigoPucp})
+                              {index < alumnos.length - 1 ? ", " : " "}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">No hay estudiantes asignados</span>
+                        )}
+                      </span>
+                      <Badge variant="outline" className="w-fit">
+                        {revision2?.curso}
+                      </Badge>
+                      <Badge variant="outline" className="w-fit bg-blue-100 text-blue-800">
+                        {revision2?.entregable}
+                      </Badge>
+                    </div>
+                  </CardDescription>
                 </div>
-              </CardDescription>
+                <Button variant="outline" className="ml-4 gap-2" onClick={downloadAnnotated} disabled={!pdfUrl}>
+                  <Download className="h-4 w-4" />
+                  Descargar
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="relative h-[800px]" >
               {isHighlightsLoading ? (
