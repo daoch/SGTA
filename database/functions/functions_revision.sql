@@ -439,3 +439,38 @@ WHERE
 END;
 
 $ $ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS actualizar_corregido_por_estado_revision(INTEGER);
+CREATE OR REPLACE FUNCTION actualizar_corregido_por_estado_revision(entregable_x_tema_id_param INTEGER)
+RETURNS VOID AS
+$$
+DECLARE
+    -- Variable para contar las revisiones con estado 'revisado'
+    revisiones_revisado INTEGER;
+    -- Variable para contar el total de revisiones relacionadas
+    total_revisiones INTEGER;
+BEGIN
+    -- Contamos cuántas revisiones tienen el estado 'revisado'
+    SELECT COUNT(*)
+    INTO revisiones_revisado
+    FROM revision_documento rd
+    JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
+    WHERE vd.entregable_x_tema_id = entregable_x_tema_id_param
+      AND rd.estado_revision = 'revisado';
+
+    -- Contamos el total de revisiones relacionadas con el entregable_x_tema_id
+    SELECT COUNT(*)
+    INTO total_revisiones
+    FROM revision_documento rd
+    JOIN version_documento vd ON rd.version_documento_id = vd.version_documento_id
+    WHERE vd.entregable_x_tema_id = entregable_x_tema_id_param;
+
+    -- Si el número de revisiones con estado 'revisado' es igual al total de revisiones
+    IF revisiones_revisado = total_revisiones THEN
+        -- Actualizamos la columna 'corregido' a 'true' en la tabla entregable_x_tema
+        UPDATE entregable_x_tema
+        SET corregido = TRUE
+        WHERE entregable_x_tema_id = entregable_x_tema_id_param;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;

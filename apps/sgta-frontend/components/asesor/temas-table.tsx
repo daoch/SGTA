@@ -113,7 +113,15 @@ export function TemasTable({
         {/* Area */}
         <TableCell>{tema.area?.[0]?.nombre ?? "-"}</TableCell>
         {/* Asesor */}
-        <TableCell>{asesor ? asesor.nombres : ""}</TableCell>
+        <TableCell>
+          {tema.coasesores && tema.coasesores.length > 1 ? (
+            tema.coasesores
+              .filter((c) => c.nombres && c.rol === "Coasesor")
+              .map((c) => <div key={c.nombres}>{c.nombres}</div>)
+          ) : (
+            <p className="text-gray-500">Sin asignar</p>
+          )}
+        </TableCell>
         {/* Tesistas */}
         <TableCell>
           {!tema.tesistas || tema.tesistas.length === 0 ? (
@@ -126,9 +134,9 @@ export function TemasTable({
               return tesistasAsignados.length === 0 ? (
                 <p className="text-gray-400">Sin asignar</p>
               ) : (
-                <p>
-                  {tesistasAsignados.map((e: Tesista) => e.nombres).join(", ")}
-                </p>
+                tesistasAsignados.map((e: Tesista, index) => (
+                  <p key={index}>{e.nombres}</p>
+                ))
               );
             })()
           )}
