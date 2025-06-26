@@ -61,6 +61,9 @@ public class EntregableXTema {
 
     @Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaModificacion;
+    
+    @Column(name = "corregido")
+    private Boolean corregido = false;
 
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;

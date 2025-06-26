@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AsignacionBloqueDTO;
+import pucp.edu.pe.sgta.dto.BloquesNextPhaseRequest;
 import pucp.edu.pe.sgta.dto.DistribucionRequestDTO;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
@@ -54,10 +55,11 @@ public class BloqueHorarioExposicionController {
     }
 
     @PatchMapping ("/updateBloquesListNextPhase")
-    public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
+    public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody BloquesNextPhaseRequest request) {
         try {
-
-            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList);
+            List<ListBloqueHorarioExposicionSimpleDTO> bloquesList = request.getBloquesList();
+            Integer exposicion = request.getExposicion();
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion);
 
             if (updateSuccessful) {
 
@@ -113,6 +115,7 @@ public class BloqueHorarioExposicionController {
         try {
 
             boolean updateSuccessful = bloqueHorarioExposicionService.finishPlanning(idExposicion);
+
 
             if (updateSuccessful) {
 

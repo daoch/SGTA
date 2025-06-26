@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS usuario_carrera (
     usuario_id INTEGER NOT NULL,
     carrera_id INTEGER NOT NULL,
     es_coordinador BOOLEAN NOT NULL DEFAULT FALSE,
+    refresh_token TEXT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -793,7 +794,8 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_efcxt_efc FOREIGN KEY (etapa_formativa_x_ciclo_id) REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_efcxt_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
+    CONSTRAINT fk_efcxt_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT,
+    CONSTRAINT unica_efxc_x_tema UNIQUE (etapa_formativa_x_ciclo_id, tema_id)
 );
 
 -- Tabla exposicion
@@ -801,13 +803,15 @@ CREATE TABLE IF NOT EXISTS exposicion (
     exposicion_id SERIAL PRIMARY KEY,
     etapa_formativa_x_ciclo_id INTEGER NOT NULL,
     estado_planificacion_id INTEGER NOT NULL,
+    entregable_id INTEGER NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     nombre TEXT NOT NULL,
     descripcion TEXT NOT NULL,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_texefc_ef_x_c FOREIGN KEY (etapa_formativa_x_ciclo_id) REFERENCES etapa_formativa_x_ciclo (etapa_formativa_x_ciclo_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_exp_estado_planificacion FOREIGN KEY (estado_planificacion_id) REFERENCES estado_planificacion (estado_planificacion_id) ON DELETE RESTRICT
+    CONSTRAINT fk_exp_estado_planificacion FOREIGN KEY (estado_planificacion_id) REFERENCES estado_planificacion (estado_planificacion_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_exp_entregable FOREIGN KEY (entregable_id) REFERENCES entregable (entregable_id) ON DELETE RESTRICT;
 );
 
 -- Tabla jornada_exposicion
@@ -1040,11 +1044,14 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
     CONSTRAINT fk_entregable_x_tema_entregable FOREIGN KEY (entregable_id) REFERENCES entregable (entregable_id) ON DELETE CASCADE,
     CONSTRAINT fk_entregable_x_tema_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE CASCADE
 );
+ALTER TABLE entregable_x_tema
+ADD COLUMN corregido BOOLEAN DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     revision_criterio_entregable_id SERIAL PRIMARY KEY,
     entregable_x_tema_id INTEGER,
     criterio_entregable_id INTEGER,
+	revision_documento_id INTEGER,
     usuario_id INTEGER,
     nota DECIMAL(6, 2),
     observacion TEXT,
@@ -1052,6 +1059,7 @@ CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_nota CHECK (nota >= 0),
+	CONSTRAINT fk_revision_documento FOREIGN KEY (revision_documento_id) REFERENCES revision_documento(revision_documento_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_entregable_x_tema FOREIGN KEY (entregable_x_tema_id) REFERENCES entregable_x_tema (entregable_x_tema_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_criterio FOREIGN KEY (criterio_entregable_id) REFERENCES criterio_entregable (criterio_entregable_id) ON DELETE CASCADE,
     CONSTRAINT fk_revision_criterio_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id) ON DELETE RESTRICT
@@ -1251,6 +1259,21 @@ CREATE TABLE IF NOT EXISTS criterio_exposicion_preset (
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS configuracion_recordatorio (
+    configuracion_recordatorio_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuario(usuario_id) ON DELETE CASCADE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE, -- Si el usuario quiere recordatorios automáticos
+    dias_anticipacion INTEGER[] NOT NULL, -- Ejemplo: {7,3,1,0}
+    canal_correo BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir por correo
+    canal_sistema BOOLEAN NOT NULL DEFAULT TRUE, -- Recibir en el sistema (notificación)
+    fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unico_usuario_recordatorio UNIQUE (usuario_id)
+);
+
+
+
 
 -- NECESARIO PARA QUE NO EXISTAN PROBLEMAS CON LOS ENUMS
 -- AGREGAR EL CAST PARA LOS DEMAS ENUMS DE SER NECESARIO

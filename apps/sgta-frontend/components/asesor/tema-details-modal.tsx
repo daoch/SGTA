@@ -46,7 +46,7 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
             .join(" ");
           return `${c.nombres} ${apellidos}`.trim();
         })
-        .join(", ")
+        .join(" - ")
     : "";
   function handleVerInformacion(tema: Tema) {
     router.push(`/asesor/temas/informacion/${tema.id}`);
@@ -152,7 +152,11 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
               <div>
                 <p className="text-sm font-medium">Coasesores</p>
                 {coasesores.length !== 0 ? (
-                  <p className="bg-muted p-2 rounded-md">{coasesores}</p>
+                  <div className="bg-muted p-2 rounded-md">
+                    {coasesores.split(" - ").map((coasesor, index) => (
+                      <div key={index}>{coasesor}</div> // Cada coasesor en su propio <div>
+                    ))}
+                  </div>
                 ) : (
                   <p className="bg-muted p-2 rounded-md text-gray-400">
                     Sin coasesor(es)
@@ -179,9 +183,6 @@ export const TemaDetailsDialog: React.FC<TemaDetailsDialogProps> = ({
                             {tesista.codigoPucp}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Ver portafolio
-                        </Button>
                       </div>
                     ))}
                   </div>

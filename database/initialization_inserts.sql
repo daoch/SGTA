@@ -2098,6 +2098,7 @@ INSERT INTO
     exposicion (
         etapa_formativa_x_ciclo_id,
         estado_planificacion_id,
+        entregable_id,
         activo,
         nombre,
         descripcion,
@@ -2106,6 +2107,7 @@ INSERT INTO
 VALUES (
         1,
         1,
+        1
         TRUE,
         'Exposicion parcial',
         'Exposicion parcial del proyecto',
@@ -2114,6 +2116,7 @@ VALUES (
     (
         1,
         1,
+        2,
         TRUE,
         'Exposicion final',
         'Exposicion final del proyecto',
