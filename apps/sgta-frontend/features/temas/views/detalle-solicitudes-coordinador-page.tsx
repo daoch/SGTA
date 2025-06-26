@@ -17,7 +17,6 @@ import {
   crearSolicitudCambioResumen,
   crearSolicitudCambioTitulo,
   eliminarTemaPorCoordinador,
-  fetchSolicitudesDeTema,
   fetchTemasSimilares,
   fetchTodasSolicitudesPendientes,
 } from "../types/solicitudes/data";
@@ -25,7 +24,6 @@ import {
   SolicitudAction,
   SolicitudGeneral,
   SolicitudPendiente,
-  SolicitudTema,
   TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
@@ -75,7 +73,7 @@ export default function DetalleSolicitudesCoordinadorPage({
   const [errorTipoSolicitud, setErrorTipoSolicitud] = useState("");
   const [loading, setLoading] = useState(false);
   const [similares, setSimilares] = useState<TemaSimilar[] | []>([]);
-  const [solicitudes, setSolicitudes] = useState<SolicitudTema[] | []>([]);
+  const [solicitudes, setSolicitudes] = useState<SolicitudGeneral[] | []>([]);
   const [listoSolicitudes, setListoSolicitudes] = useState(
     solicitud.estado !== EstadoTemaNombre.OBSERVADO,
   );

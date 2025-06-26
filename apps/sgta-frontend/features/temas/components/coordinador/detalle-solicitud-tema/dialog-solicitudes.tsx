@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -5,26 +7,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import React, { useState } from "react";
-import { CheckCircle, AlertCircle, XCircle, ClipboardList } from "lucide-react";
-import {
-  SolicitudTema,
-  SolicitudState,
-  SolicitudType,
-} from "@/features/temas/types/solicitudes/entities";
-import { Card, CardHeader } from "@/components/ui/card";
-import { cva } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchUpdateSolicitudCoordinador } from "@/features/temas/types/solicitudes/data";
+import {
+  SolicitudGeneral,
+  SolicitudState,
+  SolicitudTema,
+  SolicitudType,
+} from "@/features/temas/types/solicitudes/entities";
+import { EstadoTemaNombre } from "@/features/temas/types/temas/enums";
+import { cn } from "@/lib/utils";
+import { cva } from "class-variance-authority";
+import { AlertCircle, CheckCircle, ClipboardList, XCircle } from "lucide-react";
+import React, { useState } from "react";
 import { toast, Toaster } from "sonner";
 
 type VariantColor = "red" | "green" | "neutro";
 
 interface DialogSolicitudesProps {
-  solicitudes: SolicitudTema[] | [];
+  solicitudes: SolicitudGeneral[] | [];
   estadoTema: EstadoTemaNombre;
   listoSolicitudes: boolean;
   setListoSolicitudes: React.Dispatch<React.SetStateAction<boolean>>;
@@ -203,6 +204,9 @@ export const DialogSolicitudes: React.FC<DialogSolicitudesProps> = ({
                     <div className="font-semibold">{sol.tipo_solicitud}</div>
                     <div className="text-xs text-gray-500">
                       {sol.descripcion}
+                    </div>
+                    <div className="bg-gray-50 border-gray-200 text-xs text-gray-00">
+                      {sol.usuarios?.[0]?.comentario}
                     </div>
                     <Badge
                       className={badgeEstadoStyles({
