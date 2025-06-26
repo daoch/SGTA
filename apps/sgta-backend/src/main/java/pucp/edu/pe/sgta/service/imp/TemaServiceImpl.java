@@ -1191,6 +1191,7 @@ public class TemaServiceImpl implements TemaService {
 			String comentario) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+		Tema aux  = temaRepository.findById(temaId).orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + temaId));;
 
 		entityManager
 				.createNativeQuery("SELECT postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
@@ -1199,6 +1200,8 @@ public class TemaServiceImpl implements TemaService {
 				.setParameter("temaId", temaId)
 				.setParameter("comentario", comentario)
 				.getSingleResult();
+
+		saveHistorialTemaChange(aux,aux.getTitulo(),aux.getResumen(),"El asesor " + usuDto.getNombres() + " postuló al tema");
 	}
 
 	@Transactional
