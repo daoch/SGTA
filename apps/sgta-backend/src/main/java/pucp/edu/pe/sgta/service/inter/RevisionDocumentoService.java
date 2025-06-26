@@ -4,6 +4,7 @@ import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.util.EstadoRevision;
 
 import java.util.List;
@@ -32,6 +33,8 @@ public interface RevisionDocumentoService {
     List<RevisionDto> findRevisionesByRevisorId(Integer revisorId);
 
     List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorAsesor(String asesorId);
+
+    List<RevisionDocumentoRevisorDto> listarRevisionDocumentosPorRevisor(String revisorId);
 
     void actualizarEstadoRevision(Integer revisionId, String nuevoEstado);
     RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId);

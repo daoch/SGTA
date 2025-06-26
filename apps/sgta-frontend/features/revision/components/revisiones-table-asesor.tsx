@@ -92,9 +92,9 @@ export function RevisionesTableAsesor({
           <TableHeader>
             <TableRow>
               <TableHead>
-                <span className="ml-2">Documento</span>
+                <span className="ml-2">Entregable</span>
               </TableHead>
-              <TableHead>Entregable</TableHead>
+              <TableHead>Documento</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
@@ -118,13 +118,12 @@ export function RevisionesTableAsesor({
                 <TableRow key={revision.id}>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span>{revision.titulo}</span>
+                      {revision.entregable}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium max-w-xs truncate text-center">
+                  <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <span>{revision.entregable}</span>
+                      {revision.titulo}
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>

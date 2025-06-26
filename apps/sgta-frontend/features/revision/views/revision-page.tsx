@@ -21,22 +21,23 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 
 function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
-
+  // Cambiar el orden: primero entregable, luego título (documento)
   data.forEach((item) => {
     if (!mapa.has(item.id)) {
       mapa.set(item.id, {
         id: item.id,
-        titulo: item.titulo,
-        entregable: item.entregable,
+        entregable: item.entregable, // primero entregable
+        titulo: item.titulo,         // luego documento
         curso: item.curso,
         porcentajeSimilitud: item.porcentajeSimilitud,
         porcentajeGenIA: item.porcentajeGenIA,
@@ -52,17 +53,42 @@ function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrup
         estudiantes: [],
       });
     }
-
     mapa.get(item.id)!.estudiantes.push({
       nombre: item.estudiante,
       codigo: item.codigo,
     });
   });
-
   return Array.from(mapa.values());
 }
 
-const RevisionJuradoPage = () => {
+const estadosPorRol = {
+  asesor: [
+    { value: "por_aprobar", label: "Por Aprobar" },
+    { value: "aprobado", label: "Aprobados" },
+    { value: "rechazado", label: "Rechazados" },
+    { value: "revisado", label: "Revisados" },
+    { value: "todas", label: "Todas" },
+  ],
+  revisor: [
+    { value: "pendiente", label: "Pendientes" },
+    { value: "en_proceso", label: "En Proceso" },
+    { value: "completada", label: "Completadas" },
+    { value: "todas", label: "Todas" },
+  ],
+  jurado: [
+    { value: "pendiente", label: "Pendientes" },
+    { value: "en_proceso", label: "En Proceso" },
+    { value: "completada", label: "Completadas" },
+    { value: "todas", label: "Todas" },
+  ],
+};
+
+const RevisionPage = () => {
+  const pathname = usePathname();
+  let rol: "asesor" | "revisor" | "jurado" = "asesor";
+  if (pathname.includes("/revisor/")) rol = "revisor";
+  else if (pathname.includes("/jurado/")) rol = "jurado";
+
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
@@ -72,17 +98,18 @@ const RevisionJuradoPage = () => {
     const fetchDocumentos = async () => {
       try {
         const { idToken } = useAuthStore.getState();
-        console.log(idToken);
+		console.log(idToken);
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
-        const response = await axiosInstance.get("/revision/asesor", {
-          headers: {
-            Authorization: `Bearer ${idToken}`
-          }
+        // Endpoint dinámico según rol
+        let endpoint = "/revision/asesor";
+        if (rol === "revisor") endpoint = "/revision/revisor";
+        else if (rol === "jurado") endpoint = "/revision/jurado";
+        const response = await axiosInstance.get(endpoint, {
+          headers: { Authorization: `Bearer ${idToken}` },
         });
-
         const agrupados = agruparPorDocumento(response.data);
         setDocumentos(agrupados);
       } catch (error) {
@@ -90,9 +117,14 @@ const RevisionJuradoPage = () => {
       }
     };
     fetchDocumentos();
-  }, []);
+  }, [rol]);
 
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
+  const estados = estadosPorRol[rol];
+  const defaultTab = estados[0].value;
+
+  // Selección de componente de tabla según rol
+  const TableComponent = rol === "asesor" ? RevisionesTableAsesor : RevisionesTableJurado;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
@@ -106,7 +138,6 @@ const RevisionJuradoPage = () => {
           </p>
         </div>
       </div>
-
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -117,7 +148,6 @@ const RevisionJuradoPage = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
         <Select value={cursoFilter} onValueChange={setCursoFilter}>
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="Filtrar por curso" />
@@ -132,24 +162,21 @@ const RevisionJuradoPage = () => {
           </SelectContent>
         </Select>
       </div>
-
-      <Tabs defaultValue="pendientes" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="flex justify-between items-center mb-2">
           <TabsList>
-            <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
-            <TabsTrigger value="en_proceso">En Proceso</TabsTrigger>
-            <TabsTrigger value="completados">Completados</TabsTrigger>
-            <TabsTrigger value="todas">Todas</TabsTrigger>
+            {estados.map((estado) => (
+              <TabsTrigger key={estado.value} value={estado.value}>
+                {estado.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
-
           <div className="flex items-center border rounded-md overflow-hidden">
             <Button
               variant={viewMode === "table" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("table")}
-              className={
-                viewMode === "table" ? "bg-pucp-blue hover:bg-pucp-light" : ""
-              }
+              className={viewMode === "table" ? "bg-pucp-blue hover:bg-pucp-light" : ""}
             >
               <LayoutList className="h-4 w-4" />
               <span className="sr-only">Vista de tabla</span>
@@ -158,123 +185,49 @@ const RevisionJuradoPage = () => {
               variant={viewMode === "cards" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("cards")}
-              className={
-                viewMode === "cards" ? "bg-pucp-blue hover:bg-pucp-light" : ""
-              }
+              className={viewMode === "cards" ? "bg-pucp-blue hover:bg-pucp-light" : ""}
             >
               <LayoutGrid className="h-4 w-4" />
               <span className="sr-only">Vista de tarjetas</span>
             </Button>
           </div>
         </div>
-
-        <TabsContent value="pendientes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documentos Por Revisar</CardTitle>
-              <CardDescription>
-                Documentos que están pendientes de aprobación
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="en_proceso">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documentos en proceso</CardTitle>
-              <CardDescription>
-                Documentos que estan en proceso de revisión
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="completados">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documentos Revisados</CardTitle>
-              <CardDescription>
-                Documentos que han sido rechazados por el asesor
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="todas">
-          <Card>
-            <CardHeader>
-              <CardTitle>Todos los Documentos</CardTitle>
-              <CardDescription>Lista completa de documentos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {estados.map((estado) => (
+          <TabsContent key={estado.value} value={estado.value}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Documentos {estado.label}</CardTitle>
+                <CardDescription>
+                  {rol === "asesor"
+                    ? "Documentos filtrados por estado para asesores"
+                    : rol === "revisor"
+                    ? "Documentos filtrados por estado para revisores"
+                    : "Documentos filtrados por estado para jurados"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {viewMode === "table" ? (
+                  <TableComponent
+                    data={documentos}
+                    filter={estado.value === "todas" ? undefined : estado.value}
+                    searchQuery={searchQuery}
+                    cursoFilter={cursoFilter}
+                  />
+                ) : (
+                  <RevisionesCardsAsesor
+                    data={documentos}
+                    filter={estado.value === "todas" ? undefined : estado.value}
+                    searchQuery={searchQuery}
+                    cursoFilter={cursoFilter}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
 };
 
-export default RevisionJuradoPage;
+export default RevisionPage;

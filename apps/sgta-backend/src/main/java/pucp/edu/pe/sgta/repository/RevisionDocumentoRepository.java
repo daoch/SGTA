@@ -137,6 +137,9 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = "SELECT * FROM obtener_documentos_asesor(:asesorId)", nativeQuery = true)
     List<Object[]> listarRevisionDocumentosPorAsesor(@Param("asesorId") Integer asesorId);
 
+    @Query(value = "SELECT * FROM obtener_documentos_revisor(:revisorId)", nativeQuery = true)
+    List<Object[]> listarRevisionDocumentosPorRevisor(@Param("revisorId") Integer revisorId);
+
     @Modifying
     @Transactional
     @Query(value = """

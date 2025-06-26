@@ -539,3 +539,83 @@ BEGIN
     END LOOP;
 END;
 $function$;
+
+CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
+ RETURNS TABLE(
+    revision_id integer,
+    estudiante_id integer,
+    estudiante_nombres varchar,
+    estudiante_apellidos varchar,
+    estudiante_codigo varchar,
+    revisor_id integer,
+    revisor_nombres varchar,
+    revisor_apellidos varchar,
+    revisor_codigo varchar,
+    tema_id integer,
+    titulo_tema varchar,
+    documento_id integer,
+    nombre_documento varchar,
+    version_documento_id integer,
+    fecha_entrega timestamp with time zone,
+    fecha_limite_revision timestamp with time zone,
+    fecha_revision timestamp with time zone,
+    estado_revision varchar,
+    link_archivo_revision varchar,
+    fecha_envio_entregable timestamp with time zone,
+    fecha_fin_entregable timestamp with time zone,
+    etapa_formativa_id integer,
+    nombre_curso varchar,
+    numero_observaciones integer
+)
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT
+        rd.revision_documento_id,
+        u_estudiante.usuario_id AS estudiante_id,
+        u_estudiante.nombres,
+        u_estudiante.primer_apellido,
+        u_estudiante.codigo_pucp,
+        u_revisor.usuario_id AS revisor_id,
+        u_revisor.nombres,
+        u_revisor.primer_apellido,
+        u_revisor.codigo_pucp,
+        t.tema_id,
+        t.titulo,
+        d.documento_id,
+        d.nombre_documento,
+        vd.version_documento_id,
+        vd.fecha_ultima_subida,
+        rd.fecha_limite_revision::timestamp with time zone,
+        rd.fecha_revision::timestamp with time zone,
+        rd.estado_revision::text,
+        rd.link_archivo_revision,
+        ext.fecha_envio,
+        e.fecha_fin,
+        ef.etapa_formativa_id,
+        ef.nombre,
+        (
+            SELECT COUNT(*) 
+            FROM observacion o 
+            WHERE o.revision_id = rd.revision_documento_id 
+              AND o.activo = TRUE
+        ) AS numero_observaciones
+    FROM revision_documento rd
+    JOIN version_documento vd ON vd.version_documento_id = rd.version_documento_id
+    JOIN entregable_x_tema ext ON ext.entregable_x_tema_id = vd.entregable_x_tema_id
+    JOIN entregable e ON e.entregable_id = ext.entregable_id
+    JOIN tema t ON t.tema_id = ext.tema_id
+    JOIN usuario_tema ut_estudiante ON ut_estudiante.tema_id = t.tema_id AND ut_estudiante.rol_id = 4 AND ut_estudiante.asignado = TRUE
+    JOIN usuario u_estudiante ON u_estudiante.usuario_id = ut_estudiante.usuario_id
+    JOIN usuario u_revisor ON u_revisor.usuario_id = rd.usuario_id
+    JOIN documento d ON d.documento_id = vd.documento_id
+    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    WHERE rd.usuario_id = revisorid
+      AND rd.activo = TRUE
+      AND rd.fecha_revision <= NOW()
+    ORDER BY rd.fecha_creacion DESC;
+END;
+$function$;
+

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -413,5 +414,34 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             usuarios.add(dto);
         }
         return usuarios;
+    }
+
+    @Override
+    public List<RevisionDocumentoRevisorDto> listarRevisionDocumentosPorRevisor(String revisorId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(revisorId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + revisorId);
+        }
+        Usuario user = usuario.get();
+        List<Object[]> result = revisionDocumentoRepository.listarRevisionDocumentosPorRevisor(user.getId());
+        List<RevisionDocumentoRevisorDto> documentos = new ArrayList<>();
+        for (Object[] row : result) {
+            RevisionDocumentoRevisorDto dto = new RevisionDocumentoRevisorDto();
+            dto.setId((Integer) row[0]); // revision_id
+            dto.setTitulo((String) row[1]); // tema
+            dto.setEntregable((String) row[2]); // entregable
+            dto.setEstudiante((String) row[3]); // estudiante
+            dto.setCodigo((String) row[4]); // código PUCP
+            dto.setCurso((String) row[5]); // curso
+            dto.setFechaEntrega(row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setEstado((String) row[7]); // estado_revision
+            dto.setFechaLimiteEntrega(row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaRevision(row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setFechaLimiteRevision(row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
+            dto.setUltimoCiclo(null);
+            dto.setUrlDescarga(null);
+            documentos.add(dto);
+        }
+        return documentos;
     }
 }
