@@ -353,14 +353,19 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         log.info("Solicitud ID {} restablecida a estado PREACEPTADA.", solicitudOriginalId);
 
         // 3) (Opcional) Notificar al coordinador para nueva propuesta
-        RolSolicitud rolDestinatario = rolSolicitudRepository.findByNombre("DESTINATARIO")
-                .orElseThrow(() -> new ResourceNotFoundException("Rol 'DESTINATARIO' no encontrado."));
-        UsuarioXSolicitud uxCoordinador = usuarioXSolicitudRepository
-                .findFirstBySolicitudAndRolSolicitudAndActivoTrue(solicitud, rolDestinatario);
-        String msgAsesorOrig = String.format("El nuevo asesor, el Prof. %s %s., ha rechazado la invitación de asesoría para el tema '%s' (Solicitud Cese ID: %d).",
-                solicitudOriginalId, asesor.getNombres(), asesor.getPrimerApellido(), solicitud.getTema().getTitulo(), solicitudOriginalId);
-        notificacionService.crearNotificacionParaUsuario(uxCoordinador.getUsuario().getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgAsesorOrig, "SISTEMA", null);
+        Tema temaAReasignar = solicitud.getTema();
+        List<UsuarioXCarrera> usCoordinadores = usuarioXCarreraRepository.findByCarreraIdAndEsCoordinadorTrueAndActivoTrue(temaAReasignar.getCarrera().getId());
+        List<Usuario> coordinadores = usCoordinadores.stream()
+                .map(UsuarioXCarrera::getUsuario)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        String msgCoord = String.format("El Prof. %s %s ha RECHAZADO la propuesta de asesoría para el tema '%s' (Solicitud Cese ID: %d). La reasignación está pendiente.",
+                asesor.getNombres(), asesor.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
+        String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
+        for (Usuario coord : coordinadores) {
+            notificacionService.crearNotificacionParaUsuario(coord.getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
         }
+}
 
     @Override
     @Transactional

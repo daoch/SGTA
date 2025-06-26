@@ -169,7 +169,7 @@ export function RevisionesTableJurado({
                   <TableCell className="text-center">
                     <div className="flex items-center gap-0.5">
                       {/* Botón "Ver detalles" (el ojito) */}
-                      <Link href={`/asesor/revision/detalles-revision/${revision.id}`}>
+                      <Link href={`/jurado/revision/detalles-revision/${revision.id}`}>
                         <Button variant="ghost" size="icon">
                           <Eye className="h-4 w-4" />
                           <span className="sr-only">Ver detalles</span>
@@ -178,50 +178,43 @@ export function RevisionesTableJurado({
                       {/* Botón de estado: condicionalmente cambia el href */}
                       <Link
                         href={
-                          revision.estado === "por_aprobar"
-                            ? `/asesor/revision/revisar-doc/${revision.id}`
-                            : `/asesor/revision/detalles-revision/${revision.id}`
+                          revision.estado === "pendiente"
+                            ? `/jurado/revision/revisar-doc/${revision.id}`
+                            : `/jurado/revision/detalles-revision/${revision.id}`
                         }
                       >
                         <Button
                           variant="ghost"
                           size="sm"
                           className={
-                            revision.estado === "revisado"
-                              ? "text-green-600"
-                              : revision.estado === "aprobado"
+                            revision.estado === "pendiente"
+                              ? "text-yellow-600"
+                              : revision.estado === "en_proceso"
                                 ? "text-blue-600"
-                                : revision.estado === "rechazado"
-                                  ? "text-red-600"
-                                  : revision.estado === "por_aprobar"
-                                    ? "text-yellow-600"
-                                    : "text-muted-foreground"
+                                : revision.estado === "completados"
+                                  ? "text-green-600"
+                                  : "text-muted-foreground"
                           }
                         >
-                          {revision.estado === "revisado" ? (
+                          {revision.estado === "pendiente" ? (
                             <>
-                              <CheckCircle className="mr-1 h-4 w-4" />
-                              Revisado
+                              <Search className="mr-1 h-4 w-4 text-yellow-600" />
+                              <span className="text-yellow-600 font-semibold">Pendiente</span>
                             </>
-                          ) : revision.estado === "aprobado" ? (
+                          ) : revision.estado === "en_proceso" ? (
                             <>
-                              <CheckCircle className="mr-1 h-4 w-4" />
-                              Aprobado
+                              <Search className="mr-1 h-4 w-4 text-blue-600" />
+                              <span className="text-blue-600 font-semibold">En proceso</span>
                             </>
-                          ) : revision.estado === "rechazado" ? (
+                          ) : revision.estado === "completados" ? (
                             <>
-                              <AlertTriangle className="mr-1 h-4 w-4" />
-                              Rechazado
-                            </>
-                          ) : revision.estado === "por_aprobar" ? (
-                            <>
-                              <Search className="mr-1 h-4 w-4" />
-                              Por Aprobar
+                              <CheckCircle className="mr-1 h-4 w-4 text-green-600" />
+                              <span className="text-green-600 font-semibold">Revisado</span>
                             </>
                           ) : (
                             <>
-                              <Search className="mr-1 h-4 w-4" />
-                              Por Aprobar
+                              <Search className="mr-1 h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground font-semibold">Pendiente</span>
                             </>
                           )}
                         </Button>
