@@ -229,20 +229,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(
-	etapa_id integer	,
-	expo_id integer
-)
-RETURNS TABLE(
-	tema_id integer,
-    codigo  varchar,
-    titulo  varchar,
-    usuario_id integer,
-     nombres varchar,
-  apellidos varchar,
-  rol_id integer,
-  rol_nombre varchar    
-) AS $$
+CREATE OR REPLACE FUNCTION listar_temas_ciclo_actual_x_etapa_formativa(etapa_id integer, expo_id integer)
+ RETURNS TABLE(tema_id integer, codigo character varying, titulo character varying, usuario_id integer, 
+ nombres character varying, apellidos character varying, rol_id integer, 
+ rol_nombre character varying,
+ correo_electronico character varying)
+ LANGUAGE plpgsql
+AS $function$
 declare
 	
 BEGIN
@@ -257,7 +250,8 @@ BEGIN
 		u.nombres,
 		u.primer_apellido,
 		r.rol_id,
-		r.nombre
+		r.nombre,
+		u.correo_electronico
     FROM tema t
     inner join etapa_formativa_x_ciclo_x_tema  efct on t.tema_id = efct.tema_id 
 	inner join etapa_formativa_x_ciclo efc on efc.etapa_formativa_x_ciclo_id = efct.etapa_formativa_x_ciclo_id
@@ -270,7 +264,8 @@ BEGIN
 	and t.tema_id in  (select po.tema_id from exposicion_x_tema po where po.exposicion_id = expo_id)
 	order by t.tema_id;  
 END;
-$$ LANGUAGE plpgsql;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION listar_jornadas_exposicion_salas(
 	expo_id integer
@@ -1253,8 +1248,16 @@ BEGIN
 END;
 $function$;
 
+
 CREATE OR REPLACE FUNCTION listar_bloques_con_temas_y_usuarios(p_exposicion_id integer)
- RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer, es_bloque_reservado boolean, es_bloque_bloqueado boolean, datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, sala_nombre text, tema_id integer, tema_codigo character varying, tema_titulo character varying, usuario_id integer, nombres character varying, apellidos character varying, rol_id integer, rol_nombre character varying, estado_usuario_expo character varying)
+ RETURNS TABLE(bloque_horario_exposicion_id integer, jornada_exposicion_x_sala_id integer, exposicion_x_tema_id integer,
+ es_bloque_reservado boolean, es_bloque_bloqueado boolean, 
+ datetime_inicio timestamp with time zone, datetime_fin timestamp with time zone, 
+ sala_nombre text, tema_id integer, tema_codigo character varying, 
+ tema_titulo character varying, usuario_id integer, nombres character varying, 
+ apellidos character varying, rol_id integer, rol_nombre character varying, 
+ estado_usuario_expo character varying,
+ correo_electronico character varying)
  LANGUAGE plpgsql
  STABLE
 AS $function$
@@ -1284,7 +1287,8 @@ RETURN QUERY
         u.primer_apellido,
         r.rol_id,
         r.nombre,
-        ceu.estado_exposicion_usuario
+        ceu.estado_exposicion_usuario,
+		u.correo_electronico
     FROM bloque_horario_exposicion bhe
     INNER JOIN jornada_exposicion_x_sala_exposicion jexse
         ON jexse.jornada_exposicion_x_sala_id = bhe.jornada_exposicion_x_sala_id
@@ -1323,6 +1327,7 @@ RETURN QUERY
 END;
 $function$
 ;
+
 
 CREATE OR REPLACE PROCEDURE update_estado_exposicion_usuario(
     IN p_exposicion_id INTEGER,
@@ -1667,3 +1672,94 @@ BEGIN
       AND ut.activo = TRUE;
 END;
 $$ LANGUAGE plpgsql STABLE;
+
+
+CREATE OR REPLACE PROCEDURE aceptar_invitacion_correo(p_id_token VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE control_exposicion_usuario 
+    SET estado_exposicion_usuario = 'Aceptado',
+        token_unico = NULL
+    WHERE token_unico = p_id_token;
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE PROCEDURE rechazar_invitacion_correo(p_id_token VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE control_exposicion_usuario 
+    SET estado_exposicion_usuario = 'Rechazado',
+        token_unico = NULL
+    WHERE token_unico = p_id_token;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE set_token_unico(
+    p_id_usuario INTEGER,
+    p_token_unico VARCHAR,
+    p_id_exposicion INTEGER,
+    p_id_tema INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    var_exposicion_x_tema_id INT;
+    var_usuario_x_tema_id INT;
+    filas_actualizadas INT;
+    var_asignado BOOLEAN;
+BEGIN
+    -- Verificar si el usuario_tema está asignado
+    SELECT asignado
+    INTO var_asignado
+    FROM usuario_tema
+    WHERE usuario_id = p_id_usuario
+      AND tema_id = p_id_tema;
+
+    -- Si no se encuentra, simplemente termina
+    IF NOT FOUND OR NOT var_asignado THEN
+        RAISE NOTICE 'Usuario no asignado al tema o no se encontró usuario_tema. Salida sin cambios.';
+        RETURN;
+    END IF;
+
+    -- Validar exposición
+    SELECT exposicion_x_tema_id
+    INTO var_exposicion_x_tema_id
+    FROM exposicion_x_tema
+    WHERE exposicion_id = p_id_exposicion 
+      AND tema_id = p_id_tema;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró exposicion_x_tema con exposicion_id=%', p_id_exposicion;
+    END IF;
+
+    -- Validar usuario
+    SELECT usuario_tema_id
+    INTO var_usuario_x_tema_id
+    FROM usuario_tema
+    WHERE usuario_id = p_id_usuario
+      AND tema_id = p_id_tema;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró usuario_tema con usuario_id=%', p_id_usuario;
+    END IF;
+
+    -- Hacer update
+    UPDATE control_exposicion_usuario
+    SET token_unico = p_token_unico
+    WHERE exposicion_x_tema_id = var_exposicion_x_tema_id
+      AND usuario_x_tema_id = var_usuario_x_tema_id
+    RETURNING * INTO filas_actualizadas;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró coincidencia en control_exposicion_usuario para exposicion_x_tema_id=% y usuario_tema_id=%', var_exposicion_x_tema_id, var_usuario_x_tema_id;
+    END IF;
+
+    -- Mensaje opcional en consola
+    RAISE NOTICE 'Token actualizado correctamente para usuario_id=%, exposicion_id=%', p_id_usuario, p_id_exposicion;
+END;
+$$;
