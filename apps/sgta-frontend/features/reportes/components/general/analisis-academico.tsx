@@ -119,7 +119,7 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
         
         try {
           // Asumir formato dd-MM-yyyy basado en el código de transformación
-          const [day, month, year] = item.fechaLimite.split('-');
+          const [day, month, year] = item.fechaLimite.split("-");
           const deliverableDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
           return deliverableDate <= currentDate;
         } catch (error) {
@@ -129,8 +129,8 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       })
       .sort((a, b) => {
         try {
-          const [dayA, monthA, yearA] = a.fechaLimite.split('-');
-          const [dayB, monthB, yearB] = b.fechaLimite.split('-');
+          const [dayA, monthA, yearA] = a.fechaLimite.split("-");
+          const [dayB, monthB, yearB] = b.fechaLimite.split("-");
           const dateA = new Date(parseInt(yearA), parseInt(monthA) - 1, parseInt(dayA));
           const dateB = new Date(parseInt(yearB), parseInt(monthB) - 1, parseInt(dayB));
           return dateB.getTime() - dateA.getTime(); // Orden descendente (más reciente primero)

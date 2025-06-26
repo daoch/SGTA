@@ -198,7 +198,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       }
     };
     fetchAsesores();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [formData.tipo, subareasSeleccionadas]);
 
   const handleChange =
