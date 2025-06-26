@@ -372,9 +372,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
       {/* Contenido */}
       {(activeTab === "entregas" || activeTab === "avances") && (
         <Card>
-          <CardHeader className="flex justify-between items-center">
+          <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <CardTitle className="text-lg">Avances y Entregas</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-2 justify-end">
               <Select
                 value={timeFilter}
                 onValueChange={(v) => setTimeFilter(v as TimeFilter)}
@@ -464,7 +464,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           </CardHeader>
 
           <CardContent>
-            <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6">
+            <div className="overflow-x-auto px-2">
+              <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6 min-w-[300px]">
+
               {
                 isLoading ? (
                 <div className="text-center py-8 text-gray-500">
@@ -509,13 +511,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                         className={`absolute -left-10 mt-1.5 h-4 w-4 rounded-full border ${circleClass}`}
                       />
                       <div>
-                        <div className="flex justify-between items-center">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 w-full">
+                          <div className="flex-1 min-w-0">
                             <time className="mb-1 text-xs font-normal text-gray-500">
                               {event.date}
                             </time>
-                            <h3 className="text-sm font-medium">
-                              {event.event}
+                            <div className="text-sm font-medium break-words flex flex-wrap gap-1 max-w-[300px] sm:max-w-[500px]">
+                              <span>{event.event}</span>
                               <span
                                 className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
                                   colorXTema === "text-red-600"
@@ -535,16 +537,15 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                                   {humanize(event.estadoRevision)}
                                 </span>
                               )}
-
-
                               {event.isAtRisk && (
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
                                   En riesgo ({event.daysRemaining} días)
                                 </span>
                               )}
-                            </h3>
+                            </div>
+
                           </div>
-                          <div className="flex items-center justify-end space-x-4 min-w-[200px]">
+                          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-end gap-2 w-full sm:w-auto">
                             <Link
                               href={`/alumno/mi-proyecto/entregables/${event.entregableId}?tema=${event.temaId}`}
                               className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
@@ -589,6 +590,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                   No hay eventos que coincidan con los filtros seleccionados
                 </div>
               )}
+              </div>
             </div>
           </CardContent>
         </Card>

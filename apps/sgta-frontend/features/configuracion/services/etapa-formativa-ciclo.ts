@@ -1,6 +1,6 @@
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaCiclo, EtapaFormativaCicloCreate } from "../types/etapa-formativa-ciclo";
-import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export interface EtapaFormativaXCicloTesista {
     id: number;
@@ -62,6 +62,12 @@ export const ciclosService = {
     getAll: async () => {
         const response = await axiosInstance.get("/ciclos/listarCiclos");
         return response.data;
+    },
+
+    getAllYears: async () => {
+        const response = await axiosInstance.get("/ciclos/listarTodosLosCiclos");
+        return response.data;
     }
 };
+
 
