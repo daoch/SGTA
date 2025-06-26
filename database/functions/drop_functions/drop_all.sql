@@ -397,3 +397,5 @@ DROP FUNCTION IF EXISTS obtener_alumnos_por_revision (revision_id INTEGER);
 DROP FUNCTION IF EXISTS obtener_datos_exposicion (integer) CASCADE;
 
 DROP FUNCTION IF EXISTS obtener_link_exposicion_tema_x_bloque_id (integer) CASCADE;
+
+DROP FUNCTION IF EXISTS crear_revisiones_revisores(integer) CASCADE;
