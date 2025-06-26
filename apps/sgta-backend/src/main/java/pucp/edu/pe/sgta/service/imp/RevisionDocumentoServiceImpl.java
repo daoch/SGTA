@@ -327,6 +327,9 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
                     ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
                     : null); // fecha_limite
 
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Number) row[10]).doubleValue() : null);
+            dto.setPorcentajeGenIA(row[11] != null ? ((Number) row[11]).doubleValue() : null);
+
             documentos.add(dto);
         }
         return documentos;

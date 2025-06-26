@@ -153,9 +153,19 @@ export function RevisionesTableAsesor({
                     )}
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajeSimilitud !== null ? (
+                    {revision.porcentajeGenIA !== null ? (
                       <div className="flex items-center gap-2">
-                        <span>-</span>
+                        <span
+                          className={
+                            revision.porcentajeGenIA > 20
+                              ? "text-red-600"
+                              : revision.porcentajeGenIA > 10
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }
+                        >
+                          {revision.porcentajeGenIA}%
+                        </span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
