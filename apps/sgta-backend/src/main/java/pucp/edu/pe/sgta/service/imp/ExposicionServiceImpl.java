@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioConRolDto;
@@ -35,7 +36,7 @@ public class ExposicionServiceImpl implements ExposicionService {
 
     public ExposicionServiceImpl(ExposicionRepository exposicionRepository,
             UsuarioXTemaRepository usuarioXTemaRepository,
-            BloqueHorarioExposicionService bloqueHorarioExposicionService) {
+            @Lazy BloqueHorarioExposicionService bloqueHorarioExposicionService) {
         this.exposicionRepository = exposicionRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.bloqueHorarioExposicionService = bloqueHorarioExposicionService;

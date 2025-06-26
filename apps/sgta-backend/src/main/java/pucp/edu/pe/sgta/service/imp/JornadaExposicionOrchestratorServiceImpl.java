@@ -110,9 +110,14 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
         ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
         exposicionDto.setEstadoPlanificacionId(2);
         exposicionService.update(exposicionDto);
+        try{
+            controlExposicionUsuarioTemaRepository.insertarControlesDeExposicion(dto.getExposicionId(),
+                    dto.getEtapaFormativaId());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
-        controlExposicionUsuarioTemaRepository.insertarControlesDeExposicion(dto.getExposicionId(),
-                dto.getEtapaFormativaId());
 
         return ResponseEntity.ok(Map.of("mensaje", "Registro inicial de planificación registrado correctamente"));
     }

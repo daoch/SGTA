@@ -17,7 +17,7 @@ public class GoogleCalendarEvent {
     private String summary;
     private String description;
     private String location;
-    private OffsetDateTime startDateTime;
-    private OffsetDateTime endDateTime;
-    private List<String> attendess;
+    private OffsetDateTime start;
+    private OffsetDateTime end;
+    private List<UsarioRolDto> attendess;
 }

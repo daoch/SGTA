@@ -157,4 +157,9 @@ public class BloqueHorarioExposicionController {
                     .body(new ResponseMessage(false, "No se pudo bloquear el bloque"));
         }
     }
+
+    @PostMapping("/crear-eventos-calendar/{idExposicion}")
+    public void crearReunionesZoom(@PathVariable("idExposicion") Integer idExposicion) {
+        bloqueHorarioExposicionService.crearReunionesZoom(idExposicion);
+    }
 }

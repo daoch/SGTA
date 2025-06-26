@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { crearCalendar, listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
   reunionesZoom,
@@ -282,6 +282,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
         await reunionesZoom(exposicionId);
+        await crearCalendar(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);
