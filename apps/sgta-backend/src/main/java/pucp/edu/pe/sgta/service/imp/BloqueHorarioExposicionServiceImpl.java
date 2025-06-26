@@ -262,7 +262,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             HttpSession session = request.getSession(false);
             if (session == null) throw new RuntimeException("No hay sesión activa");
-            int usuario_numero = 0 ;
+
             String accessToken = (String) session.getAttribute("googleAccessToken");
             if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
             try{
@@ -280,10 +280,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                      for(UsarioRolDto usuario : usuarios){
                          if(!usuario.getRol().getNombre().equals("Asesor") && !usuario.getRol().getNombre().equals("Jurado") )
                              continue;
-                         if(usuario_numero == 0 ){
-                             usuario.setCorreo("a20191810@pucp.edu.pe");
 
-                         }
                          // 2. Datos del correo
                          String token = UUID.randomUUID().toString();//ESTE ES EL TOKEN IDENTIFICADOR
                          try {
@@ -333,12 +330,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             </div>
                             """.formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
                          try{
-                             if(usuario_numero==0){
+
                                  googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
                                  System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
                                  System.out.println("Correo enviado correctamente.");
-                                 usuario_numero++;
-                             }
+
+
 
                          }catch (Exception e){
                              System.err.println("Error al enviar correo a: " + usuario.getCorreo());
