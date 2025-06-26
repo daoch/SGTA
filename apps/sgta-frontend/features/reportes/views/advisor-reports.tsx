@@ -219,7 +219,8 @@ export function AdvisorReports() {
         ];
         return {
           sheet: XLSX.utils.aoa_to_sheet(info),
-          name: `${student.nombres} ${student.primerApellido}`.substring(0, 31),
+          //name: `${student.nombres} ${student.primerApellido}`.substring(0, 31),
+          name: `${student.codigoPucp}`.substring(0, 31),
         };
       });
 
