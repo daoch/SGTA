@@ -14,4 +14,5 @@ public interface CriterioEntregableService {
     void delete(Integer criterioEntregableId);
     Optional<CriterioEntregable> findById(Integer id);
     List<CriterioEntregableDto> listar_criterio_entregable_x_revisionID(Integer revision_entregable_id);
+    void insertar_actualizar_revision_criterio_entregable(CriterioEntregableDto criterioEntregable);
 }
