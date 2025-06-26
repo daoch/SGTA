@@ -625,25 +625,29 @@ where ef.etapa_formativa_id = p_id_etapa_formativa;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION  get_estado_exposicion_by_id_exposicion(
-	id_exposicion integer
-)
-RETURNS TABLE(
-	id_estado_planificacion integer,
-    nombre  text,
-   	activo bool   	
-) AS $$
+CREATE OR REPLACE FUNCTION get_estado_exposicion_by_id_exposicion(id_exposicion integer)
+ RETURNS TABLE(
+ 	id_estado_planificacion integer, 
+ 	nombre text,
+ 	fecha_creacion timestamptz,
+ 	fecha_modificacion timestamptz,
+ 	activo boolean
+ )
+AS $$
 BEGIN
     RETURN QUERY
  SELECT 
 		ep.estado_planificacion_id,
 		ep.nombre,
+		e.fecha_creacion,
+		e.fecha_modificacion,
 		ep.activo
     FROM estado_planificacion ep
 	inner join exposicion e on e.estado_planificacion_id = ep.estado_planificacion_id
 	where e.exposicion_id = id_exposicion;	   
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION actualizar_bloque_exposicion_siguientes_fases(bloques_json jsonb)
  RETURNS void
