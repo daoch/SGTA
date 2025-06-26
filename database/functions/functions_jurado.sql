@@ -1799,3 +1799,23 @@ BEGIN
     RAISE NOTICE 'Token actualizado correctamente para usuario_id=%, exposicion_id=%', p_id_usuario, p_id_exposicion;
 END;
 $$;
+
+
+
+CREATE OR REPLACE FUNCTION obtener_temas_con_link(p_exposicion_id INTEGER)
+RETURNS TABLE (
+    tema_id INTEGER,
+    link_exposicion TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        e.tema_id,
+        e.link_exposicion
+    FROM 
+        exposicion_x_tema e
+    WHERE 
+        e.exposicion_id = p_exposicion_id
+        AND e.link_exposicion IS NOT NULL;
+END;
+$$ LANGUAGE plpgsql;
