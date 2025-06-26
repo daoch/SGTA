@@ -13,4 +13,5 @@ import java.util.List;
 public class BloquesNextPhaseRequest {
     private List<ListBloqueHorarioExposicionSimpleDTO> bloquesList;
     private Integer exposicion;
+    private Integer origen;
 }

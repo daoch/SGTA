@@ -12,11 +12,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import { crearCalendar, listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
   reunionesZoom,
-  updateBloquesNextPhase,
+  updateBloquesNextPhase
 } from "../../services/planificacion-service";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import {
@@ -278,10 +278,17 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     });
 
     try {
-      await updateBloquesNextPhase(bloquesListToInsert,exposicionId);
+      if(origen=="terminar"){
+        await updateBloquesNextPhase(bloquesListToInsert,exposicionId,1);
+      }
+      else{
+        await updateBloquesNextPhase(bloquesListToInsert,exposicionId,0);
+      }
+    
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
         await reunionesZoom(exposicionId);
+        await crearCalendar(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);

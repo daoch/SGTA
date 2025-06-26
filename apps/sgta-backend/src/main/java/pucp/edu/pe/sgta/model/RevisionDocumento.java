@@ -30,7 +30,7 @@ public class RevisionDocumento {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "version_documento_id", nullable = false, foreignKey = @ForeignKey(name = "fk_revision_documento_version_documento"))
-    private VersionDocumento versionDocumento;
+    private VersionXDocumento versionDocumento;
 
     @Column(name = "fecha_limite_revision")
     private LocalDate fechaLimiteRevision;

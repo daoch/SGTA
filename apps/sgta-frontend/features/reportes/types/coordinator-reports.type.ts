@@ -3,18 +3,23 @@
 export interface TopicArea {
   areaName: string;
   topicCount: number;
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface AdvisorDistribution {
   teacherName: string;
   count: number;
   areaName: string;
+  areasConocimiento: string[];
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface JurorDistribution {
   teacherName: string;
   count: number;
   areaName: string;
+  areasConocimiento: string[];
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface AdvisorPerformance {
@@ -22,10 +27,12 @@ export interface AdvisorPerformance {
   areaName: string;
   performancePercentage: number;
   totalStudents: number;
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface TopicTrend {
   year: number;
   areaName: string;
   topicCount: number;
+  etapasFormativasCount: Record<string, number>;
 } 

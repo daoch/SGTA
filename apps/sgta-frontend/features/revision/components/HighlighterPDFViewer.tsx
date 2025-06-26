@@ -212,6 +212,7 @@ const HighlighterPdfViewer: React.FC<HighlighterPdfViewerProps> = ({
                                     key={index}
                                 >
                                     {component}
+
                                 </Popup>
                             );
                         }}

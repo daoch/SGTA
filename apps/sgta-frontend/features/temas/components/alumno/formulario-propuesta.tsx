@@ -57,9 +57,23 @@ export interface FormData {
 export interface TemaSimilar {
   tema: {
     id: number;
+    codigo?: string;
     titulo: string;
     resumen: string;
     fechaCreacion?: string;
+    portafolioUrl?: string;
+    tesistas?: Array<{
+      nombres?: string;
+      primerApellido?: string;
+    }>;
+    coasesores?: Array<{
+      nombres?: string;
+      primerApellido?: string;
+    }>;
+    area?: {
+      id: number;
+      nombre: string;
+    };
   };
   similarityScore: number;
   comparedFields?: string;

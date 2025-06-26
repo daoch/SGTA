@@ -20,7 +20,7 @@ public interface BloqueHorarioExposicionService {
 
     boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList);
 
-    boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicionId);
+    boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicionId,Integer origen);
 
     boolean finishPlanning(Integer exposicionId);
 
@@ -34,4 +34,6 @@ public interface BloqueHorarioExposicionService {
             DistribucionRequestDTO request);
 
     boolean verificarSalaOcupada(Integer salaId, OffsetDateTime inicio, OffsetDateTime fin);
+
+    void crearReunionesZoom(int exposicionId);
 }

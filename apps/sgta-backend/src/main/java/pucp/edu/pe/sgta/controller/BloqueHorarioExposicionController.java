@@ -59,7 +59,8 @@ public class BloqueHorarioExposicionController {
         try {
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesList = request.getBloquesList();
             Integer exposicion = request.getExposicion();
-            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion);
+            Integer origen = request.getOrigen();
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion,origen);
 
             if (updateSuccessful) {
 
@@ -156,5 +157,10 @@ public class BloqueHorarioExposicionController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseMessage(false, "No se pudo bloquear el bloque"));
         }
+    }
+
+    @PostMapping("/crear-eventos-calendar/{idExposicion}")
+    public void crearReunionesZoom(@PathVariable("idExposicion") Integer idExposicion) {
+        bloqueHorarioExposicionService.crearReunionesZoom(idExposicion);
     }
 }

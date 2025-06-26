@@ -2,15 +2,14 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.api.services.calendar.Calendar;
 import com.google.api.services.gmail.Gmail;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -23,7 +22,9 @@ import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
 import pucp.edu.pe.sgta.repository.ControlExposicionUsuarioTemaRepository;
+import pucp.edu.pe.sgta.repository.TemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
+import pucp.edu.pe.sgta.service.inter.ExposicionService;
 import pucp.edu.pe.sgta.service.inter.GoogleService.GoogleCalendarService;
 import pucp.edu.pe.sgta.service.inter.GoogleService.GoogleGmailService;
 
@@ -39,16 +40,24 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     private final GoogleCalendarService googleCalendarService;
 
     private final GoogleGmailService googleGmailService;
+
+    private final ExposicionService exposicionService;
+
+    private final TemaRepository temaRepository;
+
+
     @Value("${url.back}")
     private String backURL;
 
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                                              GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService, HttpServletRequest request) {
+                                              GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService, HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
         this.googleGmailService = googleGmailService;
+        this.exposicionService = exposicionService;
         this.request = request;
+        this.temaRepository = temaRepository;
     }
 
     @Override
@@ -215,7 +224,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion) {
+    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion,Integer origen) {
 
         try {
 
@@ -259,10 +268,11 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             System.out.println("==================================================================");
             System.out.println("Resultado de la función: " + resultado);
-
+            if(origen==1)
+                return true;
             HttpSession session = request.getSession(false);
             if (session == null) throw new RuntimeException("No hay sesión activa");
-            int usuario_numero = 0 ;
+
             String accessToken = (String) session.getAttribute("googleAccessToken");
             if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
             try{
@@ -280,10 +290,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                      for(UsarioRolDto usuario : usuarios){
                          if(!usuario.getRol().getNombre().equals("Asesor") && !usuario.getRol().getNombre().equals("Jurado") )
                              continue;
-                         if(usuario_numero == 0 ){
-                             usuario.setCorreo("a20191810@pucp.edu.pe");
 
-                         }
                          // 2. Datos del correo
                          String token = UUID.randomUUID().toString();//ESTE ES EL TOKEN IDENTIFICADOR
                          try {
@@ -333,12 +340,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             </div>
                             """.formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
                          try{
-                             if(usuario_numero==0){
+
                                  googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
                                  System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
                                  System.out.println("Correo enviado correctamente.");
-                                 usuario_numero++;
-                             }
+
+
 
                          }catch (Exception e){
                              System.err.println("Error al enviar correo a: " + usuario.getCorreo());
@@ -367,8 +374,123 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     public boolean finishPlanning(Integer exposicionId) {
 
         try {
-            //Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
-            GoogleCalendarEvent event = new GoogleCalendarEvent();
+            Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
+
+
+            return Boolean.TRUE.equals(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public void crearReunionesZoom(int exposicionId){
+        List<ListBloqueHorarioExposicionSimpleDTO> listaBloques;
+       List<TemaConLinkDTO> listaTemasConLink = temaRepository.obtenerTemasConLink(exposicionId);
+
+            Map<Integer, String> mapaTemasConLink = listaTemasConLink.stream()
+                    .collect(Collectors.toMap(
+                            TemaConLinkDTO::getIdTema,
+                            TemaConLinkDTO::getLink,
+                            (v1, v2) -> v1
+                    ));
+
+        ExposicionDto exposicion = exposicionService.findById(exposicionId);
+        try{
+           listaBloques = listarBloquesHorarioPorExposicion(exposicionId);
+        }catch (Exception e){
+            System.out.println("Error al listarBloques");
+            e.printStackTrace();
+            return;
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session == null) throw new RuntimeException("No hay sesión activa");
+
+        String accessToken = (String) session.getAttribute("googleAccessToken");
+        if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
+
+        try{
+            Calendar calendar = googleCalendarService.buildCalendarClient(accessToken);
+            List<ListBloqueHorarioExposicionSimpleDTO> bloquesFiltrados = listaBloques.stream()
+                    .filter(b -> b.getExpo() != null)
+                    .toList();
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesFiltrados){
+                String range = bloque.getRange();
+                String[] partes = bloque.getKey().split("\\|");
+                if (partes.length < 3) continue;
+                String dia = partes[0];
+                String sala = partes[2];
+                TemaConAsesorJuradoDTO expo = bloque.getExpo();
+                String linkReunion = mapaTemasConLink.getOrDefault(expo.getId(), "NO_LINK");
+                //String linkReunion = "";
+                if(expo.getUsuarios() ==null)
+                    continue;
+                Optional<UsarioRolDto> optTesista = expo.getUsuarios().stream()
+                        .filter(u -> u.getRol().getNombre().equals("Tesista"))
+                        .findFirst();
+                if (optTesista.isEmpty()) continue;
+                UsarioRolDto usTesista = optTesista.get();
+                String summary = "Invitacion " + exposicion.getNombre() + ": "  + " " + usTesista.getApellidos() + "," + usTesista.getNombres() + " " + dia + " " + range + " (" + usTesista.getCorreo() + ")" ;
+                String description = "LA SESIÓN ES PRESENCIAL PARA LOS ESTUDIANTES<br><br>EL ZOOM ES PARA JURADOS EN CASOS EXCEPCIONALES<br><br>LINK DE REUNIÓN: " + linkReunion + "\n\n" +
+                        "Topic :  " + exposicion.getNombre() + "\n\n" + "TIME : " + dia + " "  + range + "\n\n" + "Lugar : " + sala ;
+
+                //SE FORMATEA LA FECHA
+
+                LocalDate fecha;
+                try {
+                    fecha = LocalDate.parse(dia, dateFormatter);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Fecha inválida: " + dia);
+                    continue;
+                }
+
+                String[] horas = range.split(" - ");
+                if (horas.length != 2) {
+                    System.err.println("Rango horario inválido: " + range);
+                    continue;
+                }
+
+                LocalTime horaInicio, horaFin;
+                try {
+                    horaInicio = LocalTime.parse(horas[0]);
+                    horaFin = LocalTime.parse(horas[1]);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Horas inválidas: " + range);
+                    continue;
+                }
+                ZoneOffset limaOffset = ZoneOffset.of("-05:00");
+                OffsetDateTime start = OffsetDateTime.of(fecha, horaInicio, limaOffset);
+                OffsetDateTime end = OffsetDateTime.of(fecha, horaFin, limaOffset);
+                List<UsarioRolDto>attendes = new ArrayList<>();
+                for(UsarioRolDto us : expo.getUsuarios()){
+                    if(!us.getRol().getNombre().equals("Asesor") && !us.getRol().getNombre().equals("Jurado") && !us.getRol().getNombre().equals("Tesista") ){
+                        continue;
+                    }
+                    attendes.add(us);
+
+                }
+
+                try{
+                    googleCalendarService.sendEvent(summary,description,attendes,start,end, sala,calendar);
+                    attendes.clear();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+
+
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    /*
+
 
             event.setSummary("HOLA CESAR");
             event.setDescription("PRUEBA");
@@ -382,14 +504,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String correo = "a20191810@pucp.edu.pe";
             event.getAttendess().add(correo);
 
-            googleCalendarService.createEvent(event);
-            return true;
-            //return Boolean.TRUE.equals(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+            googleCalendarService.createEvent(event);*/
 
     @Override
     @Transactional
