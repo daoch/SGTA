@@ -74,13 +74,13 @@ interface User {
   rolJurado?: boolean;
   rolRevisor?: boolean;
   rolesIds?: number[];
-  carreras?: Object[];
+  carreras?: object[];
 }
 const ROL_ASESOR_ID = 1;
 const ROL_JURADO_ID = 2;
 const ROL_REVISOR_ID = 3;
 interface UserFromBack {
-  roles: any;
+  roles: string[];
   id: string | number;
   codigoPucp: string;
   nombres: string;
@@ -115,8 +115,9 @@ export default function ConfiguracionUsuariosPage() {
         const response = await axiosInstance.get(
           "/usuario/getCarreraCoordinador",
         );
+        type Carrera = { id: number };
         const ids = Array.isArray(response.data)
-          ? response.data.map((c: any) => c.id)
+          ? response.data.map((c: Carrera) => c.id)
           : [response.data.id];
         const carrerasObj = ids.map((id: number) => ({
           carreraId: id,
@@ -160,7 +161,7 @@ export default function ConfiguracionUsuariosPage() {
 
   // Filter users based on active tab and search query
   const filteredUsers = users.filter((user) => {
-  const roles = (user as any).roles as string[] | undefined;
+  const roles = (user as UserFromBack).roles as string[] | undefined;
   if (activeTab === "alumnos") {
     return (!roles || roles.length === 0) && user.tipo?.toLowerCase() === "alumno";
   }
