@@ -278,7 +278,7 @@ export function EntregablesModal({
                 <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
                   Estado de la calificación
                 </div>
-                <div className="px-4 py-3 text-gray-700">Sin calificar</div>
+                <div className="px-4 py-3 text-gray-700">{entregable.corregido ? "Revisado" : "Por revisar"}</div>
               </div>
               <div className="grid grid-cols-[220px_1fr] border-b">
                 <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
