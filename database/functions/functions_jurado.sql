@@ -1626,7 +1626,7 @@ $$
 BEGIN
     RETURN QUERY
     SELECT 
-        et.link_exposicion
+        COALESCE(et.link_exposicion, 'No disponible')
     FROM bloque_horario_exposicion bhe
     JOIN exposicion_x_tema et ON bhe.exposicion_x_tema_id = et.exposicion_x_tema_id
     WHERE bhe.bloque_horario_exposicion_id = p_bloque_horario_exposicion_id
