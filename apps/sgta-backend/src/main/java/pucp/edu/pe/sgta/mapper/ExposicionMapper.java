@@ -25,6 +25,10 @@ public class ExposicionMapper {
             dto.setEstadoPlanificacionId(exposicion.getEstadoPlanificacion().getId());
         }
 
+        if(exposicion.getEntregable() != null) {
+            dto.setEntregableId(exposicion.getEntregable().getId());
+        }
+
         return dto;
     }
 

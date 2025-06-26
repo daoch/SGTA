@@ -29,6 +29,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import PropuestasSimilaresCard from "@/features/temas/components/alumno/similitud-temas";
 import { Usuario } from "@/features/temas/types/propuestas/entidades";
+
+
 import { Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -44,6 +46,7 @@ export interface Estudiante {
 export interface FormData {
   titulo: string;
   descripcion: string;
+  areaGeneral: number; // <-- nuevo campo para área general
   area: number;
   objetivos: string;
   tipo: "general" | "directa";
@@ -54,9 +57,23 @@ export interface FormData {
 export interface TemaSimilar {
   tema: {
     id: number;
+    codigo?: string;
     titulo: string;
     resumen: string;
     fechaCreacion?: string;
+    portafolioUrl?: string;
+    tesistas?: Array<{
+      nombres?: string;
+      primerApellido?: string;
+    }>;
+    coasesores?: Array<{
+      nombres?: string;
+      primerApellido?: string;
+    }>;
+    area?: {
+      id: number;
+      nombre: string;
+    };
   };
   similarityScore: number;
   comparedFields?: string;
@@ -68,7 +85,8 @@ interface Props {
     data: FormData,
     cotesistas: Estudiante[],
     similares?: TemaSimilar[],
-    forzarGuardar?: boolean
+    forzarGuardar?: boolean,
+    subareasSeleccionadas?: { id: number, nombre: string }[]
   ) => Promise<void>;
 }
 
@@ -79,11 +97,13 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const [similares, setSimilares] = useState<TemaSimilar[]>([]);
   const [checkingSimilitud, setCheckingSimilitud] = useState(false);
 
+  const [areasGenerales, setAreasGenerales] = useState<{ id: number; nombre: string }[]>([]);
   const [areas, setAreas] = useState<{ id: number; nombre: string }[]>([]);
   const [asesores, setAsesores] = useState<{ id: string; nombre: string }[]>([]);
   const [formData, setFormData] = useState<FormData>({
     titulo: "",
     descripcion: "",
+    areaGeneral: 0, // <-- inicializa área general
     area: 0,
     objetivos: "",
     tipo: "general",
@@ -93,18 +113,20 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const [cotesistas, setCotesistas] = useState<Estudiante[]>([]);
   const [codigoCotesista, setCodigoCotesista] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [subareaSearch, setSubareaSearch] = useState(""); // Nuevo estado para búsqueda
+  const [subareasSeleccionadas, setSubareasSeleccionadas] = useState<{ id: number, nombre: string }[]>([]);
+  const [subareaSeleccionada, setSubareaSeleccionada] = useState<string>("");
+
   useEffect(() => {
-    async function fetchAreas() {
+    async function fetchAreasGenerales() {
       try {
         const { idToken } = useAuthStore.getState();
-        
         if (!idToken) {
           console.error("No authentication token available");
           return;
         }
-
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/listarPorCarreraDeUsuario`,
+          `${process.env.NEXT_PUBLIC_API_URL}/areaConocimiento/listarPorUsuarioSub`,
           {
             headers: {
               "Authorization": `Bearer ${idToken}`,
@@ -112,49 +134,86 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
             }
           }
         );
-
-        if (!res.ok) throw new Error("Error loading areas");
-
+        if (!res.ok) throw new Error("Error loading áreas generales");
         const data: Array<{ id: number; nombre: string }> = await res.json();
-        setAreas(data.map((a) => ({ id: a.id, nombre: a.nombre })));
+        setAreasGenerales(data.map((a) => ({ id: a.id, nombre: a.nombre })));
       } catch (err) {
-        console.error("Error cargando áreas:", err);
+        console.error("Error cargando áreas generales:", err);
       }
     }
 
-    fetchAreas();
+    fetchAreasGenerales();
   }, []);
 
+  // Cargar subáreas cuando cambia área general
   useEffect(() => {
-  const controller = new AbortController();
-  const { signal } = controller;
+    async function fetchAreas() {
+      try {
+        if (!formData.areaGeneral) {
+          setAreas([]);
+          return;
+        }
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/subAreaConocimiento/list/${formData.areaGeneral}`
+        );
+        if (!res.ok) throw new Error("Error loading subáreas");
+        const data: Array<{ id: number; nombre: string }> = await res.json();
+        if (Array.isArray(data)) {
+          setAreas(data.map((a) => ({ id: a.id, nombre: a.nombre })));
+        } else {
+          setAreas([]);
+          console.error("La respuesta de subáreas no es un array:", data);
+        }
+      } catch (err) {
+        setAreas([]);
+        console.error("Error cargando subáreas:", err);
+      }
+    }
+    if (formData.areaGeneral) {
+      fetchAreas();
+    } else {
+      setAreas([]);
+    }
+  }, [formData.areaGeneral]);
 
-  if (formData.area) {
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/usuario/getAsesoresBySubArea?idSubArea=${formData.area}`,
-      { signal }
-    )
-      .then((res) => res.json())
-      .then(
-        (data: Array<{ id: number; nombres: string; primerApellido: string}>) => {
-          setAsesores(
-            data.map((u) => ({
-              id: String(u.id),
-              nombre: `${u.nombres} ${u.primerApellido}`.trim(),
-            }))
-          );
-        }
-      )
-      .catch((err) => {
-        if (err.name !== "AbortError") {
-          console.error("Error cargando asesores:", err);
-        }
-      });
-  } else {
-    setAsesores([]);
-  }
-  return () => controller.abort();
-}, [formData.area]);
+  // Cargar asesores cuando el tipo es directa y hay subáreas seleccionadas
+  useEffect(() => {
+    const fetchAsesores = async () => {
+      if (formData.tipo !== "directa" || subareasSeleccionadas.length === 0) {
+        setAsesores([]);
+        setFormData((f) => ({ ...f, asesor: "" })); // Borra asesor si no cumple condiciones
+        return;
+      }
+      try {
+        const { idToken } = useAuthStore.getState();
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/temas/profesores-por-subareas`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${idToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(subareasSeleccionadas.map(s => s.id))
+          }
+        );
+        if (!res.ok) throw new Error("Error cargando asesores");
+        const data: Array<{ id: number; nombres: string; primerApellido: string }> = await res.json();
+        setAsesores(
+          data.map((u) => ({
+            id: String(u.id),
+            nombre: `${u.nombres} ${u.primerApellido}`.trim(),
+          }))
+        );
+      } catch (err) {
+        setAsesores([]);
+        setFormData((f) => ({ ...f, asesor: "" }));
+        console.error("Error cargando asesores:", err);
+      }
+    };
+    fetchAsesores();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.tipo, subareasSeleccionadas]);
 
   const handleChange =
     (field: keyof FormData) =>
@@ -163,17 +222,41 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       setErrors((e) => ({ ...e, [field]: undefined }));
     };
 
+  const handleSelectNumGeneral =
+    (field: keyof FormData) =>
+    (value: string) => {
+      const areaId = Number(value);
+
+      setFormData((f) => ({
+        ...f,
+        [field]: areaId,
+        area: 0, // limpiar subárea al cambiar área general
+        asesor: "", // limpiar asesor también
+      }));
+
+      setSubareasSeleccionadas([]); // <-- limpiar subáreas seleccionadas
+      setErrors((e) => ({
+        ...e,
+        [field]: undefined,
+        area: undefined, // limpiar error de subárea
+        asesor: undefined,
+      }));
+    };
+
   const handleSelectNum =
   (field: keyof FormData) =>
   (value: string) => {
+    if (value === "__clear__") {
+      setFormData(f => ({ ...f, area: 0, asesor: "" }));
+      setErrors(e => ({ ...e, area: undefined, asesor: undefined }));
+      return;
+    }
     const areaId = Number(value);
-
     setFormData((f) => ({
       ...f,
       [field]: areaId,
-      ...(field === "area" ? { asesor: "" } : {}), 
+      ...(field === "area" ? { asesor: "" } : {}),
     }));
-
     setErrors((e) => ({
       ...e,
       [field]: undefined,
@@ -232,14 +315,15 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
       e.descripcion = "Descripción obligatoria y debe contener letras.";
     if (!/[a-zA-Z]/.test(formData.objetivos))
       e.objetivos = "Objetivos obligatorios y deben contener letras.";
-    if (!formData.area) e.area = "Debe seleccionar un área.";
+    if (!formData.areaGeneral) e.areaGeneral = "Debe seleccionar un área de investigación.";
+    if (!subareasSeleccionadas.length) e.area = "Debe seleccionar al menos una subárea de interés.";
     if (formData.tipo === "directa" && !formData.asesor)
       e.asesor = "Debe seleccionar un asesor.";
     if (formData.titulo.length > 255) e.titulo = "Máximo 255 caracteres.";
-    if (formData.descripcion.length > 500)
-      e.descripcion = "Máximo 500 caracteres.";
-    if (formData.objetivos.length > 500)
-      e.objetivos = "Máximo 500 caracteres.";
+    if (formData.descripcion.length > 4000)
+      e.descripcion = "Máximo 4000 caracteres.";
+    if (formData.objetivos.length > 4000)
+      e.objetivos = "Máximo 4000 caracteres.";
     if (formData.fechaLimite && formData.fechaLimite <= today)
       e.fechaLimite = "Fecha límite debe ser futura.";
     setErrors(e);
@@ -274,7 +358,8 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
         setSimilares(data);
         setOpenSimilarDialog(true);
       } else {
-        await onSubmit(formData, cotesistas);
+        console.log("Subáreas seleccionadas:", subareasSeleccionadas);
+        await onSubmit(formData, cotesistas, undefined, false, subareasSeleccionadas); // <-- agrega esto
       }
     } catch (err) {
       toast.error("Error al verificar similitud o guardar propuesta");
@@ -286,7 +371,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
   const handleGuardarForzado = async () => {
     setCheckingSimilitud(true);
     try {
-      await onSubmit(formData, cotesistas, similares, true);
+      await onSubmit(formData, cotesistas, similares, true, subareasSeleccionadas);
       setOpenSimilarDialog(false);
     } catch (err) {
       toast.error("Error al guardar propuesta o similitudes");
@@ -327,26 +412,99 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
             )}
           </div>
 
-          {/* ÁREA */}
+          {/* ÁREA DE INVESTIGACIÓN (NUEVO COMBOBOX) */}
           <div>
             <Label className="mb-2">Área de Investigación</Label>
             <Select
-              value={String(formData.area)}
-              onValueChange={handleSelectNum("area")}
+              value={String(formData.areaGeneral) ? String(formData.areaGeneral) : ""}
+              
+              onValueChange={handleSelectNumGeneral("areaGeneral")}
             >
-              <SelectTrigger
-                className={errors.area ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Seleccione un área" />
+              <SelectTrigger className={errors.areaGeneral ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccione un área de investigación" />
               </SelectTrigger>
               <SelectContent>
-                {areas.map((a) => (
+                {areasGenerales.map((a) => (
                   <SelectItem key={a.id} value={String(a.id)}>
                     {a.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {errors.areaGeneral && (
+              <p className="text-sm text-red-500">{errors.areaGeneral}</p>
+            )}
+          </div>
+
+          {/* SUBÁREAS DE INVESTIGACIÓN (NUEVO COMPONENTE) */}
+          <div>
+            <Label className="mb-2">Subáreas de Investigación</Label>
+            <div className="flex gap-2 items-center">
+              <Select
+                value={subareaSeleccionada}
+                onValueChange={setSubareaSeleccionada}
+                disabled={!formData.areaGeneral || areas.length === 0}
+              >
+                <SelectTrigger className="w-72">
+                  <SelectValue placeholder="Seleccione una opción" />
+                </SelectTrigger>
+                <SelectContent side="bottom">
+                  <div className="px-2 py-1">
+                    <Input
+                      placeholder="Buscar subárea..."
+                      value={subareaSearch}
+                      onChange={e => setSubareaSearch(e.target.value)}
+                      onKeyDown={e => e.stopPropagation()}
+                      className="w-full"
+                    />
+                  </div>
+                  {areas
+                    .filter(
+                      a =>
+                        a.nombre.toLowerCase().includes(subareaSearch.toLowerCase()) &&
+                        !subareasSeleccionadas.some(s => s.id === a.id)
+                    )
+                    .map(a => (
+                      <SelectItem key={a.id} value={String(a.id)}>
+                        {a.nombre}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                onClick={() => {
+                  const areaObj = areas.find(a => String(a.id) === subareaSeleccionada);
+                  if (areaObj && !subareasSeleccionadas.some(s => s.id === areaObj.id)) {
+                    setSubareasSeleccionadas([...subareasSeleccionadas, areaObj]);
+                    setSubareaSeleccionada("");
+                  }
+                }}
+                disabled={!subareaSeleccionada}
+              >
+                Agregar
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {subareasSeleccionadas.map((sub) => (
+                <span
+                  key={sub.id}
+                  className="bg-blue-600 text-white rounded-full px-4 py-1 flex items-center"
+                >
+                  {sub.nombre}
+                  <button
+                    type="button"
+                    className="ml-2"
+                    onClick={() => {
+                      setSubareasSeleccionadas(subareasSeleccionadas.filter(s => s.id !== sub.id));
+                      setFormData(f => ({ ...f, asesor: "" })); // Borra asesor
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
             {errors.area && (
               <p className="text-sm text-red-500">{errors.area}</p>
             )}
@@ -361,11 +519,11 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
               id="descripcion"
               value={formData.descripcion}
               onChange={handleChange("descripcion")}
-              maxLength={500}
+              maxLength={4000}
               className={errors.descripcion ? "border-red-500" : ""}
             />
             <p className="text-xs text-muted-foreground mt-0.5">
-              {formData.descripcion.length}/500
+              {formData.descripcion.length}/4000
             </p>
             {errors.descripcion && (
               <p className="text-sm text-red-500">{errors.descripcion}</p>
@@ -375,17 +533,17 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
           {/* OBJETIVOS */}
           <div>
             <Label htmlFor="objetivos" className="mb-2">
-              Objetivos
+              Objetivos Preliminares
             </Label>
             <Textarea
               id="objetivos"
               value={formData.objetivos}
               onChange={handleChange("objetivos")}
-              maxLength={500}
+              maxLength={4000}
               className={errors.objetivos ? "border-red-500" : ""}
             />
             <p className="text-xs text-muted-foreground mt-0.5">
-              {formData.objetivos.length}/500
+              {formData.objetivos.length}/4000
             </p>
             {errors.objetivos && (
               <p className="text-sm text-red-500">{errors.objetivos}</p>
@@ -421,11 +579,15 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
               <Select
                 value={formData.asesor}
                 onValueChange={handleSelectStr("asesor")}
-                disabled={!formData.area || asesores.length === 0}
+                disabled={
+                  formData.tipo !== "directa" ||
+                  subareasSeleccionadas.length === 0 ||
+                  asesores.length === 0
+                }
               >
                 <SelectTrigger
                   className={
-                    !formData.area
+                    formData.tipo !== "directa" || subareasSeleccionadas.length === 0
                       ? "opacity-50 cursor-not-allowed"
                       : errors.asesor
                       ? "border-red-500"
@@ -434,8 +596,10 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
                 >
                   <SelectValue
                     placeholder={
-                      !formData.area
-                        ? "Elige un área primero"
+                      formData.tipo !== "directa"
+                        ? "Elige tipo directa"
+                        : subareasSeleccionadas.length === 0
+                        ? "Elige subárea(s) primero"
                         : "Seleccione un asesor"
                     }
                   />
@@ -516,6 +680,7 @@ export default function FormularioPropuesta({ loading, onSubmit }: Props) {
               </ul>
             )}
           </div>
+
         </CardContent>
         <Dialog open={openSimilarDialog} onOpenChange={setOpenSimilarDialog}>
           <DialogContent className="max-w-xl p-0">

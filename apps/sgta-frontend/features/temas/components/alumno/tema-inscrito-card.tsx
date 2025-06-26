@@ -203,7 +203,18 @@ export function TemaCard() {
             </div>
           </div>
           </div>
-          <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+          <Badge
+            variant="outline"
+            className={
+              tesisData.estadoActual === "Registrado"
+                ? "bg-green-100 text-green-800 hover:bg-green-100"
+                : tesisData.estadoActual === "Inscrito"
+                ? "bg-purple-100 text-purple-700 hover:bg-purple-100"
+                : tesisData.estadoActual === "Observado"
+                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                : ""
+            }
+          >
             {tesisData.estadoActual}
           </Badge>
         </div>

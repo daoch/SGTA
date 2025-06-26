@@ -26,6 +26,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -858,18 +859,48 @@ public class TemaController {
 
 
 	@PostMapping("/updatesolicitudesCoordinador")
-	public void updateSolicitudesCoordinador(Integer solicitudId,String respuesta,
-		HttpServletRequest request) {
-			try {
-				String usuarioId = jwtService.extractSubFromRequest(request);
-				temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId,respuesta);
+	public void updateSolicitudesCoordinador(
+			@RequestParam("solicitudId") Integer solicitudId,
+			@RequestParam("respuesta") String respuesta,
+			HttpServletRequest request) {
+		try {
+			String usuarioId = jwtService.extractSubFromRequest(request);
+			temaServiceImpl.updateSolicitudesCoordinador(usuarioId, solicitudId, respuesta);
 
-			} catch (RuntimeException e) {
-				throw new ResponseStatusException(
+		} catch (RuntimeException e) {
+			throw new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"Ocurrió un error: " + e.getMessage());
+		}
+	}
+
+
+	@GetMapping("/profesores-por-subareas")
+    public ResponseEntity<List<UsuarioDto>> listarProfesoresPorSubareasGet(
+            @RequestParam("subareaIds") List<Integer> subareaIds) {
+        try {
+            List<UsuarioDto> profesores = temaService.listarProfesoresPorSubareasConMatch(subareaIds);
+            return ResponseEntity.ok(profesores);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
 						HttpStatus.UNAUTHORIZED,
 						"Ocurrió un error: " + e.getMessage());
-			}
+        }
+    }
+
+	@PostMapping("/profesores-por-subareas")
+	public ResponseEntity<?> listarProfesoresPorSubareas(
+			@RequestBody List<Integer> subareaIds) {
+		try {
+			List<UsuarioDto> profesores = temaService.listarProfesoresPorSubareasConMatch(subareaIds);
+			return ResponseEntity.ok(profesores);
+		} catch (Exception e) {
+			throw new ResponseStatusException(
+						HttpStatus.UNAUTHORIZED,
+						"Ocurrió un error: " + e.getMessage());
+		}
 	}
+
 
 }
 

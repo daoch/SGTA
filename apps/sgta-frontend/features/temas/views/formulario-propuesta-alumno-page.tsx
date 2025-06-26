@@ -20,7 +20,8 @@ export default function FormularioPropuestaPage() {
     data: FormData,
     cotesistas: Estudiante[],
     similares: TemaSimilar[] = [],
-    forzarGuardar: boolean = false
+    forzarGuardar: boolean = false,
+    subareasSeleccionadas: { id: number, nombre: string }[] = []
   ) => {
     setLoading(true);
 
@@ -31,7 +32,7 @@ export default function FormularioPropuestaPage() {
 
     const tipoPropuesta = data.tipo === "general" ? 0 : 1;
 
-    const subareas = [{ id: data.area }];
+    const subareas = subareasSeleccionadas.map(s => ({ id: s.id }));
     const coasesores =
       data.tipo === "directa" && data.asesor
         ? [{ id: Number(data.asesor) }]

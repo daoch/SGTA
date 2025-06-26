@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.ControlExposicionUsuarioTemaDto;
 import pucp.edu.pe.sgta.mapper.ControlExposicionUsuarioTemaMapper;
@@ -58,6 +59,18 @@ public class ControlExposicionUsuarioTemaServiceImpl implements ControlExposicio
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    @Transactional
+    public void aceptarExposicionDesdeCorreo(String token) {
+        controlExposicionUsuarioTemaRepository.aceptarInvitacionCorreo(token);
+    }
+
+    @Override
+    @Transactional
+    public void rechazarExposicionDesdeCorreo(String token) {
+        controlExposicionUsuarioTemaRepository.rechazarInvitacionCorreo(token);
     }
 
 }

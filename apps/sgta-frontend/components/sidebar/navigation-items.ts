@@ -106,6 +106,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       icon: FileText,
     },
     { name: "Reportes", href: "/alumno/reportes", icon: BarChart3 },
+    {
+      name: "Configuración",
+      href: "/alumno/configuracion/notificaciones",
+      icon: Settings,
+    },
   ],
   jurado: [
     { name: "Calendario", href: "/jurado/calendario", icon: CalendarIcon },

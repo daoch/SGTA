@@ -32,6 +32,24 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
             @Param("fecha") OffsetDateTime fecha
     );
 
+    @Query("""
+        SELECT CASE WHEN COUNT(n) > 0 THEN true ELSE false END
+        FROM Notificacion n
+        WHERE n.usuario.id = :usuarioId
+          AND n.modulo.id = :moduloId
+          AND n.tipoNotificacion.id = :tipoNotificacionId
+          AND n.activo = true
+          AND DATE(n.fechaCreacion) = DATE(:fecha)
+          AND n.mensaje = :mensaje
+    """)
+    boolean existsByUsuarioModuloEventoTipoFecha(
+            @Param("usuarioId") Integer usuarioId,
+            @Param("moduloId") Integer moduloId,
+            @Param("tipoNotificacionId") Integer tipoNotificacionId,
+            @Param("fecha") OffsetDateTime fecha,
+            @Param("mensaje") String mensaje
+    );
+
     /**
      * Obtiene las notificaciones no leídas por usuario y módulo
      */
