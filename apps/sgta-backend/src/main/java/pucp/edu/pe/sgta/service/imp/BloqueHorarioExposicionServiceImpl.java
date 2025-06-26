@@ -2,10 +2,8 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -226,7 +224,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion) {
+    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion,Integer origen) {
 
         try {
 
@@ -270,7 +268,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             System.out.println("==================================================================");
             System.out.println("Resultado de la función: " + resultado);
-
+            if(origen==1)
+                return true;
             HttpSession session = request.getSession(false);
             if (session == null) throw new RuntimeException("No hay sesión activa");
 
@@ -387,16 +386,15 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public void crearReunionesZoom(int exposicionId){
-
         List<ListBloqueHorarioExposicionSimpleDTO> listaBloques;
-        /*List<TemaConLinkDTO> listaTemasConLink = temaRepository.obtenerTemasConLink(exposicionId);
+       List<TemaConLinkDTO> listaTemasConLink = temaRepository.obtenerTemasConLink(exposicionId);
 
             Map<Integer, String> mapaTemasConLink = listaTemasConLink.stream()
                     .collect(Collectors.toMap(
                             TemaConLinkDTO::getIdTema,
                             TemaConLinkDTO::getLink,
                             (v1, v2) -> v1
-                    ));*/
+                    ));
 
         ExposicionDto exposicion = exposicionService.findById(exposicionId);
         try{
@@ -418,31 +416,51 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesFiltrados = listaBloques.stream()
                     .filter(b -> b.getExpo() != null)
                     .toList();
-
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesFiltrados){
                 String range = bloque.getRange();
-                String dia = bloque.getKey().split("\\|")[0];
-                String sala = bloque.getKey().split("\\|")[2];
+                String[] partes = bloque.getKey().split("\\|");
+                if (partes.length < 3) continue;
+                String dia = partes[0];
+                String sala = partes[2];
                 TemaConAsesorJuradoDTO expo = bloque.getExpo();
-                //String linkReunion = mapaTemasConLink.get(expo.getId());
-                String linkReunion = "";
+                String linkReunion = mapaTemasConLink.getOrDefault(expo.getId(), "NO_LINK");
+                //String linkReunion = "";
                 if(expo.getUsuarios() ==null)
                     continue;
-                UsarioRolDto usTesista = expo.getUsuarios().stream().filter(u->u.getRol().getNombre().equals("Tesista")).findFirst().get();
+                Optional<UsarioRolDto> optTesista = expo.getUsuarios().stream()
+                        .filter(u -> u.getRol().getNombre().equals("Tesista"))
+                        .findFirst();
+                if (optTesista.isEmpty()) continue;
+                UsarioRolDto usTesista = optTesista.get();
                 String summary = "Invitacion " + exposicion.getNombre() + ": "  + " " + usTesista.getApellidos() + "," + usTesista.getNombres() + " " + dia + " " + range + " (" + usTesista.getCorreo() + ")" ;
                 String description = "LA SESIÓN ES PRESENCIAL PARA LOS ESTUDIANTES<br><br>EL ZOOM ES PARA JURADOS EN CASOS EXCEPCIONALES<br><br>LINK DE REUNIÓN: " + linkReunion + "\n\n" +
                         "Topic :  " + exposicion.getNombre() + "\n\n" + "TIME : " + dia + " "  + range + "\n\n" + "Lugar : " + sala ;
 
                 //SE FORMATEA LA FECHA
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                LocalDate fecha = LocalDate.parse(dia, dateFormatter);
 
-                // 2. Separar horas
+                LocalDate fecha;
+                try {
+                    fecha = LocalDate.parse(dia, dateFormatter);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Fecha inválida: " + dia);
+                    continue;
+                }
+
                 String[] horas = range.split(" - ");
-                LocalTime horaInicio = LocalTime.parse(horas[0]);
-                LocalTime horaFin = LocalTime.parse(horas[1]);
+                if (horas.length != 2) {
+                    System.err.println("Rango horario inválido: " + range);
+                    continue;
+                }
 
-                // 3. Crear OffsetDateTime usando zona horaria de Lima (-05:00)
+                LocalTime horaInicio, horaFin;
+                try {
+                    horaInicio = LocalTime.parse(horas[0]);
+                    horaFin = LocalTime.parse(horas[1]);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Horas inválidas: " + range);
+                    continue;
+                }
                 ZoneOffset limaOffset = ZoneOffset.of("-05:00");
                 OffsetDateTime start = OffsetDateTime.of(fecha, horaInicio, limaOffset);
                 OffsetDateTime end = OffsetDateTime.of(fecha, horaFin, limaOffset);
@@ -467,7 +485,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             }
         }
         catch (Exception e){
-
+            e.printStackTrace();
         }
     }
 

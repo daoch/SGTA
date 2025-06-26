@@ -59,7 +59,8 @@ public class BloqueHorarioExposicionController {
         try {
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesList = request.getBloquesList();
             Integer exposicion = request.getExposicion();
-            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion);
+            Integer origen = request.getOrigen();
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion,origen);
 
             if (updateSuccessful) {
 

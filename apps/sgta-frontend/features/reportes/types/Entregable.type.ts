@@ -9,6 +9,7 @@ export interface EntregableCriteriosDetalle {
     entregableId: number;
     entregableNombre: string;
     fechaEnvio: string | null;
+    fechaFin: string | null;
     notaGlobal: number | null;
     estadoEntrega: string;
     criterios: CriterioEntregableDetalle[];
@@ -33,6 +34,7 @@ export interface Deliverable {
   date: string;
   criteria: DeliverableCriteria[];
   expositionGrade: number;
+  fechaLimite: string;
   finalGrade: number;
 }
 
@@ -56,6 +58,7 @@ export interface ChartDeliverable {
   name: string
   entregableNumber: number
   date: string
+  fechaLimite: string
   notaFinal: number
   notaExposicion: number
   stage: string

@@ -122,6 +122,7 @@ const RevisionAsesorPage = () => {
           </p>
         </div>
       </div>
+
       {/*<Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
                 NOTAS
       </Button> */}
