@@ -75,6 +75,7 @@ export function CoordinatorReports() {
   const [selectedTopicsChart, setSelectedTopicsChart] = useState("areas"); // 'areas', 'trends'
   const [selectedEtapaFormativa, setSelectedEtapaFormativa] = useState("all"); // Filtro para etapa formativa en tendencias
   const [selectedEtapaFormativaAreas, setSelectedEtapaFormativaAreas] = useState("all"); // Filtro para etapa formativa en áreas
+  const [selectedEtapaFormativaAdvisors, setSelectedEtapaFormativaAdvisors] = useState("all"); // Filtro para etapa formativa en distribución de asesores
   const [yearRangeStart, setYearRangeStart] = useState<string>("all"); // Año de inicio del rango
   const [yearRangeEnd, setYearRangeEnd] = useState<string>("all"); // Año de fin del rango
 
@@ -255,7 +256,7 @@ export function CoordinatorReports() {
   };
 
   const distributionDescriptions = {
-    advisors: "Cantidad de tesistas asignados como asesorados por cada docente",
+    advisors: "Cantidad de tesistas asignados como asesorados por cada docente. Puede filtrarse por etapa formativa específica.",
     jury: "Número de veces que cada docente ha participado como jurado",
     comparison: "Cantidad de veces que cada docente ha participado como asesor y como jurado"
   };
@@ -340,11 +341,32 @@ export function CoordinatorReports() {
       try {
         setLoadingAdvisorDistribution(true);
         const data = await obtenerDistribucionAsesores(semesterFilter);
-        setAdvisorDistribution(data.map((item: AdvisorDistribution) => ({
-          name: item.teacherName,
-          count: item.count,
-          department: item.areaName,
-        })));
+        
+        // Extraer etapas formativas únicas de los datos de asesores
+        const etapasAdvisorsSet = new Set<string>();
+        data.forEach((item: AdvisorDistribution) => {
+          if (item.etapasFormativasCount) {
+            Object.keys(item.etapasFormativasCount).forEach(etapa => etapasAdvisorsSet.add(etapa));
+          }
+        });
+        setAvailableEtapasFormativasAdvisors(Array.from(etapasAdvisorsSet).sort());
+        
+        // Transformar datos según el filtro de etapa formativa
+        const transformedData = data.map((item: AdvisorDistribution) => {
+          let count = item.count;
+          
+          if (selectedEtapaFormativaAdvisors !== "all" && item.etapasFormativasCount) {
+            count = item.etapasFormativasCount[selectedEtapaFormativaAdvisors] || 0;
+          }
+          
+          return {
+            name: item.teacherName,
+            count: count,
+            department: item.areaName,
+          };
+        }).filter(item => item.count > 0); // Filtrar asesores sin tesistas para la etapa seleccionada
+        
+        setAdvisorDistribution(transformedData);
       } catch (error) {
         console.log("Error al cargar las distribuciones por asesor:", error);
       } finally {
@@ -392,7 +414,7 @@ export function CoordinatorReports() {
     fetchAdvisorsDistribution();
     fetchJurorsDistribution();
     fetchAdvisorPerformance();
-  }, [semesterFilter, user?.id, selectedEtapaFormativaAreas]);
+  }, [semesterFilter, user?.id, selectedEtapaFormativaAreas, selectedEtapaFormativaAdvisors]);
 
   const findTopicCount = (responseData: TopicTrend[], year: number, area: string) => {
     const found = responseData.find(item => item.year === year && item.areaName === area);
@@ -404,6 +426,8 @@ export function CoordinatorReports() {
   const [availableEtapasFormativas, setAvailableEtapasFormativas] = useState<string[]>([]);
   // Estado para las etapas formativas disponibles en áreas
   const [availableEtapasFormativasAreas, setAvailableEtapasFormativasAreas] = useState<string[]>([]);
+  // Estado para las etapas formativas disponibles en distribución de asesores
+  const [availableEtapasFormativasAdvisors, setAvailableEtapasFormativasAdvisors] = useState<string[]>([]);
   // Estado para los años disponibles en los datos de tendencias
   const [trendsAvailableYears, setTrendsAvailableYears] = useState<number[]>([]);
 
@@ -738,6 +762,25 @@ export function CoordinatorReports() {
           <Tooltip 
             formatter={(value, name) => [`${value}`, "Total"]}
             labelFormatter={(label) => toTitleCase(label)}
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-white border border-gray-300 rounded-md p-3 shadow-lg">
+                    <p className="font-medium text-sm">{toTitleCase(String(label))}</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {selectedEtapaFormativaAdvisors === "all" 
+                        ? "Todas las etapas formativas" 
+                        : `Etapa: ${toTitleCase(selectedEtapaFormativaAdvisors)}`
+                      }
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      Tesistas: {payload[0].value}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
           <Bar dataKey="count" fill="#006699" />
         </RechartsBarChart>
@@ -791,7 +834,27 @@ export function CoordinatorReports() {
   const renderDistributionContent = () => {
     switch (selectedDistributionChart) {
       case "advisors":
-        return renderAdvisorDistribution();
+        return (
+          <div>
+            <div className="flex items-center justify-end gap-2 px-4 py-2">
+              <label className="text-sm font-medium text-gray-700">Etapa Formativa:</label>
+              <Select value={selectedEtapaFormativaAdvisors} onValueChange={setSelectedEtapaFormativaAdvisors}>
+                <SelectTrigger className="w-[280px] text-sm">
+                  <SelectValue placeholder="Seleccionar etapa formativa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-sm">Todas las etapas</SelectItem>
+                  {availableEtapasFormativasAdvisors.map((etapa) => (
+                    <SelectItem key={etapa} value={etapa} className="text-sm">
+                      {toTitleCase(etapa)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {renderAdvisorDistribution()}
+          </div>
+        );
       case "jury":
         return renderJuryDistribution();
       default:

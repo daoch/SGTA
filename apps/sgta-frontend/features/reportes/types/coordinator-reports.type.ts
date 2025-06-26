@@ -10,6 +10,8 @@ export interface AdvisorDistribution {
   teacherName: string;
   count: number;
   areaName: string;
+  areasConocimiento: string[];
+  etapasFormativasCount: Record<string, number>;
 }
 
 export interface JurorDistribution {
