@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.NotificacionDto;
 import pucp.edu.pe.sgta.dto.OverdueAlertDto;
+import pucp.edu.pe.sgta.exception.ResourceNotFoundException;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
@@ -454,4 +455,40 @@ public class NotificacionServiceImpl implements NotificacionService {
         }
         return dtos;
     }
-} 
+
+    @Override
+    @Transactional
+    public Notificacion crearNotificacionParaUsuario(
+            Integer usuarioDestinatarioId,
+            String moduloNombre,
+            String tipoNotificacionNombre,
+            String mensaje,
+            String canal,
+            String enlaceRedireccion) {
+
+        log.info("Creando notificación para usuario ID: {}, módulo: {}, tipo: {}",
+                usuarioDestinatarioId, moduloNombre, tipoNotificacionNombre);
+
+        Usuario destinatario = usuarioRepository.findById(usuarioDestinatarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario destinatario no encontrado con ID: " + usuarioDestinatarioId));
+
+        Modulo modulo = moduloRepository.findByNombre(moduloNombre)
+                .orElseThrow(() -> new ResourceNotFoundException("Módulo no encontrado con nombre: " + moduloNombre));
+
+        TipoNotificacion tipoNotificacion = tipoNotificacionRepository.findByNombre(tipoNotificacionNombre)
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo de Notificación no encontrado con nombre: " + tipoNotificacionNombre));
+
+        Notificacion notificacion = new Notificacion();
+        notificacion.setUsuario(destinatario);
+        notificacion.setModulo(modulo);
+        notificacion.setTipoNotificacion(tipoNotificacion);
+        notificacion.setMensaje(mensaje);
+        notificacion.setCanal(canal); // Ej: "SISTEMA" para notificaciones in-app
+        // fechaCreacion, activo, etc., se manejan por @PrePersist o defaults
+
+        Notificacion notificacionGuardada = notificacionRepository.save(notificacion);
+        log.info("Notificación guardada con ID: {}", notificacionGuardada.getId());
+
+        return notificacionGuardada;
+    }
+}
