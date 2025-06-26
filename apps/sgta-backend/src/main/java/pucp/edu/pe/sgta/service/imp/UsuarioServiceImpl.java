@@ -204,79 +204,49 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public List<UserDto> findAllUsers() {
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
-
-        for (Usuario usuario : usuarios) {
-            // Obtener roles activos del usuario
-            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(usuario.getId());
-            List<String> rolesNombres = roles.stream()
-                    .filter(UsuarioXRol::getActivo)
-                    .map(ur -> ur.getRol().getNombre())
-                    .toList();
-
+        List<Object[]> resultados = usuarioRepository.obtenerTodosLosUsuarios();
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
             UserDto dto = UserDto.builder()
-                    .id(usuario.getId())
+                    .id((Integer) fila[0])
                     .tipoUsuario(TipoUsuarioDto.builder()
-                            .id(usuario.getTipoUsuario().getId())
-                            .nombre(usuario.getTipoUsuario().getNombre())
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
                             .build())
-                    .codigoPucp(usuario.getCodigoPucp())
-                    .nombres(usuario.getNombres())
-                    .primerApellido(usuario.getPrimerApellido())
-                    .segundoApellido(usuario.getSegundoApellido())
-                    .correoElectronico(usuario.getCorreoElectronico())
-                    .roles(rolesNombres)
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
                     .build();
-
-            userDtos.add(dto);
+            usuarios.add(dto);
         }
-        return userDtos;
+        return usuarios;
     }
 
     @Override
     public List<UserDto> findAllUsers(String usuarioId) {
-        // Obtener el usuario coordinador por idCognito
-        Usuario coordinador = usuarioRepository.findByIdCognito(usuarioId)
-                .orElseThrow(() -> new NoSuchElementException("Coordinador no encontrado con idCognito: " + usuarioId));
-
-        // Obtener la carrera principal del coordinador
-        UsuarioXCarrera carreraPrincipal = usuarioXCarreraRepository.getCarreraPrincipalCoordinador(coordinador.getId());
-        if (carreraPrincipal == null) {
-            throw new NoSuchElementException("No se encontró carrera principal para el coordinador");
-        }
-        Integer carreraId = carreraPrincipal.getCarrera().getId();
-
-        // Buscar usuarios activos en esa carrera
-        List<UsuarioXCarrera> usuariosCarrera = usuarioXCarreraRepository.findByCarreraIdAndActivoTrue(carreraId);
-
-        List<UserDto> userDtos = new ArrayList<>();
-        for (UsuarioXCarrera uc : usuariosCarrera) {
-            Usuario usuario = uc.getUsuario();
-            // Obtener roles activos del usuario
-            List<UsuarioXRol> roles = usuarioXRolRepository.findByUsuarioId(usuario.getId());
-            List<String> rolesNombres = roles.stream()
-                    .filter(UsuarioXRol::getActivo)
-                    .map(ur -> ur.getRol().getNombre())
-                    .toList();
-
+        //buscar usuarios por id de coordinador
+        List<Object[]> resultados = usuarioRepository.obtenerUsuariosPorCoordinador(usuarioId);
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
             UserDto dto = UserDto.builder()
-                    .id(usuario.getId())
+                    .id((Integer) fila[0])
                     .tipoUsuario(TipoUsuarioDto.builder()
-                            .id(usuario.getTipoUsuario().getId())
-                            .nombre(usuario.getTipoUsuario().getNombre())
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
                             .build())
-                    .codigoPucp(usuario.getCodigoPucp())
-                    .nombres(usuario.getNombres())
-                    .primerApellido(usuario.getPrimerApellido())
-                    .segundoApellido(usuario.getSegundoApellido())
-                    .correoElectronico(usuario.getCorreoElectronico())
-                    .roles(rolesNombres)
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
                     .build();
-
-            userDtos.add(dto);
+            usuarios.add(dto);
         }
-        return userDtos;
+        return usuarios;
     }
 
     @Override

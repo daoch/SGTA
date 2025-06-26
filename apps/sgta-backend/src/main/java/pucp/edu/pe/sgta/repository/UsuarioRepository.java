@@ -117,4 +117,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     List<Usuario> findAllById(Iterable<Integer> ids);
 
+    @Query(value = "SELECT * FROM obtener_usuarios_por_coordinador(:idCognito)", nativeQuery = true)
+    List<Object[]> obtenerUsuariosPorCoordinador(@Param("idCognito") String idCognito);
+
+    @Query(value = "SELECT * FROM obtener_todos_los_usuarios()", nativeQuery = true)
+    List<Object[]> obtenerTodosLosUsuarios();
 }
