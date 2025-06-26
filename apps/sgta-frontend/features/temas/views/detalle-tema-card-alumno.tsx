@@ -410,7 +410,7 @@ export function DetalleTemaAlumnoView() {
               </Dialog>
 
               {/* Acciones Disponibles */}
-              {["REGISTRADO", "INSCRITO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre) && (
+              {["REGISTRADO", "EN_PROGRESO", "PAUSADO"].includes(tema.estadoTemaNombre) && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                   <div className="font-semibold mb-2">Acciones Disponibles</div>
                   <Button
