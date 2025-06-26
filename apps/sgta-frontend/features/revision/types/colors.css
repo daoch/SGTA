@@ -11,9 +11,11 @@
   
   /* Aplicando Tailwind con colores personalizados */
   .bg-pucp-blue {
-	background-color: var(--pucp-blue);
+	background-color: var(--pucp-blue)  !important;
   }
-  
+  .border-pucp-blue {
+  	border-color: var(--pucp-blue) !important;
+	}
   .text-primary {
 	color: var(--primary);
   }

@@ -157,29 +157,28 @@ export default function ReviewerStudentDetails({ params }: { params: Promise<{ i
                   <div className="text-sm text-gray-600">Progreso</div>
                 </div> */}
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-[#006699]">
-                    {/* Badge Total */}
-                    <Badge variant="outline" className="text-sm">
-                      {loadingEntregablesEvaluables
-                        ? "Cargando..."
-                        : `Entregables: ${entregablesEvaluables}`}
-                    </Badge>
-
-                    {/* Badges por estado (solo si hay conteo > 0) */}
-                    {!loadingEntregablesEvaluables &&
-                      Object.entries(conteoEstados)
-                        .filter(([_, n]) => n > 0)
-                        .map(([estado, n]) => (
-                          <Badge
-                            key={estado}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {`${estado.replace(/_/g, " ")}: ${n}`}
-                          </Badge>
-                    ))}
-
-                    {/* {student.entregablesCompletados ?? 0}/{student.entregablesTotales ?? 0} */}
+                  <div className="text-2xl font-bold text-[#006699] space-y-2">
+                    <div>
+                      <Badge variant="outline" className="text-sm">
+                        {loadingEntregablesEvaluables
+                          ? "Cargando..."
+                          : `Entregables: ${entregablesEvaluables}`}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col gap-2 items-center">
+                      {!loadingEntregablesEvaluables &&
+                        Object.entries(conteoEstados)
+                          .filter(([_, n]) => n > 0)
+                          .map(([estado, n]) => (
+                            <Badge
+                              key={estado}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {`${estado.replace(/_/g, " ")}: ${n}`}
+                            </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

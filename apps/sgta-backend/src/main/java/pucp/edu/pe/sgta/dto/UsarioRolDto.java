@@ -16,9 +16,10 @@ public class UsarioRolDto {
     private String apellidos;
     private RolDto rol;
     private String estadoRespuesta;
+    private String correo;
 
     public UsarioRolDto(int idUsuario, String nombres, String apellidos,int rolId,
-                        String rolNombre,String estadoRespuesta) {
+                        String rolNombre,String estadoRespuesta,String correo) {
 
        this.idUsario = idUsuario;
        this.nombres = nombres;
@@ -27,6 +28,6 @@ public class UsarioRolDto {
        this.rol.setId(rolId);
        this.rol.setNombre(rolNombre);
        this.estadoRespuesta = estadoRespuesta;
-
+        this.correo = correo;
     }
 }

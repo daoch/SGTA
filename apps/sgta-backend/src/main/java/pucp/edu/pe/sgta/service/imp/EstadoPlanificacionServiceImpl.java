@@ -1,5 +1,8 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -52,17 +55,20 @@ public class EstadoPlanificacionServiceImpl implements EstadoPlanificacionServic
         List<Object[]> results = estadoPlanificacionRepository.getByIdExposicion(id);
         if (results == null || results.size() > 1)
             return null;
-        // ESTO TRAE EN 0 ID ESTADO
-        // 1 NOMBRE ESTAOD
-        // 2 ACTIVO
+
         Object[] obj = results.get(0);
 
         EstadoPlanificacionDto dto = new EstadoPlanificacionDto();
         dto.setId((Integer) obj[0]);
         dto.setNombre((String) obj[1]);
-        dto.setActivo((Boolean) obj[2]);
+        dto.setFechaCreacion(obj[2] != null
+                ? ((Instant) obj[2]).atZone(ZoneId.of("America/Lima")).toOffsetDateTime()
+                : null);
+        dto.setFechaModificacion(obj[3] != null
+                ? ((Instant) obj[3]).atZone(ZoneId.of("America/Lima")).toOffsetDateTime()
+                : null);
+        dto.setActivo((Boolean) obj[4]);
 
         return dto;
-
     }
 }

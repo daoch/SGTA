@@ -263,12 +263,14 @@ export function EditTemaModal({ open, onOpenChange, tema }: EditTemaModalProps) 
           case "area":
             return {
               tipo_solicitud_id: 8,
-              area_nueva: `${selectedSubareas.map((s) => s.id).join(",")}|@@|${justificaciones[field]}`,
+              subarea_nueva: `${selectedSubareas.map((s) => s.id).join(",")}|@@|${justificaciones[field]}`,
             };
           default:
             return null;
         }
       }).filter(Boolean);
+
+      console.log("Solicitudes a enviar:", solicitudes);
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/temas/registrarSolicitudesModificacionTema?temaId=${tema.id}`,

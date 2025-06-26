@@ -1,5 +1,5 @@
 "use client";
-import { Settings, BookOpen, Link as LinkIcon } from "lucide-react";
+import { BookOpen, Link as LinkIcon, Settings } from "lucide-react";
 import Link from "next/link";
 //import { Badge } from "@/components/ui/badge"
 
@@ -102,6 +102,22 @@ export default function Configuracion() {
             <p className="text-gray-500 text-sm">
               Configure la asociación de temas a los cursos para facilitar la
               gestión de proyectos de fin de carrera.
+            </p>
+          </div>
+        </Link>
+        <Link
+          href="configuracion/servicios-google"
+          className="bg-white rounded-lg shadow p-6 flex items-start gap-4 hover:shadow-md transition-shadow"
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-[#0F1A3A]">
+            <LinkIcon size={24} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-lg mb-1">
+              Configuracion servicios de google
+            </h2>
+            <p className="text-gray-500 text-sm">
+              Configure el correo  a usar para procesos que involucren enviar correos o el google calendar
             </p>
           </div>
         </Link>

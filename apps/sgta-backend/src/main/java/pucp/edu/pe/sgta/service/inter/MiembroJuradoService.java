@@ -71,5 +71,7 @@ public interface MiembroJuradoService {
                         ExposicionCalificacionRequest exposicionCalificacionRequest);
         public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
 
+
         Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request);
+
 }
