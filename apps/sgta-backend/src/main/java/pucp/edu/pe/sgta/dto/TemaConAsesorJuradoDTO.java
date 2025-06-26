@@ -15,4 +15,5 @@ public class TemaConAsesorJuradoDTO {
     private String titulo;
     private List<UsarioRolDto> usuarios;
     private List<AreaConocimientoDto> areasConocimiento;
+
 }

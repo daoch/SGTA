@@ -1089,7 +1089,10 @@ CREATE TABLE IF NOT EXISTS version_documento (
     CONSTRAINT fk_version_documento_documento FOREIGN KEY (documento_id) REFERENCES documento (documento_id) ON DELETE CASCADE,
     CONSTRAINT fk_version_documento_entregable_x_tema FOREIGN KEY (entregable_x_tema_id) REFERENCES entregable_x_tema (entregable_x_tema_id) ON DELETE CASCADE
 );
-
+    ALTER TABLE version_documento
+    ADD COLUMN porcentaje_similitud DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN porcentaje_ia DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN estado_procesamiento VARCHAR(32) DEFAULT 'PENDING';  
 CREATE TABLE IF NOT EXISTS usuario_documento (
     usuario_documento_id SERIAL PRIMARY KEY,
     usuario_id INTEGER,

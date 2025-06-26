@@ -26,6 +26,7 @@ export interface PlagiarismFound {
   startIndex: number;
   endIndex: number;
   sequence: string;
+  page: number;
 }
 
 export interface PlagiarismSource {
@@ -211,10 +212,33 @@ export async function existePlagioJsonF(revisionId: number): Promise<boolean> {
   const response = await axiosInstance.get<boolean>(`/s3/archivos/existe-plagio-json/${revisionId}`);
   return response.data;
 }
+export async function checkStatusProcesamiento(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/plagiarism/check-async/status/${revisionId}`);
+  return response.data;
+}
+export async function checkPlagiarismAsync(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/plagiarism/check-async/similitud/${revisionId}`);
+  return response.data;
+}
 export async function getJsonPlagio(revisionId: number): Promise<PlagioApiResponse> {
   const response = await axiosInstance.get(`/s3/archivos/get-plagio-json/${revisionId}`);
   return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
+}
 
+export interface IAApiSentence {
+  length: number;
+  score: number;
+  start_position: number;
+  text: string;
+  page:number
+}
+
+export interface IAAttackDetected {
+  zero_width_space: boolean;
+  homoglyph_attack: boolean;
+}
+
+<<<<<<< feature-revision/b-entregable-nota
 }
 
 export async function listarCriterioEntregablesNotas(revisionId:number) : Promise<RevisionCriterioEntregableDto[]> {
@@ -224,4 +248,22 @@ export async function listarCriterioEntregablesNotas(revisionId:number) : Promis
 export async function guardarNota( listaCriterios:RevisionCriterioEntregableDto[]):Promise<void>{
   console.log(listaCriterios);
   await axiosInstance.post('/criterio-entregable/revision_nota/registrar_nota',listaCriterios);
+=======
+export interface IAApiResponse {
+  status: number;
+  length: number;
+  score: number;
+  sentences: IAApiSentence[];
+  input: string;
+  attack_detected: IAAttackDetected;
+  readability_score: number;
+  credits_used: number;
+  credits_remaining: number;
+  version: string;
+  language: string;
+}
+export async function getJsonIA(revisionId: number): Promise<IAApiResponse> {
+  const response = await axiosInstance.get(`/s3/archivos/get-IA-json/${revisionId}`);
+  return typeof response.data === "string" ? JSON.parse(response.data) as IAApiResponse : response.data;
+>>>>>>> develop
 }
