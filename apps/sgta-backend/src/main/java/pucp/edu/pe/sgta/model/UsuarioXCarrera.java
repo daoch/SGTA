@@ -41,4 +41,7 @@ public class UsuarioXCarrera {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+	@Column(name="refresh_token")
+	private String refreshToken;
+
 }

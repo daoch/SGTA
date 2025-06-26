@@ -6,11 +6,18 @@ export type State = {
   errors?: Record<string, string[]>;
 };
 
-export async function updateBloquesNextPhase(bloquesList: TimeSlot[]) {
+export async function updateBloquesNextPhase(bloquesList: TimeSlot[],exposicion:number,origen:number) {
   try {
     const response = await axiosInstance.patch(
       "/bloqueHorarioExposicion/updateBloquesListNextPhase",
-      bloquesList,
+      {
+        bloquesList,
+        exposicion,
+        origen,
+      },
+      {
+        withCredentials: true, 
+      }
     );
 
     const data = response.data as { success: boolean; message: string };
@@ -40,6 +47,10 @@ export async function finishPlanning(idExposicon: number) {
   try {
     const response = await axiosInstance.patch(
       `/bloqueHorarioExposicion/finishPlanning/${idExposicon}`,
+      {},
+      {
+        withCredentials: true, // 🔥 CLAVE: para enviar JSESSIONID al backend
+      }
     );
     const data = response.data as { success: boolean; message: string };
 

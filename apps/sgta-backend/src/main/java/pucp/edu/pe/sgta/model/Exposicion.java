@@ -28,6 +28,10 @@ public class Exposicion {
     @JoinColumn(name = "estado_planificacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_estado_planificacion"))
     private EstadoPlanificacion estadoPlanificacion;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "entregable_id", nullable = false, foreignKey = @ForeignKey(name = "fk_exp_entregable"))
+    private Entregable entregable;
+
     @Column(nullable = false)
     private Boolean activo = true;
 

@@ -26,6 +26,7 @@ export interface PlagiarismFound {
   startIndex: number;
   endIndex: number;
   sequence: string;
+  page: number;
 }
 
 export interface PlagiarismSource {
@@ -138,8 +139,23 @@ export interface HighlightDto {
   };
 }
 
-// Mapea el DTO a IHighlight
-function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
+export interface RevisionCriterioEntregableDto {
+  id: number;
+  nombre : string;
+  notaMaxima: number;
+  descripcion : string;
+  nota : number|null;
+  revision_documento_id:number;
+  usuario_revisor_id :number;
+  tema_x_entregable_id: number;
+  entregable_id : number;
+  entregable_descripcion:string;
+  revision_criterio_entrebable_id : number|null;
+  observacion:string|null;
+}
+
+// Mapea el DTO a IHighlight, incluyendo el campo "corregido"
+function highlightDtoToIHighlight(dto: HighlightDto & { corregido?: boolean }): IHighlight & { corregido?: boolean } {
   return {
     id: String(dto.id),
     content: {
@@ -162,6 +178,7 @@ function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
       pageNumber: dto.position.pageNumber ?? 1,
       usePdfCoordinates: dto.position.usePdfCoordinates ?? false,
     },
+    corregido: dto.corregido,
   };
 }
 export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {
@@ -196,8 +213,54 @@ export async function existePlagioJsonF(revisionId: number): Promise<boolean> {
   const response = await axiosInstance.get<boolean>(`/s3/archivos/existe-plagio-json/${revisionId}`);
   return response.data;
 }
+export async function checkStatusProcesamiento(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/plagiarism/check-async/status/${revisionId}`);
+  return response.data;
+}
+export async function checkPlagiarismAsync(revisionId: number): Promise<string> {
+  const response = await axiosInstance.get<string>(`/plagiarism/check-async/similitud/${revisionId}`);
+  return response.data;
+}
 export async function getJsonPlagio(revisionId: number): Promise<PlagioApiResponse> {
   const response = await axiosInstance.get(`/s3/archivos/get-plagio-json/${revisionId}`);
   return typeof response.data === "string" ? JSON.parse(response.data) as PlagioApiResponse : response.data;
+}
 
+export interface IAApiSentence {
+  length: number;
+  score: number;
+  start_position: number;
+  text: string;
+  page:number
+}
+
+export interface IAAttackDetected {
+  zero_width_space: boolean;
+  homoglyph_attack: boolean;
+}
+
+export async function listarCriterioEntregablesNotas(revisionId:number) : Promise<RevisionCriterioEntregableDto[]> {
+  const response = await axiosInstance.get(`/criterio-entregable/revision/${revisionId}`);
+  return response.data;
+}
+export async function guardarNota( listaCriterios:RevisionCriterioEntregableDto[]):Promise<void>{
+  //console.log(listaCriterios);
+  await axiosInstance.post("/criterio-entregable/revision_nota/registrar_nota",listaCriterios);
+}
+export interface IAApiResponse {
+  status: number;
+  length: number;
+  score: number;
+  sentences: IAApiSentence[];
+  input: string;
+  attack_detected: IAAttackDetected;
+  readability_score: number;
+  credits_used: number;
+  credits_remaining: number;
+  version: string;
+  language: string;
+}
+export async function getJsonIA(revisionId: number): Promise<IAApiResponse> {
+  const response = await axiosInstance.get(`/s3/archivos/get-IA-json/${revisionId}`);
+  return typeof response.data === "string" ? JSON.parse(response.data) as IAApiResponse : response.data;
 }

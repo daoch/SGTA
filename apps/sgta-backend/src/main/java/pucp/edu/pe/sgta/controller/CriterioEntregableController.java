@@ -42,4 +42,16 @@ public class CriterioEntregableController {
         return criterioEntregableService.findById(id);
     }
 
+    @GetMapping("/revision/{revision_entregable_id}")
+    public List<CriterioEntregableDto> listarCriterioEntregableByRevisionEntregableId(@PathVariable int revision_entregable_id) {
+        return criterioEntregableService.listar_criterio_entregable_x_revisionID(revision_entregable_id);
+    }
+
+    @PostMapping("/revision_nota/registrar_nota")
+    public void upsertRevisionCriterioEntregable(@RequestBody List<CriterioEntregableDto> listaCriterioEntregable) {
+        for (CriterioEntregableDto dto : listaCriterioEntregable) {
+            criterioEntregableService.insertar_actualizar_revision_criterio_entregable(dto);
+        }
+    }
+
 }
