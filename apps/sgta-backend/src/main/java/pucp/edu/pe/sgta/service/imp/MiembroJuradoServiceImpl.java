@@ -1546,6 +1546,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
         }
 
+
         @Override
         public Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request) {
                 Map<String, Object> response = new HashMap<>();
@@ -1569,4 +1570,5 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                 return response;
         }
+
 }
