@@ -29,6 +29,8 @@ public interface UsuarioXCarreraRepository extends JpaRepository<UsuarioXCarrera
     UsuarioXCarrera getCarreraPrincipalCoordinador(@Param("usuarioId") Integer usuarioId);
 
     boolean existsByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
+    
+    List<UsuarioXCarrera> findByCarreraIdAndEsCoordinadorTrueAndActivoTrue(Integer carreraId);
 
     List<UsuarioXCarrera> findByUsuario_IdAndEsCoordinadorTrueAndActivoTrue(Integer usuarioId);
 

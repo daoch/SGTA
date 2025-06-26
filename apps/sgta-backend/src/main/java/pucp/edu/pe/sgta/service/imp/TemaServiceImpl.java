@@ -117,6 +117,7 @@ public class TemaServiceImpl implements TemaService {
 	private JdbcTemplate jdbcTemplate;
 
 	@Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository; // Para validar permiso del coordinador
+	@Autowired private NotificacionService notificacionService;
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(SolicitudServiceImpl.class);
 
@@ -3700,26 +3701,26 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
             usAsesorNuevo.setFechaModificacion(OffsetDateTime.now());
             usuarioXSolicitudRepository.save(usAsesorNuevo);
 		
-		// // Enviar notificación al nuevo asesor propuesto
-		// String mensajeNotificacion = String.format(
-		// 		"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
-		// 		nuevoAsesorPropuesto.getNombres(),
-		// 		nuevoAsesorPropuesto.getPrimerApellido(),
-		// 		temaAfectado.getTitulo()
-		// );
+		// Enviar notificación al nuevo asesor propuesto
+		String mensajeNotificacion = String.format(
+				"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
+				nuevoAsesorPropuesto.getNombres(),
+				nuevoAsesorPropuesto.getPrimerApellido(),
+				temaAfectado.getTitulo()
+		);
 
-		// // Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
-		// String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
-		// notificacionService.crearNotificacionParaUsuario(
-		// 		nuevoAsesorPropuestoId,
-		// 		SgtaConstants.MODULO_ASESORIA_TEMA, // O un módulo específico para "Propuestas de Asesoría"
-		// 		SgtaConstants.TIPO_NOTIF_INFORMATIVA, // O un tipo específico "NuevaPropuestaAsesoria"
-		// 		mensajeNotificacion,
-		// 		"SISTEMA",
-		// 		enlace
-		// );
+		// Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
+		String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
+		notificacionService.crearNotificacionParaUsuario(
+				nuevoAsesorPropuestoId,
+				"Asesores", // O un módulo específico para "Propuestas de Asesoría"
+				"informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+				mensajeNotificacion,
+				"SISTEMA",
+				enlace
+		);
 
-		// log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
+		log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
 	}
 
 	private void validarPermisoCoordinadorSobreSolicitud(Usuario coordinador, Solicitud solicitud) {
