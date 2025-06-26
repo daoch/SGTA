@@ -173,8 +173,8 @@ export function AdvisorReports() {
   const [isExporting, setIsExporting] = useState(false);
 
   //Solo para probar funcionamiento de modal
-  const advisorName = "Dr. Juan Pérez";
-  const advisorEmail = "juan.perez@pucp.edu.pe";
+  const advisorName = "Lucia Alessandra Del Castillo Monroy";
+  const advisorEmail = "lucia.delcastillom@pucp.edu.pe";
 
   const handleExport = async (options: AsesorExportOptions) => {
   setIsExporting(true);
