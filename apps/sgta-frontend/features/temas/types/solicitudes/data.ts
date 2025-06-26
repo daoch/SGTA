@@ -198,11 +198,7 @@ export async function fetchUpdateSolicitudCoordinador(
 ) {
   try {
     const { data } = await axiosInstance.post(
-      "/temas/updatesolicitudesCoordinador",
-      {
-        solicitudId,
-        respuesta,
-      },
+      `/temas/updatesolicitudesCoordinador?solicitudId=${solicitudId}&respuesta=${encodeURIComponent(respuesta)}`,
     );
     return data;
   } catch (error) {
