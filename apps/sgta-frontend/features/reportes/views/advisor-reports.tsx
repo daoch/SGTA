@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
 import { cn } from "@/lib/utils";
+import { saveAs } from "file-saver";
 import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, Download, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AsesorExportModal, AsesorExportOptions } from "../components/asesor-export-modal";
-
+import * as XLSX from "xlsx";
+import { AsesorExportModal } from "../components/asesor-export-modal";
 
 // Constants
 const PROGRESS_MAPPING = {
@@ -176,14 +177,61 @@ export function AdvisorReports() {
   const advisorName = "Lucia Alessandra Del Castillo Monroy";
   const advisorEmail = "lucia.delcastillom@pucp.edu.pe";
 
-  const handleExport = async (options: AsesorExportOptions) => {
-  setIsExporting(true);
+  const handleExport = async () => {
+    setIsExporting(true);
     try {
-      // Aquí va tu lógica de exportación (API, descarga, etc)
-      // await exportService.exportToExcel(config);
-      // Mostrar notificación de éxito si lo deseas
+      // 1. Obtén los IDs de los estudiantes filtrados/ordenados
+      const studentIds = sortedStudents.map(s => s.tesistaId);
+
+      // 2. Obtén los detalles de cada estudiante
+      const studentDetails = await Promise.all(
+        studentIds.map(id => advisorService.getStudentDetails(id))
+      );
+
+      // 3. Crea una hoja por estudiante
+      const studentSheets = studentDetails.map((student) => {
+        // Ajusta los campos según lo que retorna getStudentDetails
+        const info = [
+          ["Información del Tesista"],
+          ["Nombre completo", `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`],
+          ["Código PUCP", student.codigoPucp],
+          ["Correo", student.correoElectronico],
+          ["Nivel de Estudios", student.nivelEstudios],
+          ["Carrera", student.tituloTema],
+          ["Ciclo", student.cicloNombre],
+          ["Etapa", student.etapaFormativaNombre],
+          [],
+          ["Información de la Tesis"],
+          ["Título de Tesis", student.tituloTema],
+          ["Resumen", student.resumenTema],
+          ["Área", student.areaConocimiento],
+          ["Subárea", student.subAreaConocimiento],
+          [],
+          ["Asesoría"],
+          ["Asesor", student.asesorNombre],
+          ["Correo Asesor", student.asesorCorreo],
+          ...(student.coasesorNombre
+            ? [
+                ["Co-asesor", student.coasesorNombre],
+                ["Correo Co-asesor", student.coasesorCorreo],
+              ]
+            : []),
+        ];
+        return {
+          sheet: XLSX.utils.aoa_to_sheet(info),
+          name: `${student.nombres} ${student.primerApellido}`.substring(0, 31),
+        };
+      });
+
+      // 4. Arma el libro y exporta
+      const wb = XLSX.utils.book_new();
+      studentSheets.forEach(({ sheet, name }) => {
+        XLSX.utils.book_append_sheet(wb, sheet, name);
+      });
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), "reporte_tesistas.xlsx");
     } catch (error) {
-      // Manejo de error
       alert("Error al exportar el reporte. Por favor, inténtalo de nuevo.");
     } finally {
       setIsExporting(false);
