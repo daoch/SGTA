@@ -45,7 +45,7 @@ BEGIN
       FROM ciclo
      WHERE semestre = v_semestre
        AND anio = v_anio
-       AND activo = TRUE
+
      LIMIT 1;
 
     IF v_ciclo_id IS NULL THEN
@@ -1723,7 +1723,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION obtener_entregables_con_criterios(p_usuario_id integer)
- RETURNS TABLE(entregable_id integer, entregable_nombre character varying, fecha_envio timestamp with time zone, nota_global numeric, estado_entrega character varying, criterio_id integer, criterio_nombre character varying, nota_maxima numeric, nota_criterio numeric, etapa_formativa_x_ciclo_id integer, es_evaluable boolean)
+ RETURNS TABLE(entregable_id integer, entregable_nombre character varying, fecha_envio timestamp with time zone, fecha_fin timestamp with time zone, nota_global numeric, estado_entrega character varying, criterio_id integer, criterio_nombre character varying, nota_maxima numeric, nota_criterio numeric, etapa_formativa_x_ciclo_id integer, es_evaluable boolean)
  LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -1744,6 +1744,7 @@ BEGIN
             e.entregable_id,
             e.nombre as entregable_nombre,
             et.fecha_envio,
+            e.fecha_fin,
             et.nota_entregable as nota_global,
             et.estado::VARCHAR as estado_entrega,
             et.entregable_x_tema_id,
@@ -1759,6 +1760,7 @@ BEGIN
         et.entregable_id,
         et.entregable_nombre,
         et.fecha_envio,
+        et.fecha_fin,
         et.nota_global,
         et.estado_entrega,
         ce.criterio_entregable_id as criterio_id,

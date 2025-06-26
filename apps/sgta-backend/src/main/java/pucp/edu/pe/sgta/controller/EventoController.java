@@ -14,6 +14,8 @@ import pucp.edu.pe.sgta.service.inter.EventoService;
 import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 
+import org.springframework.web.bind.annotation.PathVariable;
+
 @RestController
 @RequestMapping("/api/eventos")
 public class EventoController {
@@ -23,6 +25,13 @@ public class EventoController {
 
     @Autowired
     JwtService jwtService;
+
+    //Creado para pruebas
+    @GetMapping("/tesista/{id}")
+    public ResponseEntity<List<EventoDto>> listarEventosXTesista(@PathVariable Integer id) {
+        List<EventoDto> eventos = eventoService.listarEventosXTesistaPorId(id);
+        return ResponseEntity.ok(eventos);
+    }
 
     @GetMapping("/tesista")
     public ResponseEntity<List<EventoDto>> listarEventosXTesista(HttpServletRequest request) {

@@ -20,7 +20,7 @@ public interface BloqueHorarioExposicionService {
 
     boolean updateBloquesListFirstTime(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList);
 
-    boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicionId);
+    boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicionId,Integer origen);
 
     boolean finishPlanning(Integer exposicionId);
 

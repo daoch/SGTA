@@ -6,16 +6,17 @@ export type State = {
   errors?: Record<string, string[]>;
 };
 
-export async function updateBloquesNextPhase(bloquesList: TimeSlot[],exposicion:number) {
+export async function updateBloquesNextPhase(bloquesList: TimeSlot[],exposicion:number,origen:number) {
   try {
     const response = await axiosInstance.patch(
       "/bloqueHorarioExposicion/updateBloquesListNextPhase",
       {
         bloquesList,
         exposicion,
+        origen,
       },
       {
-        withCredentials: true, // 🔥 Muy importante para enviar la cookie de sesión
+        withCredentials: true, 
       }
     );
 

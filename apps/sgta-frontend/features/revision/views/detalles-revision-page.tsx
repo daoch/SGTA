@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter";
 import { Observacion, ObservacionesList } from "../components/observaciones-list";
+import { RubricaEvaluacion } from "../components/RubricaEvluacion";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 import { getRevisionById, getStudentsByRevisor, obtenerObservacionesRevision } from "../servicios/revision-service";
 
@@ -51,7 +52,11 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
   const [selectedTab, setSelectedTab] = useState("asesor");
   const [observaciones, setObservaciones] = useState<IHighlight[]>([]);
   const [observacionesList, setObservacionesList] = useState<Observacion[]>([]);
-  async function descargarReporte() {
+  // SOLO PARA REVISOR / JURADO
+  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
+  //////////////
+  
+    async function descargarReporte() {
     try {
       const response = await axiosInstance.get(
         `/s3/archivos/get-reporte-similitud/${encodeURIComponent(String(params.id))}`,
@@ -391,7 +396,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               </div>
 
               <Separator />
-
+              
               {observacionesList.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2">Observaciones</h4>
@@ -433,6 +438,9 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     >
                       Rechazar Entregable
                     </Button>
+                    <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+                      Calificar Entregable
+                    </Button> 
                   </div>
                 )}
               </div>
@@ -462,6 +470,19 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           </Card>*/}
         </div>
       </div>
+      <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+          
+          </DialogHeader>
+          <RubricaEvaluacion
+            revisionId={parseInt(params.id.trim())}
+            onCancel={() => setShowRubricaDialog(false)}
+          />  
+        </DialogContent>
+      </Dialog>
+      
+      
       <Dialog open={!!showConfirmDialog} onOpenChange={() => setShowConfirmDialog(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
