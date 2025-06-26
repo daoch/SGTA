@@ -173,12 +173,7 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         log.info("UsuarioSolicitud para asesor ID {} (CognitoSub: {}) y solicitud ID {} creada.",
         asesor.getId(), asesorCognitoSub, solicitudGuardada.getId());
 
-        //Notificar al/los coordinador(es)
-        RolSolicitud rolSolCoordGestor = rolSolicitudRepository.findByNombre(ROL_SOLICITUD_COORDINADOR_GESTOR)
-                .orElseThrow(() -> new ResourceNotFoundException("RolSolicitud '" + ROL_SOLICITUD_COORDINADOR_GESTOR + "' no encontrado."));
-        AccionSolicitud accionSolPendiente = accionSolicitudRepository.findByNombre(ACCION_SOLICITUD_PENDIENTE_ACCION)
-                .orElseThrow(() -> new ResourceNotFoundException("AccionSolicitud '" + ACCION_SOLICITUD_PENDIENTE_ACCION + "' no encontrada."));
-
+        //Notificar al/los coordinador(es)        
         if (tema.getCarrera() == null) {
             log.error("El tema ID {} no tiene una carrera asociada. No se puede notificar a coordinadores.", tema.getId());
             throw new BusinessRuleException("El tema no está asociado a ninguna carrera, no se puede procesar la solicitud.");
@@ -192,15 +187,6 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
         }
 
         for (Usuario coordinador : coordinadores) {
-            UsuarioXSolicitud usCoordinador = new UsuarioXSolicitud();
-            usCoordinador.setSolicitud(solicitudGuardada);
-            usCoordinador.setUsuario(coordinador);
-            usCoordinador.setRolSolicitud(rolSolCoordGestor);
-            usCoordinador.setAccionSolicitud(accionSolPendiente);
-            usCoordinador.setActivo(true);
-            usCoordinador.setDestinatario(true);
-            usuarioSolicitudRepository.save(usCoordinador);
-            log.info("UsuarioSolicitud para coordinador ID {} y solicitud ID {} creada.", coordinador.getId(), solicitudGuardada.getId());
 
             // Enviar notificación al coordinador
             try {
@@ -255,7 +241,7 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
                 notificacionService.crearNotificacionParaUsuario(
                         tesista.getId(),
                         MODULO_NOMBRE_ASESORIA_TEMA,
-                        TIPO_NOTIF_ADVERTENCIA,
+                        TIPO_NOTIF_SOLICITUD_APROBADA,
                         String.format("Su asesor, %s %s, ha solicitado el cese de la asesoría para su tema: '%s'.",
                                 asesor.getNombres(), asesor.getPrimerApellido(), tema.getTitulo()),
                         "SISTEMA",
@@ -390,18 +376,26 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
                 .findByUsuarioAndRolSolicitudAndActivoTrue(asesor, rolRemitente, pageable);
 
         // 3. Mapéala directamente a DTOs
-        return page.map(uxs -> {
-                Solicitud s = uxs.getSolicitud();
-                Tema t = s.getTema();
-                return new MiSolicitudCeseItemDto(
-                        s.getId(),                                // solicitudId
-                        t != null ? t.getTitulo() : "<sin tema>", // temaTitulo
-                        s.getFechaCreacion(),                     // fechaSolicitud
-                        s.getEstadoSolicitud().getNombre(),       // estadoSolicitud
-                        s.getRespuesta(),                         // respuestaCoordinador
-                        s.getFechaResolucion()                    // fechaDecision
-                );
-        });
+        List<MiSolicitudCeseItemDto> filteredList = page.getContent().stream()
+        .filter(uxs -> {
+            Solicitud s = uxs.getSolicitud();
+            return s.getRespuesta() != null && !s.getRespuesta().isEmpty();
+        })
+        .map(uxs -> {
+            Solicitud s = uxs.getSolicitud();
+            Tema t = s.getTema();
+            return new MiSolicitudCeseItemDto(
+                    s.getId(),
+                    t != null ? t.getTitulo() : "<sin tema>",
+                    s.getFechaCreacion(),
+                    s.getEstadoSolicitud().getNombre(),
+                    s.getRespuesta(),
+                    s.getFechaResolucion()
+            );
+        })
+        .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
         }
 
         // Método auxiliar para encontrar al asesor que creó la solicitud
