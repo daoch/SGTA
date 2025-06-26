@@ -68,18 +68,18 @@ const RevisionAsesorPage = () => {
 
 
   //DIALOG
-  const [showRubricaDialog, setShowRubricaDialog] = useState(false)
-  const handleRubricaComplete = async () => {
-    try {
-      // En una aplicación real, aquí se enviaría la evaluación de la rúbrica al backend
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
+  // const handleRubricaComplete = async () => {
+  //   try {
+  //     // En una aplicación real, aquí se enviaría la evaluación de la rúbrica al backend
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Redirigimos al usuario a la página de detalles de la revisión
-      //router.push(`/revision/${4}`)
-    } catch (error) {
-      console.error("Error al guardar la evaluación de la rúbrica:", error)
-    }
-  }  
+  //     // Redirigimos al usuario a la página de detalles de la revisión
+  //     //router.push(`/revision/${4}`)
+  //   } catch (error) {
+  //     console.error("Error al guardar la evaluación de la rúbrica:", error)
+  //   }
+  // }  
   //
 
 

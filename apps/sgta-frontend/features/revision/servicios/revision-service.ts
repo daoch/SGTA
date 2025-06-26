@@ -222,6 +222,6 @@ export async function listarCriterioEntregablesNotas(revisionId:number) : Promis
   return response.data;
 }
 export async function guardarNota( listaCriterios:RevisionCriterioEntregableDto[]):Promise<void>{
-  console.log(listaCriterios);
-  await axiosInstance.post('/criterio-entregable/revision_nota/registrar_nota',listaCriterios);
+  //console.log(listaCriterios);
+  await axiosInstance.post("/criterio-entregable/revision_nota/registrar_nota",listaCriterios);
 }
