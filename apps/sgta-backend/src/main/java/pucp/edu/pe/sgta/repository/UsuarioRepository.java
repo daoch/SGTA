@@ -122,4 +122,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
      @Query(value = "call set_refresh_token(:p_id_usuario,:p_refresh_token)",nativeQuery = true)
     void setRefreshToken(@Param("p_id_usuario")Integer idUsuario,@Param("p_refresh_token")String refreshToken);
 
+    @Query(value = "SELECT * FROM obtener_usuarios_por_coordinador(:idCognito)", nativeQuery = true)
+    List<Object[]> obtenerUsuariosPorCoordinador(@Param("idCognito") String idCognito);
+
+    @Query(value = "SELECT * FROM obtener_todos_los_usuarios()", nativeQuery = true)
+    List<Object[]> obtenerTodosLosUsuarios();
 }

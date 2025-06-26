@@ -70,9 +70,17 @@ interface User {
   email?: string;
   tipo?: string;
   estado?: boolean;
+  rolAsesor?: boolean;
+  rolJurado?: boolean;
+  rolRevisor?: boolean;
+  rolesIds?: number[];
+  carreras?: object[];
 }
-
+const ROL_ASESOR_ID = 1;
+const ROL_JURADO_ID = 2;
+const ROL_REVISOR_ID = 3;
 interface UserFromBack {
+  roles: string[];
   id: string | number;
   codigoPucp: string;
   nombres: string;
@@ -97,11 +105,35 @@ export default function ConfiguracionUsuariosPage() {
   const [isConfirmUploadChecked, setIsConfirmUploadChecked] = useState(false);
   // New user form state
   const [formData, setFormData] = useState<User | null>(null);
+  const [carreras, setCarreras] = useState<
+    { carreraId: number; esCoordinador: boolean }[]
+  >([]);
 
+  useEffect(() => {
+    const fetchCarrera = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/usuario/getCarreraCoordinador",
+        );
+        type Carrera = { id: number };
+        const ids = Array.isArray(response.data)
+          ? response.data.map((c: Carrera) => c.id)
+          : [response.data.id];
+        const carrerasObj = ids.map((id: number) => ({
+          carreraId: id,
+          esCoordinador: false,
+        }));
+        setCarreras(carrerasObj);
+      } catch (error) {
+        console.error("Error al obtener carreras del coordinador:", error);
+      }
+    };
+    fetchCarrera();
+  }, []);
   const fetchUsuarios = async () => {
     try {
       const response = await axiosInstance.get("/usuario/find_all");
-      const mappedUsers: User[] = response.data.map((u: UserFromBack ) => ({
+      const mappedUsers: User[] = response.data.map((u: UserFromBack) => ({
         id: String(u.id),
         codigo: u.codigoPucp,
         nombre: u.nombres,
@@ -110,6 +142,7 @@ export default function ConfiguracionUsuariosPage() {
         email: u.correoElectronico,
         tipo: u.tipoUsuario?.nombre,
         estado: u.activo,
+        roles: u.roles,
       }));
       setUsers(mappedUsers);
     } catch (error) {
@@ -128,26 +161,31 @@ export default function ConfiguracionUsuariosPage() {
 
   // Filter users based on active tab and search query
   const filteredUsers = users.filter((user) => {
-    let tipoUsuario = "";
-    if (activeTab === "alumnos") tipoUsuario = "Alumno";
-    else if (activeTab === "asesores") tipoUsuario = "Asesor";
-    else if (activeTab === "jurados") tipoUsuario = "Jurado";
-    else if (activeTab === "revisores") tipoUsuario = "Revisor";
-
-    const matchesTab = user.tipo?.toLowerCase() === tipoUsuario.toLowerCase();
-
-    if (!matchesTab) return false;
-
-    if (!searchQuery) return true;
-
-    return (
-      user.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.apellidoPaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.apellidoMaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.codigo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.email ?? "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  const roles = (user as UserFromBack).roles as string[] | undefined;
+  if (activeTab === "alumnos") {
+    return (!roles || roles.length === 0) && user.tipo?.toLowerCase() === "alumno";
+  }
+  if (activeTab === "asesores") {
+    return roles?.includes("Asesor");
+  }
+  if (activeTab === "jurados") {
+    return roles?.includes("Jurado");
+  }
+  if (activeTab === "revisores") {
+    return roles?.includes("Revisor");
+  }
+  return false;
+}).filter((user) => {
+  // Filtro de búsqueda
+  if (!searchQuery) return true;
+  return (
+    user.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.apellidoPaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.apellidoMaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.codigo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.email ?? "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+});
 
   const uploadUsuariosMasivo = async (file: File) => {
     const formData = new FormData();
@@ -209,6 +247,13 @@ export default function ConfiguracionUsuariosPage() {
               : "Jurado",
 
       estado: true,
+      rolAsesor: false,
+      rolJurado: false,
+      rolRevisor: false,
+      carreras: carreras.map((c) => ({
+        carreraId: c.carreraId, 
+        esCoordinador: c.esCoordinador,
+      })),
     });
     setIsAddUserDialogOpen(true);
   };
@@ -225,20 +270,23 @@ export default function ConfiguracionUsuariosPage() {
       email: user.email,
       tipo: user.tipo,
       estado: user.estado,
+      rolAsesor: user.rolAsesor || false,
+      rolJurado: user.rolJurado || false,
+      rolRevisor: user.rolRevisor || false,
     });
     setIsAddUserDialogOpen(true);
   };
 
   // Delete user
   const handleDeleteUser = async (userId: string) => {
-  try {
-    await axiosInstance.delete(`/usuario/delete/${userId}`);
-    setUsers(users.filter((user) => user.id !== userId));
-  } catch (error) {
-    setUploadError("Error al eliminar el usuario");
-    console.error("Error al eliminar usuario:", error);
-  }
-};
+    try {
+      await axiosInstance.delete(`/usuario/delete/${userId}`);
+      setUsers(users.filter((user) => user.id !== userId));
+    } catch (error) {
+      setUploadError("Error al eliminar el usuario");
+      console.error("Error al eliminar usuario:", error);
+    }
+  };
 
   // Submit user form
   const handleSubmitUser = async (e: React.FormEvent) => {
@@ -252,38 +300,41 @@ export default function ConfiguracionUsuariosPage() {
     if (isEditMode && currentUser) {
       // Update existing user
       try {
-      await axiosInstance.put(`/usuario/update/${currentUser.id}`, {
-        codigoPucp: formData.codigo,
-        nombres: formData.nombre,
-        primerApellido: formData.apellidoPaterno,
-        segundoApellido: formData.apellidoMaterno,
-        correoElectronico: formData.email,
-        tipoUsuario: { nombre: formData.tipo?.toLowerCase() },
-        activo: true,
-      });
+        await axiosInstance.put(`/usuario/update/${currentUser.id}`, {
+          codigoPucp: formData.codigo,
+          nombres: formData.nombre,
+          primerApellido: formData.apellidoPaterno,
+          segundoApellido: formData.apellidoMaterno,
+          correoElectronico: formData.email,
+          tipoUsuarioNombre: formData.tipo,
+          tipoDedicacionId: 1,
+          rolesIds: formData.rolesIds || [],
+          carreras: formData.carreras || [],
+          activo: true,
+        });
 
-      // Actualiza el usuario localmente
-      setUsers(
-        users.map((user) =>
-          user.id === currentUser.id
-            ? {
-                ...user,
-                codigo: formData.codigo,
-                nombre: formData.nombre,
-                apellidoPaterno: formData.apellidoPaterno,
-                apellidoMaterno: formData.apellidoMaterno,
-                email: formData.email,
-                tipo: formData.tipo,
-                estado: formData.estado,
-              }
-            : user,
-        ),
-      );
-      setIsAddUserDialogOpen(false);
-    } catch (error) {
-      setUploadError("Error al actualizar el usuario");
-      console.error("Error al actualizar usuario:", error);
-    }
+        // Actualiza el usuario localmente
+        setUsers(
+          users.map((user) =>
+            user.id === currentUser.id
+              ? {
+                  ...user,
+                  codigo: formData.codigo,
+                  nombre: formData.nombre,
+                  apellidoPaterno: formData.apellidoPaterno,
+                  apellidoMaterno: formData.apellidoMaterno,
+                  email: formData.email,
+                  tipo: formData.tipo,
+                  estado: formData.estado,
+                }
+              : user,
+          ),
+        );
+        setIsAddUserDialogOpen(false);
+      } catch (error) {
+        setUploadError("Error al actualizar el usuario");
+        console.error("Error al actualizar usuario:", error);
+      }
     } else {
       try {
         const response = await axiosInstance.post("/usuario/create", {
@@ -292,8 +343,11 @@ export default function ConfiguracionUsuariosPage() {
           primerApellido: formData.apellidoPaterno,
           segundoApellido: formData.apellidoMaterno,
           correoElectronico: formData.email,
-          tipoUsuario: { nombre: formData.tipo?.toLowerCase()},
-          activo: true
+          tipoUsuarioNombre: formData.tipo,
+          tipoDedicacionId: 1,
+          rolesIds: formData.rolesIds || [],
+          carreras: formData.carreras || [],
+          activo: true,
         });
 
         // Agrega el nuevo usuario a la lista local
@@ -493,7 +547,10 @@ export default function ConfiguracionUsuariosPage() {
       </div>
 
       {/* Add/Edit User Dialog */}
-      <Dialog open={isAddUserDialogOpen} onOpenChange={() => setIsAddUserDialogOpen(false)}>
+      <Dialog
+        open={isAddUserDialogOpen}
+        onOpenChange={() => setIsAddUserDialogOpen(false)}
+      >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
@@ -532,12 +589,84 @@ export default function ConfiguracionUsuariosPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Alumno">Alumno</SelectItem>
-                      <SelectItem value="Asesor">Asesor</SelectItem>
-                      <SelectItem value="Jurado">Jurado</SelectItem>
-                      <SelectItem value="Revisor">Revisor</SelectItem>
+                      <SelectItem value="Profesor">Profesor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                {formData?.tipo === "Profesor" && (
+                  <div className="grid grid-cols-3 gap-4 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="rol-asesor"
+                        checked={formData?.rolAsesor || false}
+                        onCheckedChange={(checked) => {
+                          const checkedBool = !!checked;
+                          setFormData((prev) => {
+                            const roles = new Set(prev?.rolesIds || []);
+                            if (checkedBool) {
+                              roles.add(ROL_ASESOR_ID);
+                            } else {
+                              roles.delete(ROL_ASESOR_ID);
+                            }
+                            return {
+                              ...prev,
+                              rolAsesor: checkedBool,
+                              rolesIds: Array.from(roles),
+                            };
+                          });
+                        }}
+                      />
+                      <Label htmlFor="rol-asesor">Asesor</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="rol-jurado"
+                        checked={formData?.rolJurado || false}
+                        onCheckedChange={(checked) => {
+                          const checkedBool = !!checked;
+                          setFormData((prev) => {
+                            const roles = new Set(prev?.rolesIds || []);
+                            if (checkedBool) {
+                              roles.add(ROL_JURADO_ID);
+                            } else {
+                              roles.delete(ROL_JURADO_ID);
+                            }
+                            return {
+                              ...prev,
+                              rolJurado: checkedBool,
+                              rolesIds: Array.from(roles),
+                            };
+                          });
+                        }}
+                      />
+                      <Label htmlFor="rol-jurado">Jurado</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="rol-revisor"
+                        checked={formData?.rolRevisor || false}
+                        onCheckedChange={(checked) => {
+                          const checkedBool = !!checked;
+                          setFormData((prev) => {
+                            const roles = new Set(prev?.rolesIds || []);
+                            if (checkedBool) {
+                              roles.add(ROL_REVISOR_ID);
+                            } else {
+                              roles.delete(ROL_REVISOR_ID);
+                            }
+                            return {
+                              ...prev,
+                              rolRevisor: checkedBool,
+                              rolesIds: Array.from(roles),
+                            };
+                          });
+                        }}
+                      />
+
+                      <Label htmlFor="rol-revisor">Revisor</Label>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -613,8 +742,10 @@ export default function ConfiguracionUsuariosPage() {
               >
                 Cancelar
               </Button>
-              <Button type="submit"
-                      onClick={() => setIsAddUserDialogOpen(false)}>
+              <Button
+                type="submit"
+                onClick={() => setIsAddUserDialogOpen(false)}
+              >
                 {isEditMode ? "Guardar Cambios" : "Agregar Usuario"}
               </Button>
             </DialogFooter>
