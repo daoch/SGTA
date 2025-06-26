@@ -261,7 +261,11 @@ export async function distribuirBloquesExposicion(
 export async function crearCalendar(idExposicion: number): Promise<void> {
   try {
     const response = await axiosInstance.post(
-      `/bloqueHorarioExposicion/crear-eventos-calendar/${idExposicion}`
+      `/bloqueHorarioExposicion/crear-eventos-calendar/${idExposicion}`,
+      {},
+      {
+        withCredentials: true, 
+      }
     );
     return response.data;
   } catch (error) {
