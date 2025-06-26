@@ -1,18 +1,19 @@
-package pucp.edu.pe.sgta.service.impl;
+package pucp.edu.pe.sgta.service.imp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
+import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.pdmodel.interactive.annotation.*;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationPopup;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.model.Observacion;
 import pucp.edu.pe.sgta.service.inter.PdfAnnotationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -35,6 +36,13 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
     @Override
     public byte[] embedComments(byte[] original, List<Observacion> observations) throws Exception {
         try (PDDocument doc = PDDocument.load(original)) {
+            // Set document title instead of "Documento sin título"
+            if (doc.getDocumentInformation() == null) {
+                doc.setDocumentInformation(new PDDocumentInformation());
+            }
+            doc.getDocumentInformation().setTitle("Documento con Comentarios de Revisión");
+            doc.getDocumentInformation().setSubject("Documento revisado con observaciones del asesor");
+            doc.getDocumentInformation().setCreator("Sistema de Gestión de Tesis y Asesorías (SGTA)");
             for (Observacion obs : observations) {
                 if (obs.getBoundingRect() == null || obs.getNumeroPaginaInicio() == null) {
                     continue; // Skip observations without valid position data
@@ -53,15 +61,6 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
                 // Get bounding rectangle from observation (frontend coordinates: top-left origin)
                 var boundingRect = obs.getBoundingRect();
                 
-                // Debug: Log original coordinates and page dimensions
-                logger.debug("Original coords: x={}, y={}, w={}, h={}, pageHeight={}, pageWidth={}", 
-                    boundingRect.getX1(), boundingRect.getY1(), boundingRect.getWidth(), 
-                    boundingRect.getHeight(), pageHeight, media.getWidth());
-                
-                // PROBLEM ANALYSIS: The coordinates width=926, height=1308 are clearly wrong for text selection
-                // These seem to be viewport container dimensions, not text selection coordinates
-                // Let's use x2, y2 coordinates instead to get the actual selection area
-                
                 float x1 = boundingRect.getX1().floatValue();
                 float y1 = boundingRect.getY1().floatValue();
                 float x2 = boundingRect.getX2() != null ? boundingRect.getX2().floatValue() : x1 + 100; // fallback
@@ -70,9 +69,6 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
                 // Calculate actual selection dimensions using x2,y2 coordinates
                 float actualWidth = Math.abs(x2 - x1);
                 float actualHeight = Math.abs(y2 - y1);
-                
-                logger.debug("Using x2,y2 coords: x1={}, y1={}, x2={}, y2={}", x1, y1, x2, y2);
-                logger.debug("Calculated dimensions: actualWidth={}, actualHeight={}", actualWidth, actualHeight);
                 
                 // Apply reasonable scaling - these should be much smaller numbers for text
                 float scaleX = media.getWidth() / 926.0f;  // Still use this for consistency
@@ -86,13 +82,8 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
                 // Fix Y-axis: PDF coordinates have origin at bottom-left, frontend coordinates have origin at top-left
                 float pdfTop = pageHeight - (y1 * scaleY);  // Flip Y-axis
                 float pdfBottom = pdfTop - pdfHeight;       // Bottom is below top in PDF coordinates
-                
-                // Debug: Log final coordinates
-                logger.debug("Scale factors: scaleX={}, scaleY={}", scaleX, scaleY);
-                logger.debug("PDF coords (actual): left={}, top={}, bottom={}, width={}, height={}", 
-                    pdfLeft, pdfTop, pdfBottom, pdfWidth, pdfHeight);
 
-                // Create text markup annotation for highlighting
+                // Create text markup annotation for highlighting with improved styling
                 PDAnnotationTextMarkup highlight = 
                     new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
                 
@@ -161,16 +152,60 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
                 
                 highlight.setQuadPoints(quads);
                 
-                // Set the comment text as the annotation content
-                String commentText = obs.getComentario();
-                if (obs.getContenido() != null && !obs.getContenido().trim().isEmpty()) {
-                    commentText = "\"" + obs.getContenido() + "\"\n\n" + commentText;
-                }
+                // Create enhanced comment text with better formatting
+                String commentText = formatAnnotationText(obs);
                 highlight.setContents(commentText);
                 
-                // Set color based on observation type
-                PDColor color = getColorForObservationType(obs);
+                // Set color based on observation type for better UI
+                PDColor color = getLighterColorForObservationType(obs);
                 highlight.setColor(color);
+                
+                // Set the same background color for the comment popup
+                highlight.setInteriorColor(color);
+                
+                // Set annotation appearance and font
+                try {
+                    // Set font to Helvetica (closest to Geist - modern, clean sans-serif)
+                    highlight.setTitlePopup("Observación"); // Title for the popup
+                    
+                    // Calculate better annotation size based on content length
+                    int contentLength = commentText.length();
+                    float dynamicWidth = Math.min(300f, Math.max(200f, contentLength * 2.5f)); // Adaptive width
+                    float dynamicHeight = Math.min(150f, Math.max(60f, (contentLength / 40f) * 20f)); // Adaptive height
+                    
+                    // Position the comment popup near the highlight but offset to avoid overlap
+                    float popupX = pdfLeft + pdfWidth + 10f; // 10pt offset to the right
+                    float popupY = pdfTop - 10f; // 10pt offset above
+                    
+                    // Ensure popup stays within page bounds
+                    if (popupX + dynamicWidth > media.getWidth()) {
+                        popupX = pdfLeft - dynamicWidth - 10f; // Move to left side if doesn't fit
+                    }
+                    if (popupY - dynamicHeight < 0) {
+                        popupY = pdfBottom + dynamicHeight + 10f; // Move below if doesn't fit
+                    }
+                    
+                    // Set the popup rectangle with calculated dimensions
+                    highlight.setPopup(new PDAnnotationPopup());
+                    highlight.getPopup().setRectangle(new PDRectangle(popupX, popupY - dynamicHeight, dynamicWidth, dynamicHeight));
+                    highlight.getPopup().setContents(commentText);
+                    highlight.getPopup().setColor(color);
+                    
+                    // Set default appearance to use Helvetica font (closest to Geist)
+                    highlight.setDefaultAppearance("/Helv 10 Tf 0 0 0 rg");
+                    
+                } catch (Exception e) {
+                    logger.debug("Could not set annotation appearance: {}", e.getMessage());
+                }
+                
+                // Set annotation opacity for better visibility
+                try {
+                    PDExtendedGraphicsState extGState = new PDExtendedGraphicsState();
+                    extGState.setNonStrokingAlphaConstant(0.8f); // 80% opacity for better visibility
+                    // Note: Opacity may not be fully supported in all PDF viewers
+                } catch (Exception e) {
+                    logger.debug("Could not set annotation opacity: {}", e.getMessage());
+                }
                 
                 // Add annotation to the page
                 page.getAnnotations().add(highlight);
@@ -184,34 +219,62 @@ public class PdfAnnotationServiceImpl implements PdfAnnotationService {
     }
 
     /**
-     * Gets the appropriate color for highlighting based on observation type.
+     * Formats annotation text with enhanced styling and structure.
+     * 
+     * @param observation The observation to format text for
+     * @return Formatted annotation text
+     */
+    private String formatAnnotationText(Observacion observation) {
+        StringBuilder formattedText = new StringBuilder();
+        
+        // Add quoted content if available
+        if (observation.getContenido() != null && !observation.getContenido().trim().isEmpty()) {
+            formattedText.append("\"").append(observation.getContenido().trim()).append("\"\n\n");
+        }
+        
+        // Add observation type as header
+        if (observation.getTipoObservacion() != null && observation.getTipoObservacion().getNombreTipo() != null) {
+            String tipoName = observation.getTipoObservacion().getNombreTipo();
+            formattedText.append(tipoName).append("\n");
+        }
+        
+        // Add the main comment
+        if (observation.getComentario() != null && !observation.getComentario().trim().isEmpty()) {
+            formattedText.append(observation.getComentario().trim());
+        }
+        
+        return formattedText.toString();
+    }
+    
+    /**
+     * Gets more visible colors for highlighting based on observation type.
      * 
      * @param observation The observation to get color for
-     * @return PDColor for the highlight
+     * @return PDColor for the highlight with better visibility
      */
-    private PDColor getColorForObservationType(Observacion observation) {
+    private PDColor getLighterColorForObservationType(Observacion observation) {
         // Default to yellow if no type is specified
         if (observation.getTipoObservacion() == null) {
-            return new PDColor(new float[]{1f, 1f, 0f}, PDDeviceRGB.INSTANCE); // Yellow
+            return new PDColor(new float[]{1f, 0.95f, 0.6f}, PDDeviceRGB.INSTANCE); // Medium yellow
         }
 
         String tipeName = observation.getTipoObservacion().getNombreTipo();
         if (tipeName == null) {
-            return new PDColor(new float[]{1f, 1f, 0f}, PDDeviceRGB.INSTANCE); // Yellow
+            return new PDColor(new float[]{1f, 0.95f, 0.6f}, PDDeviceRGB.INSTANCE); // Medium yellow
         }
 
-        // Map observation types to colors
+        // Map observation types to more visible colors
         switch (tipeName.toLowerCase()) {
             case "contenido":
-                return new PDColor(new float[]{1f, 1f, 0f}, PDDeviceRGB.INSTANCE); // Yellow
+                return new PDColor(new float[]{1f, 0.95f, 0.6f}, PDDeviceRGB.INSTANCE); // Medium yellow
             case "similitud":
-                return new PDColor(new float[]{1f, 0.5f, 0.5f}, PDDeviceRGB.INSTANCE); // Light red
+                return new PDColor(new float[]{1f, 0.85f, 0.85f}, PDDeviceRGB.INSTANCE); // Light red
             case "citado":
-                return new PDColor(new float[]{0.5f, 0.8f, 1f}, PDDeviceRGB.INSTANCE); // Light blue
+                return new PDColor(new float[]{0.8f, 0.9f, 1f}, PDDeviceRGB.INSTANCE); // Light blue
             case "inteligencia artificial":
-                return new PDColor(new float[]{0.5f, 1f, 0.5f}, PDDeviceRGB.INSTANCE); // Light green
+                return new PDColor(new float[]{0.85f, 1f, 0.85f}, PDDeviceRGB.INSTANCE); // Light green
             default:
-                return new PDColor(new float[]{1f, 1f, 0f}, PDDeviceRGB.INSTANCE); // Yellow
+                return new PDColor(new float[]{1f, 0.95f, 0.6f}, PDDeviceRGB.INSTANCE); // Medium yellow
         }
     }
 } 
