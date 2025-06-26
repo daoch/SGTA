@@ -93,6 +93,7 @@ const RevisionPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cursoFilter, setCursoFilter] = useState("todos");
   const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
+  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
 
   useEffect(() => {
     const fetchDocumentos = async () => {
@@ -138,6 +139,26 @@ const RevisionPage = () => {
           </p>
         </div>
       </div>
+      {/* Botón de rúbrica solo para asesores */}
+      {rol === "asesor" && (
+        <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+          NOTAS
+        </Button>
+      )}
+      {/* Modal de Rúbrica (comentado, descomenta si tienes el componente RubricaEvaluacion) */}
+      {/*
+      {rol === "asesor" && (
+        <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader></DialogHeader>
+            <RubricaEvaluacion
+              revisionId={4}
+              onCancel={() => setShowRubricaDialog(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+      */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

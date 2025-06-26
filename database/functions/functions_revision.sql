@@ -543,60 +543,46 @@ $function$;
 CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
  RETURNS TABLE(
     revision_id integer,
-    estudiante_id integer,
-    estudiante_nombres varchar,
-    estudiante_apellidos varchar,
-    estudiante_codigo varchar,
-    revisor_id integer,
-    revisor_nombres varchar,
-    revisor_apellidos varchar,
-    revisor_codigo varchar,
-    tema_id integer,
-    titulo_tema varchar,
-    documento_id integer,
-    nombre_documento varchar,
-    version_documento_id integer,
-    fecha_entrega timestamp with time zone,
-    fecha_limite_revision timestamp with time zone,
+    tema text,
+    entregable text,
+    estudiante text,
+    codigo text,
+    curso text,
+    fecha_carga timestamp with time zone,
+    estado_revision text,
+    entrega_a_tiempo boolean,
+    fecha_limite timestamp with time zone,
     fecha_revision timestamp with time zone,
-    estado_revision varchar,
-    link_archivo_revision varchar,
-    fecha_envio_entregable timestamp with time zone,
-    fecha_fin_entregable timestamp with time zone,
-    etapa_formativa_id integer,
-    nombre_curso varchar,
+    link_archivo text,
+    fecha_envio timestamp with time zone,
+    fecha_fin timestamp with time zone,
     numero_observaciones integer
-)
-LANGUAGE plpgsql
+ )
+ LANGUAGE plpgsql
 AS $function$
 BEGIN
     RETURN QUERY
     SELECT
-        rd.revision_documento_id,
-        u_estudiante.usuario_id AS estudiante_id,
-        u_estudiante.nombres,
-        u_estudiante.primer_apellido,
-        u_estudiante.codigo_pucp,
-        u_revisor.usuario_id AS revisor_id,
-        u_revisor.nombres,
-        u_revisor.primer_apellido,
-        u_revisor.codigo_pucp,
-        t.tema_id,
-        t.titulo,
-        d.documento_id,
-        d.nombre_documento,
-        vd.version_documento_id,
+        rd.revision_documento_id AS revision_id,
+        t.titulo::text AS tema,
+        e.nombre::text AS entregable,
+        (u_est.nombres || ' ' || u_est.primer_apellido || ' ' || COALESCE(u_est.segundo_apellido, ''))::text AS estudiante,
+        u_est.codigo_pucp::text AS codigo,
+        ef.nombre::text AS curso,
         vd.fecha_ultima_subida,
+        rd.estado_revision::text AS estado_revision,
+        CASE 
+            WHEN rd.fecha_limite_revision IS NOT NULL 
+                 AND vd.fecha_ultima_subida::date <= rd.fecha_limite_revision THEN TRUE
+            ELSE FALSE
+        END AS entrega_a_tiempo,
         rd.fecha_limite_revision::timestamp with time zone,
         rd.fecha_revision::timestamp with time zone,
-        rd.estado_revision::text,
         rd.link_archivo_revision,
         ext.fecha_envio,
         e.fecha_fin,
-        ef.etapa_formativa_id,
-        ef.nombre,
         (
-            SELECT COUNT(*) 
+            SELECT COUNT(*)::integer 
             FROM observacion o 
             WHERE o.revision_id = rd.revision_documento_id 
               AND o.activo = TRUE
@@ -606,16 +592,62 @@ BEGIN
     JOIN entregable_x_tema ext ON ext.entregable_x_tema_id = vd.entregable_x_tema_id
     JOIN entregable e ON e.entregable_id = ext.entregable_id
     JOIN tema t ON t.tema_id = ext.tema_id
-    JOIN usuario_tema ut_estudiante ON ut_estudiante.tema_id = t.tema_id AND ut_estudiante.rol_id = 4 AND ut_estudiante.asignado = TRUE
-    JOIN usuario u_estudiante ON u_estudiante.usuario_id = ut_estudiante.usuario_id
-    JOIN usuario u_revisor ON u_revisor.usuario_id = rd.usuario_id
-    JOIN documento d ON d.documento_id = vd.documento_id
-    JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+    JOIN usuario_tema ut_est ON ut_est.tema_id = t.tema_id AND ut_est.rol_id = 4 AND ut_est.asignado = TRUE
+    JOIN usuario u_est ON u_est.usuario_id = ut_est.usuario_id
+    JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
     WHERE rd.usuario_id = revisorid
+      AND EXISTS (
+          SELECT 1
+          FROM usuario_tema ut_rev
+          WHERE ut_rev.usuario_id = revisorid
+            AND ut_rev.rol_id = 3
+            AND ut_rev.asignado = TRUE
+      )
+      AND rd.estado_revision IN ('pendiente', 'en_proceso', 'completada')
       AND rd.activo = TRUE
+      AND vd.activo = TRUE
+      AND ext.activo = TRUE
+      AND e.activo = TRUE
       AND rd.fecha_revision <= NOW()
     ORDER BY rd.fecha_creacion DESC;
 END;
 $function$;
 
+
+drop function if exists insertar_actualizar_criterio_entregable_id;
+CREATE OR REPLACE FUNCTION sgtadb.insertar_actualizar_criterio_entregable_id(p_revision_criterio_entregable_id integer,p_entregable_x_tema_id integer,p_criterio_entregable_id integer, p_revision_documento_id integer,p_usuario_id integer,p_nota numeric,p_observacion text)
+returns VOID LANGUAGE plpgsql 
+AS $function$
+	
+BEGIN	
+ 	IF p_revision_criterio_entregable_id IS NULL THEN
+		INSERT INTO revision_criterio_entregable (entregable_x_tema_id,criterio_entregable_id,revision_documento_id,usuario_id,nota,observacion,activo)
+		VALUES (p_entregable_x_tema_id,p_criterio_entregable_id, p_revision_documento_id,p_usuario_id ,p_nota,p_observacion, TRUE );
+	ELSE
+        UPDATE revision_criterio_entregable rce
+        SET entregable_x_tema_id = p_entregable_x_tema_id,
+            criterio_entregable_id = p_criterio_entregable_id,
+            revision_documento_id = p_revision_documento_id,
+            usuario_id = p_usuario_id,
+            nota = p_nota,
+            observacion = p_observacion
+        WHERE rce.revision_criterio_entregable_id = p_revision_criterio_entregable_id;
+    END IF;
+
+	UPDATE entregable_x_tema ext
+	SET nota_entregable = tmp.notaFinal
+	FROM (
+	    SELECT entregable_x_tema_id, AVG(nota) AS notaFinal
+	    FROM (
+	        SELECT revision_documento_id, entregable_x_tema_id, SUM(COALESCE(nota, 0)) AS nota
+	        FROM revision_criterio_entregable
+	        WHERE entregable_x_tema_id = p_entregable_x_tema_id
+	        GROUP BY revision_documento_id, entregable_x_tema_id
+	    ) sub
+	    GROUP BY entregable_x_tema_id
+	) tmp
+	WHERE ext.entregable_x_tema_id = tmp.entregable_x_tema_id;
+END;
+$function$
+;
