@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -20,12 +21,23 @@ export interface Observacion {
 interface ObservacionesListProps {
   observaciones: Observacion[]
   editable?: boolean
+  onChange?: (observaciones: Observacion[]) => void // NUEVO
 }
 
-export function ObservacionesList({ observaciones, editable = false }: ObservacionesListProps) {
+export function ObservacionesList({ observaciones, editable = false, onChange }: ObservacionesListProps) {
   const [filtro, setFiltro] = useState<string>("");
   const [observacionesState, setObservacionesState] = useState<Observacion[]>(observaciones);
   const [tab, setTab] = useState<'todas' | 'pendientes' | 'corregidas'>("todas");
+
+  // Sincronizar con el padre si cambian las props
+  React.useEffect(() => {
+    setObservacionesState(observaciones);
+  }, [observaciones]);
+
+  // Llamar a onChange cuando cambie el estado interno
+  React.useEffect(() => {
+    if (onChange) onChange(observacionesState);
+  }, [observacionesState, onChange]);
 
   let observacionesFiltradas = observacionesState.filter(
     (obs) =>
@@ -42,7 +54,6 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 
   const handleToggleResuelto = (id: string) => {
     if (!editable) return;
-
     setObservacionesState(observacionesState.map((obs) => (obs.id === id ? { ...obs, resuelto: !obs.resuelto } : obs)));
   };
 
@@ -95,7 +106,7 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
 
   return (
     <div className="space-y-4">
-      <Tabs value={tab} onValueChange={setTab} className="mb-2">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'todas' | 'pendientes' | 'corregidas')} className="mb-2">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="todas">Todas</TabsTrigger>
           <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
@@ -121,13 +132,6 @@ export function ObservacionesList({ observaciones, editable = false }: Observaci
               className={`p-4 border rounded-lg ${observacion.corregido ? "bg-green-50 border-green-300" : "bg-white"}`}
             >
               <div className="flex items-start gap-3">
-                {editable && (
-                  <Checkbox
-                    checked={observacion.resuelto}
-                    onCheckedChange={() => handleToggleResuelto(observacion.id)}
-                    className="mt-1"
-                  />
-                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     {getIconByTipo(observacion.tipo)}

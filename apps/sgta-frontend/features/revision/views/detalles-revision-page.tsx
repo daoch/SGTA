@@ -106,7 +106,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
           parrafo: 0,
           texto: h.content.text ?? "",
           tipo: mapTipoObservacion(h.comment.text),
-          resuelto: false,
+          resuelto: (h as any).resuelto ?? h.corregido ?? false, // Cambiado aquí
           corregido: h.corregido ?? false,
         }));
         setObservacionesList(observaciones);
@@ -228,14 +228,14 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <TabsTrigger value="jurado">Del Profesor o Jurado</TabsTrigger>
                   </TabsList>
                   <TabsContent value="asesor">
-                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} onChange={setObservacionesList} />
                   </TabsContent>
                   <TabsContent value="jurado">
-                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                    <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} onChange={setObservacionesList} />
                   </TabsContent>
                 </Tabs>
               ) : (
-                <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={false} />
+                <ObservacionesList key={observacionesList.length} observaciones={observacionesList} editable={true} onChange={setObservacionesList} />
               )}
             </CardContent>
           </Card>
@@ -370,12 +370,12 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
                     <div>
                       <span className="text-sm text-muted-foreground">Total</span>
                       <div className="text-xs">
-                        <span className="text-green-600">
-                          {observacionesList.filter((o) => o.resuelto).length} resueltas
-                        </span>
-                        {" / "}
                         <span className="text-red-600">
                           {observacionesList.filter((o) => !o.resuelto).length} pendientes
+                        </span>
+                        {" / "}
+                        <span className="text-green-600">
+                          {observacionesList.filter((o) => o.resuelto).length} resueltas
                         </span>
                       </div>
                     </div>
