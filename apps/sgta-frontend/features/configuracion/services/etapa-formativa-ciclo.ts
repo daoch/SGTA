@@ -14,10 +14,50 @@ export interface EtapaFormativaXCicloTesista {
     estado: string;
 }
 
+export interface PageResponse<T> {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface EtapaFormativaCicloPageRequest {
+    page?: number;
+    size?: number;
+    search?: string;
+    estado?: string;
+    anio?: number;
+    semestre?: string;
+}
+
 export const etapaFormativaCicloService = {
     getAllByIdCarrera: async (): Promise<EtapaFormativaCiclo[]> => {
         const { idToken } = useAuthStore.getState();
         const response = await axiosInstance.get("/etapa-formativa-x-ciclo/carreraList",
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+        );
+        return response.data;
+    },
+
+    getAllByIdCarreraPaginated: async (params: EtapaFormativaCicloPageRequest = {}): Promise<PageResponse<EtapaFormativaCiclo>> => {
+        const { idToken } = useAuthStore.getState();
+        const queryParams = new URLSearchParams();
+        
+        if (params.page !== undefined) queryParams.append('page', params.page.toString());
+        if (params.size !== undefined) queryParams.append('size', params.size.toString());
+        if (params.search) queryParams.append('search', params.search);
+        if (params.estado) queryParams.append('estado', params.estado);
+        if (params.anio) queryParams.append('anio', params.anio.toString());
+        if (params.semestre) queryParams.append('semestre', params.semestre);
+
+        const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/carreraListPaginated?${queryParams.toString()}`,
             {
               headers: {
                 Authorization: `Bearer ${idToken}`,
