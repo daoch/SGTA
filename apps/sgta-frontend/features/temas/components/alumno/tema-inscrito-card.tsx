@@ -260,14 +260,14 @@ export function TemaCard() {
       </CardContent>
       <CardFooter className="flex gap-2 justify-between md:justify-start">
         {/* Botón Ver detalle SIEMPRE visible */}
-        <Link href={`/alumno/temas/${tesisData.id}/detalle`}>
+        <Link href={`/alumno/temas/temas/${tesisData.id}/detalle`}>
           <Button variant="outline">
             <Info className="mr-2 h-4 w-4" /> Ver detalle
           </Button>
         </Link>
         {/* Botón Ver observaciones SOLO si está observado */}
         {tesisData.estadoActual === "Observado" && (
-          <Link href={`/alumno/temas/${tesisData.id}`}>
+          <Link href={`/alumno/temas/temas/${tesisData.id}`}>
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" /> Ver observaciones
             </Button>
