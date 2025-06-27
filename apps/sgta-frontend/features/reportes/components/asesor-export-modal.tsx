@@ -22,13 +22,14 @@ export function AsesorExportModal({
         <DialogHeader>
           <DialogTitle>Exportar información de tesistas</DialogTitle>
         </DialogHeader>
-        <div className="mb-4 space-y-2">
-          <div>
+       <div className="mb-4 space-y-2">
+          {/*<div>
             <span className="font-semibold">Asesor:</span> {advisorName}
           </div>
           <div>
             <span className="font-semibold">Correo:</span> {advisorEmail}
           </div>
+          */}
           <div className="mt-4 text-gray-700">
             Se exportará la información detallada de todos los tesistas asignados a este asesor en formato Excel.
           </div>

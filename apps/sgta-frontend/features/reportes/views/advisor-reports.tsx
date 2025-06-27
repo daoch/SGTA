@@ -178,7 +178,11 @@ export function AdvisorReports() {
   const advisorEmail = "lucia.delcastillom@pucp.edu.pe";
 
   const handleExport = async () => {
-    setIsExporting(true);
+    if (sortedStudents.length === 0) {
+      alert("No hay tesistas para exportar.");
+      return;
+    }
+    else setIsExporting(true);
     try {
       // 1. Obtén los IDs de los estudiantes filtrados/ordenados (solo únicos)
       const studentIds = [...new Set(sortedStudents.map(s => s.tesistaId))];
