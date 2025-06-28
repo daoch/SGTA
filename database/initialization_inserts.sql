@@ -2107,7 +2107,8 @@ INSERT INTO
 VALUES (
         1,
         1,
-        1 TRUE,
+        1,
+        TRUE,
         'Exposicion parcial',
         'Exposicion parcial del proyecto',
         NOW()
