@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { joinUsers } from "@/lib/temas/lib";
+import { joinUsers, usuarioCoincideConBusqueda } from "@/lib/temas/lib";
 import { titleCase } from "@/lib/utils";
 import { Eye, SquarePen } from "lucide-react";
 import Link from "next/link";
@@ -45,14 +45,11 @@ export function SolicitudesTable({
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtrados = solicitudes.filter(
-      (solicitud) =>
-        solicitud?.tema?.titulo?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.nombres?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.primerApellido?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.segundoApellido
-          ?.toLowerCase()
-          .includes(query) ||
-        solicitud?.titulo?.toLowerCase().includes(query),
+      (sol) =>
+        sol?.tema?.titulo?.toLowerCase().includes(query) ||
+        sol?.titulo?.toLowerCase().includes(query) ||
+        usuarioCoincideConBusqueda(sol?.solicitante, query) ||
+        sol?.tema?.tesistas?.some((t) => usuarioCoincideConBusqueda(t, query)),
     );
   } else {
     filtrados = page;
