@@ -27,6 +27,7 @@ import { EstadoTemaNombre } from "../../types/temas/enums";
 
 export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
+  readonly page: readonly SolicitudPendiente[];
   readonly isLoading: boolean;
   readonly searchQuery: string;
   readonly limit: number;
@@ -34,15 +35,16 @@ export interface SolicitudesTableProps {
 
 export function SolicitudesTable({
   solicitudes,
+  page,
   isLoading,
   searchQuery,
   limit,
 }: SolicitudesTableProps) {
   // Filtrar por búsqueda
-  let filtrados = solicitudes;
+  let filtrados;
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    filtrados = filtrados.filter(
+    filtrados = solicitudes.filter(
       (solicitud) =>
         solicitud?.tema?.titulo?.toLowerCase().includes(query) ||
         solicitud?.solicitante?.nombres?.toLowerCase().includes(query) ||
@@ -52,6 +54,8 @@ export function SolicitudesTable({
           .includes(query) ||
         solicitud?.titulo?.toLowerCase().includes(query),
     );
+  } else {
+    filtrados = page;
   }
 
   let tableBodyContent;
