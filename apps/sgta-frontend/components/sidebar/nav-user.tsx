@@ -27,8 +27,6 @@ export function NavUser({ user }: { user: User }) {
   const { logout, redirectToLogin } = useAuth();
   const router = useRouter();
 
- 
-
   console.log("user", user);
 
   return (
@@ -46,8 +44,8 @@ export function NavUser({ user }: { user: User }) {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight gap-1">
                 <span className="truncate font-semibold">
-                  {user.firstName && user.lastName 
-                    ? `${user.firstName} ${user.lastName}` 
+                  {user.firstName && user.lastName
+                    ? `${user.firstName} ${user.lastName}`
                     : user.email}
                 </span>
                 <div className="flex flex-wrap gap-1 w-full">
@@ -79,8 +77,8 @@ export function NavUser({ user }: { user: User }) {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    {user.firstName && user.lastName 
-                      ? `${user.firstName} ${user.lastName}` 
+                    {user.firstName && user.lastName
+                      ? `${user.firstName} ${user.lastName}`
                       : user.email}
                   </span>
                   <span className="truncate text-xs">{user.email}</span>
@@ -98,8 +96,8 @@ export function NavUser({ user }: { user: User }) {
                 Perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />   
-                      
+            <DropdownMenuSeparator />
+
             <DropdownMenuItem
               onClick={() => {
                 // First logout to clear all tokens and state
@@ -121,3 +119,4 @@ export function NavUser({ user }: { user: User }) {
     </SidebarMenu>
   );
 }
+

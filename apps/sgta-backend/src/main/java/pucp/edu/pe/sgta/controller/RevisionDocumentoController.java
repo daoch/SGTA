@@ -161,8 +161,8 @@ public class RevisionDocumentoController {
             .attachment()
             .filename(filename)
             .build());
-
-        return new ResponseEntity<>(annotatedPdf, headers, HttpStatus.OK);
+        
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"").body(annotatedPdf);
     }
   
     @GetMapping("/jurado")
