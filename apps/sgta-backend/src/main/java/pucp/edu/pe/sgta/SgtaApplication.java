@@ -47,6 +47,7 @@ public class SgtaApplication {
 
 		System.setProperty("REDIRECT_BACK",dotenv.get("REDIRECT_BACK", ""));
 		System.setProperty("URL_BACK",dotenv.get("URL_BACK", ""));
+		System.setProperty("API_TOKEN_GOWINSTON",dotenv.get("API_TOKEN_GOWINSTON", ""));
 	}
 
 	public static void main(String[] args) {
