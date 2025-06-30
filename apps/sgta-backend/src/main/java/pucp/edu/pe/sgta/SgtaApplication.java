@@ -1,6 +1,9 @@
 package pucp.edu.pe.sgta;
 
 import io.github.cdimascio.dotenv.Dotenv;
+
+import java.util.TimeZone;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -51,6 +54,7 @@ public class SgtaApplication {
 	}
 
 	public static void main(String[] args) {
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC-5"));
 		SpringApplication.run(SgtaApplication.class, args);
 	}
 
