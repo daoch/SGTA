@@ -8,8 +8,12 @@ import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CarreraMapper;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.UnidadAcademica;
+import pucp.edu.pe.sgta.model.EtapaFormativa;
+import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.repository.UnidadAcademicaRepository;
+import pucp.edu.pe.sgta.repository.EtapaFormativaRepository;
+import pucp.edu.pe.sgta.repository.CarreraXParametroConfiguracionRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
@@ -21,13 +25,19 @@ import java.util.stream.Collectors;
 public class CarreraServiceImpl implements CarreraService {
     private final CarreraRepository carreraRepository;
     private final UnidadAcademicaRepository unidadAcademicaRepository;
+    private final EtapaFormativaRepository etapaFormativaRepository;
+    private final CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
     private final UsuarioService usuarioService;
 
     public CarreraServiceImpl(CarreraRepository carreraRepository, 
                              UnidadAcademicaRepository unidadAcademicaRepository,
+                             EtapaFormativaRepository etapaFormativaRepository,
+                             CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
                              UsuarioService usuarioService) {
         this.carreraRepository = carreraRepository;
         this.unidadAcademicaRepository = unidadAcademicaRepository;
+        this.etapaFormativaRepository = etapaFormativaRepository;
+        this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
         this.usuarioService = usuarioService;
     }
     
@@ -138,6 +148,10 @@ public class CarreraServiceImpl implements CarreraService {
     public CarreraDto createCarrera(CarreraDto carreraDto) {
         Carrera carrera = CarreraMapper.toEntity(carreraDto);
         carreraRepository.save(carrera);
+        
+        // Crear parámetros base para la nueva carrera
+        crearParametrosBaseParaNuevaCarrera(carrera.getId());
+        
         return CarreraMapper.toDto(carrera);
     }
 
@@ -183,6 +197,48 @@ public class CarreraServiceImpl implements CarreraService {
         // Soft delete - marcar como inactiva en lugar de eliminar físicamente
         carrera.setActivo(false);
         carreraRepository.save(carrera);
+    }
+
+    
+    private void crearParametrosBaseParaNuevaCarrera(Integer carreraId) {
+        // Siempre usar carrera plantilla ID = 1 y etapa formativa ID = 1
+        Integer carreraPlantillaId = 1;
+        Integer etapaFormativaId = 1;
+
+        // Obtener parámetros de la carrera plantilla con etapa formativa 1
+        List<CarreraXParametroConfiguracion> parametrosPlantilla = carreraXParametroConfiguracionRepository
+            .findByCarreraIdAndEtapaFormativaId(Long.valueOf(carreraPlantillaId), etapaFormativaId);
+
+        if (parametrosPlantilla.isEmpty()) {
+            return; // No hay parámetros plantilla para copiar
+        }
+
+        // Buscar la carrera actual
+        Carrera carreraActual = carreraRepository.findById(carreraId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, 
+                "Carrera no encontrada con ID: " + carreraId
+            ));
+
+        // Buscar la etapa formativa 1
+        EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(etapaFormativaId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, 
+                "Etapa formativa no encontrada con ID: " + etapaFormativaId
+            ));
+
+        // Crear parámetros base para la nueva carrera
+        for (CarreraXParametroConfiguracion parametroPlantilla : parametrosPlantilla) {
+            CarreraXParametroConfiguracion nuevoParametro = new CarreraXParametroConfiguracion();
+            
+            nuevoParametro.setCarrera(carreraActual);
+            nuevoParametro.setEtapaFormativa(etapaFormativa);
+            nuevoParametro.setParametroConfiguracion(parametroPlantilla.getParametroConfiguracion());
+            nuevoParametro.setValor(parametroPlantilla.getValor());
+            nuevoParametro.setActivo(true);
+            
+            carreraXParametroConfiguracionRepository.save(nuevoParametro);
+        }
     }
 
 }
