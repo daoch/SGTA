@@ -2,8 +2,6 @@ package pucp.edu.pe.sgta;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-import java.util.TimeZone;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -40,21 +38,20 @@ public class SgtaApplication {
 		System.setProperty("ZOOM_POST_ACCESS_TOKEN_URL", dotenv.get("ZOOM_POST_ACCESS_TOKEN_URL", ""));
 		System.setProperty("ZOOM_MEETING_CREATION_URL", dotenv.get("ZOOM_MEETING_CREATION_URL", ""));
 
-		System.setProperty("GOOGLE_CLIENT_ID",dotenv.get("GOOGLE_CLIENT_ID", ""));
-		System.setProperty("GOOGLE_CLIENT_SECRET",dotenv.get("GOOGLE_CLIENT_SECRET", ""));
-		System.setProperty("GOOGLE_PROJECT_ID",dotenv.get("GOOGLE_PROJECT_ID", ""));
-		System.setProperty("GOOGLE_REDIRECT_URI",dotenv.get("GOOGLE_REDIRECT_URI", ""));
-		System.setProperty("GOOGLE_AUTH_URI",dotenv.get("GOOGLE_AUTH_URI", ""));
-		System.setProperty("GOOGLE_TOKEN_URI",dotenv.get("GOOGLE_TOKEN_URI", ""));
-		System.setProperty("GOOGLE_SCOPE",dotenv.get("GOOGLE_SCOPE", ""));
+		System.setProperty("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID", ""));
+		System.setProperty("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET", ""));
+		System.setProperty("GOOGLE_PROJECT_ID", dotenv.get("GOOGLE_PROJECT_ID", ""));
+		System.setProperty("GOOGLE_REDIRECT_URI", dotenv.get("GOOGLE_REDIRECT_URI", ""));
+		System.setProperty("GOOGLE_AUTH_URI", dotenv.get("GOOGLE_AUTH_URI", ""));
+		System.setProperty("GOOGLE_TOKEN_URI", dotenv.get("GOOGLE_TOKEN_URI", ""));
+		System.setProperty("GOOGLE_SCOPE", dotenv.get("GOOGLE_SCOPE", ""));
 
-		System.setProperty("REDIRECT_BACK",dotenv.get("REDIRECT_BACK", ""));
-		System.setProperty("URL_BACK",dotenv.get("URL_BACK", ""));
-		System.setProperty("API_TOKEN_GOWINSTON",dotenv.get("API_TOKEN_GOWINSTON", ""));
+		System.setProperty("REDIRECT_BACK", dotenv.get("REDIRECT_BACK", ""));
+		System.setProperty("URL_BACK", dotenv.get("URL_BACK", ""));
+		System.setProperty("API_TOKEN_GOWINSTON", dotenv.get("API_TOKEN_GOWINSTON", ""));
 	}
 
 	public static void main(String[] args) {
-		TimeZone.setDefault(TimeZone.getTimeZone("UTC-5"));
 		SpringApplication.run(SgtaApplication.class, args);
 	}
 
