@@ -11,10 +11,13 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
 import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
+import pucp.edu.pe.sgta.dto.PageResponseDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import org.springframework.web.bind.annotation.PutMapping;
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
@@ -52,6 +55,31 @@ public class EtapaFormativaXCicloController {
         String idCognito = jwtService.extractSubFromRequest(request);
         List<EtapaFormativaXCicloDto> etapaFormativaXCiclos = etapaFormativaXCicloService.getAllByCarreraId(idCognito);
         return ResponseEntity.ok(etapaFormativaXCiclos);
+    }
+
+    @GetMapping("/carreraListPaginated")
+    public ResponseEntity<PageResponseDto<EtapaFormativaXCicloDto>> getAllByCarreraIdPaginated(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) String semestre) {
+        
+        String idCognito = jwtService.extractSubFromRequest(request);
+        
+        EtapaFormativaXCicloPageRequestDto requestDto = EtapaFormativaXCicloPageRequestDto.builder()
+            .page(page)
+            .size(size)
+            .search(search)
+            .estado(estado)
+            .anio(anio)
+            .semestre(semestre)
+            .build();
+            
+        PageResponseDto<EtapaFormativaXCicloDto> response = etapaFormativaXCicloService.getAllByCarreraIdPaginated(idCognito, requestDto);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/carrera/{carreraId}/ciclo/{cicloId}")
