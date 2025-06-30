@@ -1,14 +1,22 @@
 "use client";
 
-import { CarrerasList } from "@/features/configuracion/components/configuracion/carreras-list";
+import { CarrerasList, CarrerasListRef } from "@/features/configuracion/components/configuracion/carreras-list";
 import { NuevaCarreraModal } from "@/features/configuracion/components/configuracion/nueva-carrera-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function CarrerasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const carrerasListRef = useRef<CarrerasListRef>(null);
+
+  const handleCarreraCreated = () => {
+    // Refresh the carreras list when a new carrera is created
+    if (carrerasListRef.current) {
+      carrerasListRef.current.refresh();
+    }
+  };
 
   return (
     <div className="py-6 px-2">
@@ -36,10 +44,14 @@ export default function CarrerasPage() {
           </p>
         </div>
 
-        <CarrerasList />
+        <CarrerasList ref={carrerasListRef} />
       </div>
 
-      <NuevaCarreraModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <NuevaCarreraModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleCarreraCreated}
+      />
     </div>
   );
 }
