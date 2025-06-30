@@ -214,7 +214,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                 saved.setDuracionExposicion(duration);
             }
 
-            // 6) Crear parámetros base para la nueva etapa formativa
+            // 6) Crear parámetros base para la nueva carrera
             crearParametrosBaseParaNuevaEtapa(saved.getCarrera().getId(), saved.getId());
 
             // 7) Construir DTO de respuesta
@@ -231,38 +231,35 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         }
     }
 
-
     // Método para crear los parámetros base para una nueva etapa formativa
     private void crearParametrosBaseParaNuevaEtapa(Integer carreraId, Integer nuevaEtapaFormativaId) {
-        // Buscar la primera etapa formativa existente para la carrera (como plantilla)
-        List<EtapaFormativa> etapas = etapaFormativaRepository.findAll();
-        Integer etapaBaseId = null;
-        Integer carreraPlantillaId = 1; // Cambia este valor si tu plantilla es otra carrera
+        // Verificar si es una nueva carrera (no tiene etapas formativas existentes)
+        List<EtapaFormativa> etapasExistentes = etapaFormativaRepository.findAll();
+        boolean esNuevaCarrera = etapasExistentes.stream()
+                .noneMatch(ef -> ef.getCarrera().getId().equals(carreraId));
 
-        // 1. Buscar etapa base en la carrera actual
-        for (EtapaFormativa ef : etapas) {
-            if (ef.getCarrera().getId().equals(carreraId) && !ef.getId().equals(nuevaEtapaFormativaId)) {
+        // Solo crear parámetros base si es una nueva carrera
+        if (!esNuevaCarrera) {
+            return; // Para carreras existentes, no crear parámetros base
+        }
+
+        // Para nuevas carreras, buscar en la carrera plantilla (ID 1)
+        Integer carreraPlantillaId = 1;
+        Integer etapaBaseId = null;
+
+        // Buscar etapa base en la carrera plantilla
+        for (EtapaFormativa ef : etapasExistentes) {
+            if (ef.getCarrera().getId().equals(carreraPlantillaId)) {
                 etapaBaseId = ef.getId();
                 break;
             }
         }
 
-        // 2. Si no hay etapa base en la carrera actual, buscar en la carrera plantilla
-        Long carreraOrigenId = Long.valueOf(carreraId);
-        if (etapaBaseId == null) {
-            for (EtapaFormativa ef : etapas) {
-                if (ef.getCarrera().getId().equals(carreraPlantillaId)) {
-                    etapaBaseId = ef.getId();
-                    carreraOrigenId = Long.valueOf(carreraPlantillaId);
-                    break;
-                }
-            }
-        }
-
         if (etapaBaseId == null) return; // No hay etapa base para copiar
 
+        // Copiar parámetros de la carrera plantilla
         List<CarreraXParametroConfiguracion> parametrosBase = carreraXParametroConfiguracionRepository
-            .findByCarreraIdAndEtapaFormativaId(carreraOrigenId, etapaBaseId);
+            .findByCarreraIdAndEtapaFormativaId(Long.valueOf(carreraPlantillaId), etapaBaseId);
 
         for (CarreraXParametroConfiguracion base : parametrosBase) {
             CarreraXParametroConfiguracion nuevo = new CarreraXParametroConfiguracion();
