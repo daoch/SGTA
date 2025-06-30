@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
     getAllByCarreraId,
+    getAllByCarreraIdAndEtapaFormativa,
     updateCarreraXParametroConfiguracion
 } from "../services/configuracion-service";
 import { BackStore } from "../types/configuracion.types";
@@ -14,6 +15,7 @@ export const useBackStore = create<BackStore>()(
             parametrosOriginales: [],
             cargando: false,
             error: null,
+            etapaFormativaSeleccionada: null,
 
             // Acciones para modificar el estado
             setParametros: (parametros) => set({
@@ -28,6 +30,9 @@ export const useBackStore = create<BackStore>()(
                     ),
                 })),
 
+            setEtapaFormativaSeleccionada: (etapaFormativaId) => set({
+                etapaFormativaSeleccionada: etapaFormativaId
+            }),
 
             // Funciones para llamadas al backend
             cargarParametros: async (carreraId) => {
@@ -45,6 +50,24 @@ export const useBackStore = create<BackStore>()(
                 } catch (error) {
                     set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false });
                     console.error("Error al cargar parámetros:", error);
+                }
+            },
+
+            cargarParametrosPorEtapaFormativa: async (etapaFormativaId) => {
+                set({ cargando: true, error: null });
+                try {
+                    const response = await getAllByCarreraIdAndEtapaFormativa(etapaFormativaId || undefined);
+                    if (!response) {
+                        throw new Error("No se encontraron parámetros para esta etapa formativa");
+                    }
+                    set({
+                        parametros: response,
+                        parametrosOriginales: JSON.parse(JSON.stringify(response)), // Guardamos una copia profunda
+                        cargando: false
+                    });
+                } catch (error) {
+                    set({ error: error instanceof Error ? error.message : "Error desconocido", cargando: false });
+                    console.error("Error al cargar parámetros por etapa formativa:", error);
                 }
             },
 
@@ -68,7 +91,8 @@ export const useBackStore = create<BackStore>()(
             name: "configuracion-store",
             partialize: (state) => ({
                 parametros: state.parametros,
-                parametrosOriginales: state.parametrosOriginales
+                parametrosOriginales: state.parametrosOriginales,
+                etapaFormativaSeleccionada: state.etapaFormativaSeleccionada
             }),
         }
     )

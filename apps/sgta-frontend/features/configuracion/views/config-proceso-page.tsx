@@ -199,7 +199,7 @@ export default function ConfiguracionProcesoPage() {
                   placeholder="Buscar por nombre de etapa, año o semestre..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-10"
                 />
               </div>

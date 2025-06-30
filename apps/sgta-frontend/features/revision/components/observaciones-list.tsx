@@ -52,7 +52,7 @@ export function ObservacionesList({ observaciones, editable = false, onChange }:
     observacionesFiltradas = observacionesFiltradas.filter((obs) => obs.corregido);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const _handleToggleResuelto = (id: string) => {
     if (!editable) return;
     setObservacionesState(observacionesState.map((obs) => (obs.id === id ? { ...obs, resuelto: !obs.resuelto } : obs)));

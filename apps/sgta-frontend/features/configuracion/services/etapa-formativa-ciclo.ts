@@ -50,12 +50,12 @@ export const etapaFormativaCicloService = {
         const { idToken } = useAuthStore.getState();
         const queryParams = new URLSearchParams();
         
-        if (params.page !== undefined) queryParams.append('page', params.page.toString());
-        if (params.size !== undefined) queryParams.append('size', params.size.toString());
-        if (params.search) queryParams.append('search', params.search);
-        if (params.estado) queryParams.append('estado', params.estado);
-        if (params.anio) queryParams.append('anio', params.anio.toString());
-        if (params.semestre) queryParams.append('semestre', params.semestre);
+        if (params.page !== undefined) queryParams.append("page", params.page.toString());
+        if (params.size !== undefined) queryParams.append("size", params.size.toString());
+        if (params.search) queryParams.append("search", params.search);
+        if (params.estado) queryParams.append("estado", params.estado);
+        if (params.anio) queryParams.append("anio", params.anio.toString());
+        if (params.semestre) queryParams.append("semestre", params.semestre);
 
         const response = await axiosInstance.get(`/etapa-formativa-x-ciclo/carreraListPaginated?${queryParams.toString()}`,
             {

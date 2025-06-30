@@ -255,7 +255,6 @@ BEGIN
       FROM ciclo
      WHERE semestre = v_semestre
        AND anio = v_anio
-       AND activo = TRUE
      LIMIT 1;
 
     IF v_ciclo_id IS NULL THEN
@@ -452,7 +451,6 @@ BEGIN
       FROM ciclo
      WHERE anio     = v_anio
        AND semestre = v_semestre
-       AND activo   = TRUE
      LIMIT 1;
 
     IF v_ciclo_id IS NULL THEN
@@ -652,7 +650,6 @@ BEGIN
       FROM ciclo
      WHERE semestre = v_semestre
        AND anio     = v_anio
-       AND activo   = TRUE
      LIMIT 1;
 
     IF v_ciclo_id IS NULL THEN

@@ -4,6 +4,7 @@ import org.postgresql.util.PGInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
@@ -34,6 +35,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -207,12 +210,14 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             if (duration != null) {
                 String durationStr = formatDuration(duration);
                 etapaFormativaRepository.updateDuracionExposicion(saved.getId(), durationStr);
-
                 // Actualizamos el campo transitorio para el DTO de respuesta
                 saved.setDuracionExposicion(duration);
             }
 
-            // 6) Construir DTO de respuesta
+            // 6) Crear parámetros base para la nueva etapa formativa
+            crearParametrosBaseParaNuevaEtapa(saved.getCarrera().getId(), saved.getId());
+
+            // 7) Construir DTO de respuesta
             return EtapaFormativaDto.builder()
                     .id(saved.getId())
                     .nombre(saved.getNombre())
@@ -223,6 +228,49 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                     .build();
         } catch (Exception e) {
             throw new RuntimeException("Error al crear etapa formativa: " + e.getMessage(), e);
+        }
+    }
+
+    // Método para crear los parámetros base para una nueva etapa formativa
+    private void crearParametrosBaseParaNuevaEtapa(Integer carreraId, Integer nuevaEtapaFormativaId) {
+        // Buscar la primera etapa formativa existente para la carrera (como plantilla)
+        List<EtapaFormativa> etapas = etapaFormativaRepository.findAll();
+        Integer etapaBaseId = null;
+        Integer carreraPlantillaId = 1; // Cambia este valor si tu plantilla es otra carrera
+
+        // 1. Buscar etapa base en la carrera actual
+        for (EtapaFormativa ef : etapas) {
+            if (ef.getCarrera().getId().equals(carreraId) && !ef.getId().equals(nuevaEtapaFormativaId)) {
+                etapaBaseId = ef.getId();
+                break;
+            }
+        }
+
+        // 2. Si no hay etapa base en la carrera actual, buscar en la carrera plantilla
+        Long carreraOrigenId = Long.valueOf(carreraId);
+        if (etapaBaseId == null) {
+            for (EtapaFormativa ef : etapas) {
+                if (ef.getCarrera().getId().equals(carreraPlantillaId)) {
+                    etapaBaseId = ef.getId();
+                    carreraOrigenId = Long.valueOf(carreraPlantillaId);
+                    break;
+                }
+            }
+        }
+
+        if (etapaBaseId == null) return; // No hay etapa base para copiar
+
+        List<CarreraXParametroConfiguracion> parametrosBase = carreraXParametroConfiguracionRepository
+            .findByCarreraIdAndEtapaFormativaId(carreraOrigenId, etapaBaseId);
+
+        for (CarreraXParametroConfiguracion base : parametrosBase) {
+            CarreraXParametroConfiguracion nuevo = new CarreraXParametroConfiguracion();
+            nuevo.setCarrera(base.getCarrera());
+            nuevo.setEtapaFormativa(etapaFormativaRepository.findById(nuevaEtapaFormativaId).orElse(null));
+            nuevo.setParametroConfiguracion(base.getParametroConfiguracion());
+            nuevo.setValor(base.getValor());
+            nuevo.setActivo(true);
+            carreraXParametroConfiguracionRepository.save(nuevo);
         }
     }
 
