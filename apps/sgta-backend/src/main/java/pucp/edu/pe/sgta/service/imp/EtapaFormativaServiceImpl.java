@@ -231,6 +231,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
         }
     }
 
+
     // Método para crear los parámetros base para una nueva etapa formativa
     private void crearParametrosBaseParaNuevaEtapa(Integer carreraId, Integer nuevaEtapaFormativaId) {
         // Buscar la primera etapa formativa existente para la carrera (como plantilla)

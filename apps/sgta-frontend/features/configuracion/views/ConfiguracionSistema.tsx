@@ -19,63 +19,40 @@ import type { Ciclo } from "../types/etapa-formativa-ciclo";
 export default function ConfiguracionSistema() {
   const {
     cargarParametros,
-    cargarParametrosPorEtapaFormativa,
     parametros,
     parametrosOriginales,
     guardarParametros,
     cargando,
-    etapaFormativaSeleccionada,
-    setEtapaFormativaSeleccionada,
   } = useBackStore();
 
-  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaCoordinador[]>([]);
-  const [cargandoEtapas, setCargandoEtapas] = useState(false);
+
   const [ciclo, setCiclo] = useState<Ciclo | null>(null);
 
   useEffect(() => {
     const initializeData = async () => {
       try {
-        setCargandoEtapas(true);
-        // Cargar etapas formativas
-        const etapas = await etapasFormativasService.getActivasByCoordinador();
-        setEtapasFormativas(etapas);
+
         // Cargar ciclo actual (asumimos que getAll trae solo uno)
         const ciclos = await ciclosService.getAll();
         if (Array.isArray(ciclos) && ciclos.length > 0) {
           setCiclo(ciclos[0]);
         }
-        // Si hay etapas disponibles, seleccionar la primera por defecto
-        if (etapas.length > 0) {
-          setEtapaFormativaSeleccionada(etapas[0].id);
-          await cargarParametrosPorEtapaFormativa(etapas[0].id);
-        }
+
+        await cargarParametros();
+        
       } catch (error) {
         console.error("Error al inicializar datos:", error);
-      } finally {
-        setCargandoEtapas(false);
-      }
+      } 
     };
 
     initializeData();
-  }, [cargarParametrosPorEtapaFormativa]);
+  }, [cargarParametros]);
 
-  // Handler para cambiar etapa formativa
-  const handleEtapaFormativaChange = async (etapaFormativaId: string) => {
-    const id = parseInt(etapaFormativaId);
-    setEtapaFormativaSeleccionada(id);
-    // Cargar parámetros de la etapa formativa específica
-    await cargarParametrosPorEtapaFormativa(id);
-  };
 
   // Detectar si hay cambios comparando con los valores originales
   const hasChanges = parametros.some((param) => {
     const originalParam = parametrosOriginales.find(p => p.id === param.id);
-    //rastrear cambios en el valor de los parámetros
-    const cambiado = originalParam && originalParam.valor !== param.valor;
-    if (cambiado) {
-      console.log(`⚠️ Cambio detectado en parámetro ID ${param.id}`);
-      console.log(`➡️ Original: ${originalParam.valor}, Actual: ${param.valor}`);
-    }
+
     return originalParam && originalParam.valor !== param.valor;
   });
 
@@ -101,36 +78,12 @@ export default function ConfiguracionSistema() {
       {/* Dropdown para seleccionar etapa formativa y label de ciclo */}
       <div className="mb-6">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">
-            Etapa Formativa:
-          </label>
-          <Select
-            value={etapaFormativaSeleccionada ? etapaFormativaSeleccionada.toString() : ""}
-            onValueChange={handleEtapaFormativaChange}
-            disabled={cargandoEtapas || etapasFormativas.length === 0}
-          >
-            <SelectTrigger className="w-80">
-              <SelectValue placeholder={cargandoEtapas ? "Cargando..." : "Seleccionar etapa formativa"} />
-            </SelectTrigger>
-            <SelectContent>
-              {etapasFormativas.map((etapa) => (
-                <SelectItem key={etapa.id} value={etapa.id.toString()}>
-                  {etapa.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           {ciclo && (
             <span className="ml-4 text-sm text-gray-600 font-medium">
               Parámetros respecto al ciclo: <span className="font-bold">{ciclo.anio} - {ciclo.semestre}</span>
             </span>
           )}
         </div>
-        {etapasFormativas.length === 0 && !cargandoEtapas && (
-          <p className="text-sm text-gray-500 mt-2">
-            No hay etapas formativas disponibles para esta carrera.
-          </p>
-        )}
       </div>
 
       <div className="flex-1 overflow-auto ">
