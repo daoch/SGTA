@@ -7,7 +7,9 @@ import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.mapper.CarreraMapper;
 import pucp.edu.pe.sgta.model.Carrera;
+import pucp.edu.pe.sgta.model.UnidadAcademica;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
+import pucp.edu.pe.sgta.repository.UnidadAcademicaRepository;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import java.util.ArrayList;
@@ -18,10 +20,14 @@ import java.util.stream.Collectors;
 @Service
 public class CarreraServiceImpl implements CarreraService {
     private final CarreraRepository carreraRepository;
+    private final UnidadAcademicaRepository unidadAcademicaRepository;
     private final UsuarioService usuarioService;
 
-    public CarreraServiceImpl(CarreraRepository carreraRepository, UsuarioService usuarioService) {
+    public CarreraServiceImpl(CarreraRepository carreraRepository, 
+                             UnidadAcademicaRepository unidadAcademicaRepository,
+                             UsuarioService usuarioService) {
         this.carreraRepository = carreraRepository;
+        this.unidadAcademicaRepository = unidadAcademicaRepository;
         this.usuarioService = usuarioService;
     }
     
@@ -128,5 +134,55 @@ public class CarreraServiceImpl implements CarreraService {
         return CarreraMapper.toDto(carrera);
     }
 
+    @Override
+    public CarreraDto createCarrera(CarreraDto carreraDto) {
+        Carrera carrera = CarreraMapper.toEntity(carreraDto);
+        carreraRepository.save(carrera);
+        return CarreraMapper.toDto(carrera);
+    }
+
+    @Override
+    public CarreraDto updateCarrera(CarreraDto carreraDto) {
+        // Buscar la carrera existente
+        Carrera carrera = carreraRepository.findById(carreraDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, 
+                    "Carrera no encontrada con ID: " + carreraDto.getId()
+                ));
+
+        // Actualizar los campos básicos
+        carrera.setCodigo(carreraDto.getCodigo());
+        carrera.setNombre(carreraDto.getNombre());
+        carrera.setDescripcion(carreraDto.getDescripcion());
+        carrera.setActivo(carreraDto.getActivo());
+
+        // Actualizar la unidad académica si se proporciona
+        if (carreraDto.getUnidadAcademicaId() != null) {
+            UnidadAcademica unidadAcademica = unidadAcademicaRepository.findById(carreraDto.getUnidadAcademicaId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, 
+                        "Unidad Académica no encontrada con ID: " + carreraDto.getUnidadAcademicaId()
+                    ));
+            carrera.setUnidadAcademica(unidadAcademica);
+        }
+
+        // Guardar los cambios
+        Carrera updatedCarrera = carreraRepository.save(carrera);
+        return CarreraMapper.toDto(updatedCarrera);
+    }
+
+    @Override
+    public void deleteCarrera(Integer id) {
+        // Buscar la carrera existente
+        Carrera carrera = carreraRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, 
+                    "Carrera no encontrada con ID: " + id
+                ));
+
+        // Soft delete - marcar como inactiva en lugar de eliminar físicamente
+        carrera.setActivo(false);
+        carreraRepository.save(carrera);
+    }
 
 }
