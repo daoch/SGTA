@@ -262,7 +262,7 @@ export default function AreasPage() {
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{area.nombre}</h4>
                         <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                          {area.subAreas.length} subárea{area.subAreas.length !== 1 ? 's' : ''}
+                          {area.subAreas.length} subárea{area.subAreas.length !== 1 ? "s" : ""}
                         </span>
                       </div>
                       {area.descripcion && (

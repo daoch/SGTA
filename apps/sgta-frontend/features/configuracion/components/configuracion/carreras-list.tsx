@@ -209,3 +209,5 @@ export const CarrerasList = forwardRef<CarrerasListRef>((props, ref) => {
     </div>
   );
 });
+
+CarrerasList.displayName = "CarrerasList";

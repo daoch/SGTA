@@ -65,7 +65,7 @@ export default function EditarCarreraPage({ params }: { params: Promise<{ id: st
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value
     }));
   };
 
