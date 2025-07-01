@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export interface Carrera {
     id: number;
@@ -7,6 +8,8 @@ export interface Carrera {
     descripcion: string;
     activo: boolean;
 }
+
+const { idToken } = useAuthStore.getState();
 
 export const carreraService = {
     getAll: async (): Promise<Carrera[]> => {
@@ -31,5 +34,14 @@ export const carreraService = {
 
     delete: async (id: number): Promise<void> => {
         await axiosInstance.post(`/carrera/delete/${id}`);
-    }
+    },
+
+    getCarreraDelCoordinador: async (): Promise<Carrera> => {
+        const response = await axiosInstance.get("/carrera/get-coordinador", {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+        });
+        return response.data;
+    },
 }; 
