@@ -13,7 +13,7 @@ export default function Configuracion() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
           <p className="text-gray-600">
             Configure los parámetros generales del sistema y las opciones de la
-            facultad.
+            carrera.
           </p>
         </div>
       </div>
