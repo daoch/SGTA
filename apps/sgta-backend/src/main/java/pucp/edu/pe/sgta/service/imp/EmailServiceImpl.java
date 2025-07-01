@@ -314,8 +314,23 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String construirHtmlNotificacionEstado(String nombreCompleto,String nombreDocumento, String nombreEntregable, String estado) {
-        String colorEstado = estado.equalsIgnoreCase("aprobado") ? "#28a745" : "#dc3545";
-        String textoEstado = estado.equalsIgnoreCase("aprobado") ? "APROBADO ✅" : "RECHAZADO ❌";
+        String colorEstado;
+        String textoEstado;
+
+        if (estado.equalsIgnoreCase("aprobado")) {
+            colorEstado = "#28a745";  // verde
+            textoEstado = "APROBADO ✅";
+        } else if (estado.equalsIgnoreCase("rechazado")) {
+            colorEstado = "#dc3545";  // rojo
+            textoEstado = "RECHAZADO ❌";
+        } else if (estado.equalsIgnoreCase("revisado")) {
+            colorEstado = "#ffc107";  // amarillo
+            textoEstado = "REVISADO 🔎";
+        } else {
+            // Valor por defecto si el estado no es reconocido
+            colorEstado = "#6c757d";  // gris
+            textoEstado = "ESTADO DESCONOCIDO";
+        }
 
         return String.format(
             "<!DOCTYPE html>" +
@@ -356,8 +371,23 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String construirHtmlNotificacionEstadoRevisor(String nombreCompleto,String nombreCompletoAlumno,String nombreDocumento, String nombreEntregable, String estado) {
-        String colorEstado = estado.equalsIgnoreCase("aprobado") ? "#28a745" : "#dc3545";
-        String textoEstado = estado.equalsIgnoreCase("aprobado") ? "APROBADO ✅" : "RECHAZADO ❌";
+        String colorEstado;
+        String textoEstado;
+
+        if (estado.equalsIgnoreCase("aprobado")) {
+            colorEstado = "#28a745";  // verde
+            textoEstado = "APROBADO ✅";
+        } else if (estado.equalsIgnoreCase("rechazado")) {
+            colorEstado = "#dc3545";  // rojo
+            textoEstado = "RECHAZADO ❌";
+        } else if (estado.equalsIgnoreCase("revisado")) {
+            colorEstado = "#ffc107";  // amarillo
+            textoEstado = "REVISADO 🔎";
+        } else {
+            // Valor por defecto si el estado no es reconocido
+            colorEstado = "#6c757d";  // gris
+            textoEstado = "ESTADO DESCONOCIDO";
+        }
 
         return String.format(
             "<!DOCTYPE html>" +
