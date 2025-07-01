@@ -4,7 +4,7 @@ import RevisionAsesorPage from "@/features/revision/views/revision-asesor-page";
 import React from "react";
 
 const Page: React.FC = () => {
-  return <RevisionAsesorPage />;
+  return RevisionAsesorPage();
 };
 
 export default Page;

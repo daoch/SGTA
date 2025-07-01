@@ -117,6 +117,7 @@ public class TemaServiceImpl implements TemaService {
 	private JdbcTemplate jdbcTemplate;
 
 	@Autowired private UsuarioXCarreraRepository usuarioXCarreraRepository; // Para validar permiso del coordinador
+	@Autowired private NotificacionService notificacionService;
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(SolicitudServiceImpl.class);
 
@@ -1190,6 +1191,7 @@ public class TemaServiceImpl implements TemaService {
 			String comentario) {
 
 		UsuarioDto usuDto = usuarioService.findByCognitoId(asesorId);
+		Tema aux  = temaRepository.findById(temaId).orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + temaId));;
 
 		entityManager
 				.createNativeQuery("SELECT postular_asesor_a_tema(:alumnoId, :asesorId, :temaId, :comentario)")
@@ -1198,6 +1200,8 @@ public class TemaServiceImpl implements TemaService {
 				.setParameter("temaId", temaId)
 				.setParameter("comentario", comentario)
 				.getSingleResult();
+
+		saveHistorialTemaChange(aux,aux.getTitulo(),aux.getResumen(),"El asesor " + usuDto.getNombres() + " postuló al tema");
 	}
 
 	@Transactional
@@ -1241,6 +1245,7 @@ public class TemaServiceImpl implements TemaService {
 			String apellidos = (String) fila[5];
 			Integer rolId = (Integer) fila[6];
 			String rolNombre = (String) fila[7];
+			String correo = (String) fila[8];
 
 			// Si el tema no ha sido creado aún en el mapa, se crea
 			TemaConAsesorJuradoDTO dto = mapaTemas.get(temaId);
@@ -1249,6 +1254,7 @@ public class TemaServiceImpl implements TemaService {
 				dto.setId(temaId);
 				dto.setCodigo(codigo);
 				dto.setTitulo(titulo);
+
 				dto.setUsuarios(new ArrayList<>());
 				List<AreaConocimientoDto> areas = areaConocimientoService.getAllByTemaId(temaId);
 				dto.setAreasConocimiento(areas);
@@ -1260,7 +1266,7 @@ public class TemaServiceImpl implements TemaService {
 			usuarioDto.setIdUsario(usuarioId);
 			usuarioDto.setNombres(nombres);
 			usuarioDto.setApellidos(apellidos);
-
+			usuarioDto.setCorreo(correo);
 			RolDto rolDto = new RolDto();
 			rolDto.setId(rolId);
 			rolDto.setNombre(rolNombre);
@@ -1762,7 +1768,15 @@ public class TemaServiceImpl implements TemaService {
 		dto.setResumen((String) result[2]);
 		dto.setMetodologia((String) result[3]);
 		dto.setObjetivos((String) result[4]);
-		java.sql.Date sqlDate = (java.sql.Date) result[5]; // fecha_limite
+		java.sql.Date sqlDate = (java.sql.Date) result[5]; // fecha_creacion
+		if (sqlDate != null) {
+			LocalDate localDate = sqlDate.toLocalDate();
+			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
+			dto.setFechaLimite(offsetDateTime);
+		} else {
+			dto.setFechaCreacion(null);
+		}
+		sqlDate = (java.sql.Date) result[6]; // fecha_limite
 		if (sqlDate != null) {
 			LocalDate localDate = sqlDate.toLocalDate();
 			OffsetDateTime offsetDateTime = localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
@@ -1770,8 +1784,8 @@ public class TemaServiceImpl implements TemaService {
 		} else {
 			dto.setFechaLimite(null);
 		}
-		dto.setRequisitos((String) result[6]);
-		dto.setEstadoTemaNombre((String) result[12]);
+		dto.setRequisitos((String) result[7]);
+		dto.setEstadoTemaNombre((String) result[13]);
 
 		// Asegurar listas no sean null
 		if (dto.getSubareas() == null) {
@@ -1788,10 +1802,10 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Asesor
-		Integer asesorId = (Integer) result[7];
+		Integer asesorId = (Integer) result[8];
 
 		// Subareas
-		Integer[] subareaArray = (Integer[]) result[8];
+		Integer[] subareaArray = (Integer[]) result[9];
 		if (subareaArray != null) {
 			for (Integer subareaId : subareaArray) {
 				// SubAreaConocimientoDto subarea = new SubAreaConocimientoDto();
@@ -1801,7 +1815,7 @@ public class TemaServiceImpl implements TemaService {
 		}
 
 		// Coasesores
-		Integer[] coasesoresArray = (Integer[]) result[9];
+		Integer[] coasesoresArray = (Integer[]) result[10];
 
 		// Lista final coasesores con asesor primero
 		if (asesorId != null) {
@@ -1816,14 +1830,14 @@ public class TemaServiceImpl implements TemaService {
 				dto.getCoasesores().add(coasesorDto);
 			}
 		}
-		Integer carreraId = (Integer) result[10];
+		Integer carreraId = (Integer) result[11];
 		if (carreraId != null) {
 			CarreraDto carreraDTO = carreraServiceImpl.findById(carreraId);
 			dto.setCarrera(carreraDTO);
 		}
 
 		// Tesistas
-		Integer[] tesistasArray = (Integer[]) result[11];
+		Integer[] tesistasArray = (Integer[]) result[12];
 		if (tesistasArray != null) {
 			for (Integer tesistaId : tesistasArray) {
 				UsuarioDto tesistaDto = usuarioService.findUsuarioById(tesistaId);
@@ -3698,26 +3712,26 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
             usAsesorNuevo.setFechaModificacion(OffsetDateTime.now());
             usuarioXSolicitudRepository.save(usAsesorNuevo);
 		
-		// // Enviar notificación al nuevo asesor propuesto
-		// String mensajeNotificacion = String.format(
-		// 		"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
-		// 		nuevoAsesorPropuesto.getNombres(),
-		// 		nuevoAsesorPropuesto.getPrimerApellido(),
-		// 		temaAfectado.getTitulo()
-		// );
+		// Enviar notificación al nuevo asesor propuesto
+		String mensajeNotificacion = String.format(
+				"Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Propuestas de Asesoría' en el sistema.",
+				nuevoAsesorPropuesto.getNombres(),
+				nuevoAsesorPropuesto.getPrimerApellido(),
+				temaAfectado.getTitulo()
+		);
 
-		// // Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
-		// String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
-		// notificacionService.crearNotificacionParaUsuario(
-		// 		nuevoAsesorPropuestoId,
-		// 		SgtaConstants.MODULO_ASESORIA_TEMA, // O un módulo específico para "Propuestas de Asesoría"
-		// 		SgtaConstants.TIPO_NOTIF_INFORMATIVA, // O un tipo específico "NuevaPropuestaAsesoria"
-		// 		mensajeNotificacion,
-		// 		"SISTEMA",
-		// 		enlace
-		// );
+		// Asume que tienes nombres de módulo y tipo de notificación adecuados en SgtaConstants o BD
+		String enlace = "/asesor/propuestas-asesoria"; // Enlace ejemplo a la página del asesor
+		notificacionService.crearNotificacionParaUsuario(
+				nuevoAsesorPropuestoId,
+				"Asesores", // O un módulo específico para "Propuestas de Asesoría"
+				"informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+				mensajeNotificacion,
+				"SISTEMA",
+				enlace
+		);
 
-		// log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
+		log.info("Notificación de propuesta enviada al asesor ID: {}", nuevoAsesorPropuestoId);
 	}
 
 	private void validarPermisoCoordinadorSobreSolicitud(Usuario coordinador, Solicitud solicitud) {

@@ -52,7 +52,10 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/alumno/temas/catalogo-de-temas",
           icon: FolderOpen,
         },
-        { name: "Temas", href: "/alumno/temas", icon: FileText },
+        { name: "Temas", 
+          href: "/alumno/temas/temas", 
+          icon: FileText
+        },
         {
           name: "Postulaciones de asesores",
           href: "/alumno/temas/postulaciones-de-asesores",
@@ -137,12 +140,12 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         {
           name: "Directorio de asesores",
           href: "/asesor/asesores/directorio-de-asesores",
-          icon: CalendarIcon,
+          icon: Users,
         },
         {
           name: "Cese de asesoria",
           href: "/asesor/asesores/cese-de-asesoria",
-          icon: CalendarIcon,
+          icon: UserX2,
         },
         {
           name: "Cese de tema",
@@ -187,7 +190,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         {
           name: "Directorio de asesores",
           href: "/coordinador/asesores/directorio-de-asesores",
-          icon: CalendarIcon,
+          icon: Users,
         },
         {
           name: "Cese de tema",
@@ -205,7 +208,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           icon: RefreshCcw,
         },
         {
-          name: "Areas tematicas",
+          name: "Areas temáticas",
           href: "/coordinador/asesores/areas-tematicas",
           icon: BookOpenText,
         },

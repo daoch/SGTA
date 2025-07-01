@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.AsignacionBloqueDTO;
+import pucp.edu.pe.sgta.dto.BloquesNextPhaseRequest;
 import pucp.edu.pe.sgta.dto.DistribucionRequestDTO;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
@@ -54,10 +55,12 @@ public class BloqueHorarioExposicionController {
     }
 
     @PatchMapping ("/updateBloquesListNextPhase")
-    public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody List<ListBloqueHorarioExposicionSimpleDTO> bloquesList) {
+    public ResponseEntity<ResponseMessage> updateBloquesNextPhase(@RequestBody BloquesNextPhaseRequest request) {
         try {
-
-            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList);
+            List<ListBloqueHorarioExposicionSimpleDTO> bloquesList = request.getBloquesList();
+            Integer exposicion = request.getExposicion();
+            Integer origen = request.getOrigen();
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion,origen);
 
             if (updateSuccessful) {
 
@@ -114,6 +117,7 @@ public class BloqueHorarioExposicionController {
 
             boolean updateSuccessful = bloqueHorarioExposicionService.finishPlanning(idExposicion);
 
+
             if (updateSuccessful) {
 
                 return ResponseEntity.ok(new ResponseMessage(true, "Planificacion terminada"));
@@ -153,5 +157,10 @@ public class BloqueHorarioExposicionController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseMessage(false, "No se pudo bloquear el bloque"));
         }
+    }
+
+    @PostMapping("/crear-eventos-calendar/{idExposicion}")
+    public void crearReunionesZoom(@PathVariable("idExposicion") Integer idExposicion) {
+        bloqueHorarioExposicionService.crearReunionesZoom(idExposicion);
     }
 }

@@ -1,14 +1,29 @@
 package pucp.edu.pe.sgta.controller;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
+
+import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @RestController
@@ -133,7 +148,7 @@ public class S3FileController {
         // al final del nombre del archivo original 
         // Ejemplo: si el archivo original es "documento.pdf", el archivo de IA sería
         // "documento_ia.json"
-
+        
         String jsonKey = key.replaceAll("\\.[^.]+$", "_ia.json");
 
         byte[] data  = downloadService.download(jsonKey);
@@ -142,7 +157,67 @@ public class S3FileController {
                 .body("Archivo de plagio no encontrado o vacío.");
         }
         String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        
         return ResponseEntity.ok(json);
+    }
+    @GetMapping("/get-reporte-similitud/{revisionId}")
+    public ResponseEntity<byte[]> getReporteSimilitud(@PathVariable Integer revisionId) {
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElse(null);
 
+        if (revision == null || revision.getLinkArchivoRevision() == null) {
+            return ResponseEntity.ok("no existe".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        String key = revision.getLinkArchivoRevision();
+        String jsonKey = key.replaceAll("\\.[^.]+$", ".json");
+
+        byte[] data  = downloadService.download(jsonKey);
+        if (data == null || data.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Archivo de plagio no encontrado o vacío.".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        // 1. Convertir el JSON a un objeto Java (puedes personalizar el mapeo según tu estructura)
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode rootNode = mapper.readTree(json);
+            /* ------------------------------------------------------------------
+            * 2. Preparar el modelo para la plantilla
+            * (solo pasamos los nodos que la plantilla espera: result + sources)
+            * ------------------------------------------------------------------ */
+            Map<String, Object> model = new HashMap<>();
+            model.put("result",  mapper.convertValue(rootNode.path("result"),  Map.class));
+            model.put("sources", mapper.convertValue(rootNode.path("sources"), List.class));
+            // 2. Generar HTML usando FreeMarker
+            Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
+            cfg.setClassForTemplateLoading(this.getClass(), "/templates");
+            cfg.setDefaultEncoding("UTF-8");
+
+            Template tpl = cfg.getTemplate("reporte.ftl");   // el template que generamos antes
+
+            StringWriter htmlWriter = new StringWriter();
+            tpl.process(model, htmlWriter);
+            String html = htmlWriter.toString();
+
+            ByteArrayOutputStream pdf = new ByteArrayOutputStream();
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.withHtmlContent(html, null);        // baseURI = null si no hay imágenes locales
+            builder.toStream(pdf);
+            builder.run();
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=reporte_similitud_" + revisionId + ".pdf")
+                    .body(pdf.toByteArray());
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(("Error al procesar el JSON: " + e.getMessage()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(("Error al generar el reporte: " + e.getMessage())
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 }

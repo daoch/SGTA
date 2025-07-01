@@ -48,6 +48,14 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
 
     Integer countByEtapaFormativaXCicloIdAndActivoTrue(Integer etapaFormativaXCicloId);
 
+    @Query(value = "SELECT * FROM obtener_datos_exposicion(:expoId)", nativeQuery = true)
+    List<Object[]> obtener_datos_exposicion(
+            @Param("expoId") Integer expoId);
+
+    @Query(value = "SELECT * FROM obtener_link_exposicion_tema_x_bloque_id(:idBloque)", nativeQuery = true)
+    List<Object[]> obtener_link_exposicion_tema_x_bloque_id(
+            @Param("idBloque") Integer idBloque);
+
     @Query(value = "SELECT * FROM get_exposiciones_coordinador(:usuarioId)", nativeQuery = true)
     List<Object[]> getExposicionesPorCoordinador(@Param("usuarioId") Integer usuarioId);
 
@@ -55,5 +63,6 @@ public interface ExposicionRepository extends JpaRepository<Exposicion, Integer>
     List<Object[]> getMiembrosPorTema(@Param("temaId") Integer temaId);
 
     @Query(value = "SELECT asociar_temas_a_exposicion(:exposicionId, :etapaFormativaXCicloId)", nativeQuery = true)
-    void asociarTemasAExposicion(@Param("exposicionId") Integer exposicionId, @Param("etapaFormativaXCicloId") Integer etapaFormativaXCicloId);
+    void asociarTemasAExposicion(@Param("exposicionId") Integer exposicionId,
+            @Param("etapaFormativaXCicloId") Integer etapaFormativaXCicloId);
 }
