@@ -15,7 +15,6 @@ import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
 import { crearCalendar, listarEstadoPlanificacionPorExposicion } from "../../services/data";
 import {
   finishPlanning,
-  reunionesZoom,
   updateBloquesNextPhase
 } from "../../services/planificacion-service";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
@@ -287,7 +286,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
-        await reunionesZoom(exposicionId);
+        //await reunionesZoom(exposicionId);
         await crearCalendar(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);

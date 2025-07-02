@@ -341,7 +341,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             """.formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
                          try{
 
-                                 googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
+                                 //googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
                                  System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
                                  System.out.println("Correo enviado correctamente.");
 
@@ -474,7 +474,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                 }
 
                 try{
-                    googleCalendarService.sendEvent(summary,description,attendes,start,end, sala,calendar);
+                    //googleCalendarService.sendEvent(summary,description,attendes,start,end, sala,calendar);
                     attendes.clear();
                 }catch (Exception e){
                     e.printStackTrace();
