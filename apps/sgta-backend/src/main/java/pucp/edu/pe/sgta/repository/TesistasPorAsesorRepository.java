@@ -17,7 +17,8 @@ public interface TesistasPorAsesorRepository extends JpaRepository<Usuario, Inte
            "CAST(t.entregable_actual_fecha_inicio AS timestamp), " +
            "CAST(t.entregable_actual_fecha_fin AS timestamp), " +
            "t.entregable_actual_estado, t.entregable_envio_estado, " +
-           "CAST(t.entregable_envio_fecha AS timestamp) " +
+           "CAST(t.entregable_envio_fecha AS timestamp), " +
+           "t.porcentaje_entregables_enviados " +
            "FROM listar_tesistas_por_asesor(:asesorId) t", nativeQuery = true)
     List<Object[]> getTesistasPorAsesor(@Param("asesorId") Integer asesorId);
 } 
