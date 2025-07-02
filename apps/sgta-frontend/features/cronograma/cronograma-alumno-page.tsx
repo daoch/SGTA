@@ -25,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { es } from "date-fns/locale";
-import { useAuth } from "@/features/auth";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import {
@@ -174,7 +173,7 @@ const MiCronogramaPage = () => {
     ...event,
     color: getColorByTipoEvento(event.tipoEvento),
     type: event.tipoEvento,
-    tesista: "X",
+    tesista: "Tesista",
   }));
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -481,6 +480,7 @@ const MiCronogramaPage = () => {
         <Calendar
           events={eventosParaCalendario}
           numTesistas={1}
+          tesistasUnicos={["Tesista"]}
           tipoUsuario="Alumno"
         >
           <div className="h-full flex flex-col">

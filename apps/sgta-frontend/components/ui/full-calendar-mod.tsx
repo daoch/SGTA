@@ -91,6 +91,7 @@ type ContextType = {
   enableHotkeys?: boolean;
   today: Date;
   numTesistas: number; // <-- Nuevo
+  tesistasUnicos?: string[];
 };
 
 const Context = createContext<ContextType>({} as ContextType);
@@ -117,6 +118,7 @@ type CalendarProps = {
   onChangeView?: (view: View) => void;
   onEventClick?: (event: CalendarEvent) => void;
   numTesistas?: number; // <-- Nuevo
+  tesistasUnicos?: string[]; 
   tipoUsuario: string;
 };  
 
@@ -130,6 +132,7 @@ const Calendar = ({
   events: defaultEvents = [],
   onChangeView,
   numTesistas = 1,
+  tesistasUnicos = [], // ✅ Añadir esta línea
 }: CalendarProps) => {
   const [view, setView] = useState<View>(_defaultMode);
   const [date, setDate] = useState(defaultDate);
@@ -175,6 +178,7 @@ const Calendar = ({
         onChangeView,
         today: new Date(),
         numTesistas,
+        tesistasUnicos,
       }}
     >
       {children}
@@ -221,7 +225,7 @@ const EventGroup = ({
   tipoVista: string;
   tipoUsuario: string;
 }) => {
-  const { numTesistas } = useContext(Context);
+  const { numTesistas, view } = useContext(Context);
 
   const [isReunionModalOpen, setIsReunionModalOpen] = useState(false);
   const [eventoSeleccionado, setEventoSeleccionado] = useState<CalendarEvent | null>(null);
@@ -239,6 +243,7 @@ const EventGroup = ({
     }
   };
 
+  /*
   const tesistasOrdenados = useMemo(() => {
     const setTesistas = new Set<string>();
     events.forEach((e) => {
@@ -246,6 +251,18 @@ const EventGroup = ({
     });
     return Array.from(setTesistas).sort();
   }, [events]);
+  */
+
+  const { tesistasUnicos } = useContext(Context);
+
+  const tesistasOrdenados = useMemo(() => {
+    return tesistasUnicos ?? [];
+  }, [tesistasUnicos]);
+
+  // Vista mensual no necesita columnas por tesista
+  if (view === "month") {
+    return null;
+  }
 
   return (
     <div
@@ -315,7 +332,7 @@ const EventGroup = ({
                       </p>
                     )}
 
-                  {event.tesista !== "X" && (
+                  {event.tesista !== "Tesista" && (
                     <p className="text-xs opacity-80 truncate cursor-inherit">
                       Tsta.: {event.tesista}
                     </p>
@@ -354,6 +371,7 @@ const EventGroup = ({
     </div>
   );
 };
+
 
 
 
