@@ -20,4 +20,10 @@ public interface CarreraService {
 
     CarreraDto getCarreraCoordinadaPorUsuario(Integer usuarioId);
 
+    CarreraDto createCarrera(CarreraDto carreraDto);
+
+    CarreraDto updateCarrera(CarreraDto carreraDto);
+
+    void deleteCarrera(Integer id);
+
 }

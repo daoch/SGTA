@@ -262,6 +262,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           id: entregable.entregableId.toString(),
           name: entregable.entregableNombre,
           date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "dd-MM-yyyy") : "Sin fecha",
+          fechaLimite: entregable.fechaFin ? format(parseISO(entregable.fechaFin), "dd-MM-yyyy") : "Sin fecha límite",
           criteria,
           expositionGrade: 0, // No tenemos datos de exposición en la API actual
           finalGrade: entregable.notaGlobal || 0

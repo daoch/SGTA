@@ -1,9 +1,14 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
+import pucp.edu.pe.sgta.dto.PageResponseDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaXCicloMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
@@ -198,6 +203,58 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             etapas.add(etapa);
         }
         return etapas;
+    }
+
+    @Override
+    public PageResponseDto<EtapaFormativaXCicloDto> getAllByCarreraIdPaginated(String idCognito, EtapaFormativaXCicloPageRequestDto request) {
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            
+            Carrera carrera = new Carrera();
+            carrera.setId((Integer) result[0]);
+            carrera.setNombre((String) result[1]);
+            Integer carreraId = carrera.getId();
+
+            // Crear Pageable sin ordenamiento (el ordenamiento se maneja en la query nativa)
+            Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+
+            // Obtener datos paginados con filtros
+            Page<EtapaFormativaXCiclo> etapaFormativaXCicloPage = etapaFormativaXCicloRepository
+                .findAllByCarreraIdWithFilters(carreraId, request.getEstado(), request.getSearch(), 
+                    request.getAnio(), request.getSemestre(), pageable);
+
+            // Mapear a DTOs
+            List<EtapaFormativaXCicloDto> dtos = etapaFormativaXCicloPage.getContent().stream()
+                .map(etapaFormativaXCiclo -> {
+                    EtapaFormativaXCicloDto dto = mapToDto(etapaFormativaXCiclo);
+                    // Obtener la información de la etapa formativa
+                    EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
+                        .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
+                    dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
+                    dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
+                    dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
+                    dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+            // Construir respuesta paginada
+            return PageResponseDto.<EtapaFormativaXCicloDto>builder()
+                .content(dtos)
+                .page(etapaFormativaXCicloPage.getNumber())
+                .size(etapaFormativaXCicloPage.getSize())
+                .totalElements(etapaFormativaXCicloPage.getTotalElements())
+                .totalPages(etapaFormativaXCicloPage.getTotalPages())
+                .hasNext(etapaFormativaXCicloPage.hasNext())
+                .hasPrevious(etapaFormativaXCicloPage.hasPrevious())
+                .build();
+        } else {
+            throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+        }
     }
 
 }

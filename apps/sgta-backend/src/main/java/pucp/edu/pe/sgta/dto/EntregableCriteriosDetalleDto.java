@@ -15,6 +15,7 @@ public class EntregableCriteriosDetalleDto {
     private Integer entregableId;
     private String entregableNombre;
     private OffsetDateTime fechaEnvio;
+    private OffsetDateTime fechaFin;
     private Double notaGlobal;
     private String estadoEntrega;
     private List<CriterioEntregableDetalleDto> criterios;

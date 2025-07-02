@@ -1,33 +1,60 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { carreraService, Carrera } from "@/features/configuracion/services/carrera-service";
+import { unidadAcademicaService, UnidadAcademica } from "@/features/configuracion/services/carrera-service";
 
-// Datos de ejemplo
-const carrera = {
-  id: 1,
-  codigo: "INF",
-  nombre: "Ingeniería Informática",
-  descripcion: "Carrera de software y sistemas",
-  facultad: "Facultad de Ciencias e Ingeniería",
-  etapasFormativas: 2,
-  estado: "Activo",
-  etapasFormativasActuales: [
-    {
-      id: 1,
-      nombre: "Proyecto de Tesis 1",
-      creditos: 4.0,
-    },
-    {
-      id: 2,
-      nombre: "Proyecto de Tesis 2",
-      creditos: 4.0,
-    },
-  ],
-};
+export default function DetalleCarreraPage({ params }: { params: Promise<{ id: string }> }) {
+  const [carrera, setCarrera] = useState<Carrera | null>(null);
+  const [unidadAcademica, setUnidadAcademica] = useState<UnidadAcademica | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }>}) {
+  useEffect(() => {
+    const loadCarrera = async () => {
+      try {
+        setLoading(true);
+        const resolvedParams = await params;
+        const carreraId = parseInt(resolvedParams.id);
+        
+        const carreraData = await carreraService.getById(carreraId);
+        setCarrera(carreraData);
+        
+        if (carreraData.unidadAcademicaId) {
+          const unidades = await unidadAcademicaService.getAll();
+          const unidad = unidades.find(u => u.id === carreraData.unidadAcademicaId);
+          setUnidadAcademica(unidad || null);
+        }
+      } catch (error) {
+        console.error("Error al cargar la carrera:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCarrera();
+  }, [params]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <p className="text-gray-500">Cargando carrera...</p>
+      </div>
+    );
+  }
+
+  if (!carrera) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <p className="text-gray-500">Carrera no encontrada</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -43,7 +70,9 @@ export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <CardTitle>{carrera.nombre}</CardTitle>
-            <Badge variant={carrera.estado === "Activo" ? "default" : "secondary"}>{carrera.estado}</Badge>
+            <Badge variant={carrera.activo ? "default" : "secondary"}>
+              {carrera.activo ? "Activo" : "Inactivo"}
+            </Badge>
           </div>
           <Link href={`/administrador/configuracion/carreras/${carrera.id}/editar`}>
             <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -59,36 +88,14 @@ export default function DetalleCarreraPage({ }: { params: Promise<{ id: string }
               <p>{carrera.codigo}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Facultad</h3>
-              <p>{carrera.facultad}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Unidad Académica</h3>
+              <p>{unidadAcademica?.nombre || "No asignada"}</p>
             </div>
           </div>
 
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-1">Descripción</h3>
-            <p className="text-gray-600">{carrera.descripcion}</p>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Etapas Formativas Actuales</h3>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left">
-                    <th className="pb-2 text-sm font-medium text-gray-500">Nombre</th>
-                    <th className="pb-2 text-sm font-medium text-gray-500">Créditos</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {carrera.etapasFormativasActuales.map((etapa) => (
-                    <tr key={etapa.id}>
-                      <td className="py-2 text-sm">{etapa.nombre}</td>
-                      <td className="py-2 text-sm">{etapa.creditos}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <p className="text-gray-600">{carrera.descripcion || "Sin descripción"}</p>
           </div>
         </CardContent>
       </Card>

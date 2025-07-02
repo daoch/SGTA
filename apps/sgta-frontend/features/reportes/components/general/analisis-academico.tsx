@@ -93,6 +93,7 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
       name: deliverable.name,
       entregableNumber: index + 1,
       date: deliverable.date,
+      fechaLimite: deliverable.fechaLimite || "Sin fecha límite",
       notaFinal: deliverable.finalGrade,
       notaExposicion: deliverable.expositionGrade,
       stage: deliverable.stageName,
@@ -109,9 +110,42 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
 
     const average = Math.round(chartData.reduce((sum, item) => sum + item.notaFinal, 0) / chartData.length);
 
-    const lastGrade = chartData[chartData.length - 1]?.notaFinal || 0;
-    const lastDeliverable = chartData[chartData.length - 1]?.name || "";
-    const firstGrade = chartData[0]?.notaFinal || 0;
+    // Ordenar entregables por fecha límite (más reciente primero) y filtrar solo los que no son futuros
+    const currentDate = new Date();
+    const sortedDeliverables = chartData
+      .filter(item => {
+        // Verificar si la fecha límite es válida y no es futura
+        if (!item.fechaLimite || item.fechaLimite === "Sin fecha límite") return false;
+        
+        try {
+          // Asumir formato dd-MM-yyyy basado en el código de transformación
+          const [day, month, year] = item.fechaLimite.split("-");
+          const deliverableDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          return deliverableDate <= currentDate;
+        } catch (error) {
+          // Si hay error al parsear la fecha, excluir el elemento
+          return false;
+        }
+      })
+      .sort((a, b) => {
+        try {
+          const [dayA, monthA, yearA] = a.fechaLimite.split("-");
+          const [dayB, monthB, yearB] = b.fechaLimite.split("-");
+          const dateA = new Date(parseInt(yearA), parseInt(monthA) - 1, parseInt(dayA));
+          const dateB = new Date(parseInt(yearB), parseInt(monthB) - 1, parseInt(dayB));
+          return dateB.getTime() - dateA.getTime(); // Orden descendente (más reciente primero)
+        } catch (error) {
+          return 0;
+        }
+      });
+
+    // Obtener el entregable más reciente por fecha límite
+    const mostRecentDeliverable = sortedDeliverables[0];
+    const lastGrade = mostRecentDeliverable?.notaFinal || 0;
+    const lastDeliverable = mostRecentDeliverable?.name || "";
+
+    // Para calcular la tendencia, usar el primer y último entregable del array original ordenado por fecha límite
+    const firstGrade = sortedDeliverables[sortedDeliverables.length - 1]?.notaFinal || lastGrade;
 
     let trend = "stable";
     if (lastGrade > firstGrade + 1) trend = "improving";
@@ -214,6 +248,8 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                     return (
                       <div className="bg-white p-3 border rounded-lg shadow-lg">
                         <p className="font-medium">{data.name}</p>
+                        <p className="text-sm text-gray-500">Fecha de entrega: {data.date}</p>
+                        <p className="text-sm text-gray-500">Fecha límite: {data.fechaLimite}</p>
                         <p className="text-sm text-gray-600">{data.stage}</p>
                         <div className="mt-2 space-y-1">
                           <p className="text-sm">
@@ -266,9 +302,13 @@ export function AnalisisAcademico({ studentData, gradesData }: AcademicAnalysisP
                     stroke: "#2563eb",
                     strokeWidth: 2,
                     onClick: (event: React.MouseEvent<SVGElement, MouseEvent>) => {
-                        const target = event.target as SVGElement & { index?: number };
-                        if (typeof target.index === "number") {
-                            setSelectedDeliverableIndex(target.index);
+                        try {
+                            const target = event.target as SVGElement & { index?: number };
+                            if (target && typeof target.index === "number" && target.index >= 0 && target.index < chartData.length) {
+                                setSelectedDeliverableIndex(target.index);
+                            }
+                        } catch (error) {
+                            console.warn("Error al seleccionar entregable:", error);
                         }
                     },
                 }}
