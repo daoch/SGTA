@@ -942,11 +942,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados.
      * REFACTORIZADO: Ahora filtra los profesores para mostrar solo aquellos
-     * que pertenecen a la misma Unidad Académica que el usuario que realiza la consulta.
-     * 
+     * que pertenecen a la misma CARRERA que el usuario que realiza la consulta.
+     *
      * @param rolNombre       Nombre del rol para filtrar (e.g., "Asesor", "Todos").
      * @param terminoBusqueda Término para buscar en nombre, correo o código.
-     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su unidad académica.
+     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su carrera.
      * @return Lista de profesores filtrados.
      */
     @Override
@@ -954,7 +954,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito) {
         // 1. Validar que idCognito no sea nulo o vacío
         if (idCognito == null || idCognito.trim().isEmpty()) {
-            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por unidad académica.");
+            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por carrera.");
         }
 
         StringBuilder sql = new StringBuilder();
@@ -967,7 +967,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                 u.correo_electronico,
                 u.codigo_pucp,
                 string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                -- >>> CAMBIO: Conteo separado para roles de Asesor/Co-Asesor y Jurado
                 COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_asesor_count,
                 COUNT(DISTINCT CASE WHEN ut.rol_id = 2 THEN ut.tema_id END) AS tesis_jurado_count,
                 tu.tipo_usuario_id,
@@ -976,9 +975,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuario u
             JOIN
                 tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            -- >>> CAMBIO: JOIN para acceder a la carrera y unidad académica del profesor
             JOIN
                 usuario_carrera uc ON u.usuario_id = uc.usuario_id AND uc.activo = true
+            -- >>> CAMBIO: La tabla 'carrera' se une para el filtro, aunque podría omitirse si no se usa en otro lado.
             JOIN
                 carrera c ON uc.carrera_id = c.carrera_id
             LEFT JOIN
@@ -990,12 +989,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             WHERE
                 u.activo = true
                 AND LOWER(tu.nombre) = 'profesor'
-                -- >>> CAMBIO: Filtro por unidad académica del solicitante
-                AND c.unidad_academica_id = (
-                    SELECT c_solicitante.unidad_academica_id
+                -- >>> CAMBIO CLAVE: Filtro por CARRERA del solicitante en lugar de Unidad Académica.
+                AND uc.carrera_id = (
+                    SELECT uc_solicitante.carrera_id
                     FROM usuario u_solicitante
                     JOIN usuario_carrera uc_solicitante ON u_solicitante.usuario_id = uc_solicitante.usuario_id
-                    JOIN carrera c_solicitante ON uc_solicitante.carrera_id = c_solicitante.carrera_id
                     WHERE u_solicitante.id_cognito = :idCognito
                     LIMIT 1
                 )
@@ -1032,7 +1030,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         sql.append("""
             GROUP BY
-                u.usuario_id, c.unidad_academica_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                -- >>> CAMBIO: Agrupamos por uc.carrera_id para consistencia con el filtro.
+                u.usuario_id, uc.carrera_id, u.nombres, u.primer_apellido, u.segundo_apellido,
                 u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
             ORDER BY
                 u.primer_apellido, u.segundo_apellido, u.nombres
@@ -1055,7 +1054,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
             .map(row -> {
-                // >>> CAMBIO: Los índices se desplazan por la nueva columna en el SELECT
                 TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
                         .id((Integer) row[9])
                         .nombre((String) row[10])
@@ -1073,7 +1071,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                         .activo(true)
                         .build();
 
-                // >>> CAMBIO: Mapear a los nuevos campos del DTO
                 return UsuarioConRolDto.builder()
                         .usuario(usuarioBase)
                         .rolesConcat((String) row[6])
