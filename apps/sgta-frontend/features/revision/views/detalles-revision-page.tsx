@@ -16,6 +16,7 @@ import { Observacion, ObservacionesList } from "../components/observaciones-list
 import { RubricaEvaluacion } from "../components/RubricaEvluacion";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 import { getRevisionById, getStudentsByRevisor, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 function mapTipoObservacion(nombre?: string): Observacion["tipo"] {
   const lower = nombre?.toLowerCase().trim() ?? "";
@@ -40,7 +41,7 @@ interface IHighlightConCorregido extends IHighlight {
   resuelto?: boolean;
 }
 
-export default function RevisionDetailPage({ params }: { params: { id: string } }) {
+export default function RevisionDetailPage({ params }: { params: { id: string; rol_id?: number } }) {
   const router = useRouter();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
@@ -116,17 +117,28 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
   }, [params.id]);
 
   async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-    try {
-      const response = await axiosInstance.put(`/revision/${revisionId}/estado`, {
-        estado: nuevoEstado
-      });
-      return response.data; // o response.status si solo te importa el status
+      try {
+        const { idToken } = useAuthStore.getState();  // Obtener el token de autenticación
+        if (!idToken) {
+            throw new Error("No authentication token available");
+        }
+
+        const response = await axiosInstance.put(
+            `/revision/${revisionId}/todoestado`, 
+            { estado: nuevoEstado },
+            {
+                headers: {
+                    Authorization: `Bearer ${idToken}`,  // Agregar el token de autenticación
+                },
+            }
+        );
+        return response.data; // o response.status si solo te importa el status
     } catch (error) {
-      console.error("Error en la actualización:", error);
-      throw error;
+        console.error("Error en la actualización:", error);
+        throw error;
     }
   }
-
+  const rolId = params.rol_id ?? 0; // Asignar rolId desde los parámetros
   useEffect(() => {
     const fetchObservaciones = async () => {
       try {
@@ -419,28 +431,58 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               )}
 
               <div className="pt-4">
-                {estado === "por_aprobar" && (
+                {/* Si el rolId es 2 */}
+                
+                {rolId === 2 && (
                   <div className="flex flex-col gap-2">
-                    <Link href={`../revisar-doc/${revision.id}`}>
-                      <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
-                        Continuar Revisión
+                    {/* Si el estado es "por_aprobar" o "aprobado" */}
+                    {estado === "por_aprobar" || estado === "aprobado" ? (
+                      <>
+                        <Link href={`../revisar-doc/${revision.id}`}>
+                          <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
+                            Continuar Revisión
+                          </Button>
+                        </Link>
+                        <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+                          Calificar Entregable
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Si el rolId no es 2 */}
+                {rolId !== 2 && (
+                  <div className="flex flex-col gap-2">
+                    {/* Si el estado es "por_aprobar" */}
+                    {estado === "por_aprobar" && (
+                      <>
+                        <Link href={`../revisar-doc/${revision.id}`}>
+                          <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
+                            Continuar Revisión
+                          </Button>
+                        </Link>
+                        <Button
+                          className="w-full bg-[#042354] hover:bg-pucp-light"
+                          onClick={() => setShowConfirmDialog("aprobar")}
+                        >
+                          Aprobar Entregable
+                        </Button>
+                        <Button
+                          className="w-full bg-[#EB3156] hover:bg-pucp-light"
+                          onClick={() => setShowConfirmDialog("rechazar")}
+                        >
+                          Rechazar Entregable
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Si el estado es "aprobado" */}
+                    {estado === "aprobado" && (
+                      <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+                        Calificar Entregable
                       </Button>
-                    </Link>
-                    <Button
-                      className="w-full bg-[#042354] hover:bg-pucp-light"
-                      onClick={() => setShowConfirmDialog("aprobar")}
-                    >
-                      Aprobar Entregable
-                    </Button>
-                    <Button
-                      className="w-full bg-[#EB3156] hover:bg-pucp-light"
-                      onClick={() => setShowConfirmDialog("rechazar")}
-                    >
-                      Rechazar Entregable
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
-                      Calificar Entregable
-                    </Button> 
+                    )}
                   </div>
                 )}
               </div>

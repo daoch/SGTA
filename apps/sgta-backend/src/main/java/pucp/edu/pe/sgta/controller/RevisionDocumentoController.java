@@ -171,4 +171,20 @@ public class RevisionDocumentoController {
         System.out.println("JuradoId extraído del token: " + juradoId);
         return revisionDocumentoService.listarRevisionDocumentosPorJurado(juradoId);
     }
+    @PutMapping("/{id}/todoestado")
+    public ResponseEntity<?> actualizarEstadoTodos(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        try {
+            // Extraer el estado que llega como String del cuerpo de la solicitud
+            String nuevoEstado = payload.get("estado");
+            
+            // Llamar al servicio para actualizar el estado de todas las revisiones
+            revisionDocumentoService.actualizarEstadoTodosRevisiones(id, nuevoEstado);
+
+            return ResponseEntity.ok("Estado actualizado");
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error actualizando estado");
+        }
+    }
 }

@@ -488,4 +488,12 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         }
         return documentos;
     }
+    @Override
+    @Transactional
+    public void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando todas las revisiones relacionadas al entregable_x_tema con ID: " + revisionId + " al estado: " + nuevoEstado);
+
+        // Llamas al repositorio con la nueva consulta que actualiza todas las revisiones
+        revisionDocumentoRepository.actualizarEstadoTodosRevisiones(revisionId, nuevoEstado);
+    }
 }
