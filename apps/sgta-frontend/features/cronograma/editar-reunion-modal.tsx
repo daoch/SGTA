@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { VariantProps, cva } from "class-variance-authority";
+import { AxiosResponse } from "axios";
 
 export interface ReunionFormData {
   titulo: string;
@@ -156,7 +157,27 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
   
       try {
         // Obtener el id de la relación usuario-reunión
+        /*
         let responseUsuarioReunion: any;
+
+        if (emisor === "Alumno") {
+          responseUsuarioReunion = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/alumno", {
+            params: { reunionId },
+          });
+        } else if (emisor === "Asesor") {
+          responseUsuarioReunion = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/asesor", {
+            params: { reunionId, usuarioId: tesistaId },
+          });
+        } else {
+          throw new Error("Tipo de emisor no reconocido");
+        }
+          */
+
+        interface UsuarioReunionResponse {
+          id: number;
+        }
+
+        let responseUsuarioReunion: AxiosResponse<UsuarioReunionResponse>;
 
         if (emisor === "Alumno") {
           responseUsuarioReunion = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/alumno", {
@@ -368,7 +389,27 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
 
   
       // Obtener el id de la relación usuario-reunión
+      /*
         let response: any;
+
+        if (emisor === "Alumno") {
+          response = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/alumno", {
+            params: { reunionId },
+          });
+        } else if (emisor === "Asesor") {
+          response = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/asesor", {
+            params: { reunionId, usuarioId: tesistaId },
+          });
+        } else {
+          throw new Error("Tipo de emisor no reconocido");
+        }
+      */
+
+        interface UsuarioReunionResponse {
+          id: number;
+        }
+
+        let response: AxiosResponse<UsuarioReunionResponse>;
 
         if (emisor === "Alumno") {
           response = await axiosInstance.get("/api/reuniones/buscarUsuarioReunion/alumno", {
