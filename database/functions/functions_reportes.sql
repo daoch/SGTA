@@ -858,7 +858,9 @@ CREATE OR REPLACE FUNCTION listar_tesistas_por_asesor(p_asesor_id integer)
         entregable_actual_fecha_fin timestamp with time zone,
         entregable_actual_estado character varying,
         entregable_envio_estado character varying,
-        entregable_envio_fecha timestamp with time zone
+        entregable_envio_fecha timestamp with time zone,
+        -- NUEVA COLUMNA: Porcentaje de entregables enviados
+        porcentaje_entregables_enviados numeric(5,2)
     )
     LANGUAGE plpgsql
 AS
@@ -901,193 +903,119 @@ BEGIN
              AND ef.activo = TRUE
              ORDER BY ef.fecha_creacion DESC
              LIMIT 1) AS etapa_formativa_nombre,
-            ut.fecha_creacion as fecha_asignacion_tesista
+            ut.fecha_creacion as fecha_asignacion_tesista,
+            -- NUEVO: Cálculo del porcentaje de entregables enviados (solo evaluables)
+            COALESCE(
+                ROUND(
+                    (SELECT COUNT(*)::NUMERIC 
+                     FROM entregable_x_tema ext_enviados 
+                     JOIN entregable e_eval ON e_eval.entregable_id = ext_enviados.entregable_id
+                     WHERE ext_enviados.tema_id = ut.tema_id 
+                     AND ext_enviados.activo = TRUE
+                     AND ext_enviados.estado IN ('enviado_a_tiempo', 'enviado_tarde')
+                     AND e_eval.es_evaluable = TRUE
+                     AND e_eval.activo = TRUE
+                    ) * 100.0 / 
+                    NULLIF(
+                        (SELECT COUNT(*)::NUMERIC 
+                         FROM entregable_x_tema ext_total 
+                         JOIN entregable e_total ON e_total.entregable_id = ext_total.entregable_id
+                         WHERE ext_total.tema_id = ut.tema_id 
+                         AND ext_total.activo = TRUE
+                         AND e_total.es_evaluable = TRUE
+                         AND e_total.activo = TRUE
+                        ), 0
+                    ), 2
+                ), 0.00
+            ) AS porcentaje_entregables_enviados
         FROM usuario_tema ut
         JOIN rol r1 ON ut.rol_id = r1.rol_id AND r1.nombre = 'Tesista'
         JOIN usuario u ON u.usuario_id = ut.usuario_id
         JOIN tema t ON t.tema_id = ut.tema_id
         JOIN temas_asesor ta ON ta.tema_id = ut.tema_id
         WHERE ut.activo = TRUE
+        AND ut.asignado = TRUE
         AND t.activo = TRUE
         AND u.activo = TRUE
     ),
-         entregables_actuales AS (
-         -- Entregables actuales (primera consulta original)
-         SELECT 
-             tb.*,
-             e.entregable_id,
-             e.entregable_nombre,
-             e.descripcion,
-             e.fecha_inicio,
-             e.fecha_fin,
-             e.entregable_estado,
-             e.envio_estado,
-             e.fecha_envio,
-             1 as consulta_tipo
-         FROM tesistas_base tb
-         JOIN LATERAL (
-             SELECT 
-                 e2.entregable_id,
-                 e2.nombre as entregable_nombre,
-                 e2.descripcion,
-                 e2.fecha_inicio,
-                 e2.fecha_fin,
-                 e2.estado::VARCHAR as entregable_estado,
-                 et2.estado::VARCHAR as envio_estado,
-                 et2.fecha_envio
-             FROM entregable e2
-             JOIN entregable_x_tema et2 ON et2.entregable_id = e2.entregable_id
-             WHERE et2.tema_id = tb.tema_id
-               AND e2.fecha_inicio <= v_current_date
-               AND e2.fecha_fin >= v_current_date
-               AND e2.activo = TRUE
-               AND et2.activo = TRUE
-             ORDER BY e2.fecha_fin ASC
-             LIMIT 1
-         ) e ON TRUE
-     ),
-         entregables_proximos AS (
-         -- Próximos entregables (segunda consulta original)
-         SELECT 
-             tb.*,
-             e_next.entregable_id,
-             e_next.entregable_nombre,
-             e_next.descripcion,
-             e_next.fecha_inicio,
-             e_next.fecha_fin,
-             e_next.entregable_estado,
-             e_next.envio_estado,
-             e_next.fecha_envio,
-             2 as consulta_tipo
-         FROM tesistas_base tb
-         -- Verificar que NO tenga entregable actual
-         LEFT JOIN LATERAL (
-             SELECT e_curr.entregable_id
-             FROM entregable e_curr
-             JOIN entregable_x_tema et_curr ON et_curr.entregable_id = e_curr.entregable_id
-             WHERE et_curr.tema_id = tb.tema_id
-               AND e_curr.fecha_inicio <= v_current_date
-               AND e_curr.fecha_fin >= v_current_date
-               AND e_curr.activo = TRUE
-               AND et_curr.activo = TRUE
-             LIMIT 1
-         ) current_entregable ON TRUE
-         -- Obtener el próximo entregable
-         JOIN LATERAL (
-             SELECT 
-                 e_fut.entregable_id,
-                 e_fut.nombre as entregable_nombre,
-                 e_fut.descripcion,
-                 e_fut.fecha_inicio,
-                 e_fut.fecha_fin,
-                 e_fut.estado::VARCHAR as entregable_estado,
-                 et_fut.estado::VARCHAR as envio_estado,
-                 et_fut.fecha_envio
-             FROM entregable e_fut
-             JOIN entregable_x_tema et_fut ON et_fut.entregable_id = e_fut.entregable_id
-             WHERE et_fut.tema_id = tb.tema_id
-               AND e_fut.fecha_inicio > v_current_date
-               AND e_fut.activo = TRUE
-               AND et_fut.activo = TRUE
-             ORDER BY e_fut.fecha_inicio ASC
-             LIMIT 1
-         ) e_next ON TRUE
-         WHERE current_entregable.entregable_id IS NULL
-     ),
-         tesistas_sin_entregables AS (
-         -- Sin entregables (TODOS, sin restricción de fecha)
-         SELECT 
-             tb.*,
-             NULL::integer as entregable_id,
-             'Sin entregables configurados'::VARCHAR as entregable_nombre,
-             'Tesista sin entregables programados'::text as descripcion,
-             NULL::timestamp with time zone as fecha_inicio,
-             NULL::timestamp with time zone as fecha_fin,
-             'sin_entregables'::VARCHAR as entregable_estado,
-             'no_aplica'::VARCHAR as envio_estado,
-             NULL::timestamp with time zone as fecha_envio,
-             3 as consulta_tipo
-         FROM tesistas_base tb
-         -- Verificar que NO tenga entregables en absoluto
-         LEFT JOIN LATERAL (
-             SELECT e_any.entregable_id
-             FROM entregable e_any
-             JOIN entregable_x_tema et_any ON et_any.entregable_id = e_any.entregable_id
-             WHERE et_any.tema_id = tb.tema_id
-               AND e_any.activo = TRUE
-               AND et_any.activo = TRUE
-             LIMIT 1
-         ) any_entregable ON TRUE
-         WHERE any_entregable.entregable_id IS NULL
-         -- ELIMINADA: Restricción de fecha para mostrar TODOS los tesistas sin entregables
-     )
+    tesistas_completos AS (
+        -- TODOS los tesistas asignados con su entregable más relevante
+        SELECT 
+            tb.*,
+            COALESCE(entregable_actual.entregable_id, entregable_proximo.entregable_id, NULL) as entregable_id,
+            COALESCE(entregable_actual.entregable_nombre, entregable_proximo.entregable_nombre, 'Sin entregables configurados') as entregable_nombre,
+            COALESCE(entregable_actual.descripcion, entregable_proximo.descripcion, 'Tesista sin entregables programados') as descripcion,
+            COALESCE(entregable_actual.fecha_inicio, entregable_proximo.fecha_inicio, NULL) as fecha_inicio,
+            COALESCE(entregable_actual.fecha_fin, entregable_proximo.fecha_fin, NULL) as fecha_fin,
+            COALESCE(entregable_actual.entregable_estado, entregable_proximo.entregable_estado, 'sin_entregables') as entregable_estado,
+            COALESCE(entregable_actual.envio_estado, entregable_proximo.envio_estado, 'no_aplica') as envio_estado,
+            COALESCE(entregable_actual.fecha_envio, entregable_proximo.fecha_envio, NULL) as fecha_envio
+        FROM tesistas_base tb
+        -- Entregable actual (si existe)
+        LEFT JOIN LATERAL (
+            SELECT 
+                e2.entregable_id,
+                e2.nombre as entregable_nombre,
+                e2.descripcion,
+                e2.fecha_inicio,
+                e2.fecha_fin,
+                e2.estado::VARCHAR as entregable_estado,
+                et2.estado::VARCHAR as envio_estado,
+                et2.fecha_envio
+            FROM entregable e2
+            JOIN entregable_x_tema et2 ON et2.entregable_id = e2.entregable_id
+            WHERE et2.tema_id = tb.tema_id
+              AND e2.fecha_inicio <= v_current_date
+              AND e2.fecha_fin >= v_current_date
+              AND e2.activo = TRUE
+              AND et2.activo = TRUE
+            ORDER BY e2.fecha_fin ASC
+            LIMIT 1
+        ) entregable_actual ON TRUE
+        -- Próximo entregable (si no tiene actual)
+        LEFT JOIN LATERAL (
+            SELECT 
+                e_fut.entregable_id,
+                e_fut.nombre as entregable_nombre,
+                e_fut.descripcion,
+                e_fut.fecha_inicio,
+                e_fut.fecha_fin,
+                e_fut.estado::VARCHAR as entregable_estado,
+                et_fut.estado::VARCHAR as envio_estado,
+                et_fut.fecha_envio
+            FROM entregable e_fut
+            JOIN entregable_x_tema et_fut ON et_fut.entregable_id = e_fut.entregable_id
+            WHERE et_fut.tema_id = tb.tema_id
+              AND e_fut.fecha_inicio > v_current_date
+              AND e_fut.activo = TRUE
+              AND et_fut.activo = TRUE
+            ORDER BY e_fut.fecha_inicio ASC
+            LIMIT 1
+        ) entregable_proximo ON entregable_actual.entregable_id IS NULL
+    )
     
-    -- UNION de todas las consultas
+    -- Resultado final: TODOS los tesistas asignados
     SELECT 
-        ea.tema_id,
-        ea.tesista_id,
-        ea.nombres,
-        ea.primer_apellido,
-        ea.segundo_apellido,
-        ea.correo_electronico,
-        ea.titulo_tema,
-        ea.etapa_formativa_nombre,
-        COALESCE(ea.carrera, 'Sin carrera') as carrera,
-        ea.entregable_id,
-        ea.entregable_nombre,
-        ea.descripcion,
-        ea.fecha_inicio,
-        ea.fecha_fin,
-        ea.entregable_estado,
-        ea.envio_estado,
-        ea.fecha_envio
-    FROM entregables_actuales ea
-    
-    UNION ALL
-    
-    SELECT 
-        ep.tema_id,
-        ep.tesista_id,
-        ep.nombres,
-        ep.primer_apellido,
-        ep.segundo_apellido,
-        ep.correo_electronico,
-        ep.titulo_tema,
-        ep.etapa_formativa_nombre,
-        COALESCE(ep.carrera, 'Sin carrera') as carrera,
-        ep.entregable_id,
-        ep.entregable_nombre,
-        ep.descripcion,
-        ep.fecha_inicio,
-        ep.fecha_fin,
-        ep.entregable_estado,
-        ep.envio_estado,
-        ep.fecha_envio
-    FROM entregables_proximos ep
-    
-    UNION ALL
-    
-    SELECT 
-        tse.tema_id,
-        tse.tesista_id,
-        tse.nombres,
-        tse.primer_apellido,
-        tse.segundo_apellido,
-        tse.correo_electronico,
-        tse.titulo_tema,
-        tse.etapa_formativa_nombre,
-        COALESCE(tse.carrera, 'Sin carrera') as carrera,
-        tse.entregable_id,
-        tse.entregable_nombre,
-        tse.descripcion,
-        tse.fecha_inicio,
-        tse.fecha_fin,
-        tse.entregable_estado,
-        tse.envio_estado,
-        tse.fecha_envio
-    FROM tesistas_sin_entregables tse
-    
-    ORDER BY tesista_id, fecha_inicio;
+        tc.tema_id,
+        tc.tesista_id,
+        tc.nombres,
+        tc.primer_apellido,
+        tc.segundo_apellido,
+        tc.correo_electronico,
+        tc.titulo_tema,
+        tc.etapa_formativa_nombre,
+        COALESCE(tc.carrera, 'Sin carrera') as carrera,
+        tc.entregable_id,
+        tc.entregable_nombre,
+        tc.descripcion,
+        tc.fecha_inicio,
+        tc.fecha_fin,
+        tc.entregable_estado,
+        tc.envio_estado,
+        tc.fecha_envio,
+        tc.porcentaje_entregables_enviados
+    FROM tesistas_completos tc
+    ORDER BY tc.tesista_id, tc.fecha_inicio;
 END;
 $$;
 
@@ -1190,15 +1118,17 @@ DECLARE
     v_siguiente_entregable_nombre VARCHAR;
     v_siguiente_entregable_fecha_fin TIMESTAMP WITH TIME ZONE;
 BEGIN
-    -- Obtenemos el tema del tesista
+    -- Obtenemos el tema del tesista (SOLO si está asignado)
     SELECT ut.tema_id INTO v_tema_id
     FROM usuario_tema ut
     JOIN rol r ON r.rol_id = ut.rol_id AND r.nombre = 'Tesista'
-    WHERE ut.usuario_id = p_tesista_id AND ut.activo = TRUE
+    WHERE ut.usuario_id = p_tesista_id 
+    AND ut.activo = TRUE 
+    AND ut.asignado = TRUE  -- FILTRO AGREGADO: Solo tesistas asignados
     LIMIT 1;
 
     IF v_tema_id IS NULL THEN
-        RAISE EXCEPTION 'El usuario con ID % no es tesista de ningún tema activo', p_tesista_id;
+        RAISE EXCEPTION 'El usuario con ID % no es tesista asignado de ningún tema activo', p_tesista_id;
     END IF;
 
     -- Obtenemos el ciclo y etapa formativa del tesista usando la relación correcta
@@ -1385,13 +1315,14 @@ BEGIN
         -- Datos del área de conocimiento
         COALESCE(ac.nombre::CHARACTER VARYING, 'Sin área'::CHARACTER VARYING) AS area_conocimiento,
         COALESCE(sac.nombre::CHARACTER VARYING, 'Sin subárea'::CHARACTER VARYING) AS sub_area_conocimiento,
-        -- Datos del asesor (solo rol "Asesor")
+        -- Datos del asesor (solo rol "Asesor" asignado)
         (SELECT string_agg(DISTINCT CONCAT(ua_asesor.nombres, ' ', ua_asesor.primer_apellido, ' ', COALESCE(ua_asesor.segundo_apellido, '')), ', ')
          FROM usuario_tema ut_asesor
          JOIN rol r_asesor ON r_asesor.rol_id = ut_asesor.rol_id AND r_asesor.nombre = 'Asesor'
          JOIN usuario ua_asesor ON ua_asesor.usuario_id = ut_asesor.usuario_id AND ua_asesor.activo = TRUE
          WHERE ut_asesor.tema_id = t.tema_id
            AND ut_asesor.activo = TRUE
+           AND ut_asesor.asignado = TRUE
            AND ut_asesor.usuario_id != p_tesista_id) AS asesor_nombre,
 
         (SELECT string_agg(DISTINCT ua_asesor.correo_electronico, ', ')
@@ -1400,15 +1331,17 @@ BEGIN
          JOIN usuario ua_asesor ON ua_asesor.usuario_id = ut_asesor.usuario_id AND ua_asesor.activo = TRUE
          WHERE ut_asesor.tema_id = t.tema_id
            AND ut_asesor.activo = TRUE
+           AND ut_asesor.asignado = TRUE
            AND ut_asesor.usuario_id != p_tesista_id) AS asesor_correo,
 
-        -- Datos del coasesor (solo rol "Coasesor")
+        -- Datos del coasesor (solo rol "Coasesor" asignado)
         (SELECT string_agg(DISTINCT CONCAT(ua_coasesor.nombres, ' ', ua_coasesor.primer_apellido, ' ', COALESCE(ua_coasesor.segundo_apellido, '')), ', ')
          FROM usuario_tema ut_coasesor
          JOIN rol r_coasesor ON r_coasesor.rol_id = ut_coasesor.rol_id AND r_coasesor.nombre = 'Coasesor'
          JOIN usuario ua_coasesor ON ua_coasesor.usuario_id = ut_coasesor.usuario_id AND ua_coasesor.activo = TRUE
          WHERE ut_coasesor.tema_id = t.tema_id
            AND ut_coasesor.activo = TRUE
+           AND ut_coasesor.asignado = TRUE
            AND ut_coasesor.usuario_id != p_tesista_id) AS coasesor_nombre,
 
         (SELECT string_agg(DISTINCT ua_coasesor.correo_electronico, ', ')
@@ -1417,6 +1350,7 @@ BEGIN
          JOIN usuario ua_coasesor ON ua_coasesor.usuario_id = ut_coasesor.usuario_id AND ua_coasesor.activo = TRUE
          WHERE ut_coasesor.tema_id = t.tema_id
            AND ut_coasesor.activo = TRUE
+           AND ut_coasesor.asignado = TRUE
            AND ut_coasesor.usuario_id != p_tesista_id) AS coasesor_correo,
 
         -- Datos del ciclo académico
@@ -1448,7 +1382,7 @@ BEGIN
         v_siguiente_entregable_fecha_fin AS siguiente_entregable_fecha_fin
 
     FROM usuario u
-    JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE
+    JOIN usuario_tema ut ON ut.usuario_id = u.usuario_id AND ut.activo = TRUE AND ut.asignado = TRUE
     JOIN rol r_tesista ON r_tesista.rol_id = ut.rol_id AND r_tesista.nombre = 'Tesista'
     JOIN tema t ON t.tema_id = ut.tema_id AND t.activo = TRUE
     -- Unión con carrera del usuario
@@ -1459,7 +1393,7 @@ BEGIN
     LEFT JOIN sub_area_conocimiento sac ON sac.sub_area_conocimiento_id = sact.sub_area_conocimiento_id AND sac.activo = TRUE
     LEFT JOIN area_conocimiento ac ON ac.area_conocimiento_id = sac.area_conocimiento_id AND ac.activo = TRUE
     -- Unión con ciclo y etapa formativa usando las variables obtenidas
-    LEFT JOIN ciclo c ON c.ciclo_id = v_ciclo_id AND c.activo = TRUE
+    LEFT JOIN ciclo c ON c.ciclo_id = v_ciclo_id  -- REMOVIDO: AND c.activo = TRUE
     LEFT JOIN etapa_formativa ef ON ef.etapa_formativa_id = v_etapa_formativa_id AND ef.activo = TRUE
 
     WHERE u.usuario_id = p_tesista_id AND u.activo = TRUE;
