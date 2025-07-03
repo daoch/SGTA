@@ -26,43 +26,43 @@ import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoRevisorDto } from "../dtos/RevisionDocumentoRevisorDto";
 
-function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgrupado[] {
-  const mapa = new Map<number, DocumentoAgrupado>();
-  data.forEach((item) => {
-    if (!mapa.has(item.id)) {
-      mapa.set(item.id, {
-        id: item.id,
-        entregable: item.entregable,
-        titulo: item.titulo,
-        curso: item.curso,
-        porcentajeSimilitud: null, // No disponible para revisor
-        porcentajeGenIA: null, // No disponible para revisor
-        fechaEntrega: item.fechaEntrega,
-        fechaLimiteEntrega: item.fechaLimiteEntrega,
-        fechaRevision: item.fechaRevision,
-        fechaLimiteRevision: item.fechaLimiteRevision,
-        ultimoCiclo: item.ultimoCiclo,
-        estado: item.estado,
-        formatoValido: false, // No disponible para revisor
-        citadoCorrecto: false, // No disponible para revisor
-        urlDescarga: item.urlDescarga,
-        estudiantes: [],
-      });
-    }
-    mapa.get(item.id)!.estudiantes.push({
-      nombre: item.estudiante,
-      codigo: item.codigo,
-    });
-  });
-  return Array.from(mapa.values());
-}
-
 const estados = [
   { value: "pendiente", label: "Pendientes" },
   { value: "en_proceso", label: "En Proceso" },
   { value: "completada", label: "Completadas" },
   { value: "todas", label: "Todas" },
 ];
+
+function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgrupado[] {
+  const mapa = new Map<number, DocumentoAgrupado>();
+  data.forEach((item) => {
+    if (!mapa.has(item.revisionId)) {
+      mapa.set(item.revisionId, {
+        id: item.revisionId,
+        entregable: item.entregable,
+        titulo: item.tema,
+        curso: item.curso,
+        porcentajeSimilitud: null, // No disponible para revisor
+        porcentajeGenIA: null, // No disponible para revisor
+        fechaEntrega: item.fechaCarga,
+        fechaLimiteEntrega: item.fechaLimite,
+        fechaRevision: item.fechaRevision,
+        fechaLimiteRevision: undefined, // No hay campo específico
+        ultimoCiclo: undefined, // No hay campo específico
+        estado: item.estadoRevision,
+        formatoValido: false, // No disponible para revisor
+        citadoCorrecto: false, // No disponible para revisor
+        urlDescarga: item.linkArchivo,
+        estudiantes: [],
+      });
+    }
+    mapa.get(item.revisionId)!.estudiantes.push({
+      nombre: item.estudiante,
+      codigo: item.codigo,
+    });
+  });
+  return Array.from(mapa.values());
+}
 
 const RevisionRevisorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");

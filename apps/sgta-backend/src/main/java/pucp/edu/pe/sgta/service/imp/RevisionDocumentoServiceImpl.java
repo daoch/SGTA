@@ -432,23 +432,21 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         List<RevisionDocumentoRevisorDto> documentos = new ArrayList<>();
         for (Object[] row : result) {
             RevisionDocumentoRevisorDto dto = new RevisionDocumentoRevisorDto();
-            dto.setId((Integer) row[0]); // revision_id
-            dto.setTitulo((String) row[1]); // tema
+            dto.setRevisionId((Integer) row[0]); // revision_id
+            dto.setTema((String) row[1]); // tema
             dto.setEntregable((String) row[2]); // entregable
             dto.setEstudiante((String) row[3]); // estudiante
             dto.setCodigo((String) row[4]); // código PUCP
             dto.setCurso((String) row[5]); // curso
-            dto.setFechaEntrega(
-                    row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setEstado((String) row[7]); // estado_revision
-            dto.setFechaLimiteEntrega(
-                    row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaRevision(
-                    row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaLimiteRevision(
-                    row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setUltimoCiclo(null);
-            dto.setUrlDescarga(null);
+            dto.setFechaCarga(row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null); // fecha_carga
+            dto.setEstadoRevision((String) row[7]); // estado_revision
+            dto.setEntregaATiempo(row[8] != null ? (Boolean) row[8] : null); // entrega_a_tiempo
+            dto.setFechaLimite(row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null); // fecha_limite
+            dto.setFechaRevision(row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null); // fecha_revision
+            dto.setLinkArchivo((String) row[11]); // link_archivo
+            dto.setFechaEnvio(row[12] != null ? ((java.time.Instant) row[12]).atOffset(java.time.ZoneOffset.UTC) : null); // fecha_envio
+            dto.setFechaFin(row[13] != null ? ((java.time.Instant) row[13]).atOffset(java.time.ZoneOffset.UTC) : null); // fecha_fin
+            dto.setNumeroObservaciones(row[14] != null ? ((Number) row[14]).intValue() : null); // numero_observaciones
             documentos.add(dto);
         }
         return documentos;

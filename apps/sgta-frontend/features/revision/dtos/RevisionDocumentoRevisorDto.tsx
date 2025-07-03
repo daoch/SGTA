@@ -1,15 +1,17 @@
 export interface RevisionDocumentoRevisorDto {
-  id: number;
-  titulo: string;
+  revisionId: number;
+  tema: string;
   entregable: string;
   estudiante: string;
   codigo: string;
   curso: string;
-  fechaEntrega: string;
-  fechaLimiteEntrega: string;
+  fechaCarga: string;
+  estadoRevision: "pendiente" | "en_proceso" | "completada";
+  entregaATiempo: boolean;
+  fechaLimite: string;
   fechaRevision: string;
-  fechaLimiteRevision: string;
-  ultimoCiclo: string;
-  estado: "pendiente" | "en_proceso" | "completada";
-  urlDescarga: string;
+  linkArchivo: string;
+  fechaEnvio: string;
+  fechaFin: string;
+  numeroObservaciones: number;
 }
