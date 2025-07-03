@@ -63,14 +63,29 @@ public class ControlExposicionUsuarioTemaServiceImpl implements ControlExposicio
 
     @Override
     @Transactional
-    public void aceptarExposicionDesdeCorreo(String token) {
-        controlExposicionUsuarioTemaRepository.aceptarInvitacionCorreo(token);
+    public boolean aceptarExposicionDesdeCorreo(String token) {
+        try{
+            controlExposicionUsuarioTemaRepository.aceptarInvitacionCorreo(token);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+
     }
 
     @Override
     @Transactional
-    public void rechazarExposicionDesdeCorreo(String token) {
-        controlExposicionUsuarioTemaRepository.rechazarInvitacionCorreo(token);
+    public boolean rechazarExposicionDesdeCorreo(String token) {
+        try{
+            controlExposicionUsuarioTemaRepository.rechazarInvitacionCorreo(token);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+
     }
 
 }
