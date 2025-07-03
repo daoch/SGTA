@@ -455,7 +455,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE FUNCTION crear_revisiones_jurado(entregablextemaid INTEGER)
 RETURNS void LANGUAGE plpgsql AS
 $$

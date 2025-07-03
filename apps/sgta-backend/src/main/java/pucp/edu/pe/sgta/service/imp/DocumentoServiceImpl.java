@@ -18,6 +18,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DocumentoServiceImpl implements DocumentoService {
@@ -53,6 +54,7 @@ public class DocumentoServiceImpl implements DocumentoService {
             dto.setDocumentoFechaSubida(((Instant) row[2]).atOffset(ZoneOffset.UTC));
             dto.setDocumentoLinkArchivo((String) row[3]);
             dto.setEntregableTemaId((Integer) row[4]);
+            dto.setDocumentoPrincipal((Boolean) row[5]);
             documentos.add(dto);
         }
         return documentos;
@@ -69,7 +71,7 @@ public class DocumentoServiceImpl implements DocumentoService {
     @Override
     public ResponseEntity<String> subirDocumentos(Integer entregableXTemaId, MultipartFile[] archivos,
                                                   String ciclo, String curso, String comentario,
-                                                  String estado, String cognitoId) {
+                                                  String estado, String documentoPrincipalNombre, String cognitoId) {
         UsuarioDto user = usuarioService.findByCognitoId(cognitoId);
         String codigoAlumno = user.getCodigoPucp();
 
@@ -94,6 +96,11 @@ public class DocumentoServiceImpl implements DocumentoService {
                 version.setFechaUltimaSubida(OffsetDateTime.now());
                 version.setNumeroVersion(1);
                 version.setLinkArchivoSubido(filename);
+                if(documentoPrincipalNombre != null && !documentoPrincipalNombre.isEmpty()) {
+                    version.setDocumentoPrincipal(Objects.equals(archivo.getOriginalFilename(), documentoPrincipalNombre));
+                } else {
+                    version.setDocumentoPrincipal(false);
+                }
                 EntregableXTema entregableXTema = new EntregableXTema();
                 entregableXTema.setEntregableXTemaId(entregableXTemaId);
                 version.setEntregableXTema(entregableXTema);
