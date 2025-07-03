@@ -264,7 +264,7 @@ export default function DetalleSolicitudesCoordinadorPage({
             <EncabezadoDetalleSolicitudTema solicitud={solicitud} />
             <InfoDetalleSolicitudTema solicitud={solicitud} />
             {temaPorAprobar && moduloAnalisisSimilitud}
-            <HistorialDetalleSolicitudTema historial={historialMock} />
+            {/* <HistorialDetalleSolicitudTema historial={historialMock} /> */}
           </div>
 
           {/* # 2 Acciones */}
