@@ -19,7 +19,7 @@ import {
 import {
   finishPlanning,
   reunionesZoom,
-  updateBloquesNextPhase,
+  updateBloquesNextPhase
 } from "../../services/planificacion-service";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import {
