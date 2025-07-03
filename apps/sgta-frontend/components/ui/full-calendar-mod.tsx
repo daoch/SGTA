@@ -371,6 +371,7 @@ const EventGroup = ({
             setEventoSeleccionado(null);
           }}
           evento={eventoSeleccionado}
+          listaEventos={events}
           emisor={tipoUsuario}
           onUpdateSuccess={() => {
             if (fetchEventos) fetchEventos(); // ✅ Solo llama si está definido

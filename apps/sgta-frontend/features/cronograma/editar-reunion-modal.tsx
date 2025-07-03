@@ -38,6 +38,7 @@ interface EditarReunionModalProps {
     onClose: () => void;
     onSubmit: (reunion: ReunionFormData) => Promise<void>;
     evento?: CalendarEvent; // ← esta línea nueva
+    listaEventos: CalendarEvent [];
     emisor: string;
     onUpdateSuccess?: () => void;
   }
@@ -69,11 +70,24 @@ interface EditarReunionModalProps {
     url?: string;
     };
 
+const obtenerIdReal = (id: string, emisor: string): number => {
+        if (emisor === "Alumno") {
+          // Formato: "reunion-2" => devuelve 2
+          return parseInt(id.split("-")[1], 10);
+        } else if (emisor === "Asesor") {
+          // Formato: "2-66" => devuelve 2
+          return parseInt(id.split("-")[0], 10);
+        } else {
+          throw new Error(`Emisor desconocido: ${emisor}`);
+        }
+      };
+
 export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   evento,
+  listaEventos,
   emisor,
   onUpdateSuccess, // ✅ Añádelo aquí
 }) => {
@@ -118,18 +132,6 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
       });
     }
   }, [evento, isOpen]);
-
-  const obtenerIdReal = (id: string, emisor: string): number => {
-        if (emisor === "Alumno") {
-          // Formato: "reunion-2" => devuelve 2
-          return parseInt(id.split("-")[1], 10);
-        } else if (emisor === "Asesor") {
-          // Formato: "2-66" => devuelve 2
-          return parseInt(id.split("-")[0], 10);
-        } else {
-          throw new Error(`Emisor desconocido: ${emisor}`);
-        }
-      };
 
   useEffect(() => {
     const fetchDatosAsistencia = async () => {
@@ -238,6 +240,7 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
     }
   };
 
+  /*
   const validateForm = (): boolean => {
     const newErrors: Partial<ReunionFormData> = {};
 
@@ -271,6 +274,76 @@ export const EditarReunionModal: React.FC<EditarReunionModalProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  */
+
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<ReunionFormData> = {};
+
+    if (!formData.titulo.trim()) {
+      newErrors.titulo = "El título es requerido";
+    }
+    if (!formData.fechaHoraInicio) {
+      newErrors.fechaHoraInicio = "La fecha y hora de inicio es requerida";
+    }
+    if (!formData.fechaHoraFin) {
+      newErrors.fechaHoraFin = "La fecha y hora de fin es requerida";
+    }
+
+    const inicio = new Date(formData.fechaHoraInicio);
+    const fin = new Date(formData.fechaHoraFin);
+
+    if (formData.fechaHoraInicio && formData.fechaHoraFin && fin <= inicio) {
+      newErrors.fechaHoraFin = "La fecha de fin debe ser posterior a la fecha de inicio";
+    }
+
+    // Validar solapamiento (solo si emisor es Asesor)
+    if (emisor === "Asesor" && formData.fechaHoraInicio && formData.fechaHoraFin) {
+      const idReunionActual = obtenerIdReal(evento?.id || "", emisor);
+
+      for (const ev of listaEventos) {
+        if (ev.type !== "REUNION" && ev.type !== "EXPOSICION") continue;
+
+        const idEv = obtenerIdReal(ev.id, emisor);
+        if (idEv === idReunionActual) continue;
+
+        const evStart = ev.start ? new Date(ev.start) : null;
+        const evEnd = new Date(ev.end);
+        if (!evStart || !evEnd) continue;
+
+        const seSolapaInicio = inicio >= evStart && inicio < evEnd;
+        const seSolapaFin = fin > evStart && fin <= evEnd;
+        const abarcaTotalmente = inicio <= evStart && fin >= evEnd;
+
+        if (seSolapaInicio || seSolapaFin || abarcaTotalmente) {
+          if (seSolapaInicio || abarcaTotalmente) {
+            newErrors.fechaHoraInicio = "La hora de inicio se superpone con otra reunión o exposición";
+          }
+          if (seSolapaFin || abarcaTotalmente) {
+            newErrors.fechaHoraFin = "La hora de fin se superpone con otra reunión o exposición";
+          }
+          break;
+        }
+      }
+    }
+
+    if (!formData.descripcion.trim()) {
+      newErrors.descripcion = "La descripción es requerida";
+    }
+
+    if (formData.url && formData.url.trim()) {
+      try {
+        new URL(formData.url);
+      } catch {
+        newErrors.url = "La URL no tiene un formato válido";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+
 
   //const obtenerIdReal = (id: string) => parseInt(id.split("-")[1], 10);
 

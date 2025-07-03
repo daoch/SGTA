@@ -109,8 +109,12 @@ const MiCronogramaPage = () => {
         return;
       }
 
+      //Response hardcodeado para pruebas
+      //const response = await axiosInstance.get("/api/eventos/asesor/76"); // donde el numero es el ID del usuario asesor
+
       // Llamada al backend
       const response = await axiosInstance.get("/api/eventos/asesor");
+      
       const data: Evento[] = response.data;
 
       // Mapeo de eventos con URL en reuniones
