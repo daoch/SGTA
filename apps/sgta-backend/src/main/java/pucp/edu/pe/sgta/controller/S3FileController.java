@@ -171,17 +171,22 @@ public class S3FileController {
 
         String key = revision.getLinkArchivoRevision();
         String jsonKey = key.replaceAll("\\.[^.]+$", ".json");
+        String iaKey = key.replaceAll("\\.[^.]+$", "_ia.json");
 
         byte[] data  = downloadService.download(jsonKey);
+        byte[] iaData = downloadService.download(iaKey);
         if (data == null || data.length == 0) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Archivo de plagio no encontrado o vacío.".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
         String json = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        String iaJson = new String(iaData, java.nio.charset.StandardCharsets.UTF_8);
         // 1. Convertir el JSON a un objeto Java (puedes personalizar el mapeo según tu estructura)
         ObjectMapper mapper = new ObjectMapper();
+
         try {
             JsonNode rootNode = mapper.readTree(json);
+            JsonNode iaNode = mapper.readTree(iaJson);
             /* ------------------------------------------------------------------
             * 2. Preparar el modelo para la plantilla
             * (solo pasamos los nodos que la plantilla espera: result + sources)
@@ -189,6 +194,16 @@ public class S3FileController {
             Map<String, Object> model = new HashMap<>();
             model.put("result",  mapper.convertValue(rootNode.path("result"),  Map.class));
             model.put("sources", mapper.convertValue(rootNode.path("sources"), List.class));
+            Map<String, Object> ia = new HashMap<>();
+             ia.put("score", iaNode.path("score").asDouble());
+
+        // Convertir sentences a List<Map<String,Object>>
+            ia.put("sentences",
+            mapper.convertValue(
+                iaNode.path("sentences"),
+                new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {}));
+
+            model.put("ia", ia);   // 🔹 NEW
             // 2. Generar HTML usando FreeMarker
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
             cfg.setClassForTemplateLoading(this.getClass(), "/templates");
