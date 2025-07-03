@@ -1086,6 +1086,7 @@ CREATE TABLE IF NOT EXISTS version_documento (
     activo BOOLEAN DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    documento_principal BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_version_documento_documento FOREIGN KEY (documento_id) REFERENCES documento (documento_id) ON DELETE CASCADE,
     CONSTRAINT fk_version_documento_entregable_x_tema FOREIGN KEY (entregable_x_tema_id) REFERENCES entregable_x_tema (entregable_x_tema_id) ON DELETE CASCADE
 );
