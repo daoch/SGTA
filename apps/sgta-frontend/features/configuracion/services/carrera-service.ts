@@ -7,6 +7,7 @@ export interface Carrera {
     codigo: string;
     descripcion: string;
     activo: boolean;
+    unidadAcademicaId?: number;
 }
 
 export interface UnidadAcademica {
