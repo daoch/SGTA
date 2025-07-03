@@ -39,14 +39,12 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
           AND n.modulo.id = :moduloId
           AND n.tipoNotificacion.id = :tipoNotificacionId
           AND n.activo = true
-          AND DATE(n.fechaCreacion) = DATE(:fecha)
           AND n.mensaje = :mensaje
     """)
     boolean existsByUsuarioModuloEventoTipoFecha(
             @Param("usuarioId") Integer usuarioId,
             @Param("moduloId") Integer moduloId,
             @Param("tipoNotificacionId") Integer tipoNotificacionId,
-            @Param("fecha") OffsetDateTime fecha,
             @Param("mensaje") String mensaje
     );
 

@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.service.inter.NotificacionService;
 public class NotificacionScheduler {
 
     private final NotificacionService notificacionService;
+    private static final Object lock = new Object();
 
     /**
      * Tarea diaria a las 08:00 AM para generar recordatorios automáticos
@@ -74,12 +75,14 @@ public class NotificacionScheduler {
     // @Scheduled(cron = "*/30 * * * * *")
     @Scheduled(cron = "0 * * * * *")
     public void generarRecordatoriosDiariosEventos() {
-        log.info("=== INICIANDO TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
-        try {
-            notificacionService.generarRecordatoriosAutomaticosEventos();
-            log.info("=== COMPLETADA TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
-        } catch (Exception e) {
-            log.error("Error en la tarea programada de recordatorios diarios de eventos: {}", e.getMessage(), e);
+        synchronized (lock) {
+            log.info("=== INICIANDO TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
+            try {
+                notificacionService.generarRecordatoriosAutomaticosEventos();
+                log.info("=== COMPLETADA TAREA PROGRAMADA: Generación de recordatorios diarios de eventos ===");
+            } catch (Exception e) {
+                log.error("Error en la tarea programada de recordatorios diarios de eventos: {}", e.getMessage(), e);
+            }
         }
     }
 } 

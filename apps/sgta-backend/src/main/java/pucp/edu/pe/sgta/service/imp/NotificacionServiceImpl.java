@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -42,6 +44,9 @@ public class NotificacionServiceImpl implements NotificacionService {
     private static final String TIPO_RECORDATORIO = "recordatorio";
     private static final String TIPO_ERROR = "error";
     private static final String CANAL_UI = "UI";
+
+    private final Object notificacionLock = new Object();
+    // private static final Map<String, Boolean> cacheMensajesProcesados = new ConcurrentHashMap<>();
 
     @Override
     @Transactional(readOnly = true)
@@ -504,12 +509,12 @@ public class NotificacionServiceImpl implements NotificacionService {
             if (moduloOpt.isPresent() && tipoOpt.isPresent()) {
                 OffsetDateTime ahoraLima = OffsetDateTime.now(ZoneId.of("America/Lima"));
 
-                String encabezado;
+                String encabezado = "";
                 if (minutosRestantes >= 1440) {
                     encabezado = "Dentro de 1 día:";
                 } else if (minutosRestantes >= 30) {
                     encabezado = "Próximo evento en 30 minutos:";
-                } else {
+                } else if (minutosRestantes >= 5){
                     encabezado = "Próximo evento en 5 minutos:";
                 }
 
@@ -521,11 +526,15 @@ public class NotificacionServiceImpl implements NotificacionService {
                     horaFin
                 );
 
+                // que espere un segundo
+                Thread.sleep(1000);
+                log.info("Verificando existencia de notificación de evento: {} para usuario {}", mensaje, usuarioId);
+                log.info("Resultado de verificación: {}", notificacionRepository.existsByUsuarioModuloEventoTipoFecha(usuarioId,moduloOpt.get().getId(),tipoOpt.get().getId(),mensaje));
+
                 return notificacionRepository.existsByUsuarioModuloEventoTipoFecha(
                         usuarioId,
                         moduloOpt.get().getId(),
                         tipoOpt.get().getId(),
-                        ahoraLima,
                         mensaje
                 );
             }
@@ -540,8 +549,27 @@ public class NotificacionServiceImpl implements NotificacionService {
             Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
             Optional<Modulo> moduloOpt = moduloRepository.findByNombre("Gestion");
             Optional<TipoNotificacion> tipoOpt = tipoNotificacionRepository.findByNombre(tipoNotificacion);
+
+            // String claveUnica = usuarioId + "-" + tipoNotificacion + "-" + mensaje;
+            // if (cacheMensajesProcesados.putIfAbsent(claveUnica, true) != null) {
+            //     log.warn("Mensaje ya en proceso: {}", claveUnica);
+            //     return; // ya alguien más lo está procesando
+            // }
             
             if (usuarioOpt.isPresent() && moduloOpt.isPresent() && tipoOpt.isPresent()) {
+                //Doble verificación justo antes de guardar
+                boolean yaExiste = notificacionRepository.existsByUsuarioModuloEventoTipoFecha(
+                    usuarioId,
+                    moduloOpt.get().getId(),
+                    tipoOpt.get().getId(),
+                    mensaje
+                );
+
+                if (yaExiste) {
+                    log.info("Notificación ya existente para usuario {}. No se crea duplicado.", usuarioId);
+                    return;
+                }
+                
                 Notificacion notificacion = new Notificacion();
                 notificacion.setUsuario(usuarioOpt.get());
                 notificacion.setModulo(moduloOpt.get());
@@ -551,8 +579,10 @@ public class NotificacionServiceImpl implements NotificacionService {
                 notificacion.setActivo(true);
                 
                 notificacionRepository.save(notificacion);
-                log.debug("Notificación de evento creada: {} para usuario {}", mensaje, usuarioId);
+                // cacheMensajesProcesados.remove(claveUnica);
+                log.info("Notificación de evento creada: {} para usuario {}", mensaje, usuarioId);
             } else {
+                // cacheMensajesProcesados.remove(claveUnica);
                 log.error("No se pudo crear la notificación de evento. Usuario: {}, Módulo: {}, Tipo: {}", 
                          usuarioOpt.isPresent(), moduloOpt.isPresent(), tipoOpt.isPresent());
             }
@@ -564,12 +594,12 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Transactional
     public void crearNotificacionRecordatorioEvento(Integer usuarioId, String tituloEvento,
                                                     String fechaInicio, String horaFin, int minutosRestantes) {
-        String encabezado;
+        String encabezado = "";
         if (minutosRestantes >= 1440) {
             encabezado = "Dentro de 1 día:";
         } else if (minutosRestantes >= 30) {
             encabezado = "Próximo evento en 30 minutos:";
-        } else {
+        } else if(minutosRestantes >= 5){
             encabezado = "Próximo evento en 5 minutos:";
         }
 
@@ -613,14 +643,16 @@ public class NotificacionServiceImpl implements NotificacionService {
                     OffsetDateTime fechaHoraFin = reunion.getFechaHoraFin().atZoneSameInstant(zonaLima).toOffsetDateTime();
                     String fechaFinFormateada = fechaHoraFin.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-                    if(!yaExisteNotificacionEventoHoy(usuarioId, TIPO_RECORDATORIO, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min)) {
+                    synchronized (notificacionLock) {
+                        if(!yaExisteNotificacionEventoHoy(usuarioId, TIPO_RECORDATORIO, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min)) {
                                                 
-                        if (fechaHoraInicio.isAfter(inicio) && fechaHoraInicio.isBefore(fin)) {
-                            crearNotificacionRecordatorioEvento(usuarioId, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min);
-                            log.info("Recordatorio creado para usuario {} - reunión {} ({} minutos)", 
-                                    usuarioId, reunion.getTitulo(), min);
+                            if (fechaHoraInicio.isAfter(inicio) && fechaHoraInicio.isBefore(fin)) {
+                                crearNotificacionRecordatorioEvento(usuarioId, reunion.getTitulo(), fechaInicioFormateada, fechaFinFormateada, min);
+                                
+                            }
                         }
                     }
+                    
                 }
             }
         }
