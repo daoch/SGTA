@@ -18,6 +18,7 @@ public interface DocumentoService {
             String curso,
             String comentario,
             String estado,
+            String documentoPrincipalNombre,
             String cognitoId
     );
 }

@@ -67,6 +67,9 @@ export function EntregablesModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] =
     useState<null | DocumentoConVersionDto>(null);
+  const [documentoPrincipalNombre, setDocumentoPrincipalNombre] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     setComentario(entregable.entregableComentario ?? "");
@@ -111,6 +114,7 @@ export function EntregablesModal({
         formData.append("curso", entregable.etapaFormativaNombre.toString());
         formData.append("comentario", comentario);
         formData.append("estado", estado);
+        formData.append("documentoPrincipalNombre", documentoPrincipalNombre ?? "");
 
         await axiosInstance.post(
           `/documento/entregable/${entregable.entregableXTemaId}`,
@@ -166,6 +170,8 @@ export function EntregablesModal({
           }
           maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
           archivosSubidos={archivosSubidos}
+          documentoPrincipalNombre={documentoPrincipalNombre}
+          setDocumentoPrincipalNombre={setDocumentoPrincipalNombre}
         />
       );
     } else {
@@ -189,6 +195,8 @@ export function EntregablesModal({
         maxFiles={1000}
         maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
         archivosSubidos={archivosSubidos}
+        documentoPrincipalNombre={documentoPrincipalNombre}
+        setDocumentoPrincipalNombre={setDocumentoPrincipalNombre}
       />
     );
   }
@@ -208,6 +216,11 @@ export function EntregablesModal({
         {archivosSubidos.map((archivo) => (
           <li key={archivo.documentoId} className="flex items-center gap-2">
             <span className="truncate">{archivo.documentoNombre}</span>
+            {archivo.documentoPrincipal && (
+              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-semibold">
+                Principal
+              </span>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Opciones">
@@ -278,7 +291,9 @@ export function EntregablesModal({
                 <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
                   Estado de la calificación
                 </div>
-                <div className="px-4 py-3 text-gray-700">{entregable.corregido ? "Revisado" : "Por revisar"}</div>
+                <div className="px-4 py-3 text-gray-700">
+                  {entregable.corregido ? "Revisado" : "Por revisar"}
+                </div>
               </div>
               <div className="grid grid-cols-[220px_1fr] border-b">
                 <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
