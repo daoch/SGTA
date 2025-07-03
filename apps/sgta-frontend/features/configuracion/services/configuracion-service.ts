@@ -25,6 +25,23 @@ export const getAllByCarreraId = async (
     return response.data;
 };
 
+export const getAllByCarreraIdAndEtapaFormativa = async (
+    etapaFormativaId?: number
+): Promise<CarreraXParametroConfiguracionDto[]> => {
+
+    const { idToken } = useAuthStore.getState();
+    const params = etapaFormativaId ? { etapaFormativaId } : {};
+    const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
+        "/carreraXParametroConfiguracion/parametros-etapa-formativa",
+        {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+            params,
+        }
+    );
+    return response.data;
+};
 
 //Services para Áreas por carrera
 

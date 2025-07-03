@@ -2107,7 +2107,7 @@ INSERT INTO
 VALUES (
         1,
         1,
-        1
+        1,
         TRUE,
         'Exposicion parcial',
         'Exposicion parcial del proyecto',
@@ -3149,8 +3149,8 @@ INSERT INTO
         tipo
     )
 VALUES (
-        'Calificaciones Jurado Anonimizadas',
-        'Habilitar la anonimización del nombre del jurado, de modo que las calificaciones otorgadas al tema de tesis sean visibles pero el jurado permanezca anónimo',
+        'Jurados Anónimos',
+        'Habilitar que los nombres de los jurados se oculten desde la vista estudiante, de modo que las calificaciones otorgadas al tema de tesis sean visibles pero el jurado permanezca anónimo',
         1,
         TRUE,
         NOW(), -- Fecha de creación actual

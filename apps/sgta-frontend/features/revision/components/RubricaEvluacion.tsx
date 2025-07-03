@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { guardarNota, listarCriterioEntregablesNotas, RevisionCriterioEntregableDto } from "../servicios/revision-service";
-
+import axiosInstance from "@/lib/axios/axios-instance";
 
 // interface RubricaItem {
 //   id: string
@@ -31,6 +31,28 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
     async function postNotas() {
       try {
         await guardarNota(rubricaItems);
+
+        //Envio de correo a alumno
+        const nombreEntregable = rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : "Entregable";
+        await axiosInstance.post("/notifications/notificar-estado", null, {
+          params: {
+            revisionId: revisionId,
+            nombreDocumento: " ", 
+            nombreEntregable: nombreEntregable,
+            estado: "revisado"
+          }
+        });  
+
+        // Envío de correo al revisor
+        await axiosInstance.post("/notifications/send-email-a-revisor", null, {
+          params: {
+            revisionId: revisionId,
+            nombreDocumento: " ",
+            nombreEntregable: nombreEntregable,
+            estado: "revisado"
+          }
+        });
+
       } catch (e) {
         console.log(e);
       }

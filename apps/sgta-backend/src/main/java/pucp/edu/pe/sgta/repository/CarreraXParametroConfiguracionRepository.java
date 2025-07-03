@@ -9,4 +9,10 @@ public interface CarreraXParametroConfiguracionRepository extends JpaRepository<
     List<CarreraXParametroConfiguracion> findByCarreraId(Long carreraId);
 
     Optional<CarreraXParametroConfiguracion> findFirstByParametroConfiguracionId(Integer parametroConfiguracionId);
+    
+    // Nuevo método para filtrar por carrera y etapa formativa
+    List<CarreraXParametroConfiguracion> findByCarreraIdAndEtapaFormativaId(Long carreraId, Integer etapaFormativaId);
+    
+    // Método para obtener parámetros sin etapa formativa (null)
+    List<CarreraXParametroConfiguracion> findByCarreraIdAndEtapaFormativaIdIsNull(Long carreraId);
 }

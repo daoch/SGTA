@@ -241,17 +241,17 @@ export default function JuradosCards() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Calificaciones Jurado Anonimizadas</CardTitle>
+          <CardTitle>Jurados Anónimos</CardTitle>
           <CardDescription>
-            Configure la habilitación o deshabilitación de la anonimización del
-            jurado, de modo que las calificaciones otorgadas al tema de tesis
-            sean visibles pero el jurado permanezca anónimo
+            Habilitar que los nombres de los jurados se oculten desde la vista
+            estudiante, de modo que las calificaciones otorgadas al tema de
+            tesis sean visibles pero el jurado permanezca anónimo
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between space-x-2">
             <Label htmlFor="habilitar-anonimo">
-              Habilitar anonimización del nombre del jurado
+              Ocultar nombres de jurados en el detalle de calificaciones
             </Label>
             <Switch
               id="habilitar-anonimo"

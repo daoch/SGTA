@@ -268,124 +268,125 @@ export default function ModalAsignarMiembroJurado({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="min-w-[800px] h-[750px] overflow-hidden flex flex-col">
+      <DialogContent className="min-w-[800px] max-w-[900px] h-[90vh] max-h-[750px] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-lg font-medium">
             Asignar Miembro de Jurado a Tema de Proyecto
           </DialogTitle>
         </DialogHeader>
+        <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+          <div className="flex gap-4 mb-1 items-center flex-wrap">
+            <div className="relative flex items-center w-full gap-2 z-10">
+              <Search className="absolute left-3 text-gray-400 w-5 h-5" />
 
-        <div className="flex gap-4 mb-1 items-center flex-wrap">
-          <div className="relative flex items-center w-full gap-2 z-10">
-            <Search className="absolute left-3 text-gray-400 w-5 h-5" />
-
-            <Input
-              placeholder="Ingrese el nombre, código o correo electrónico del docente"
-              className="pl-10 w-full h-11"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch(search);
-                }
-              }}
-            />
-
-            <Button
-              className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
-              onClick={() => handleSearch(search)}
-            >
-              Buscar
-            </Button>
-
-            <div className="w-[200px]">
-              <MultiSelectCheckbox
-                options={areaOptions}
-                selected={especialidadesSeleccionadas.map((id) =>
-                  id.toString(),
-                )}
-                onChange={handleAreaChange}
-                displayText={getMultiSelectDisplayText()}
+              <Input
+                placeholder="Ingrese el nombre, código o correo electrónico del docente"
+                className="pl-10 w-full h-11"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch(search);
+                  }
+                }}
               />
-            </div>
-          </div>
 
-          <div>
-            {/* LIMITE ALCANZADO*/}
-            {selectedProfesores.length === cantMiembrosJuradoDisp && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
-                  <strong>Selección completa:</strong> Has seleccionado la
-                  cantidad máxima de miembros del jurado permitidos,
-                  considerando también al asesor. Si deseas cambiar tu
-                  selección, puedes deseleccionar a alguno de los docentes
-                  elegidos.
-                </p>
-              </div>
-            )}
+              <Button
+                className="inline-flex h-11 px-4 justify-center items-center gap-2 flex-shrink-0 rounded-md bg-[#042354] text-white"
+                onClick={() => handleSearch(search)}
+              >
+                Buscar
+              </Button>
 
-            {/* USUARIOS SELECCIONADOS */}
-            {profesoresSeleccionados.length > 0 && (
-              <div className="space-y-2 h-[50px]">
-                <Label className="text-sm font-medium">
-                  Docentes Seleccionados ({selectedProfesores.length}):
-                </Label>
-                <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-                  {selectedProfesores.length > 0 ? (
-                    selectedProfesores.map((profesor) => (
-                      <Badge
-                        key={profesor.id}
-                        className="flex items-center gap-1"
-                      >
-                        {profesor.nombres} {profesor.primerApellido}{" "}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0"
-                          onClick={() => handleRemoveSelected(profesor.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))
-                  ) : (
-                    <div className="text-sm text-gray-500">
-                      No hay docentes seleccionados
-                    </div>
+              <div className="w-[200px]">
+                <MultiSelectCheckbox
+                  options={areaOptions}
+                  selected={especialidadesSeleccionadas.map((id) =>
+                    id.toString(),
                   )}
-                </div>
+                  onChange={handleAreaChange}
+                  displayText={getMultiSelectDisplayText()}
+                />
               </div>
+            </div>
+
+            <div>
+              {/* LIMITE ALCANZADO*/}
+              {selectedProfesores.length === cantMiembrosJuradoDisp && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Selección completa:</strong> Has seleccionado la
+                    cantidad máxima de miembros del jurado permitidos,
+                    considerando también al asesor. Si deseas cambiar tu
+                    selección, puedes deseleccionar a alguno de los docentes
+                    elegidos.
+                  </p>
+                </div>
+              )}
+
+              {/* USUARIOS SELECCIONADOS */}
+              {profesoresSeleccionados.length > 0 && (
+                <div className="space-y-2 h-[50px]">
+                  <Label className="text-sm font-medium">
+                    Docentes Seleccionados ({selectedProfesores.length}):
+                  </Label>
+                  <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                    {selectedProfesores.length > 0 ? (
+                      selectedProfesores.map((profesor) => (
+                        <Badge
+                          key={profesor.id}
+                          className="flex items-center gap-1"
+                        >
+                          {profesor.nombres} {profesor.primerApellido}{" "}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0"
+                            onClick={() => handleRemoveSelected(profesor.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-500">
+                        No hay docentes seleccionados
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {profesoresSeleccionados.length > 0 ? (
+              <div className="flex flex-col gap-4 mt-2 flex-grow overflow-y-auto">
+                {currentItems.map((profesor) => {
+                  const isSelected = selectedProfesores.includes(profesor);
+                  const isDisabled =
+                    !isSelected &&
+                    selectedProfesores.length >= cantMiembrosJuradoDisp;
+
+                  return (
+                    <ProfesorCard
+                      key={profesor.id}
+                      docente={profesor}
+                      isSelected={selectedProfesores.includes(profesor)}
+                      onSelect={() => handleProfesorSelect(profesor)}
+                      isDisabled={isDisabled}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500 mt-2">
+                No hay profesores que coincidan con los filtros aplicados
+              </p>
             )}
           </div>
-
-          {profesoresSeleccionados.length > 0 ? (
-            <div className="flex flex-col gap-4 mt-2 flex-grow overflow-y-auto">
-              {currentItems.map((profesor) => {
-                const isSelected = selectedProfesores.includes(profesor);
-                const isDisabled =
-                  !isSelected &&
-                  selectedProfesores.length >= cantMiembrosJuradoDisp;
-
-                return (
-                  <ProfesorCard
-                    key={profesor.id}
-                    docente={profesor}
-                    isSelected={selectedProfesores.includes(profesor)}
-                    onSelect={() => handleProfesorSelect(profesor)}
-                    isDisabled={isDisabled}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-500 mt-2">
-              No hay profesores que coincidan con los filtros aplicados
-            </p>
-          )}
         </div>
 
         {!isLoading && profesoresSeleccionados.length > 0 && (
-          <div className="flex items-center justify-between pt-3 border-t">
+          <div className="flex-shrink-0 flex items-center justify-between pt-2">
             <div className="flex items-center gap-2 min-w-[200px]">
               <span className="text-sm text-gray-500">
                 Mostrando {indexOfFirstItem + 1}-
@@ -393,7 +394,6 @@ export default function ModalAsignarMiembroJurado({
                 {profesoresSeleccionados.length} registros
               </span>
             </div>
-
             <Pagination>
               <PaginationContent className="flex items-center gap-10">
                 <PaginationItem>
@@ -411,7 +411,6 @@ export default function ModalAsignarMiembroJurado({
                     Anterior
                   </PaginationLink>
                 </PaginationItem>
-
                 <div className="flex items-center gap-1">
                   {pageNumbers.map((number) => {
                     if (
@@ -430,7 +429,6 @@ export default function ModalAsignarMiembroJurado({
                         </PaginationItem>
                       );
                     }
-
                     if (
                       (number === 2 && currentPage > 3) ||
                       (number === totalPages - 1 &&
@@ -442,11 +440,9 @@ export default function ModalAsignarMiembroJurado({
                         </PaginationItem>
                       );
                     }
-
                     return null;
                   })}
                 </div>
-
                 <PaginationItem>
                   <PaginationLink
                     onClick={() =>
@@ -468,7 +464,7 @@ export default function ModalAsignarMiembroJurado({
           </div>
         )}
 
-        <DialogFooter className="absolute bottom-6 right-4 flex gap-2 justify-end">
+        <DialogFooter className="flex-shrink-0 flex gap-2 justify-end pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>

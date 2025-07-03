@@ -30,7 +30,7 @@ export const useBackStore = create<BackStore>()(
 
 
             // Funciones para llamadas al backend
-            cargarParametros: async (carreraId) => {
+            cargarParametros: async () => {
                 set({ cargando: true, error: null });
                 try {
                     const response = await getAllByCarreraId();
@@ -73,4 +73,3 @@ export const useBackStore = create<BackStore>()(
         }
     )
 );
-

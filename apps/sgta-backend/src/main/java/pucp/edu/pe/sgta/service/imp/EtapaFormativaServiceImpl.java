@@ -4,6 +4,7 @@ import org.postgresql.util.PGInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.model.CarreraXParametroConfiguracion;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Exposicion;
@@ -34,6 +35,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private EtapaFormativaXCicloRepository etapaFormativaXCicloRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -207,7 +210,6 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             if (duration != null) {
                 String durationStr = formatDuration(duration);
                 etapaFormativaRepository.updateDuracionExposicion(saved.getId(), durationStr);
-
                 // Actualizamos el campo transitorio para el DTO de respuesta
                 saved.setDuracionExposicion(duration);
             }
@@ -225,6 +227,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
             throw new RuntimeException("Error al crear etapa formativa: " + e.getMessage(), e);
         }
     }
+
 
     /**
      * Formatea un objeto Duration a un formato compatible con PostgreSQL Interval

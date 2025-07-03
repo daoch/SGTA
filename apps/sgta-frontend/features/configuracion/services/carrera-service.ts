@@ -9,6 +9,13 @@ export interface Carrera {
     activo: boolean;
 }
 
+export interface UnidadAcademica {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    activo: boolean;
+}
+
 const { idToken } = useAuthStore.getState();
 
 export const carreraService = {
@@ -18,7 +25,7 @@ export const carreraService = {
     },
 
     getById: async (id: number): Promise<Carrera> => {
-        const response = await axiosInstance.get(`/carrera/${id}`);
+        const response = await axiosInstance.get(`/carrera/get/${id}`);
         return response.data;
     },
 
@@ -45,3 +52,10 @@ export const carreraService = {
         return response.data;
     },
 }; 
+
+export const unidadAcademicaService = {
+    getAll: async (): Promise<UnidadAcademica[]> => {
+        const response = await axiosInstance.get("/unidad-academica/listar");
+        return response.data;
+    }
+};
