@@ -69,7 +69,6 @@
           <a href="${s.url?html}" target="_blank">${s.title?html}</a><br/>
           <small>${s.source}</small>
         </td>
-        <td class="scr">${s.page}</td>
         <td class="scr">${s.score}%</td>
       </tr>
     </#list>
