@@ -467,11 +467,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-<<<<<<< HEAD
-CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones_revisores(entregablextemaid INTEGER)
-RETURNS VOID
-LANGUAGE plpgsql
+CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones_revisores(entregablextemaid integer)
+ RETURNS void
+ LANGUAGE plpgsql
 AS $function$
 DECLARE
     version_id INT;
@@ -494,7 +492,53 @@ BEGIN
     END IF;
 
     -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
-=======
+    FOR version_id, v_link_archivo IN
+        SELECT vd.version_documento_id, vd.link_archivo_subido
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregablextemaid
+    LOOP
+        -- 3. Iterar sobre los revisores asignados al tema (rol_id = 3)
+        FOR user_id IN
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = v_tema_id
+              AND ut.rol_id = 3
+              AND ut.asignado = TRUE
+        LOOP
+            -- 4. Verificar si ya existe una revisión para ese usuario y versión
+            IF NOT EXISTS (
+                SELECT 1
+                FROM revision_documento
+                WHERE version_documento_id = version_id
+                  AND usuario_id = user_id
+            ) THEN
+                -- 5. Insertar revisión con estado 'pendiente' y fecha_revision = fecha_fin del entregable
+                INSERT INTO revision_documento (
+                    version_documento_id,
+                    usuario_id,
+                    estado_revision,
+                    activo,
+                    fecha_creacion,
+                    fecha_modificacion,
+                    fecha_revision,
+                    link_archivo_revision
+                )
+                VALUES (
+                    version_id,
+                    user_id,
+                    'pendiente',
+                    TRUE,
+                    NOW(),
+                    NOW(),
+                    v_fecha_revision,
+                    v_link_archivo
+                );
+            END IF;
+        END LOOP;
+    END LOOP;
+END;
+$function$
+                
 CREATE OR REPLACE FUNCTION crear_revisiones_jurado(entregablextemaid INTEGER)
 RETURNS void LANGUAGE plpgsql AS
 $$
@@ -528,27 +572,16 @@ BEGIN
     END IF;
 
     -- 3. Iterar sobre versiones del entregable_x_tema
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
     FOR version_id, v_link_archivo IN
         SELECT vd.version_documento_id, vd.link_archivo_subido
         FROM version_documento vd
         WHERE vd.entregable_x_tema_id = entregablextemaid
     LOOP
-<<<<<<< HEAD
-        -- 3. Iterar sobre los revisores asignados al tema (rol_id = 3)
-=======
         -- 4. Iterar sobre jurados asignados al tema
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
         FOR user_id IN
             SELECT DISTINCT ut.usuario_id
             FROM usuario_tema ut
             WHERE ut.tema_id = v_tema_id
-<<<<<<< HEAD
-              AND ut.rol_id = 3
-              AND ut.asignado = TRUE
-        LOOP
-            -- 4. Verificar si ya existe una revisión para ese usuario y versión
-=======
               AND ut.rol_id = 2  -- Jurado
               AND ut.asignado = true
         LOOP
@@ -565,18 +598,13 @@ BEGIN
             END IF;
 
             -- 6. Verificar si ya existe una revisión para ese usuario y versión
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
             IF NOT EXISTS (
                 SELECT 1
                 FROM revision_documento
                 WHERE version_documento_id = version_id
                   AND usuario_id = user_id
             ) THEN
-<<<<<<< HEAD
-                -- 5. Insertar revisión con estado 'pendiente' y fecha_revision = fecha_fin del entregable
-=======
                 -- 7. Insertar la revisión
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
                 INSERT INTO revision_documento (
                     version_documento_id,
                     usuario_id,
@@ -590,26 +618,17 @@ BEGIN
                 VALUES (
                     version_id,
                     user_id,
-<<<<<<< HEAD
-                    'pendiente',
-                    TRUE,
-                    NOW(),
-                    NOW(),
-                    v_fecha_revision,
-=======
                     'por_aprobar',
                     true,
                     NOW(),
                     NOW(),
                     NOW(),
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
                     v_link_archivo
                 );
             END IF;
         END LOOP;
     END LOOP;
 END;
-<<<<<<< HEAD
 $function$;
 
 CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
@@ -629,30 +648,13 @@ CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
     fecha_envio timestamp with time zone,
     fecha_fin timestamp with time zone,
     numero_observaciones integer
-=======
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION obtener_documentos_jurado(juradoid integer)
- RETURNS TABLE(
-    revision_id INTEGER,
-    tema TEXT,
-    entregable TEXT,
-    estudiante TEXT,
-    codigo TEXT,
-    curso TEXT,
-    fecha_carga TIMESTAMP WITH TIME ZONE,
-    estado_revision TEXT,
-    entrega_a_tiempo BOOLEAN,
-    fecha_limite TIMESTAMP WITH TIME ZONE
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
- )
+)
  LANGUAGE plpgsql
 AS $function$
 BEGIN
     RETURN QUERY
     SELECT
         rd.revision_documento_id AS revision_id,
-<<<<<<< HEAD
         t.titulo::text AS tema,
         e.nombre::text AS entregable,
         (u_est.nombres || ' ' || u_est.primer_apellido || ' ' || COALESCE(u_est.segundo_apellido, ''))::text AS estudiante,
@@ -702,7 +704,27 @@ BEGIN
     ORDER BY rd.fecha_creacion DESC;
 END;
 $function$;
-=======
+
+
+CREATE OR REPLACE FUNCTION obtener_documentos_jurado(juradoid integer)
+ RETURNS TABLE(
+    revision_id INTEGER,
+    tema TEXT,
+    entregable TEXT,
+    estudiante TEXT,
+    codigo TEXT,
+    curso TEXT,
+    fecha_carga TIMESTAMP WITH TIME ZONE,
+    estado_revision TEXT,
+    entrega_a_tiempo BOOLEAN,
+    fecha_limite TIMESTAMP WITH TIME ZONE
+ )
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY
+    SELECT
+        rd.revision_documento_id AS revision_id,
         t.titulo::TEXT AS tema,
         e.nombre::TEXT AS entregable,
         (u.nombres || ' ' || u.primer_apellido || ' ' || u.segundo_apellido)::TEXT AS estudiante,
@@ -736,7 +758,6 @@ $function$;
       AND rd.usuario_id = juradoid;
 END;
 $$ LANGUAGE plpgsql;
->>>>>>> 2062786475870679469bda1f0dd68fcbb7e3bd84
 
 
 drop function if exists insertar_actualizar_criterio_entregable_id;
@@ -776,3 +797,21 @@ END;
 $function$
 ;
 
+
+CREATE OR REPLACE PROCEDURE actualizar_estado_revision_todos(
+    p_revision_id INTEGER,
+    p_nuevo_estado TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE revision_documento
+    SET estado_revision = CAST(p_nuevo_estado AS enum_estado_revision)
+    WHERE version_documento_id = (
+        SELECT version_documento_id
+        FROM revision_documento
+        WHERE revision_documento_id = p_revision_id
+    )
+    AND estado_revision = 'por_aprobar';
+END;
+$$;
