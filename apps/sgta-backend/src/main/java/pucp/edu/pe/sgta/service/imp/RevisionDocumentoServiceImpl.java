@@ -432,23 +432,27 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         List<RevisionDocumentoRevisorDto> documentos = new ArrayList<>();
         for (Object[] row : result) {
             RevisionDocumentoRevisorDto dto = new RevisionDocumentoRevisorDto();
+
             dto.setId((Integer) row[0]); // revision_id
             dto.setTitulo((String) row[1]); // tema
             dto.setEntregable((String) row[2]); // entregable
             dto.setEstudiante((String) row[3]); // estudiante
             dto.setCodigo((String) row[4]); // código PUCP
             dto.setCurso((String) row[5]); // curso
-            dto.setFechaEntrega(
-                    row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null);
+
             dto.setEstado((String) row[7]); // estado_revision
-            dto.setFechaLimiteEntrega(
-                    row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaRevision(
-                    row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaLimiteRevision(
-                    row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setUltimoCiclo(null);
-            dto.setUrlDescarga(null);
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_limite
+
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Number) row[10]).doubleValue() : null);
+            dto.setPorcentajeGenIA(row[11] != null ? ((Number) row[11]).doubleValue() : null);
+
             documentos.add(dto);
         }
         return documentos;

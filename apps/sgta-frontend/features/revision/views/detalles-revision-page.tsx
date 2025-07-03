@@ -9,7 +9,7 @@ import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter";
 import { Observacion, ObservacionesList } from "../components/observaciones-list";
@@ -43,6 +43,7 @@ interface IHighlightConCorregido extends IHighlight {
 
 export default function RevisionDetailPage({ params }: { params: { id: string; rol_id?: number } }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,8 +57,8 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
   // SOLO PARA REVISOR / JURADO
   const [showRubricaDialog, setShowRubricaDialog] = useState(false);
   //////////////
-  
-    async function descargarReporte() {
+
+  async function descargarReporte() {
     try {
       const response = await axiosInstance.get(
         `/s3/archivos/get-reporte-similitud/${encodeURIComponent(String(params.id))}`,
@@ -117,25 +118,25 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
   }, [params.id]);
 
   async function actualizarEstadoRevision(revisionId: number, nuevoEstado: string) {
-      try {
-        const { idToken } = useAuthStore.getState();  // Obtener el token de autenticación
-        if (!idToken) {
-            throw new Error("No authentication token available");
-        }
+    try {
+      const { idToken } = useAuthStore.getState();  // Obtener el token de autenticación
+      if (!idToken) {
+        throw new Error("No authentication token available");
+      }
 
-        const response = await axiosInstance.put(
-            `/revision/${revisionId}/todoestado`, 
-            { estado: nuevoEstado },
-            {
-                headers: {
-                    Authorization: `Bearer ${idToken}`,  // Agregar el token de autenticación
-                },
-            }
-        );
-        return response.data; // o response.status si solo te importa el status
+      const response = await axiosInstance.put(
+        `/revision/${revisionId}/todoestado`,
+        { estado: nuevoEstado },
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,  // Agregar el token de autenticación
+          },
+        }
+      );
+      return response.data; // o response.status si solo te importa el status
     } catch (error) {
-        console.error("Error en la actualización:", error);
-        throw error;
+      console.error("Error en la actualización:", error);
+      throw error;
     }
   }
   const rolId = params.rol_id ?? 0; // Asignar rolId desde los parámetros
@@ -408,7 +409,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
               </div>
 
               <Separator />
-              
+
               {observacionesList.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium mb-2">Observaciones</h4>
@@ -432,7 +433,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
 
               <div className="pt-4">
                 {/* Si el rolId es 2 */}
-                
+
                 {rolId === 2 && (
                   <div className="flex flex-col gap-2">
                     {/* Si el estado es "por_aprobar" o "aprobado" */}
@@ -449,42 +450,7 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
                       </>
                     ) : null}
                   </div>
-                )}
-
-                {/* Si el rolId no es 2 */}
-                {rolId !== 2 && (
-                  <div className="flex flex-col gap-2">
-                    {/* Si el estado es "por_aprobar" */}
-                    {estado === "por_aprobar" && (
-                      <>
-                        <Link href={`../revisar-doc/${revision.id}`}>
-                          <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
-                            Continuar Revisión
-                          </Button>
-                        </Link>
-                        <Button
-                          className="w-full bg-[#042354] hover:bg-pucp-light"
-                          onClick={() => setShowConfirmDialog("aprobar")}
-                        >
-                          Aprobar Entregable
-                        </Button>
-                        <Button
-                          className="w-full bg-[#EB3156] hover:bg-pucp-light"
-                          onClick={() => setShowConfirmDialog("rechazar")}
-                        >
-                          Rechazar Entregable
-                        </Button>
-                      </>
-                    )}
-
-                    {/* Si el estado es "aprobado" */}
-                    {estado === "aprobado" && (
-                      <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
-                        Calificar Entregable
-                      </Button>
-                    )}
-                  </div>
-                )}
+                )}                
               </div>
             </CardContent>
           </Card>
@@ -515,16 +481,16 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
       <Dialog open={showRubricaDialog} onOpenChange={setShowRubricaDialog}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-          
+
           </DialogHeader>
           <RubricaEvaluacion
             revisionId={parseInt(params.id.trim())}
             onCancel={() => setShowRubricaDialog(false)}
-          />  
+          />
         </DialogContent>
       </Dialog>
-      
-      
+
+
       <Dialog open={!!showConfirmDialog} onOpenChange={() => setShowConfirmDialog(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -547,12 +513,12 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
                   await actualizarEstadoRevision(Number(params.id), showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
 
                   // 2. Envía correo de notificación (al usuario logueado que es el asesor)
-                   axiosInstance.post(
+                  axiosInstance.post(
                     `/notifications/send-email-a-revisor?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
                   );
 
                   // 3. Envía correo a estudiantes asociados a la revisión
-                   axiosInstance.post(
+                  axiosInstance.post(
                     `/notifications/notificar-estado?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
                   );
 

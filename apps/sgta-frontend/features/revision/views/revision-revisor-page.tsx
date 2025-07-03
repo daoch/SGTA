@@ -22,9 +22,16 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
-import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
+import { RevisionesTableRevisor } from "../components/RevisionesTableRevisor";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoRevisorDto } from "../dtos/RevisionDocumentoRevisorDto";
+
+const estados = [
+  { value: "pendiente", label: "Pendientes" },
+  { value: "en_proceso", label: "En Proceso" },
+  { value: "completada", label: "Completadas" },
+  { value: "todas", label: "Todas" },
+];
 
 function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
@@ -35,17 +42,17 @@ function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgru
         entregable: item.entregable,
         titulo: item.titulo,
         curso: item.curso,
-        porcentajeSimilitud: null, // No disponible para revisor
-        porcentajeGenIA: null, // No disponible para revisor
+        porcentajeSimilitud: item.porcentajeSimilitud ?? null,
+        porcentajeGenIA: item.porcentajeGenIA ?? null,
         fechaEntrega: item.fechaEntrega,
-        fechaLimiteEntrega: item.fechaLimiteEntrega,
-        fechaRevision: item.fechaRevision,
-        fechaLimiteRevision: item.fechaLimiteRevision,
-        ultimoCiclo: item.ultimoCiclo,
+        fechaLimiteEntrega: item.fechaLimiteEntrega ?? "",
+        fechaRevision: item.fechaRevision ?? "",
+        fechaLimiteRevision: item.fechaLimiteRevision ?? "",
+        ultimoCiclo: item.ultimoCiclo ?? "",
         estado: item.estado,
-        formatoValido: false, // No disponible para revisor
-        citadoCorrecto: false, // No disponible para revisor
-        urlDescarga: item.urlDescarga,
+        formatoValido: item.formatoValido ?? false,
+        citadoCorrecto: item.citadoCorrecto ?? false,
+        urlDescarga: item.urlDescarga ?? "",
         estudiantes: [],
       });
     }
@@ -56,13 +63,6 @@ function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgru
   });
   return Array.from(mapa.values());
 }
-
-const estados = [
-  { value: "pendiente", label: "Pendientes" },
-  { value: "en_proceso", label: "En Proceso" },
-  { value: "completada", label: "Completadas" },
-  { value: "todas", label: "Todas" },
-];
 
 const RevisionRevisorPage = () => {
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
@@ -95,8 +95,8 @@ const RevisionRevisorPage = () => {
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
   const defaultTab = estados[0].value;
 
-  // Usa la tabla de jurado/revisor (ajusta si tienes una específica para revisor)
-  const TableComponent = RevisionesTableJurado;
+  // Usa la tabla de revisor (ajusta si tienes una específica para revisor)
+  const TableComponent = RevisionesTableRevisor;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">

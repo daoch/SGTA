@@ -5,11 +5,15 @@ export interface RevisionDocumentoRevisorDto {
   estudiante: string;
   codigo: string;
   curso: string;
+  porcentajeSimilitud: number | null;
+  porcentajeGenIA: number | null;
   fechaEntrega: string;
-  fechaLimiteEntrega: string;
-  fechaRevision: string;
-  fechaLimiteRevision: string;
-  ultimoCiclo: string;
-  estado: "pendiente" | "en_proceso" | "completada";
-  urlDescarga: string;
+  fechaLimiteEntrega: string | null;
+  fechaRevision: string | null;
+  fechaLimiteRevision: string | null;
+  ultimoCiclo: string | null;
+  estado: string;
+  formatoValido: boolean | null;
+  citadoCorrecto: boolean | null;
+  urlDescarga: string | null;
 }
