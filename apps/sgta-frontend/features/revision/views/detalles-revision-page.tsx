@@ -547,12 +547,12 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
                   await actualizarEstadoRevision(Number(params.id), showConfirmDialog === "aprobar" ? "aprobado" : "rechazado");
 
                   // 2. Envía correo de notificación (al usuario logueado que es el asesor)
-                  await axiosInstance.post(
+                   axiosInstance.post(
                     `/notifications/send-email-a-revisor?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
                   );
 
                   // 3. Envía correo a estudiantes asociados a la revisión
-                  await axiosInstance.post(
+                   axiosInstance.post(
                     `/notifications/notificar-estado?revisionId=${params.id}&nombreDocumento=${encodeURIComponent(revision.titulo)}&nombreEntregable=${encodeURIComponent(revision.entregable)}&estado=${elestado}`
                   );
 

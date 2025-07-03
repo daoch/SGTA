@@ -805,14 +805,13 @@ CREATE OR REPLACE PROCEDURE actualizar_estado_revision_todos(
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE revision_documento rd
+    UPDATE revision_documento
     SET estado_revision = CAST(p_nuevo_estado AS enum_estado_revision)
-    WHERE rd.version_documento_id IN (
-        SELECT vd.version_documento_id
-        FROM version_documento vd
-        JOIN revision_documento rd2 ON rd2.version_documento_id = vd.version_documento_id
-        WHERE rd2.revision_documento_id = p_revision_id
+    WHERE version_documento_id = (
+        SELECT version_documento_id
+        FROM revision_documento
+        WHERE revision_documento_id = p_revision_id
     )
-    AND rd.estado_revision = 'por_aprobar';
+    AND estado_revision = 'por_aprobar';
 END;
 $$;
