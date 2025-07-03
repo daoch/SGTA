@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { guardarNota, listarCriterioEntregablesNotas, RevisionCriterioEntregableDto } from "../servicios/revision-service";
-
+import axiosInstance from "@/lib/axios/axios-instance";
 
 // interface RubricaItem {
 //   id: string
@@ -26,21 +26,43 @@ interface RubricaEvaluacionProps {
   onCancel: () => void
 };
 
-export function RubricaEvaluacion({ revisionId,onCancel }: RubricaEvaluacionProps) {
-    const onComplete = ()=>{
-        async function postNotas() {
-            try {
-              await guardarNota(rubricaItems);
-            } catch(e) {
-              console.log(e);
-            }
+export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionProps) {
+  const onComplete = () => {
+    async function postNotas() {
+      try {
+        await guardarNota(rubricaItems);
+
+        //Envio de correo a alumno
+        const nombreEntregable = rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : "Entregable";
+        await axiosInstance.post("/notifications/notificar-estado", null, {
+          params: {
+            revisionId: revisionId,
+            nombreDocumento: " ", 
+            nombreEntregable: nombreEntregable,
+            estado: "revisado"
           }
-        postNotas().then(()=>{
-            onCancel();
+        });  
+
+        // Envío de correo al revisor
+        await axiosInstance.post("/notifications/send-email-a-revisor", null, {
+          params: {
+            revisionId: revisionId,
+            nombreDocumento: " ",
+            nombreEntregable: nombreEntregable,
+            estado: "revisado"
+          }
         });
-    };
+
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    postNotas().then(() => {
+      onCancel();
+    });
+  };
   const [rubricaItems, setRubricaItems] = useState<RevisionCriterioEntregableDto[]>([]);
-  
+
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
 
   const handleNotaChange = (id: number, nota: number) => {
@@ -64,8 +86,8 @@ export function RubricaEvaluacion({ revisionId,onCancel }: RubricaEvaluacionProp
     }
   };
 
-  const handleComentarioChange = (id: number, comentario: string) => {
-    setRubricaItems(rubricaItems.map((item) => (item.id === id ? { ...item, comentario } : item)));
+  const handleComentarioChange = (id: number, observacion: string) => {
+    setRubricaItems(rubricaItems.map((item) => (item.id === id ? { ...item, observacion } : item)));
     console.log(id);
     //console.log(comentario);
     const item = rubricaItems.find((i) => i.id === id);
@@ -86,7 +108,7 @@ export function RubricaEvaluacion({ revisionId,onCancel }: RubricaEvaluacionProp
 
   const isComplete = rubricaItems.every((item) => item.nota && item.nota > 0);
 
-useEffect(() => {
+  useEffect(() => {
     async function fetchCriteriosEntData() {
       try {
         const data = await listarCriterioEntregablesNotas(revisionId);
@@ -104,7 +126,7 @@ useEffect(() => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-pucp-blue">Rúbrica de Evaluación</h2>
-          <p className="text-muted-foreground">Entregable: {rubricaItems.length>0? rubricaItems[0].entregable_descripcion :""}</p>
+          <p className="text-muted-foreground">Entregable: {rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : ""}</p>
         </div>
         <Badge variant="outline" className="bg-blue-100 text-blue-800">
           {completedItems.size}/{rubricaItems.length} criterios evaluados
@@ -115,13 +137,13 @@ useEffect(() => {
         <div>
           <h3 className="font-medium">Puntuación Total</h3>
           <p className="text-sm text-muted-foreground">
-            {rubricaItems.reduce((sum, item) => sum + (item.nota? item.nota:0) , 0).toFixed(1)} /{" "}
+            {rubricaItems.reduce((sum, item) => sum + (item.nota ? item.nota : 0), 0).toFixed(1)} /{" "}
             {rubricaItems.reduce((sum, item) => sum + item.notaMaxima, 0)} puntos
           </p>
         </div>
         <Badge variant="outline" className="bg-blue-100 text-blue-800">
           {(
-            (rubricaItems.reduce((sum, item) => sum + (item.nota? item.nota:0), 0) /
+            (rubricaItems.reduce((sum, item) => sum + (item.nota ? item.nota : 0), 0) /
               rubricaItems.reduce((sum, item) => sum + item.notaMaxima, 0)) *
             100
           ).toFixed(1)}
@@ -140,13 +162,13 @@ useEffect(() => {
             {rubricaItems.map((item) => (
               <AccordionItem key={item.id} value={item.id.toString()}>
                 <AccordionTrigger className="flex">
-                  <div className="flex justify-between w-full">                  
+                  <div className="flex justify-between w-full">
                     <div className="flex items-center gap-2 text-left">
-                        <span>{item.nombre}</span>
-                        {completedItems.has(item.id.toString()) && <CheckCircle className="h-4 w-4 text-green-500" />}
+                      <span>{item.nombre}</span>
+                      {completedItems.has(item.id.toString()) && <CheckCircle className="h-4 w-4 text-green-500" />}
                     </div>
                     <Badge variant="outline" className="ml-0 right">
-                        {item.notaMaxima} pts
+                      {item.notaMaxima} pts
                     </Badge>
                   </div>
                 </AccordionTrigger>
@@ -160,7 +182,7 @@ useEffect(() => {
                       <h4 className="font-medium">Comentario:</h4>
                       <Textarea
                         placeholder="Ingrese su evaluación para este criterio..."
-                        value={item.observacion?item.observacion:""}
+                        value={item.observacion ?? ""}
                         onChange={(e) => handleComentarioChange(item.id, e.target.value)}
                         rows={2}
                       />

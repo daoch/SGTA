@@ -1,12 +1,14 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
 
 interface DropzoneDocumentosAlumnoProps {
   readonly onFilesChange: (files: File[]) => void;
   readonly accept: string;
   readonly maxFiles: number;
   readonly maxSizeMB: number;
+  readonly archivosSubidos?: DocumentoConVersionDto[];
 }
 
 export function DropzoneDocumentosAlumno({
@@ -14,10 +16,35 @@ export function DropzoneDocumentosAlumno({
   accept,
   maxFiles,
   maxSizeMB,
+  archivosSubidos,
 }: DropzoneDocumentosAlumnoProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sincroniza archivos locales si archivosSubidos cambia (por ejemplo, tras eliminar)
+  useEffect(() => {
+    if (archivosSubidos) {
+      const nombresSubidos = archivosSubidos.map((f) =>
+        f.documentoNombre.toLowerCase(),
+      );
+      // Elimina de files los archivos que ya no están en archivosSubidos
+      const nuevosFiles = files.filter(
+        (f) => !nombresSubidos.includes(f.name.toLowerCase()),
+      );
+      if (nuevosFiles.length !== files.length) {
+        setFiles(nuevosFiles);
+        onFilesChange?.(nuevosFiles);
+      }
+      // Además, si archivosSubidos se vacía, limpia files
+      if (archivosSubidos.length === 0 && files.length > 0) {
+        setFiles([]);
+        onFilesChange?.([]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [archivosSubidos]);
 
   const getAllowedExtensions = (accept: string) =>
     accept
@@ -29,6 +56,8 @@ export function DropzoneDocumentosAlumno({
 
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return;
+    setErrorMsg(null);
+
     const allowedExtensions = getAllowedExtensions(accept);
     let newFiles = Array.from(fileList);
 
@@ -42,13 +71,26 @@ export function DropzoneDocumentosAlumno({
       });
     }
 
+    // Obtener nombres de archivos ya subidos y en espera de subir
+    const nombresExistentes = [
+      ...files.map((f) => f.name.toLowerCase()),
+      ...(archivosSubidos?.map((f) => f.documentoNombre.toLowerCase()) ?? []),
+    ];
+
+    // Verificar duplicados
+    for (const file of newFiles) {
+      if (nombresExistentes.includes(file.name.toLowerCase())) {
+        setErrorMsg(
+          `No se puede subir el archivo ${file.name}, primero debe borrar el archivo subido con el mismo nombre`,
+        );
+        return;
+      }
+    }
+
     // Filtrar por tamaño solo si hay restricción
     newFiles = newFiles.filter(
       (file) =>
-        (!maxSizeMB ||
-          maxSizeMB >= 1000 ||
-          file.size <= maxSizeMB * 1024 * 1024) &&
-        !files.some((f) => f.name === file.name),
+        !maxSizeMB || maxSizeMB >= 1000 || file.size <= maxSizeMB * 1024 * 1024,
     );
 
     // Limitar cantidad solo si hay restricción
@@ -59,6 +101,7 @@ export function DropzoneDocumentosAlumno({
 
     setFiles(allFiles);
     onFilesChange?.(allFiles);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   const handleDrop = (e: React.DragEvent<HTMLButtonElement>) => {
@@ -71,6 +114,7 @@ export function DropzoneDocumentosAlumno({
     const updated = files.filter((_, i) => i !== index);
     setFiles(updated);
     onFilesChange?.(updated);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
@@ -149,6 +193,9 @@ export function DropzoneDocumentosAlumno({
             </div>
           ))}
         </div>
+      )}
+      {errorMsg && (
+        <div className="text-sm text-red-600 font-medium py-2">{errorMsg}</div>
       )}
     </div>
   );

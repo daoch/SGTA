@@ -2,10 +2,8 @@ package pucp.edu.pe.sgta.service.imp;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,12 +45,13 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final TemaRepository temaRepository;
 
-
     @Value("${url.back}")
     private String backURL;
 
-    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository, ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
-                                              GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService, HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
+    public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
+            ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
+            GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService,
+            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
@@ -95,8 +94,10 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Override
     public List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioPorExposicion(Integer exposicionId) {
-        //List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
-        List<Object[]> results = bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicionConUsuariosYRespuesta(exposicionId);
+        // List<Object[]> results =
+        // bloqueHorarioExposicionRepository.listarBloquesHorarioPorExposicion(exposicionId);
+        List<Object[]> results = bloqueHorarioExposicionRepository
+                .listarBloquesHorarioPorExposicionConUsuariosYRespuesta(exposicionId);
 
         // Asi deberia ser :V
         // return results.stream().map(row -> new ListBloqueHorarioExposicionDTO(
@@ -114,29 +115,37 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         DateTimeFormatter fechaFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter horaFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        /*return results.stream().map(row -> {
-            OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) row[5], ZoneId.systemDefault());
-            OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) row[6], ZoneId.systemDefault());
-
-            String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + row[7];
-            String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
-            Integer idBloque = (Integer) row[0];
-            Integer idJornadaExposicionSala = (Integer) row[1];
-            Boolean esBloqueReservado = (Boolean) row[3];
-            Boolean esBloqueBloqueado = (Boolean) row[4];
-
-            TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = null;
-            if ((Integer) row[8] != null) {
-                temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
-                temaConAsesorJuradoDTO.setId((Integer) row[8]);
-                temaConAsesorJuradoDTO.setCodigo((String) row[9]);
-                temaConAsesorJuradoDTO.setTitulo((String) row[10]);
-                temaConAsesorJuradoDTO.setUsuarios(new ArrayList<UsarioRolDto>());
-            }
-
-            return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque, idJornadaExposicionSala, exposicionId,
-                    temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado, temaConAsesorJuradoDTO, false);
-        }).collect(Collectors.toList());*/
+        /*
+         * return results.stream().map(row -> {
+         * OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) row[5],
+         * ZoneId.systemDefault());
+         * OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) row[6],
+         * ZoneId.systemDefault());
+         * 
+         * String key = inicio.format(fechaFormatter) + "|" +
+         * inicio.format(horaFormatter) + "|" + row[7];
+         * String range = inicio.format(horaFormatter) + " - " +
+         * fin.format(horaFormatter);
+         * Integer idBloque = (Integer) row[0];
+         * Integer idJornadaExposicionSala = (Integer) row[1];
+         * Boolean esBloqueReservado = (Boolean) row[3];
+         * Boolean esBloqueBloqueado = (Boolean) row[4];
+         * 
+         * TemaConAsesorJuradoDTO temaConAsesorJuradoDTO = null;
+         * if ((Integer) row[8] != null) {
+         * temaConAsesorJuradoDTO = new TemaConAsesorJuradoDTO();
+         * temaConAsesorJuradoDTO.setId((Integer) row[8]);
+         * temaConAsesorJuradoDTO.setCodigo((String) row[9]);
+         * temaConAsesorJuradoDTO.setTitulo((String) row[10]);
+         * temaConAsesorJuradoDTO.setUsuarios(new ArrayList<UsarioRolDto>());
+         * }
+         * 
+         * return new ListBloqueHorarioExposicionSimpleDTO(key, range, idBloque,
+         * idJornadaExposicionSala, exposicionId,
+         * temaConAsesorJuradoDTO, esBloqueReservado, esBloqueBloqueado,
+         * temaConAsesorJuradoDTO, false);
+         * }).collect(Collectors.toList());
+         */
 
         Map<Integer, List<Object[]>> bloquesAgrupados = results.stream()
                 .collect(Collectors.groupingBy(row -> (Integer) row[0])); // Agrupar por idBloque
@@ -147,24 +156,25 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             List<Object[]> filasBloque = entry.getValue();
             Object[] rowEjemplo = filasBloque.get(0); // todas las filas comparten info base del bloque
 
-            OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) rowEjemplo[5], ZoneId.systemDefault());
-            OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) rowEjemplo[6], ZoneId.systemDefault());
+            OffsetDateTime inicio = OffsetDateTime.ofInstant((Instant) rowEjemplo[5], ZoneId.of("America/Lima"));
+            OffsetDateTime fin = OffsetDateTime.ofInstant((Instant) rowEjemplo[6], ZoneId.of("America/Lima"));
 
-            String fecha = inicio.format(fechaFormatter);
-            String hora = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
+            // String fecha = inicio.format(fechaFormatter);
+            // String hora = inicio.format(horaFormatter) + " - " +
+            // fin.format(horaFormatter);
 
             // Armar lista de usuarios vinculados a ese bloque
             List<UsarioRolDto> usuarios = filasBloque.stream()
                     .filter(row -> row[11] != null) // aseguramos que usuario_id exista
                     .filter(row -> !"Revisor".equalsIgnoreCase((String) row[15])) // ignorar usuarios con rol Revisor
                     .map(row -> new UsarioRolDto(
-                            ((Number) row[11]).intValue(),               // idPersona
-                            (String) row[12],                             // nombres
-                            (String) row[13],                             // apellidos
+                            ((Number) row[11]).intValue(), // idPersona
+                            (String) row[12], // nombres
+                            (String) row[13], // apellidos
                             row[14] != null ? ((Number) row[14]).intValue() : null, // rolId
-                            (String) row[15],                             // rolNombre
-                            (String) row[16],                         // estadoRespuesta
-                            (String) row[17] //correo
+                            (String) row[15], // rolNombre
+                            (String) row[16], // estadoRespuesta
+                            (String) row[17] // correo
                     ))
                     .distinct()
                     .toList();
@@ -178,18 +188,18 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                 tema.setUsuarios(usuarios);
             } else {
                 // En caso no haya tema, puedes asignar usuarios vacíos o null
-                //tema = new TemaConAsesorJuradoDTO();
-                //tema.setUsuarios(Collections.emptyList());
+                // tema = new TemaConAsesorJuradoDTO();
+                // tema.setUsuarios(Collections.emptyList());
             }
 
             ListBloqueHorarioExposicionSimpleDTO dto = new ListBloqueHorarioExposicionSimpleDTO();
 
-
-            dto.setIdBloque( ((Number) rowEjemplo[0]).intValue());
-            dto.setIdJornadaExposicionSala( (Integer) rowEjemplo[1]);
+            dto.setIdBloque(((Number) rowEjemplo[0]).intValue());
+            dto.setIdJornadaExposicionSala((Integer) rowEjemplo[1]);
             dto.setEsBloqueReservado((Boolean) rowEjemplo[3]);
             dto.setEsBloqueBloqueado((Boolean) rowEjemplo[4]);
-            String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|" + (String) rowEjemplo[7];
+            String key = inicio.format(fechaFormatter) + "|" + inicio.format(horaFormatter) + "|"
+                    + (String) rowEjemplo[7];
             String range = inicio.format(horaFormatter) + " - " + fin.format(horaFormatter);
             dto.setKey(key);
             dto.setRange(range);
@@ -226,7 +236,8 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicion) {
+    public boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,
+            Integer exposicion, Integer origen) {
 
         try {
 
@@ -237,32 +248,30 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
             System.out.println(bloquesList);
-            int i  = 0;
+            int i = 0;
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
             System.out.println("==================================================================");
             for (ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
                 var expo = dto.getExpo();
                 var anteriorExpo = dto.getAnteriorExpo();
 
-                if (
-                        expo != null && anteriorExpo == null || expo != null && !expo.getCodigo().equals(anteriorExpo.getCodigo()) || expo == null && anteriorExpo != null
-                ){
+                if (expo != null && anteriorExpo == null
+                        || expo != null && !expo.getCodigo().equals(anteriorExpo.getCodigo())
+                        || expo == null && anteriorExpo != null) {
                     bloquesCambiado.add(dto);
                     System.out.println("BLOQUE : " + dto.getKey());
-                    if(expo!=null){
+                    if (expo != null) {
                         System.out.println("TEMA : " + expo.getCodigo());
-                    }
-                    else{
-                        System.out.println("ACTUAL : NULL" );
+                    } else {
+                        System.out.println("ACTUAL : NULL");
                     }
 
-                    if(anteriorExpo!=null)
+                    if (anteriorExpo != null)
                         System.out.println("ANTERIOR : " + anteriorExpo.getCodigo());
                     else
-                        System.out.println("ANTERIOR : NULL" );
+                        System.out.println("ANTERIOR : NULL");
                 }
             }
-
 
             System.out.println("==================================================================");
             String jsonString2 = mapper.writeValueAsString(bloquesCambiado);
@@ -270,95 +279,97 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
             System.out.println("==================================================================");
             System.out.println("Resultado de la función: " + resultado);
-
+            if (origen == 1)
+                return true;
             HttpSession session = request.getSession(false);
-            if (session == null) throw new RuntimeException("No hay sesión activa");
+            if (session == null)
+                throw new RuntimeException("No hay sesión activa");
 
             String accessToken = (String) session.getAttribute("googleAccessToken");
-            if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
-            try{
+            if (accessToken == null)
+                throw new RuntimeException("No hay access token en sesión");
+            try {
                 // 1. Construir cliente Gmail
                 Gmail gmail = googleGmailService.buildGmailClient(accessToken);
-                for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesCambiado){
-                    if(bloque.getExpo()==null){
+                for (ListBloqueHorarioExposicionSimpleDTO bloque : bloquesCambiado) {
+                    if (bloque.getExpo() == null) {
                         continue;
                     }
-                    TemaConAsesorJuradoDTO tema =  bloque.getExpo();
-                     List<UsarioRolDto>usuarios = tema.getUsuarios();
-                     if(usuarios == null)
-                         continue;
+                    TemaConAsesorJuradoDTO tema = bloque.getExpo();
+                    List<UsarioRolDto> usuarios = tema.getUsuarios();
+                    if (usuarios == null)
+                        continue;
 
-                     for(UsarioRolDto usuario : usuarios){
-                         if(!usuario.getRol().getNombre().equals("Asesor") && !usuario.getRol().getNombre().equals("Jurado") )
-                             continue;
+                    for (UsarioRolDto usuario : usuarios) {
+                        if (!usuario.getRol().getNombre().equals("Asesor")
+                                && !usuario.getRol().getNombre().equals("Jurado"))
+                            continue;
 
-                         // 2. Datos del correo
-                         String token = UUID.randomUUID().toString();//ESTE ES EL TOKEN IDENTIFICADOR
-                         try {
-                             controlExposicionUsuarioTemaRepository.setTokenUnico(usuario.getIdUsario(), token, exposicion,tema.getId());
-                         } catch (Exception e) {
-                             System.err.println("Error al asignar token único:");
-                             System.err.println(e.getMessage());
+                        // 2. Datos del correo
+                        String token = UUID.randomUUID().toString();// ESTE ES EL TOKEN IDENTIFICADOR
+                        try {
+                            controlExposicionUsuarioTemaRepository.setTokenUnico(usuario.getIdUsario(), token,
+                                    exposicion, tema.getId());
+                        } catch (Exception e) {
+                            System.err.println("Error al asignar token único:");
+                            System.err.println(e.getMessage());
 
-                             // Si necesitas saber si es un error específico de PostgreSQL:
-                             if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx) {
-                                 System.err.println("PostgreSQL error: " + psqlEx.getServerErrorMessage().getMessage());
-                             }
+                            // Si necesitas saber si es un error específico de PostgreSQL:
+                            if (e.getCause() instanceof org.postgresql.util.PSQLException psqlEx) {
+                                System.err.println("PostgreSQL error: " + psqlEx.getServerErrorMessage().getMessage());
+                            }
 
-                             // Puedes continuar con el siguiente usuario si estás en un bucle
-                         }
-                         String destinatario = usuario.getCorreo();
-                         String asunto = "TEMA: " + tema.getCodigo()+ " - " + tema.getTitulo();
-                         String fecha = bloque.getKey().split("\\|")[0];
-                         String range = bloque.getRange();
-                         String tituloTema = tema.getTitulo();
-                         String urlAceptar = backURL + "/control-exposicion/aceptar-invitacion-correo?token=" + token;
-                         String urlRechazar = backURL + "/control-exposicion/rechazar-invitacion-correo?token=" + token;
+                            // Puedes continuar con el siguiente usuario si estás en un bucle
+                        }
+                        String destinatario = usuario.getCorreo();
+                        String asunto = "TEMA: " + tema.getCodigo() + " - " + tema.getTitulo();
+                        String fecha = bloque.getKey().split("\\|")[0];
+                        String range = bloque.getRange();
+                        String tituloTema = tema.getTitulo();
+                        String urlAceptar = backURL + "/control-exposicion/aceptar-invitacion-correo?token=" + token;
+                        String urlRechazar = backURL + "/control-exposicion/rechazar-invitacion-correo?token=" + token;
 
-                         String cuerpoHtml = """
-                            <h2>Invitación a reunión 📅</h2>
-                            <p>Has sido invitado a esta reunión.</p>
-                            <p>Se ha programado la exposición del tema "<strong>%s</strong>" para el día <strong>%s</strong>, en el rango de <strong>%s</strong>.</p>
-                            <p>Por favor, confirma tu asistencia:</p>
-                            <div style="margin-top: 20px;">
-                                <a href="%s" style="
-                                    padding: 10px 20px;
-                                    background-color: #4CAF50;
-                                    color: white;
-                                    text-decoration: none;
-                                    border-radius: 5px;
-                                    margin-right: 10px;
-                                    display: inline-block;
-                                ">Sí</a>
-                                <a href="%s" style="
-                                    padding: 10px 20px;
-                                    background-color: #f44336;
-                                    color: white;
-                                    text-decoration: none;
-                                    border-radius: 5px;
-                                    display: inline-block;
-                                ">No</a>
-                            </div>
-                            """.formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
-                         try{
+                        String cuerpoHtml = """
+                                <h2>Invitación a reunión 📅</h2>
+                                <p>Has sido invitado a esta reunión.</p>
+                                <p>Se ha programado la exposición del tema "<strong>%s</strong>" para el día <strong>%s</strong>, en el rango de <strong>%s</strong>.</p>
+                                <p>Por favor, confirma tu asistencia:</p>
+                                <div style="margin-top: 20px;">
+                                    <a href="%s" style="
+                                        padding: 10px 20px;
+                                        background-color: #4CAF50;
+                                        color: white;
+                                        text-decoration: none;
+                                        border-radius: 5px;
+                                        margin-right: 10px;
+                                        display: inline-block;
+                                    ">Sí</a>
+                                    <a href="%s" style="
+                                        padding: 10px 20px;
+                                        background-color: #f44336;
+                                        color: white;
+                                        text-decoration: none;
+                                        border-radius: 5px;
+                                        display: inline-block;
+                                    ">No</a>
+                                </div>
+                                """
+                                .formatted(tituloTema, fecha, range, urlAceptar, urlRechazar);
+                        try {
 
-                                 googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
-                                 System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
-                                 System.out.println("Correo enviado correctamente.");
+                            googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
+                            System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
+                            System.out.println("Correo enviado correctamente.");
 
+                        } catch (Exception e) {
+                            System.err.println("Error al enviar correo a: " + usuario.getCorreo());
+                            e.printStackTrace(); // o usar logger
+                        }
 
-
-                         }catch (Exception e){
-                             System.err.println("Error al enviar correo a: " + usuario.getCorreo());
-                             e.printStackTrace(); // o usar logger
-                         }
-
-                     }
-
+                    }
 
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             }
@@ -377,7 +388,6 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         try {
             Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
 
-
             return Boolean.TRUE.equals(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -386,107 +396,133 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     }
 
     @Override
-    public void crearReunionesZoom(int exposicionId){
-
+    public void crearReunionesZoom(int exposicionId) {
         List<ListBloqueHorarioExposicionSimpleDTO> listaBloques;
-        /*List<TemaConLinkDTO> listaTemasConLink = temaRepository.obtenerTemasConLink(exposicionId);
+        List<TemaConLinkDTO> listaTemasConLink = temaRepository.obtenerTemasConLink(exposicionId);
 
-            Map<Integer, String> mapaTemasConLink = listaTemasConLink.stream()
-                    .collect(Collectors.toMap(
-                            TemaConLinkDTO::getIdTema,
-                            TemaConLinkDTO::getLink,
-                            (v1, v2) -> v1
-                    ));*/
+        Map<Integer, String> mapaTemasConLink = listaTemasConLink.stream()
+                .collect(Collectors.toMap(
+                        TemaConLinkDTO::getIdTema,
+                        TemaConLinkDTO::getLink,
+                        (v1, v2) -> v1));
 
         ExposicionDto exposicion = exposicionService.findById(exposicionId);
-        try{
-           listaBloques = listarBloquesHorarioPorExposicion(exposicionId);
-        }catch (Exception e){
+        try {
+            listaBloques = listarBloquesHorarioPorExposicion(exposicionId);
+        } catch (Exception e) {
             System.out.println("Error al listarBloques");
             e.printStackTrace();
             return;
         }
 
         HttpSession session = request.getSession(false);
-        if (session == null) throw new RuntimeException("No hay sesión activa");
+        if (session == null)
+            throw new RuntimeException("No hay sesión activa");
 
         String accessToken = (String) session.getAttribute("googleAccessToken");
-        if (accessToken == null) throw new RuntimeException("No hay access token en sesión");
+        if (accessToken == null)
+            throw new RuntimeException("No hay access token en sesión");
 
-        try{
+        try {
             Calendar calendar = googleCalendarService.buildCalendarClient(accessToken);
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesFiltrados = listaBloques.stream()
                     .filter(b -> b.getExpo() != null)
                     .toList();
-
-            for(ListBloqueHorarioExposicionSimpleDTO bloque : bloquesFiltrados){
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            for (ListBloqueHorarioExposicionSimpleDTO bloque : bloquesFiltrados) {
                 String range = bloque.getRange();
-                String dia = bloque.getKey().split("\\|")[0];
-                String sala = bloque.getKey().split("\\|")[2];
-                TemaConAsesorJuradoDTO expo = bloque.getExpo();
-                //String linkReunion = mapaTemasConLink.get(expo.getId());
-                String linkReunion = "";
-                if(expo.getUsuarios() ==null)
+                String[] partes = bloque.getKey().split("\\|");
+                if (partes.length < 3)
                     continue;
-                UsarioRolDto usTesista = expo.getUsuarios().stream().filter(u->u.getRol().getNombre().equals("Tesista")).findFirst().get();
-                String summary = "Invitacion " + exposicion.getNombre() + ": "  + " " + usTesista.getApellidos() + "," + usTesista.getNombres() + " " + dia + " " + range + " (" + usTesista.getCorreo() + ")" ;
-                String description = "LA SESIÓN ES PRESENCIAL PARA LOS ESTUDIANTES<br><br>EL ZOOM ES PARA JURADOS EN CASOS EXCEPCIONALES<br><br>LINK DE REUNIÓN: " + linkReunion + "\n\n" +
-                        "Topic :  " + exposicion.getNombre() + "\n\n" + "TIME : " + dia + " "  + range + "\n\n" + "Lugar : " + sala ;
+                String dia = partes[0];
+                String sala = partes[2];
+                TemaConAsesorJuradoDTO expo = bloque.getExpo();
+                String linkReunion = mapaTemasConLink.getOrDefault(expo.getId(), "NO_LINK");
+                // String linkReunion = "";
+                if (expo.getUsuarios() == null)
+                    continue;
+                Optional<UsarioRolDto> optTesista = expo.getUsuarios().stream()
+                        .filter(u -> u.getRol().getNombre().equals("Tesista"))
+                        .findFirst();
+                if (optTesista.isEmpty())
+                    continue;
+                UsarioRolDto usTesista = optTesista.get();
+                String summary = "Invitacion " + exposicion.getNombre() + ": " + " " + usTesista.getApellidos() + ","
+                        + usTesista.getNombres() + " " + dia + " " + range + " (" + usTesista.getCorreo() + ")";
+                String description = "LA SESIÓN ES PRESENCIAL PARA LOS ESTUDIANTES<br><br>EL ZOOM ES PARA JURADOS EN CASOS EXCEPCIONALES<br><br>LINK DE REUNIÓN: "
+                        + linkReunion + "\n\n" +
+                        "Topic :  " + exposicion.getNombre() + "\n\n" + "TIME : " + dia + " " + range + "\n\n"
+                        + "Lugar : " + sala;
 
-                //SE FORMATEA LA FECHA
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                LocalDate fecha = LocalDate.parse(dia, dateFormatter);
+                // SE FORMATEA LA FECHA
 
-                // 2. Separar horas
+                LocalDate fecha;
+                try {
+                    fecha = LocalDate.parse(dia, dateFormatter);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Fecha inválida: " + dia);
+                    continue;
+                }
+
                 String[] horas = range.split(" - ");
-                LocalTime horaInicio = LocalTime.parse(horas[0]);
-                LocalTime horaFin = LocalTime.parse(horas[1]);
+                if (horas.length != 2) {
+                    System.err.println("Rango horario inválido: " + range);
+                    continue;
+                }
 
-                // 3. Crear OffsetDateTime usando zona horaria de Lima (-05:00)
+                LocalTime horaInicio, horaFin;
+                try {
+                    horaInicio = LocalTime.parse(horas[0]);
+                    horaFin = LocalTime.parse(horas[1]);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Horas inválidas: " + range);
+                    continue;
+                }
                 ZoneOffset limaOffset = ZoneOffset.of("-05:00");
                 OffsetDateTime start = OffsetDateTime.of(fecha, horaInicio, limaOffset);
                 OffsetDateTime end = OffsetDateTime.of(fecha, horaFin, limaOffset);
-                List<UsarioRolDto>attendes = new ArrayList<>();
-                for(UsarioRolDto us : expo.getUsuarios()){
-                    if(!us.getRol().getNombre().equals("Asesor") && !us.getRol().getNombre().equals("Jurado") && !us.getRol().getNombre().equals("Tesista") ){
+                List<UsarioRolDto> attendes = new ArrayList<>();
+                for (UsarioRolDto us : expo.getUsuarios()) {
+                    if (!us.getRol().getNombre().equals("Asesor") && !us.getRol().getNombre().equals("Jurado")
+                            && !us.getRol().getNombre().equals("Tesista")) {
                         continue;
                     }
                     attendes.add(us);
 
                 }
 
-                try{
-                    googleCalendarService.sendEvent(summary,description,attendes,start,end, sala,calendar);
+                try {
+                    googleCalendarService.sendEvent(summary, description, attendes, start, end, sala, calendar);
                     attendes.clear();
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-
-
             }
-        }
-        catch (Exception e){
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     /*
-
-
-            event.setSummary("HOLA CESAR");
-            event.setDescription("PRUEBA");
-            // Crear OffsetDateTime del 25 de junio 2025
-            OffsetDateTime start = OffsetDateTime.of(2025, 6, 24, 16, 0, 0, 0, ZoneOffset.of("-05:00"));
-
-            OffsetDateTime end = OffsetDateTime.of(2025, 6, 24, 17, 0, 0, 0, ZoneOffset.of("-05:00"));
-            event.setStartDateTime(start);
-            event.setEndDateTime(end);
-            event.setAttendess(new ArrayList<>());
-            String correo = "a20191810@pucp.edu.pe";
-            event.getAttendess().add(correo);
-
-            googleCalendarService.createEvent(event);*/
+     * 
+     * 
+     * event.setSummary("HOLA CESAR");
+     * event.setDescription("PRUEBA");
+     * // Crear OffsetDateTime del 25 de junio 2025
+     * OffsetDateTime start = OffsetDateTime.of(2025, 6, 24, 16, 0, 0, 0,
+     * ZoneOffset.of("-05:00"));
+     * 
+     * OffsetDateTime end = OffsetDateTime.of(2025, 6, 24, 17, 0, 0, 0,
+     * ZoneOffset.of("-05:00"));
+     * event.setStartDateTime(start);
+     * event.setEndDateTime(end);
+     * event.setAttendess(new ArrayList<>());
+     * String correo = "a20191810@pucp.edu.pe";
+     * event.getAttendess().add(correo);
+     * 
+     * googleCalendarService.createEvent(event);
+     */
 
     @Override
     @Transactional

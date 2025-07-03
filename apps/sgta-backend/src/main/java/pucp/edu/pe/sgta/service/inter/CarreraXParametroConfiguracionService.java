@@ -11,6 +11,8 @@ public interface CarreraXParametroConfiguracionService {
 
     List<CarreraXParametroConfiguracionDto> getParametrosPorAlumno(String idCognito);
 
+    List<CarreraXParametroConfiguracionDto> getParametrosPorCarreraYEtapaFormativa(String idCognito, Integer etapaFormativaId);
+
     Boolean assertParametroLimiteNumericoPorNombreCarrera(String nombreParametro, Integer carreraId, Integer usuarioId);
 
 }

@@ -1,9 +1,17 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import jakarta.transaction.Transactional;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -347,43 +355,97 @@ public class ExposicionServiceImpl implements ExposicionService {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Reporte");
 
-            // Encabezado + datos
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Etapa Formativa");
-            headerRow.createCell(1).setCellValue("Tipo de Exposición");
-            headerRow.createCell(2).setCellValue("Fecha");
-            headerRow.createCell(3).setCellValue("Hora");
-            headerRow.createCell(4).setCellValue("Aula");
-            headerRow.createCell(5).setCellValue("ID Tema");
-            headerRow.createCell(6).setCellValue("Tema");
-            headerRow.createCell(7).setCellValue("Asesor");
-            headerRow.createCell(8).setCellValue("Tesista");
-            headerRow.createCell(9).setCellValue("Jurado 1");
-            headerRow.createCell(10).setCellValue("Jurado 2");
-            headerRow.createCell(11).setCellValue("Link de Exposición");
+            // FILA TITULO CENTRADO Y EN NEGRITA
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Lista de Exposiciones");
+
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+            titleCell.setCellStyle(titleStyle);
+
+            // CENTRAR LAS CELDAS DEL TITULO
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 9));
+
+            // DATOS DE LA EXPOSICION
+            CellStyle boldStyle = workbook.createCellStyle();
+            Font boldFont = workbook.createFont();
+            boldFont.setBold(true);
+            boldStyle.setFont(boldFont);
+
+            Row row2 = sheet.createRow(2);
+            Cell celdaEtiqueta = row2.createCell(0);
+            celdaEtiqueta.setCellValue("Etapa Formativa:");
+            celdaEtiqueta.setCellStyle(boldStyle);
+
+            row2.createCell(1).setCellValue(datos_expo.get(0)[0].toString());
+
+            Row row3 = sheet.createRow(3);
+            celdaEtiqueta = row3.createCell(0);
+            celdaEtiqueta.setCellValue("Tipo de Exposición:");
+            celdaEtiqueta.setCellStyle(boldStyle);
+
+            row3.createCell(1).setCellValue(datos_expo.get(0)[1].toString());
+
+            // ENCABEZADO Y DATOS EN NEGRITA Y FONDO AMARILLO
+            Row headerRow = sheet.createRow(5);
+            // headerRow.createCell(0).setCellValue("Etapa Formativa");
+            // headerRow.createCell(1).setCellValue("Tipo de Exposición");
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            String[] headers = {
+                    "Fecha", "Hora", "Aula", "ID Tema", "Tema",
+                    "Asesor", "Tesista", "Jurado 1", "Jurado 2", "Link de Exposición"
+            };
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // headerRow.createCell(0).setCellValue("Fecha");
+            // headerRow.createCell(1).setCellValue("Hora");
+            // headerRow.createCell(2).setCellValue("Aula");
+            // headerRow.createCell(3).setCellValue("ID Tema");
+            // headerRow.createCell(4).setCellValue("Tema");
+            // headerRow.createCell(5).setCellValue("Asesor");
+            // headerRow.createCell(6).setCellValue("Tesista");
+            // headerRow.createCell(7).setCellValue("Jurado 1");
+            // headerRow.createCell(8).setCellValue("Jurado 2");
+            // headerRow.createCell(9).setCellValue("Link de Exposición");
 
             // CREO QUE NO SERAN NECESARIOS
             // headerRow.createCell(8).setCellValue("Revisor 1");
             // headerRow.createCell(9).setCellValue("Revisor 2");
 
-            int rowNum = 1;
+            int rowNum = 6;
             for (ListBloqueHorarioExposicionSimpleDTO dto : listaFiltrada) {
                 Row dataRow = sheet.createRow(rowNum++);
                 // etapa formativa
-                dataRow.createCell(0).setCellValue(datos_expo.get(0)[0].toString());
+                // dataRow.createCell(0).setCellValue(datos_expo.get(0)[0].toString());
                 // tipo de exposicion
-                dataRow.createCell(1).setCellValue(datos_expo.get(0)[1].toString());
+                // dataRow.createCell(1).setCellValue(datos_expo.get(0)[1].toString());
                 // fecha, hora y aula
                 String[] partes = dto.getKey().split("\\|");
                 String fecha = partes[0];
-                dataRow.createCell(2).setCellValue(fecha);
+                dataRow.createCell(0).setCellValue(fecha);
                 String hora = partes[1];
-                dataRow.createCell(3).setCellValue(hora);
+                dataRow.createCell(1).setCellValue(hora);
                 String aula = partes[2];
-                dataRow.createCell(4).setCellValue(aula);
+                dataRow.createCell(2).setCellValue(aula);
                 // id tema y tema
-                dataRow.createCell(5).setCellValue(dto.getExpo().getCodigo());
-                dataRow.createCell(6).setCellValue(dto.getExpo().getTitulo());
+                dataRow.createCell(3).setCellValue(dto.getExpo().getCodigo());
+                dataRow.createCell(4).setCellValue(dto.getExpo().getTitulo());
 
                 UsarioRolDto tesista = null;
                 UsarioRolDto jurado1 = null;
@@ -414,17 +476,17 @@ public class ExposicionServiceImpl implements ExposicionService {
                 }
 
                 if (asesor != null) {
-                    dataRow.createCell(7).setCellValue(asesor.getNombres() + " " + asesor.getApellidos());
+                    dataRow.createCell(5).setCellValue(asesor.getNombres() + " " + asesor.getApellidos());
                 }
 
                 if (tesista != null) {
-                    dataRow.createCell(8).setCellValue(tesista.getNombres() + " " + tesista.getApellidos());
+                    dataRow.createCell(6).setCellValue(tesista.getNombres() + " " + tesista.getApellidos());
                 }
                 if (jurado1 != null) {
-                    dataRow.createCell(9).setCellValue(jurado1.getNombres() + " " + jurado1.getApellidos());
+                    dataRow.createCell(7).setCellValue(jurado1.getNombres() + " " + jurado1.getApellidos());
                 }
                 if (jurado2 != null) {
-                    dataRow.createCell(10).setCellValue(jurado2.getNombres() + " " + jurado2.getApellidos());
+                    dataRow.createCell(8).setCellValue(jurado2.getNombres() + " " + jurado2.getApellidos());
                 }
                 // if (revisor1 != null) {
                 // dataRow.createCell(8).setCellValue(revisor1.getNombres() + " " +
@@ -437,7 +499,7 @@ public class ExposicionServiceImpl implements ExposicionService {
 
                 List<Object[]> link_expo = exposicionRepository
                         .obtener_link_exposicion_tema_x_bloque_id(dto.getIdBloque());
-                dataRow.createCell(11).setCellValue(link_expo.get(0)[0].toString());
+                dataRow.createCell(9).setCellValue(link_expo.get(0)[0].toString());
             }
 
             // Convertir a byte array

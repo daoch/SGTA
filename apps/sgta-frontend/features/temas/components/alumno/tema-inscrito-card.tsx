@@ -174,7 +174,7 @@ export function TemaCard() {
         <h3 className="text-lg font-medium mb-2">No tienes un proyecto de fin de carrera inscrito</h3>
         <p className="text-muted-foreground mb-6">Puedes postular a temas libres o proponer un nuevo tema de tesis</p>
         <div className="flex justify-center gap-4">
-          <Link href="temas/catalogo-de-temas">
+          <Link href="catalogo-de-temas">
             <Button variant="outline">Ver temas libres</Button>
           </Link>
         </div>
@@ -260,14 +260,14 @@ export function TemaCard() {
       </CardContent>
       <CardFooter className="flex gap-2 justify-between md:justify-start">
         {/* Botón Ver detalle SIEMPRE visible */}
-        <Link href={`/alumno/temas/${tesisData.id}/detalle`}>
+        <Link href={`/alumno/temas/temas/${tesisData.id}/detalle`}>
           <Button variant="outline">
             <Info className="mr-2 h-4 w-4" /> Ver detalle
           </Button>
         </Link>
         {/* Botón Ver observaciones SOLO si está observado */}
         {tesisData.estadoActual === "Observado" && (
-          <Link href={`/alumno/temas/${tesisData.id}`}>
+          <Link href={`/alumno/temas/temas/${tesisData.id}`}>
             <Button variant="outline">
               <Eye className="mr-2 h-4 w-4" /> Ver observaciones
             </Button>

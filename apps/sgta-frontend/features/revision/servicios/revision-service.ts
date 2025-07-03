@@ -154,8 +154,8 @@ export interface RevisionCriterioEntregableDto {
   observacion:string|null;
 }
 
-// Mapea el DTO a IHighlight
-function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
+// Mapea el DTO a IHighlight, incluyendo el campo "corregido"
+function highlightDtoToIHighlight(dto: HighlightDto & { corregido?: boolean }): IHighlight & { corregido?: boolean } {
   return {
     id: String(dto.id),
     content: {
@@ -178,6 +178,7 @@ function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
       pageNumber: dto.position.pageNumber ?? 1,
       usePdfCoordinates: dto.position.usePdfCoordinates ?? false,
     },
+    corregido: dto.corregido,
   };
 }
 export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {

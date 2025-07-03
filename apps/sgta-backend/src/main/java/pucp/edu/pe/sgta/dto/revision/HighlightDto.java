@@ -15,4 +15,5 @@ public class HighlightDto {
     private PositionDto position;
     private ContentDto content;
     private CommentDto comment;
+    private boolean corregido;
 }
