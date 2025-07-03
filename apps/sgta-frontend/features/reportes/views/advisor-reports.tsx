@@ -13,13 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { AsesorExportModal } from "../components/asesor-export-modal";
 
-// Constants
-const PROGRESS_MAPPING = {
-  no_iniciado: 0,
-  en_proceso: 50,
-  terminado: 100,
-} as const;
-
 // Types
 type FilterType = "all" | "low" | "medium" | "high";
 type ActivityFilterType = "all" | "no_iniciado" | "en_proceso" | "terminado";
@@ -31,8 +24,8 @@ type SortField = "name" | "career" | "stage" | "title" | "deliverable" | "dueDat
 type SortDirection = "asc" | "desc" | null;
 
 // Utility functions
-const getStudentProgress = (estado: string): number => 
-  PROGRESS_MAPPING[estado as keyof typeof PROGRESS_MAPPING] || 0;
+const getStudentProgress = (student: Student): number => 
+  Math.round(student.porcentajeEntregablesEnviados);
 
 const getFullName = (student: Student): string =>
   `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`;
@@ -324,7 +317,7 @@ export function AdvisorReports() {
     const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
                          student.tituloTema.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const studentProgress = getStudentProgress(student.entregableActualEstado);
+    const studentProgress = getStudentProgress(student);
     const matchesProgress = progressFilter === "all" ||
       (progressFilter === "low" && studentProgress < 30) ||
       (progressFilter === "medium" && studentProgress >= 30 && studentProgress <= 70) ||
@@ -379,8 +372,8 @@ export function AdvisorReports() {
         bValue = b.entregableEnvioEstado;
         break;
       case "progress":
-        aValue = getStudentProgress(a.entregableActualEstado);
-        bValue = getStudentProgress(b.entregableActualEstado);
+        aValue = getStudentProgress(a);
+        bValue = getStudentProgress(b);
         break;
       default:
         return 0;
@@ -599,7 +592,7 @@ export function AdvisorReports() {
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {sortedStudents.map((student) => {
-              const progress = getStudentProgress(student.entregableActualEstado);
+              const progress = getStudentProgress(student);
               return (
                 <Card key={student.tesistaId} className="border overflow-hidden">
                   <CardContent className="p-3">
@@ -684,7 +677,7 @@ export function AdvisorReports() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {sortedStudents.map((student) => {
-                  const progress = getStudentProgress(student.entregableActualEstado);
+                  const progress = getStudentProgress(student);
                   const fullName = getFullName(student);
                   return (
                     <tr 
