@@ -162,14 +162,27 @@ public class ReunionController {
         }
     }
 
-    @GetMapping("/buscarUsuarioReunion")
-    public ResponseEntity<UsuarioXReunionDto> buscarUsuarioReunion(
-            @Parameter(description = "ID de la reunión") @RequestParam Integer reunionId,
-            HttpServletRequest request){
-                String id = jwtService.extractSubFromRequest(request);
+    @GetMapping("/buscarUsuarioReunion/alumno")
+    public ResponseEntity<UsuarioXReunionDto> buscarUsuarioReunionAlumno(
+            @RequestParam Integer reunionId,
+            HttpServletRequest request) {
+        String id = jwtService.extractSubFromRequest(request);
         Optional<UsuarioXReunion> usuarioXReunion = usuarioXReunionService.findByReunionIdAndUsuarioId(reunionId, id);
-        return usuarioXReunion.map(xReunion -> ResponseEntity.ok(usuarioXReunionMapper.toDTO(xReunion))).orElseGet(() -> ResponseEntity.notFound().build());
+        return usuarioXReunion
+            .map(x -> ResponseEntity.ok(usuarioXReunionMapper.toDTO(x)))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/buscarUsuarioReunion/asesor")
+    public ResponseEntity<UsuarioXReunionDto> buscarUsuarioReunionAsesor(
+            @RequestParam Integer reunionId,
+            @RequestParam Integer usuarioId) {
+        Optional<UsuarioXReunion> usuarioXReunion = usuarioXReunionService.findByReunionIdAndUsuarioId(reunionId, usuarioId);
+        return usuarioXReunion
+            .map(x -> ResponseEntity.ok(usuarioXReunionMapper.toDTO(x)))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
     //Agregado
     @GetMapping("/getUsuarioXReunion")

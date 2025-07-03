@@ -44,7 +44,7 @@ import {
   type ReunionFormData,
 } from "@/features/cronograma/editar-reunion-modal";
 
-type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
+//type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
@@ -92,6 +92,7 @@ type ContextType = {
   today: Date;
   numTesistas: number; // <-- Nuevo
   tesistasUnicos?: string[];
+  fetchEventos?: () => void; // ✅ ← Agregado
 };
 
 const Context = createContext<ContextType>({} as ContextType);
@@ -120,6 +121,7 @@ type CalendarProps = {
   numTesistas?: number; // <-- Nuevo
   tesistasUnicos?: string[]; 
   tipoUsuario: string;
+  fetchEventos?: () => void; // ✅ ← Agregado
 };  
 
 const Calendar = ({
@@ -133,6 +135,7 @@ const Calendar = ({
   onChangeView,
   numTesistas = 1,
   tesistasUnicos = [], // ✅ Añadir esta línea
+  fetchEventos, // ✅ ← agrégalo aquí también
 }: CalendarProps) => {
   const [view, setView] = useState<View>(_defaultMode);
   const [date, setDate] = useState(defaultDate);
@@ -179,6 +182,7 @@ const Calendar = ({
         today: new Date(),
         numTesistas,
         tesistasUnicos,
+        fetchEventos, // ✅ ← Pasado al contexto
       }}
     >
       {children}
@@ -193,11 +197,12 @@ const CalendarViewTrigger = forwardRef<
   React.HTMLAttributes<HTMLButtonElement> & {
     view: View;
   }
->(({ children, view, ...props }) => {
+>(({ children, view, ...props }, ref) => {
   const { view: currentView, setView, onChangeView } = useCalendar();
 
   return (
     <Button
+      ref={ref} // importante: reenvía el ref si se necesita más adelante
       aria-current={currentView === view}
       size="sm"
       variant="ghost"
@@ -225,7 +230,7 @@ const EventGroup = ({
   tipoVista: string;
   tipoUsuario: string;
 }) => {
-  const { numTesistas, view } = useContext(Context);
+  const { numTesistas, view, fetchEventos } = useContext(Context);
 
   const [isReunionModalOpen, setIsReunionModalOpen] = useState(false);
   const [eventoSeleccionado, setEventoSeleccionado] = useState<CalendarEvent | null>(null);
@@ -282,7 +287,7 @@ const EventGroup = ({
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
             {eventos.map((event) => {
               const isDeadline = event.type === "ENTREGABLE";
-              const isClickable = tipoUsuario === "Alumno" && event.type === "REUNION";
+              const isClickable = event.type === "REUNION";
               const hoursDifference = isDeadline
                 ? 1
                 : differenceInMinutes(event.end, event.start ?? event.end) / 60;
@@ -366,6 +371,10 @@ const EventGroup = ({
             setEventoSeleccionado(null);
           }}
           evento={eventoSeleccionado}
+          emisor={tipoUsuario}
+          onUpdateSuccess={() => {
+            if (fetchEventos) fetchEventos(); // ✅ Solo llama si está definido
+          }}
         />
       )}
     </div>

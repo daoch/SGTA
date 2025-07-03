@@ -149,6 +149,12 @@ public class UsuarioXReunionServiceImpl implements UsuarioXReunionService {
         return usuarioXReunionRepository.findByReunionIdAndUsuarioIdAndActivoTrue(reunionId, usuarioId);
     }
 
+    //Funcion de Pool
+    @Override
+    public Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId, Integer usuarioId) {
+        return usuarioXReunionRepository.findByReunionIdAndUsuarioIdAndActivoTrue(reunionId, usuarioId);
+    }
+
     //Agregado
     @Override
     public Optional<UsuarioXReunion> findById(Integer id) {

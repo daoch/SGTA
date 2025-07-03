@@ -104,67 +104,69 @@ const MiCronogramaPage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-
-        // Response dinámico
-        const response = await axiosInstance.get("/api/eventos/tesista");
-
-        //Response hardcodeado para pruebas
-        //const response = await axiosInstance.get("/api/eventos/tesista/74"); // donde el numero es el ID del usuario tesista
-  
-        const eventosRaw: Evento[] = response.data;
-  
-        // Procesar todos los eventos, incluyendo la URL si son reuniones
-        const eventosMapeados = await Promise.all(
-          eventosRaw.map(async (evento: Evento, index: number) => {
-            const tipoEvento = normalizarTipoEvento(evento.tipo);
-            const endDate = new Date(evento.fechaFin || evento.fechaInicio);
-            const startDate =
-              tipoEvento === "ENTREGABLE"
-                ? endDate
-                : new Date(evento.fechaInicio);
-  
-            let url = "";
-  
-            // Si es una reunión, obtener su URL desde el endpoint adicional
-            if (tipoEvento === "REUNION") {
-              try {
-                const reunionResponse = await axiosInstance.get(
-                  `/api/reuniones/${evento.id}`
-                );
-                url = reunionResponse.data.url || "";
-                //console.log(url);
-              } catch (error) {
-                console.warn(`No se pudo obtener la URL de la reunión con ID ${evento.id}`, error);
-              }
-            }
-  
-            return {
-              //id: (index + 1).toString(), // ID único generado en frontend
-              id: `${tipoEvento.toLowerCase()}-${evento.id}`,
-              title: evento.nombre || "Sin título",
-              description: evento.descripcion || "",
-              start: startDate,
-              end: endDate,
-              tipoEvento,
-              url, // incluir url si es reunión
-            };
-          })
-        );
-  
-        setEvents(eventosMapeados);
-      } catch (error) {
-        console.error("Error al obtener eventos:", error);
+  const fetchEventos = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
-  
+
+      // Response dinámico
+      const response = await axiosInstance.get("/api/eventos/tesista");
+
+      //Response hardcodeado para pruebas
+      //const response = await axiosInstance.get("/api/eventos/tesista/74"); // donde el numero es el ID del usuario tesista
+
+      const eventosRaw: Evento[] = response.data;
+
+      // Procesar todos los eventos, incluyendo la URL si son reuniones
+      const eventosMapeados = await Promise.all(
+        eventosRaw.map(async (evento: Evento, index: number) => {
+          const tipoEvento = normalizarTipoEvento(evento.tipo);
+          const endDate = new Date(evento.fechaFin || evento.fechaInicio);
+          const startDate =
+            tipoEvento === "ENTREGABLE"
+              ? endDate
+              : new Date(evento.fechaInicio);
+
+          let url = "";
+
+          // Si es una reunión, obtener su URL desde el endpoint adicional
+          if (tipoEvento === "REUNION") {
+            try {
+              const reunionResponse = await axiosInstance.get(
+                `/api/reuniones/${evento.id}`
+              );
+              url = reunionResponse.data.url || "";
+              //console.log(url);
+            } catch (error) {
+              console.warn(`No se pudo obtener la URL de la reunión con ID ${evento.id}`, error);
+            }
+          }
+
+          return {
+            //id: (index + 1).toString(), // ID único generado en frontend
+            id: `${tipoEvento.toLowerCase()}-${evento.id}`,
+            title: evento.nombre || "Sin título",
+            description: evento.descripcion || "",
+            start: startDate,
+            end: endDate,
+            tipoEvento,
+            url, // incluir url si es reunión
+          };
+        })
+      );
+
+      setEvents(eventosMapeados);
+    } catch (error) {
+      console.error("Error al obtener eventos:", error);
+    }
+  };
+
+  fetchEventos();
+
+  useEffect(() => {
     fetchEventos();
   }, []);
   
@@ -482,6 +484,9 @@ const MiCronogramaPage = () => {
           numTesistas={1}
           tesistasUnicos={["Tesista"]}
           tipoUsuario="Alumno"
+          fetchEventos={() => {
+                fetchEventos(); // 👈 vuelve a cargar los datos del backend
+            }}
         >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">

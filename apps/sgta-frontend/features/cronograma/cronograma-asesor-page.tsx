@@ -101,7 +101,6 @@ const MiCronogramaPage = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-useEffect(() => {
   const fetchEventosAsesor = async () => {
     try {
       const { idToken } = useAuthStore.getState();
@@ -109,25 +108,50 @@ useEffect(() => {
         console.error("No authentication token available");
         return;
       }
-      // Response hardcodeado
-      //const response = await axiosInstance.get("/api/eventos/asesor/4"); // Reemplaza 4 con el ID real del asesor si es dinámico
 
-      // Response dinámico
+      // Llamada al backend
       const response = await axiosInstance.get("/api/eventos/asesor");
+      const data: Evento[] = response.data;
 
-      const data = response.data;
+      // Mapeo de eventos con URL en reuniones
+      const eventosMapeados: CalendarEvent[] = await Promise.all(
+        data.flatMap((evento) =>
+          evento.tesistas.slice(0, 20).map(async (tesista) => {
+            let url = "";
 
-      // Mapeamos cada evento para cada tesista
-      const eventosMapeados: CalendarEvent[] = data.flatMap((evento: Evento) =>
-        evento.tesistas.slice(0, 20).map((tesista) => ({
-          id: `${evento.id}-${tesista.id}`,
-          title: evento.nombre,
-          description: evento.descripcion,
-          start: evento.fechaInicio ? new Date(evento.fechaInicio) : new Date(evento.fechaFin),
-          end: new Date(evento.fechaFin),
-          tipoEvento: evento.tipo as TipoEvento,
-          tesista: tesista.nombreCompleto, // ahora es individual
-        }))
+            // Si es reunión, obtener su URL
+            if (evento.tipo.toUpperCase() === "REUNION") {
+              try {
+                const reunionResponse = await axiosInstance.get(
+                  `/api/reuniones/${evento.id}`
+                );
+                url = reunionResponse.data.url || "";
+              } catch (error) {
+                console.warn(
+                  `No se pudo obtener la URL de la reunión con ID ${evento.id}`,
+                  error
+                );
+              }
+            }
+
+            const endDate = new Date(evento.fechaFin || evento.fechaInicio);
+            const startDate =
+              evento.tipo.toUpperCase() === "ENTREGABLE"
+                ? endDate
+                : new Date(evento.fechaInicio);
+
+            return {
+              id: `${evento.id}-${tesista.id}`,
+              title: evento.nombre || "Sin título",
+              description: evento.descripcion || "",
+              start: startDate,
+              end: endDate,
+              tipoEvento: evento.tipo as TipoEvento,
+              tesista: tesista.nombreCompleto,
+              url, // incluir la URL si aplica
+            };
+          })
+        )
       );
 
       setEvents(eventosMapeados);
@@ -137,7 +161,10 @@ useEffect(() => {
   };
 
   fetchEventosAsesor();
-}, []);
+
+  useEffect(() => {
+    fetchEventosAsesor();
+  }, []);
 
   
 
@@ -505,7 +532,10 @@ const filteredEvents = useMemo(() =>
             key={JSON.stringify(selectedTesistas)} // Forzar re-render al cambiar filtros
             numTesistas={tesistasList.length}
             tesistasUnicos={tesistasList}
-            tipoUsuario='ASESOR'
+            tipoUsuario='Asesor'
+            fetchEventos={() => {
+                fetchEventosAsesor(); // 👈 vuelve a cargar los datos del backend
+            }}
           >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">
