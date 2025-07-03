@@ -22,7 +22,7 @@ import axiosInstance from "@/lib/axios/axios-instance";
 import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
-import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
+import { RevisionesTableRevisor } from "../components/RevisionesTableRevisor";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoRevisorDto } from "../dtos/RevisionDocumentoRevisorDto";
 
@@ -36,27 +36,27 @@ const estados = [
 function agruparPorDocumento(data: RevisionDocumentoRevisorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
   data.forEach((item) => {
-    if (!mapa.has(item.revisionId)) {
-      mapa.set(item.revisionId, {
-        id: item.revisionId,
+    if (!mapa.has(item.id)) {
+      mapa.set(item.id, {
+        id: item.id,
         entregable: item.entregable,
-        titulo: item.tema,
+        titulo: item.titulo,
         curso: item.curso,
-        porcentajeSimilitud: null, // No disponible para revisor
-        porcentajeGenIA: null, // No disponible para revisor
-        fechaEntrega: item.fechaCarga,
-        fechaLimiteEntrega: item.fechaLimite,
-        fechaRevision: item.fechaRevision,
-        fechaLimiteRevision: undefined, // No hay campo específico
-        ultimoCiclo: undefined, // No hay campo específico
-        estado: item.estadoRevision,
-        formatoValido: false, // No disponible para revisor
-        citadoCorrecto: false, // No disponible para revisor
-        urlDescarga: item.linkArchivo,
+        porcentajeSimilitud: item.porcentajeSimilitud ?? null,
+        porcentajeGenIA: item.porcentajeGenIA ?? null,
+        fechaEntrega: item.fechaEntrega,
+        fechaLimiteEntrega: item.fechaLimiteEntrega ?? "",
+        fechaRevision: item.fechaRevision ?? "",
+        fechaLimiteRevision: item.fechaLimiteRevision ?? "",
+        ultimoCiclo: item.ultimoCiclo ?? "",
+        estado: item.estado,
+        formatoValido: item.formatoValido ?? false,
+        citadoCorrecto: item.citadoCorrecto ?? false,
+        urlDescarga: item.urlDescarga ?? "",
         estudiantes: [],
       });
     }
-    mapa.get(item.revisionId)!.estudiantes.push({
+    mapa.get(item.id)!.estudiantes.push({
       nombre: item.estudiante,
       codigo: item.codigo,
     });
@@ -95,8 +95,8 @@ const RevisionRevisorPage = () => {
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
   const defaultTab = estados[0].value;
 
-  // Usa la tabla de jurado/revisor (ajusta si tienes una específica para revisor)
-  const TableComponent = RevisionesTableJurado;
+  // Usa la tabla de revisor (ajusta si tienes una específica para revisor)
+  const TableComponent = RevisionesTableRevisor;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">

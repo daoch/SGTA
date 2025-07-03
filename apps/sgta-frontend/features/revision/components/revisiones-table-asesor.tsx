@@ -118,12 +118,12 @@ export function RevisionesTableAsesor({
                 <TableRow key={revision.id}>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      {revision.entregable}
+                      <span title={revision.entregable}>{revision.entregable}</span>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      {revision.titulo}
+                      <span title={revision.titulo}>{revision.titulo}</span>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>

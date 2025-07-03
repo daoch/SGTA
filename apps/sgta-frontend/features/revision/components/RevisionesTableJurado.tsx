@@ -92,9 +92,9 @@ export function RevisionesTableJurado({
           <TableHeader>
             <TableRow>
               <TableHead>
-                <span className="ml-2">Documento</span>
+                <span className="ml-2">Entregable</span>
               </TableHead>
-              <TableHead>Entregable</TableHead>
+              <TableHead>Documento</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
@@ -118,13 +118,12 @@ export function RevisionesTableJurado({
                 <TableRow key={revision.id}>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span>{revision.titulo}</span>
+                      <span title={revision.entregable}>{revision.entregable}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium max-w-xs truncate text-center">
+                  <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <span>{revision.entregable}</span>
+                      <span title={revision.titulo}>{revision.titulo}</span>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
@@ -153,9 +152,19 @@ export function RevisionesTableJurado({
                     )}
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajeSimilitud !== null ? (
+                    {revision.porcentajeGenIA !== null ? (
                       <div className="flex items-center gap-2">
-                        <span>-</span>
+                        <span
+                          className={
+                            revision.porcentajeGenIA > 20
+                              ? "text-red-600"
+                              : revision.porcentajeGenIA > 10
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }
+                        >
+                          {revision.porcentajeGenIA}%
+                        </span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>

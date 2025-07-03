@@ -9,7 +9,7 @@ import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { ArrowLeft, CheckCircle, Download, FileText, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter";
 import { Observacion, ObservacionesList } from "../components/observaciones-list";
@@ -42,6 +42,7 @@ interface IHighlightConCorregido extends IHighlight {
 
 export default function RevisionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [revision, setRevision] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -419,30 +420,41 @@ export default function RevisionDetailPage({ params }: { params: { id: string } 
               )}
 
               <div className="pt-4">
-                {estado === "por_aprobar" && (
+                {/* Mostrar botones según el rol detectado por la URL */}
+                {pathname.includes("/asesor/") ? (
+                  estado === "por_aprobar" && (
+                    <div className="flex flex-col gap-2">
+                      <Link href={`../revisar-doc/${revision.id}`}>
+                        <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
+                          Continuar Revisión
+                        </Button>
+                      </Link>
+                      <Button
+                        className="w-full bg-[#042354] hover:bg-pucp-light"
+                        onClick={() => setShowConfirmDialog("aprobar")}
+                      >
+                        Aprobar Entregable
+                      </Button>
+                      <Button
+                        className="w-full bg-[#EB3156] hover:bg-pucp-light"
+                        onClick={() => setShowConfirmDialog("rechazar")}
+                      >
+                        Rechazar Entregable
+                      </Button>
+                    </div>
+                  )
+                ) : (pathname.includes("/revisor/") || pathname.includes("/jurado/")) ? (
                   <div className="flex flex-col gap-2">
                     <Link href={`../revisar-doc/${revision.id}`}>
                       <Button className="w-full bg-[#0743a3] hover:bg-pucp-light">
                         Continuar Revisión
                       </Button>
                     </Link>
-                    <Button
-                      className="w-full bg-[#042354] hover:bg-pucp-light"
-                      onClick={() => setShowConfirmDialog("aprobar")}
-                    >
-                      Aprobar Entregable
-                    </Button>
-                    <Button
-                      className="w-full bg-[#EB3156] hover:bg-pucp-light"
-                      onClick={() => setShowConfirmDialog("rechazar")}
-                    >
-                      Rechazar Entregable
-                    </Button>
                     <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
                       Calificar Entregable
-                    </Button> 
+                    </Button>
                   </div>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
