@@ -221,91 +221,79 @@ END;
 
 $ $ LANGUAGE plpgsql;
 
-CREATE
-OR REPLACE FUNCTION crear_revisiones(entregablextemaid integer) RETURNS void LANGUAGE plpgsql AS $ function $ DECLARE version_id INT;
+-- DROP FUNCTION sgtadb.crear_revisiones(int4);
 
-v_tema_id INT;
+CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones(entregablextemaid integer)
+ RETURNS void
+ LANGUAGE plpgsql
+AS $function$ 
+DECLARE 
+    version_id INT;
+    v_tema_id INT;
+    v_link_archivo TEXT;
+    user_id INT;
+BEGIN 
+    -- 1. Obtener el tema_id relacionado
+    SELECT ext.tema_id INTO v_tema_id
+    FROM entregable_x_tema ext
+    WHERE ext.entregable_x_tema_id = entregablextemaid
+      AND ext.activo = true;
 
-v_link_archivo TEXT;
+    IF v_tema_id IS NULL THEN 
+        RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%', entregablextemaid;
+        RETURN;
+    END IF;
 
-user_id INT;
-
-BEGIN -- 1. Obtener el tema_id relacionado
-SELECT
-    ext.tema_id INTO v_tema_id
-FROM
-    entregable_x_tema ext
-WHERE
-    ext.entregable_x_tema_id = entregablextemaid
-    AND ext.activo = true;
-
-IF v_tema_id IS NULL THEN RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%',
-entregablextemaid;
-
-RETURN;
-
-END IF;
-
--- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
-FOR version_id,
-v_link_archivo IN
-SELECT
-    vd.version_documento_id,
-    vd.link_archivo_subido
-FROM
-    version_documento vd
-WHERE
-    vd.entregable_x_tema_id = entregablextemaid LOOP -- 3. Iterar sobre los usuarios únicos (asesores y coasesores) asignados al tema
-    FOR user_id IN
-SELECT
-    DISTINCT ut.usuario_id
-FROM
-    usuario_tema ut
-WHERE
-    ut.tema_id = v_tema_id
-    AND ut.rol_id IN (1, 2) -- Asesor y Coasesor
-    AND ut.asignado = true LOOP -- 4. Verificar si ya existe una revisión para ese usuario y versión
-    IF NOT EXISTS (
-        SELECT
-            1
-        FROM
-            revision_documento
-        WHERE
-            version_documento_id = version_id
-            AND usuario_id = user_id
-    ) THEN -- 5. Insertar revisión
-INSERT INTO
-    revision_documento (
-        version_documento_id,
-        usuario_id,
-        estado_revision,
-        activo,
-        fecha_creacion,
-        fecha_modificacion,
-        fecha_revision,
-        link_archivo_revision
-    )
-VALUES
-    (
-        version_id,
-        user_id,
-        'por_aprobar',
-        true,
-        NOW(),
-        NOW(),
-        NOW(),
-        v_link_archivo
-    );
-
-END IF;
-
-END LOOP;
-
-END LOOP;
-
+    -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
+    -- CAMBIO: Agregado filtro WHERE vd.documento_principal = TRUE
+    FOR version_id, v_link_archivo IN
+        SELECT vd.version_documento_id, vd.link_archivo_subido
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregablextemaid 
+          AND vd.documento_principal = TRUE
+    LOOP 
+        -- 3. Iterar sobre los usuarios únicos (asesores y coasesores) asignados al tema
+        FOR user_id IN
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = v_tema_id
+              AND ut.rol_id IN (1, 2) -- Asesor y Coasesor
+              AND ut.asignado = true 
+        LOOP 
+            -- 4. Verificar si ya existe una revisión para ese usuario y versión
+            IF NOT EXISTS (
+                SELECT 1
+                FROM revision_documento
+                WHERE version_documento_id = version_id
+                  AND usuario_id = user_id
+            ) THEN 
+                -- 5. Insertar revisión
+                INSERT INTO revision_documento (
+                    version_documento_id,
+                    usuario_id,
+                    estado_revision,
+                    activo,
+                    fecha_creacion,
+                    fecha_modificacion,
+                    fecha_revision,
+                    link_archivo_revision
+                )
+                VALUES (
+                    version_id,
+                    user_id,
+                    'por_aprobar',
+                    true,
+                    NOW(),
+                    NOW(),
+                    NOW(),
+                    v_link_archivo
+                );
+            END IF;
+        END LOOP;
+    END LOOP;
 END;
-
-$ function $;
+$function$
+;
 
 DROP FUNCTION IF EXISTS obtener_detalles_entregable_y_tema;
 CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
@@ -654,20 +642,7 @@ $function$
 --DROP FUNCTION sgtadb.obtener_documentos_revisor(int4);
 
 CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
- RETURNS TABLE(
-    revision_id integer,
-    tema text,
-    entregable text,
-    estudiante text,
-    codigo text,
-    curso text,
-    fecha_carga timestamp with time zone,
-    estado_revision text,
-    entrega_a_tiempo boolean,
-    fecha_limite timestamp with time zone,
-    similitud double precision,
-    ia double precision
- )
+ RETURNS TABLE(revision_id integer, tema text, entregable text, estudiante text, codigo text, curso text, fecha_carga timestamp with time zone, estado_revision text, entrega_a_tiempo boolean, fecha_limite timestamp with time zone, similitud double precision, ia double precision)
  LANGUAGE plpgsql
 AS $function$
 BEGIN
@@ -714,5 +689,82 @@ BEGIN
       AND rd.fecha_revision <= NOW()
     ORDER BY rd.fecha_creacion DESC;
 END;
-$function$;
+$function$
+;
 
+-- DROP FUNCTION sgtadb.crear_revisiones_revisores(int4);
+
+CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones_revisores(entregablextemaid integer)
+ RETURNS void
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    version_id INT;
+    v_tema_id INT;
+    v_link_archivo TEXT;
+    user_id INT;
+    v_fecha_revision TIMESTAMP;
+BEGIN
+    -- 1. Obtener el tema_id y fecha_fin (como fecha_revision) del entregable
+    SELECT ext.tema_id, e.fecha_fin
+    INTO v_tema_id, v_fecha_revision
+    FROM entregable_x_tema ext
+    JOIN entregable e ON e.entregable_id = ext.entregable_id
+    WHERE ext.entregable_x_tema_id = entregablextemaid
+      AND ext.activo = TRUE;
+
+    IF v_tema_id IS NULL THEN
+        RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%', entregablextemaid;
+        RETURN;
+    END IF;
+
+    -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
+    -- CAMBIO: Agregado filtro WHERE vd.documento_principal = TRUE
+    FOR version_id, v_link_archivo IN
+        SELECT vd.version_documento_id, vd.link_archivo_subido
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregablextemaid
+          AND vd.documento_principal = TRUE
+    LOOP
+        -- 3. Iterar sobre los revisores asignados al tema (rol_id = 3)
+        FOR user_id IN
+            SELECT DISTINCT ut.usuario_id
+            FROM usuario_tema ut
+            WHERE ut.tema_id = v_tema_id
+              AND ut.rol_id = 3
+              AND ut.asignado = TRUE
+        LOOP
+            -- 4. Verificar si ya existe una revisión para ese usuario y versión
+            IF NOT EXISTS (
+                SELECT 1
+                FROM revision_documento
+                WHERE version_documento_id = version_id
+                  AND usuario_id = user_id
+            ) THEN
+                -- 5. Insertar revisión con estado 'pendiente' y fecha_revision = fecha_fin del entregable
+                INSERT INTO revision_documento (
+                    version_documento_id,
+                    usuario_id,
+                    estado_revision,
+                    activo,
+                    fecha_creacion,
+                    fecha_modificacion,
+                    fecha_revision,
+                    link_archivo_revision
+                )
+                VALUES (
+                    version_id,
+                    user_id,
+                    'pendiente',
+                    TRUE,
+                    NOW(),
+                    NOW(),
+                    v_fecha_revision,
+                    v_link_archivo
+                );
+            END IF;
+        END LOOP;
+    END LOOP;
+END;
+$function$
+;
