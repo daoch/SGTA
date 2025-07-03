@@ -184,5 +184,13 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   @Query(value = "SELECT * FROM obtener_temas_con_link(:p_exposicion_id)",nativeQuery = true)
   List<TemaConLinkDTO> obtenerTemasConLink(@Param("p_exposicion_id") Integer exposicionId);
 
+  @Query(value = """
+    SELECT t.*
+    FROM tema t
+    JOIN solicitud s ON s.tema_id = t.tema_id
+    WHERE s.solicitud_id = :solicitudId
+    """, nativeQuery = true)
+  Optional<Tema> findTemaBySolicitudId(@Param("solicitudId") Integer solicitudId);
+
 
 }

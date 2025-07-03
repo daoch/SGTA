@@ -90,4 +90,5 @@ public interface UsuarioXSolicitudRepository extends JpaRepository<UsuarioXSolic
     Page<UsuarioXSolicitud> findByUsuarioAndRolSolicitudAndActivoTrue(Usuario usuario,
                                                                   RolSolicitud rol,
                                                                   Pageable pageable);
+    Optional<UsuarioXSolicitud> getUsuarioXSolicitudBySolicitudIdAndRolSolicitud_Nombre(Integer idSolicitud, String rolSolicitud);
 }

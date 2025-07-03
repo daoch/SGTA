@@ -34,4 +34,26 @@ public class UsuarioXSolicitudServiceImp {
 
         return usuarioXSolicitud;
     }
+
+    public Usuario getOtroAsesor(Integer idSolicitud, String rol) {
+        String rolABuscar;
+        if(rol.equals(RolSolicitudEnum.ASESOR_ACTUAL.name())){
+            rolABuscar = RolSolicitudEnum.ASESOR_ENTRADA.name();
+        }else{
+            rolABuscar = RolSolicitudEnum.ASESOR_ACTUAL.name();
+        }
+        UsuarioXSolicitud us = usuarioXSolicitudRepository
+                                .getUsuarioXSolicitudBySolicitudIdAndRolSolicitud_Nombre(idSolicitud, rolABuscar)
+                                .orElseThrow(() -> new RuntimeException("No se encontró un asesor"))
+                                ;
+        return us.getUsuario();
+    }
+
+    public Usuario getUsuarioByNombreRol(Integer idSolicitud, String rol) {
+        UsuarioXSolicitud us = usuarioXSolicitudRepository
+                .getUsuarioXSolicitudBySolicitudIdAndRolSolicitud_Nombre(idSolicitud, rol)
+                .orElseThrow(() -> new RuntimeException("No se encontró un usuario con el rol " + rol + " en la solicitud"));
+                ;
+        return us.getUsuario();
+    }
 }

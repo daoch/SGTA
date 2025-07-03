@@ -17,4 +17,6 @@ public class RegistroCeseTemaDto {
     String estadoTema;
     @NotNull
     String motivo;
+    @NotNull
+    Integer asesorId;
 }

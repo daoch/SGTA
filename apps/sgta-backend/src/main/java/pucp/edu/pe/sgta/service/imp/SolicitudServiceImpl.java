@@ -23,30 +23,23 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter; // De local
 
-import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException; // De local
-import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
-import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
-import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
-import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
-import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.EstudianteSimpleDto;
 import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
-import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
+import pucp.edu.pe.sgta.service.inter.NotificacionService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.*;
@@ -105,154 +98,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private TemaServiceImpl temaServiceImpl;
     @Autowired
     private UsuarioXSolicitudServiceImp usuarioXSolicitudServiceImp;
-
-    public SolicitudCambioAsesorDto findAllSolicitudesCambioAsesor(int page, int size) {
-        List<Solicitud> allSolicitudes = solicitudRepository.findByTipoSolicitudNombre("Cambio Asesor");
-
-        int totalElements = allSolicitudes.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
-
-        if (fromIndex >= totalElements) {
-            return new SolicitudCambioAsesorDto(Collections.emptyList(), totalPages);
-        }
-
-        List<Solicitud> solicitudesPage = allSolicitudes.subList(fromIndex, toIndex);
-
-        List<SolicitudCambioAsesorDto.RequestChange> requestList = solicitudesPage.stream().map(solicitud -> {
-            List<UsuarioXSolicitud> relaciones = usuarioXSolicitudRepository.findBySolicitud(solicitud);
-
-            var asesor = relaciones.stream()
-                    .filter(uxs -> Boolean.FALSE.equals(uxs.getDestinatario()))
-                    .map(uxs -> uxs.getUsuario())
-                    .map(u -> new SolicitudCambioAsesorDto.Assessor(
-                            u.getId(),
-                            u.getNombres(),
-                            u.getPrimerApellido(),
-                            u.getCorreoElectronico(),
-                            u.getFotoPerfil() // URL foto
-            ))
-                    .toList();
-
-            var students = relaciones.stream()
-                    .filter(uxs -> Boolean.TRUE.equals(uxs.getDestinatario()))
-                    .findFirst()
-                    .map(uxs -> new SolicitudCambioAsesorDto.Estudiante(
-                            uxs.getUsuario().getId(),
-                            uxs.getUsuario().getNombres(),
-                            uxs.getUsuario().getPrimerApellido(),
-                            uxs.getUsuario().getCorreoElectronico(),
-                            uxs.getUsuario().getFotoPerfil(),
-                            new SolicitudCambioAsesorDto.Tema(
-                                    solicitud.getTema().getId(),
-                                    solicitud.getTema().getTitulo(),
-                                    new SolicitudCambioAsesorDto.AreaConocimiento(
-                                            subAreaConocimientoXTemaRepository
-                                                    .findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId())
-                                                    .getSubAreaConocimiento().getId(),
-                                            subAreaConocimientoXTemaRepository
-                                                    .findFirstByTemaIdAndActivoTrue(solicitud.getTema().getId())
-                                                    .getSubAreaConocimiento().getNombre()))))
-                    .orElse(null);
-
-            String estado = switch (solicitud.getEstado()) {
-                case 0 -> "approved";
-                case 1 -> "pending";
-                case 2 -> "rejected";
-                default -> "unknown";
-            };
-
-            return new SolicitudCambioAsesorDto.RequestChange(
-                    solicitud.getId(),
-                    solicitud.getFechaCreacion().toLocalDate(),
-                    estado,
-                    solicitud.getDescripcion(),
-                    solicitud.getRespuesta(),
-                    solicitud.getFechaModificacion() != null ? solicitud.getFechaModificacion().toLocalDate() : null,
-                    asesor,
-                    students);
-        }).toList();
-
-        return new SolicitudCambioAsesorDto(requestList, totalPages);
-    }
-
-    @Override
-    public RechazoSolicitudCambioAsesorResponseDto rechazarSolicitudCambioAsesor(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
-
-        // Check that the request is in pending status (1)
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("Request is not in pending status");
-        }
-
-        // Check that the request is of type advisor change (tipoSolicitud.nombre ==
-        // Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null
-                || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
-            throw new RuntimeException("Request is not of advisor change type");
-        }
-
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(0); // Rechazado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
-
-        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
-        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
-
-        CambioAsignacionDto asignacion = new CambioAsignacionDto(
-                tesista.getUsuario().getId(),
-                asesor.getUsuario().getId());
-
-        RechazoSolicitudCambioAsesorResponseDto dto = new RechazoSolicitudCambioAsesorResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("rejected");
-        dto.setResponse(response); // se usa lo que viene del request
-        dto.setAssignation(asignacion);
-
-        return dto;
-    }
-
-    @Override
-    public AprobarSolicitudCambioAsesorResponseDto aprobarSolicitudCambioAsesor(Integer solicitudId, String response) {
-        Solicitud solicitud = solicitudRepository.findById(solicitudId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
-
-        // Check that the request is in pending status (1)
-        if (solicitud.getEstado() != 1) {
-            throw new RuntimeException("Request is not in pending status");
-        }
-
-        // Check that the request is of type advisor change (tipoSolicitud.nombre ==
-        // Cambio Asesor)
-        if (solicitud.getTipoSolicitud() == null
-                || !solicitud.getTipoSolicitud().getNombre().equalsIgnoreCase("Cambio Asesor")) {
-            throw new RuntimeException("Request is not of advisor change type");
-        }
-
-        solicitud.setRespuesta(response);
-        solicitud.setEstado(2); // Aprobado
-        solicitud.setFechaModificacion(OffsetDateTime.now());
-        solicitudRepository.save(solicitud);
-
-        UsuarioXSolicitud asesor = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioTrue(solicitud);
-        UsuarioXSolicitud tesista = usuarioXSolicitudRepository.findFirstBySolicitudAndDestinatarioFalse(solicitud);
-
-        AprobarCambioAsesorAsignacionDto asignacion = new AprobarCambioAsesorAsignacionDto(
-                tesista.getUsuario().getId(),
-                asesor.getUsuario().getId());
-
-        AprobarSolicitudCambioAsesorResponseDto dto = new AprobarSolicitudCambioAsesorResponseDto();
-        dto.setIdRequest(solicitud.getId());
-        dto.setStatus("approved");
-        dto.setResponse(response); // se usa lo que viene del request
-        dto.setAssignation(asignacion);
-
-        return dto;
-    }
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     public SolicitudTemaDto findAllSolicitudesByTema(Integer temaId, int page, int size) {
@@ -535,6 +382,48 @@ public class SolicitudServiceImpl implements SolicitudService {
         usuarioXSolicitudRepository.save(nuevoAsesor);
         usuarioXSolicitudRepository.save(actualAsesor);
 
+        //Una vez hecho toda la gestión del registro falta avisar a los asesores
+        // Enviar notificación al nuevo asesor
+        String mensajeNotificacion = String.format(
+                "Estimado/a %s %s, se le ha propuesto para asumir la asesoría del tema '%s'. Por favor, revise sus 'Solicitudes de cambio de asesor' en el sistema.",
+                asesorNuevo.getNombres(),
+                asesorNuevo.getPrimerApellido(),
+                tema.getTitulo()
+        );
+
+        notificacionService.crearNotificacionParaUsuario(
+                asesorNuevo.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
+
+        // Enviar notificación al asesor actual
+        if(!solicitud.getCreadorId().equals(solicitud.getAsesorActualId()))
+            mensajeNotificacion = String.format(
+                    "Estimado/a %s %s, el tema '%s' ha recibido una solicitud para cambio de asesor por parte del alumno. Puede revisar la solicitud en la sección 'Solicitudes de cambio de asesor' en el sistema.",
+                    asesorActual.getNombres(),
+                    asesorActual.getPrimerApellido(),
+                    tema.getTitulo()
+            );
+        else
+            mensajeNotificacion = String.format(
+                    "Estimado/a %s %s, su tema '%s' ha recibido una solicitud para cambio de asesor por parte del alumno. Puede revisar y aprobar la solicitud en la sección 'Solicitudes de cambio de asesor' en el sistema.",
+                    asesorActual.getNombres(),
+                    asesorActual.getPrimerApellido(),
+                    tema.getTitulo()
+            );
+
+        notificacionService.crearNotificacionParaUsuario(
+                asesorActual.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
         return solicitud;
     }
 
@@ -572,10 +461,12 @@ public class SolicitudServiceImpl implements SolicitudService {
         return solicitudes;
     }
 
+    @Transactional
     @Override
     public RegistroCeseTemaDto registrarSolicitudCeseTema(RegistroCeseTemaDto registroDto, String cognitoId) {
         //Revisamos que el estado tema llegue valido y corroboramos en la BD
         EstadoTemaEnum estado = temaServiceImpl.obtenerEstadoFromString(registroDto.getEstadoTema());
+
         //Validamos que el tema tenga el estado que llegó
         Tema tema = temaServiceImpl.validarTemaConEstado(registroDto.getTemaId(), estado);
         //Obtenemos el tipo de solicutud
@@ -612,6 +503,10 @@ public class SolicitudServiceImpl implements SolicitudService {
         //Agregar al usuario remitente
         Usuario alumno = usuarioServiceImpl.buscarUsuarioPorCognito(cognitoId, "Usuario no encontrado");
         usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(alumno, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.REMITENTE);
+
+        //Agregar al asesor actual para información relevante
+        Usuario asesor = usuarioServiceImpl.buscarUsuarioPorId(registroDto.getAsesorId(), "Asesor no encontrado");
+        usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(asesor, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.ASESOR_ACTUAL);
 
         //Si el tema es incrito luego de registrar se procede al retiro
         if(estado == EstadoTemaEnum.INSCRITO){
@@ -694,28 +589,121 @@ public class SolicitudServiceImpl implements SolicitudService {
         // con ese if y estado pendiente
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
                 EstadoSolicitudEnum.PENDIENTE.name());
+
+        //Variables para las notificaciones
+        String mensajeNotificacion;
+        Usuario otroAsesor =  usuarioXSolicitudServiceImp.getOtroAsesor(idSolicitud,rol);
+        Usuario alumno = usuarioXSolicitudServiceImp.getUsuarioByNombreRol(idSolicitud, RolSolicitudEnum.REMITENTE.name());
+        Tema tema = temaServiceImpl.getTemaFromSolicitud(idSolicitud);
+        String rolSolictud;
+        if(rol.equals(RolSolicitudEnum.ASESOR_ACTUAL.name())){
+            rolSolictud = "asesor principal";
+        }else{
+            rolSolictud = "nuevo asesor";
+        }
+
+
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
+            //El mensaje de aprobación
+            mensajeNotificacion = String.format(
+                    "La solicitud de cambio de asesor para el tema '%s' ha sido aprobada por el %s.",
+                    tema.getTitulo(),
+                    rolSolictud
+            );
         }else{
             usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
+            //El mensaje de rechazo
+            mensajeNotificacion = String.format(
+                    "La solicitud de cambio de asesor para el tema '%s' ha sido rechazada por el %s.",
+                    tema.getTitulo(),
+                    rolSolictud
+            );
         }
+
+        // Las notificaciones se envian al alumno y al otro asesor
+        notificacionService.crearNotificacionParaUsuario(
+                otroAsesor.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
+        //Notificaciones al alumno
+        notificacionService.crearNotificacionParaUsuario(
+                alumno.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
     }
+
+
     @Transactional
     @Override
     public void aprobarRechazarSolicitudCambioAsesorCoordinador(Integer idSolicitud, String idCognito, String comentario, boolean aprobar) {
         // validar Solicitud se puede aprobar o rechazar verifica que haya una solcitud
         // con ese if y estado pendiente
+
+        //Variables para las notificaciones
+        String mensajeNotificacion;
+        Usuario asesorActual =  usuarioXSolicitudServiceImp.getOtroAsesor(idSolicitud,RolSolicitudEnum.ASESOR_ACTUAL.name());
+        Usuario nuevoAsesor = usuarioXSolicitudServiceImp.getUsuarioByNombreRol(idSolicitud, RolSolicitudEnum.ASESOR_ENTRADA.name());
+        Usuario alumno = usuarioXSolicitudServiceImp.getUsuarioByNombreRol(idSolicitud, RolSolicitudEnum.REMITENTE.name());
+        Tema tema = temaServiceImpl.getTemaFromSolicitud(idSolicitud);
+
+
         boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
+            //El mensaje de aprobación
+            mensajeNotificacion = String.format(
+                    "La solicitud de cambio de asesor para el tema '%s' ha sido aprobada por un coordinador de la carrera.",
+                    tema.getTitulo()
+            );
         }else{
             usuarioXSolicitudRepository.rechazarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
+            //El mensaje de rechazo
+            mensajeNotificacion = String.format(
+                    "La solicitud de cambio de asesor para el tema '%s' ha sido rechazada por un coordinador de la carrera.",
+                    tema.getTitulo()
+            );
         }
+
+        // Las notificaciones se envian al alumno y los 2 asesores
+        notificacionService.crearNotificacionParaUsuario(
+                asesorActual.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
+        notificacionService.crearNotificacionParaUsuario(
+                nuevoAsesor.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
+        //Notificaciones al alumno
+        notificacionService.crearNotificacionParaUsuario(
+                alumno.getId(),
+                "Asesores", // O un módulo específico para "Propuestas de Asesoría"
+                "informativa", // O un tipo específico "NuevaPropuestaAsesoria"
+                mensajeNotificacion,
+                "SISTEMA",
+                null
+        );
     }
 
     private UsuarioSolicitudCambioAsesorDto getUsuarioSolicitudFromId(int idUsuario, int idSolicitud, RolSolicitudEnum rol) {
@@ -835,177 +823,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .findByNombre(rol.name())
                 .orElseThrow(() -> new RuntimeException(onErrorMsg));
     }
-    
-    // Metodos de Solicitud Cese Asesoria
-    // @Override
-    // @Transactional
-    // public pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaDto registrarSolicitudCeseAsesoria(
-    //         pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaDto solicitud) {
-    //     // Validaciones similares a registrarSolicitudCambioAsesor
-    //     if (!validarExistenEstadosAccionesRoles())
-    //         throw new RuntimeException("Faltan registrar estados, roles o acciones");
 
-    //     // Validar que el tema exista y esté activo
-    //     boolean validacion = Utils.validarTrueOrFalseDeQuery(
-    //             temaRepository.validarTemaExisteYSePuedeCesarAsesoria(solicitud.getTemaId()));
-    //     if (!validacion)
-    //         throw new RuntimeException("Tema no válido para cese de asesoría");
-
-    //     // Validar roles
-    //     validacion = Utils.validarTrueOrFalseDeQuery(usuarioXRolRepository.esUsuarioAlumno(solicitud.getAlumnoId()));
-    //     if (!validacion)
-    //         throw new RuntimeException("Alumno no válido para cese de asesoría");
-
-    //     int idCoordinador = (int) usuarioRepository.obtenerIdCoordinadorPorUsuario(solicitud.getAlumnoId()).get(0)[0];
-    //     if (idCoordinador == -1)
-    //         throw new RuntimeException(
-    //                 "Coordinador de la carrera inexistente para el alumno " + solicitud.getAlumnoId());
-
-    //     // Tipo Solicitud
-    //     TipoSolicitud tipoSolicitud = tipoSolicitudRepository
-    //             .findByNombre("Cese de Asesoria (por alumno)")
-    //             .orElseThrow(
-    //                     () -> new RuntimeException("Tipo de solicitud no configurado: Cese de asesoría (por alumno)"));
-
-    //     // Estado solicitud
-    //     EstadoSolicitud estadoSolicitud = estadoSolicitudRepository
-    //             .findByNombre(EstadoSolicitudEnum.PENDIENTE.name())
-    //             .orElseThrow(() -> new RuntimeException("Estado de solicitud no encontrado"));
-
-    //     // Tema
-    //     Tema tema = temaRepository
-    //             .findById(solicitud.getTemaId())
-    //             .orElseThrow(() -> new RuntimeException("Tema no encontrado"));
-
-    //     // Solicitud
-    //     Solicitud nuevaSolicitud = new Solicitud();
-    //     nuevaSolicitud.setDescripcion(solicitud.getMotivo());
-    //     nuevaSolicitud.setTipoSolicitud(tipoSolicitud);
-    //     nuevaSolicitud.setTema(tema);
-    //     nuevaSolicitud.setEstadoSolicitud(estadoSolicitud);
-    //     nuevaSolicitud.setFechaCreacion(OffsetDateTime.now(ZoneId.of("America/Lima")));
-    //     solicitudRepository.save(nuevaSolicitud);
-
-    //     solicitud.setSolicitudId(nuevaSolicitud.getId());
-
-    //     // Tabla UsuarioSolicitud
-    //     Usuario alumno = usuarioRepository
-    //             .findById(solicitud.getAlumnoId())
-    //             .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
-    //     Usuario asesor = usuarioRepository
-    //             .findById(solicitud.getAsesorActualId())
-    //             .orElseThrow(() -> new RuntimeException("Asesor no encontrado"));
-    //     Usuario coordinador = usuarioRepository
-    //             .findById(idCoordinador)
-    //             .orElseThrow(() -> new RuntimeException("Coordinador de la carrera inexistente"));
-
-    //     AccionSolicitud accionPendiente = accionSolicitudRepository
-    //             .findByNombre(AccionSolicitudEnum.PENDIENTE_ACCION.name())
-    //             .orElseThrow(() -> new RuntimeException("Accion pendiente_aprobacion no encontrado"));
-    //     AccionSolicitud sinAccion = accionSolicitudRepository
-    //             .findByNombre(AccionSolicitudEnum.SIN_ACCION.name())
-    //             .orElseThrow(() -> new RuntimeException("Accion sin_accion no encontrado"));
-    //     RolSolicitud rolRemitente = rolSolicitudRepository
-    //             .findByNombre(RolSolicitudEnum.REMITENTE.name())
-    //             .orElseThrow(() -> new RuntimeException("Rol remitente no encontrado"));
-    //     RolSolicitud rolDestinatario = rolSolicitudRepository
-    //             .findByNombre(RolSolicitudEnum.DESTINATARIO.name())
-    //             .orElseThrow(() -> new RuntimeException("Rol destinatario no encontrado"));
-    //     RolSolicitud rolAsesor = rolSolicitudRepository
-    //             .findByNombre(RolSolicitudEnum.ASESOR_ACTUAL.name())
-    //             .orElseThrow(() -> new RuntimeException("Rol asesor actual no encontrado"));
-
-    //     UsuarioXSolicitud nuevoRemitente = new UsuarioXSolicitud();
-    //     nuevoRemitente.setUsuario(alumno);
-    //     nuevoRemitente.setSolicitud(nuevaSolicitud);
-    //     nuevoRemitente.setAccionSolicitud(sinAccion);
-    //     nuevoRemitente.setRolSolicitud(rolRemitente);
-    //     nuevoRemitente.setDestinatario(false);
-
-    //     UsuarioXSolicitud nuevoDestinatario = new UsuarioXSolicitud();
-    //     nuevoDestinatario.setUsuario(coordinador);
-    //     nuevoDestinatario.setSolicitud(nuevaSolicitud);
-    //     nuevoDestinatario.setAccionSolicitud(accionPendiente);
-    //     nuevoDestinatario.setRolSolicitud(rolDestinatario);
-    //     nuevoDestinatario.setDestinatario(true);
-
-    //     UsuarioXSolicitud asesorActual = new UsuarioXSolicitud();
-    //     asesorActual.setUsuario(asesor);
-    //     asesorActual.setSolicitud(nuevaSolicitud);
-    //     asesorActual.setAccionSolicitud(sinAccion);
-    //     asesorActual.setRolSolicitud(rolAsesor);
-    //     asesorActual.setDestinatario(false);
-
-    //     usuarioXSolicitudRepository.save(nuevoRemitente);
-    //     usuarioXSolicitudRepository.save(nuevoDestinatario);
-    //     usuarioXSolicitudRepository.save(asesorActual);
-
-    //     return solicitud;
-    // }
-
-    // @Override
-    // public List<pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto> listarResumenSolicitudCeseAsesoriaUsuario(
-    //         Integer idUsuario, String rolSolicitud) {
-    //     List<Object[]> queryResult = solicitudRepository.listarResumenSolicitudCeseAsesoriaUsuario(idUsuario,
-    //             rolSolicitud);
-    //     List<pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto> solicitudes = new ArrayList<>();
-    //     for (Object[] row : queryResult) {
-    //         pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto solicitud = pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto
-    //                 .fromResultQuery(row);
-    //         solicitudes.add(solicitud);
-    //     }
-    //     return solicitudes;
-    // }
-
-    // @Override
-    // public pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCeseAsesoriaDto listarDetalleSolicitudCeseAsesoriaUsuario(
-    //         Integer idSolicitud) {
-    //     List<Object[]> queryResult = solicitudRepository.listarDetalleSolicitudCeseAsesoria(idSolicitud);
-    //     if (queryResult.isEmpty())
-    //         return null;
-    //     Object[] result = queryResult.get(0);
-    //     pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCeseAsesoriaDto detalle = pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCeseAsesoriaDto
-    //             .fromResultQuery(result);
-    //     int idRemitente = (int) result[6];
-    //     pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto remitente = getUsuarioSolicitudCeseAsesoriaFromId(
-    //             idRemitente, idSolicitud);
-    //     int idAsesor = (int) result[7];
-    //     pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto asesor = getUsuarioSolicitudCeseAsesoriaFromId(
-    //             idAsesor, idSolicitud);
-    //     int idDestinatario = (int) result[8];
-    //     pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto destinatario = getUsuarioSolicitudCeseAsesoriaFromId(
-    //             idDestinatario, idSolicitud);
-
-    //     detalle.setSolicitante(remitente);
-    //     detalle.setAsesorActual(asesor);
-    //     detalle.setCoordinador(destinatario);
-
-    //     return detalle;
-    // }
-
-    // @Override
-    // @Transactional
-    // public void aprobarRechazarSolicitudCeseAsesoria(Integer idSolicitud, Integer idUsuario, String rolSolicitud,
-    //         boolean aprobar) {
-    //     boolean validar = solicitudRepository.existsSolicitudByIdAndEstadoSolicitud_Nombre(idSolicitud,
-    //             EstadoSolicitudEnum.PENDIENTE.name());
-    //     if (!validar)
-    //         throw new RuntimeException("Solicitud no puede ser modificada");
-    //     List<Object[]> result = usuarioXSolicitudRepository.puedeUsuarioCesarAsesoria(idUsuario, rolSolicitud,
-    //             idSolicitud);
-    //     validar = Utils.validarTrueOrFalseDeQuery(result);
-    //     if (!validar)
-    //         throw new RuntimeException("El usuario no puede modificar la solicitud");
-    //     usuarioXSolicitudRepository.procesarCeseAsesoria(idUsuario, rolSolicitud, idSolicitud, aprobar);
-    // }
-
-    // private pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto getUsuarioSolicitudCeseAsesoriaFromId(
-    //         int idUsuario, int idSolicitud) {
-    //     List<Object[]> queryResult = solicitudRepository.listarDetalleUsuarioSolicitudCeseAsesoria(idUsuario,
-    //             idSolicitud);
-    //     Object[] result = queryResult.get(0);
-    //     return pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCeseAsesoriaDto.fromQueryResult(result);
-    // }
     @Override
     public SolicitudCeseDto findAllSolicitudesCeseByCoordinatorCognitoSub(String coordinatorCognitoSub,
                                                                           int page, int size, String status) {

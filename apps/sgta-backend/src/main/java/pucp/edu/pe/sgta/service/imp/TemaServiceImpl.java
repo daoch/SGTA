@@ -3844,4 +3844,14 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		
 		return profesores;
 	}
+
+	public Tema getTemaFromSolicitud(int idSolicitud){
+		Tema t = temaRepository
+				.findTemaBySolicitudId(idSolicitud)
+				.orElseThrow(
+						() -> new RuntimeException("No se encontró un tema relacionado a la solictud")
+				)
+				;
+		return t;
+	}
 }
