@@ -15,10 +15,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileWarning, Quote, Sparkles, X } from "lucide-react";
+import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
+import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileWarning, Info, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
@@ -26,7 +28,6 @@ import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
 import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
-import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
@@ -47,23 +48,47 @@ const revisionData = {
 
   ],
 };
-function getIAColorClass(score: number) {
+function getPlagioColorClass(score: number) {
   if (score >= 90) return "bg-red-50 border-red-200";
   if (score >= 70) return "bg-orange-50 border-orange-200";
   if (score >= 50) return "bg-yellow-50 border-yellow-200";
   return "bg-green-50 border-green-200";
 }
-function getIAScoreTextClass(score: number) {
-  if (score >= 90) return "text-black-700";
-  if (score >= 70) return "text-black-700";
-  if (score >= 50) return "text-black-700";
-  return "text-green-700";
+function getPlagioIconColor(score: number) {
+  if (score >= 90) return "text-red-600";
+  if (score >= 70) return "text-orange-500";
+  if (score >= 50) return "text-yellow-500";
+  return "text-green-600";
 }
-function getIAScoreBadgeClass(score: number) {
+function getPlagioScoreBadgeClass(score: number) {
   if (score >= 90) return "bg-red-600";
   if (score >= 70) return "bg-orange-500";
   if (score >= 50) return "bg-yellow-500";
   return "bg-green-600";
+}
+function getIAColorClass(score: number) {
+  if (score >= 90) return "bg-green-50 border-green-200";
+  if (score >= 70) return "bg-yellow-50 border-yellow-200";
+  if (score >= 50) return "bg-orange-50 border-orange-200";
+  return "bg-red-50 border-red-200";
+}
+function getIAScoreTextClass(score: number) {
+  if (score >= 90) return "text-black-700";
+  if (score >= 70) return "text-black-700";
+  if (score >= 50) return "text-black-700";
+  return "text-black-700";
+}
+function getIAScoreBadgeClass(score: number) {
+  if (score >= 90) return "bg-green-600";
+  if (score >= 70) return "bg-yellow-500";
+  if (score >= 50) return "bg-orange-500";
+  return "bg-red-600";
+}
+function getIAScoreIconColor(score: number) {
+  if (score >= 90) return "text-green-600";
+  if (score >= 70) return "text-yellow-500";
+  if (score >= 50) return "text-orange-500";
+  return "text-red-600";
 }
 function getBlockquoteBg(tipo: string) {
   switch (tipo) {
@@ -895,16 +920,26 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </TabsContent>
                 <TabsContent value="plagio">
                   <div className="space-y-4">
+                    {plagioData && plagioData.detalles && plagioData.detalles.length > 0 && (
+                      <div className={`p-3 rounded-lg border flex items-center gap-2 justify-center mb-2 ${getPlagioColorClass(plagioData.coincidencias)}`}>
+                        <AlertTriangle className={`h-5 w-5 ${getPlagioIconColor(plagioData.coincidencias)}`} />
+                        <span className={`font-bold text-lg ${getPlagioIconColor(plagioData.coincidencias)}`}>
+                          Similitud total: {plagioData.coincidencias ?? 0}%
+                        </span>
+                      </div>
+                    )}
                     {plagioData?.detalles.map((obs) => {
                       const key = `${obs.url ?? ""}-${obs.fragmento ?? obs.texto}`;
                       // Extrae el porcentaje y el nombre de la fuente del texto si no tienes campos separados
                       const match = obs.texto.match(/Coincidencia del (\d+)% con "([^"]+)"/);
                       const porcentaje = match?.[1] ?? "?";
                       const fuente = obs.title ?? match?.[2] ?? "Fuente desconocida";
+                      const colorClass = getPlagioColorClass(Number(porcentaje));
+                      const badgeClass = getPlagioScoreBadgeClass(Number(porcentaje));
                       return (
                         <div
                           key={key}
-                          className="p-3 rounded-lg border bg-red-50 border-red-200 flex flex-col gap-2"
+                          className={`p-3 rounded-lg border flex flex-col gap-2 ${colorClass}`}
                         >
                           <p className="text-sm font-medium italic text-black-700">
                             &quot;{obs.fragmento ?? obs.texto}&quot;
@@ -925,7 +960,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-3">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow bg-red-600">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow ${badgeClass} `}>
                               <AlertTriangle className="h-4 w-4 mr-1" />
                               {porcentaje}%
                             </span>
@@ -945,8 +980,25 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   </div>
                 </TabsContent>
                 <TabsContent value="ia">
+
                   {IAData && IAData.sentences && IAData.sentences.length > 0 ? (
                     <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                      <div className={`p-3 rounded-lg border cursor-default flex items-center gap-2 justify-center ${getIAColorClass(IAData.score)}`}>
+                        <Sparkles className={`h-5 w-5  ${getIAScoreIconColor(IAData.score)}`} />
+                        <span className="font-bold text-lg">
+                          Puntuación humana: {IAData.score}%
+                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-5 w-5 text-blue-600 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              Un valor bajo indica texto probablemente generado por IA. Un valor alto indica texto probablemente escrito por un humano.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       {IAData.sentences.map((sentence) => {
                         const key = `ia-${sentence.page}-${sentence.text}`;
                         const colorClass = getIAColorClass(sentence.score);
