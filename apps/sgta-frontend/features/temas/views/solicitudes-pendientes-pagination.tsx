@@ -115,7 +115,10 @@ export default function SolicitudesPendientes({
         {/* Solicitudes */}
         <CardContent>
           <SolicitudesTable
-            solicitudes={getPage(temas, estadoTema).map((p) =>
+            solicitudes={Object.values(temas[estadoTema]?.pages || [])
+              .flat()
+              .map((p) => getSolicitudFromTema(p, p.id))}
+            page={getPage(temas, estadoTema).map((p) =>
               getSolicitudFromTema(p, p.id),
             )}
             isLoading={loading}

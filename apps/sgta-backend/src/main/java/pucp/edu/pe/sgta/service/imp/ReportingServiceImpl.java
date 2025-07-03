@@ -408,6 +408,10 @@ public class ReportingServiceImpl implements IReportService {
                                 r[16] != null
                                         ? new Date(((Timestamp) r[16]).getTime())
                                         : null)
+                        .porcentajeEntregablesEnviados(
+                                r[17] != null
+                                        ? ((java.math.BigDecimal) r[17]).doubleValue()
+                                        : 0.0)
                         .build())
                 .collect(Collectors.toList());
     }

@@ -6,6 +6,14 @@ export interface Carrera {
     codigo: string;
     descripcion: string;
     activo: boolean;
+    unidadAcademicaId?: number;
+}
+
+export interface UnidadAcademica {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    activo: boolean;
 }
 
 export const carreraService = {
@@ -15,7 +23,7 @@ export const carreraService = {
     },
 
     getById: async (id: number): Promise<Carrera> => {
-        const response = await axiosInstance.get(`/carrera/${id}`);
+        const response = await axiosInstance.get(`/carrera/get/${id}`);
         return response.data;
     },
 
@@ -33,3 +41,10 @@ export const carreraService = {
         await axiosInstance.post(`/carrera/delete/${id}`);
     }
 }; 
+
+export const unidadAcademicaService = {
+    getAll: async (): Promise<UnidadAcademica[]> => {
+        const response = await axiosInstance.get("/unidad-academica/listar");
+        return response.data;
+    }
+};

@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
     devDependencies:
       turbo:
         specifier: ^2.5.2

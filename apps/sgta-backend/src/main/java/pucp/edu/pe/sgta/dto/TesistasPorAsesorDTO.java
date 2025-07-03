@@ -30,4 +30,5 @@ public class TesistasPorAsesorDTO {
     private String entregableActualEstado;
     private String entregableEnvioEstado;
     private Date entregableEnvioFecha;
+    private Double porcentajeEntregablesEnviados;
 } 
