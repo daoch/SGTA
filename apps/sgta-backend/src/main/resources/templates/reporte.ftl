@@ -69,6 +69,7 @@
           <a href="${s.url?html}" target="_blank">${s.title?html}</a><br/>
           <small>${s.source}</small>
         </td>
+        <td style="text-align:center;">${frag.page!'--'}</td>
         <td class="scr">${s.score}%</td>
       </tr>
     </#list>
@@ -78,9 +79,8 @@
 </table>
 
 </body>
-<hr style="margin:2rem 0;"/>
 
-<h1>Reporte de puntuación humana</h1>
+<h1 style="page-break-before: always;">Reporte de puntuación humana</h1>
 
 <#-- Semáforo de colores para IA (puedes ajustar los rangos si lo deseas) -->
 <#if ia.score?number < 5>
@@ -110,7 +110,7 @@
   <#list ia.sentences as sentence>
     <tr>
       <td>${sentence.text?html}</td>
-      <td style="text-align:center;">${sentence.page}</td>
+      <td style="text-align:center;">${sentence.page!'--'}</td>
       <td class="scr">${sentence.score}%</td>
     </tr>
   </#list>
