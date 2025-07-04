@@ -47,4 +47,5 @@ public interface RevisionDocumentoService {
     List<UsuarioDto> getStudentsByRevisor(Integer revisionId);
 
     List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId);
+    void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado);
 }

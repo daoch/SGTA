@@ -118,7 +118,7 @@ function getBlockquoteBorder(tipo: string) {
       return "border-gray-300";
   }
 }
-export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
+export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number; readonly rol_id?: number; } }) {
   const router = useRouter();
   interface Observacion {
     id: string;
@@ -556,6 +556,11 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
             ENTREGABLE RECHAZADO
           </div>
         )}
+        {revision.estado === "revisado" && (
+          <div className="bg-red-100 text-blue-700 ml-50 px-4 py-1 rounded-xl border border-blue-300 text-sm font-medium">
+            ENTREGABLE REVISADO
+          </div>
+        )}
         <Dialog open={showFinalizarDialog} onOpenChange={setShowFinalizarDialog}>
           <DialogTrigger asChild>
             <Button className="bg-pucp-blue hover:bg-pucp-light">Guardar Revisión</Button>
@@ -685,7 +690,14 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   setIsLoading(true);
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
-                    router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                    const rolId = params.rol_id ?? 0;
+                     if (rolId === 2) {
+                        // Si rol_id es 2, redirigir a la página del jurado
+                        router.push(`/jurado/revision/detalles-revision/${params.id_revision}`);
+                      } else {
+                        // Si rol_id no es 2, redirigir a la página del asesor
+                        router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                      }
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {

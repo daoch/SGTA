@@ -83,7 +83,7 @@ const RevisionJuradoPage = () => {
           Authorization: `Bearer ${idToken}`,
         },
       });
-
+      console.log("Response data:", response.data);
       const agrupados = agruparPorDocumento(response.data);
       setDocumentos(agrupados);
       console.log("Documentos del jurado cargados:", agrupados);
@@ -94,19 +94,9 @@ const RevisionJuradoPage = () => {
 
   fetchDocumentos();
 }, []);
-const documentosTransformados = documentos.map(doc => ({
-  ...doc,
-  estado:
-    doc.estado === "por_aprobar" || doc.estado === "aprobado"
-      ? "pendiente"
-      : doc.estado === "revisado"
-        ? "en_proceso"
-        : doc.estado === "rechazado"
-          ? "completados"
-          : doc.estado, // para mantener otros valores si existen
-}));
-console.log("Documentos transformados:", documentosTransformados);
-
+const documentosFiltrados = (estado: string) => {
+  return documentos.filter(doc => doc.estado === estado);
+};
 
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
 
@@ -194,11 +184,11 @@ console.log("Documentos transformados:", documentosTransformados);
             </CardHeader>
             <CardContent>
               <RevisionesTableJurado
-              data={documentosTransformados}
-              filter="pendiente"
-              searchQuery={searchQuery}
-              cursoFilter={cursoFilter}
-            />
+                data={documentos}
+                filter={["por_aprobar", "aprobado"]} // Filtramos por ambos estados
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -212,8 +202,8 @@ console.log("Documentos transformados:", documentosTransformados);
             </CardHeader>
             <CardContent>
               <RevisionesTableJurado
-                data={documentosTransformados}
-                filter="en_proceso"
+                data={documentos}
+                filter={["por_aprobar", "aprobado"]} // Filtramos por ambos estados
                 searchQuery={searchQuery}
                 cursoFilter={cursoFilter}
               />
@@ -230,8 +220,7 @@ console.log("Documentos transformados:", documentosTransformados);
             </CardHeader>
             <CardContent>
               <RevisionesTableJurado
-                data={documentosTransformados}
-                filter="completados"
+                data={documentosFiltrados("revisado")}
                 searchQuery={searchQuery}
                 cursoFilter={cursoFilter}
               />
@@ -246,7 +235,7 @@ console.log("Documentos transformados:", documentosTransformados);
             </CardHeader>
             <CardContent>
               <RevisionesTableJurado
-                data={documentosTransformados}
+                data={documentos}
                 searchQuery={searchQuery}
                 cursoFilter={cursoFilter}
               />

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { DocumentoConVersionDto } from "../../dtos/DocumentoConVersionDto";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface DropzoneDocumentosAlumnoProps {
   readonly onFilesChange: (files: File[]) => void;
@@ -9,6 +10,8 @@ interface DropzoneDocumentosAlumnoProps {
   readonly maxFiles: number;
   readonly maxSizeMB: number;
   readonly archivosSubidos?: DocumentoConVersionDto[];
+  readonly documentoPrincipalNombre?: string | null;
+  readonly setDocumentoPrincipalNombre?: (nombre: string) => void;
 }
 
 export function DropzoneDocumentosAlumno({
@@ -17,6 +20,8 @@ export function DropzoneDocumentosAlumno({
   maxFiles,
   maxSizeMB,
   archivosSubidos,
+  documentoPrincipalNombre,
+  setDocumentoPrincipalNombre,
 }: DropzoneDocumentosAlumnoProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
@@ -101,6 +106,15 @@ export function DropzoneDocumentosAlumno({
 
     setFiles(allFiles);
     onFilesChange?.(allFiles);
+
+    if (
+      setDocumentoPrincipalNombre &&
+      (!documentoPrincipalNombre ||
+        !allFiles.some((f) => f.name === documentoPrincipalNombre)) &&
+      allFiles.length > 0
+    ) {
+      setDocumentoPrincipalNombre(allFiles[0].name);
+    }
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -116,6 +130,9 @@ export function DropzoneDocumentosAlumno({
     onFilesChange?.(updated);
     if (inputRef.current) inputRef.current.value = "";
   };
+
+  const existePrincipal =
+    archivosSubidos?.some((a) => a.documentoPrincipal) ?? false;
 
   return (
     <div>
@@ -171,27 +188,75 @@ export function DropzoneDocumentosAlumno({
       </button>
       {files.length > 0 && (
         <div className="mt-4 space-y-2">
-          {files.map((file, idx) => (
-            <div
-              key={file.name + idx}
-              className="flex items-center justify-between bg-gray-100 rounded px-3 py-2"
-            >
-              <span className="truncate text-sm">{file.name}</span>
-              <span className="text-xs text-muted-foreground ml-2">
-                {(file.size / (1024 * 1024)).toFixed(2)} MB
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemove(idx);
-                }}
+          {!existePrincipal && setDocumentoPrincipalNombre ? (
+            <>
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Por favor seleccione el documento principal <br />
+                <span className="font-normal text-xs text-gray-500">
+                  (Será sometido a pruebas de
+                  similitud, los documentos adicionales serán tratados como anexos)
+                </span>
+              </div>
+              <RadioGroup
+                value={documentoPrincipalNombre ?? ""}
+                onValueChange={setDocumentoPrincipalNombre}
+                className="space-y-2"
               >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
+                {files.map((file, idx) => (
+                  <div
+                    key={file.name + idx}
+                    className="flex items-center justify-between bg-gray-100 rounded px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem
+                        value={file.name}
+                        id={`principal-${file.name}-${idx}`}
+                        aria-label="Marcar como documento principal"
+                      />
+                      <span className="truncate text-sm">{file.name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {(file.size / (1024 * 1024)).toFixed(2)} MB
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(idx);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </RadioGroup>
+            </>
+          ) : (
+            files.map((file, idx) => (
+              <div
+                key={file.name + idx}
+                className="flex items-center justify-between bg-gray-100 rounded px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm">{file.name}</span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {(file.size / (1024 * 1024)).toFixed(2)} MB
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove(idx);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))
+          )}
         </div>
       )}
       {errorMsg && (

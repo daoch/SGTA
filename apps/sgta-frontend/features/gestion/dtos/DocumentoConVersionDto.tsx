@@ -4,4 +4,5 @@ export interface DocumentoConVersionDto {
   documentoFechaSubida: string;
   documentoLinkArchivo: string;
   entregableTemaId: number;
+  documentoPrincipal: boolean;
 }
