@@ -44,4 +44,9 @@ public class UsuarioXCarrera {
 	@Column(name="refresh_token")
 	private String refreshToken;
 
+	@Column(name = "usuario_creacion")          
+    private String usuarioCreacion;
+
+    @Column(name = "usuario_modificacion")     
+    private String usuarioModificacion;
 }
