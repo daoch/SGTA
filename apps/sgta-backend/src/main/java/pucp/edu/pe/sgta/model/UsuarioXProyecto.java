@@ -38,10 +38,6 @@ public class UsuarioXProyecto {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
-	@Column(name = "usuario_creacion")          
-    private String usuarioCreacion;
 
-    @Column(name = "usuario_modificacion")     
-    private String usuarioModificacion;
 
 }

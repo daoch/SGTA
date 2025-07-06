@@ -38,11 +38,7 @@ public class SubAreaConocimientoXTema {
 	@JoinColumn(name = "tema_id", insertable = false, updatable = false)
 	private Tema tema;
 
-	@Column(name = "usuario_creacion")          
-    private String usuarioCreacion;
 
-    @Column(name = "usuario_modificacion")     
-    private String usuarioModificacion;
 
 	// Clase estática interna que actúa como ID compuesto
 	@Getter

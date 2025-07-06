@@ -26,9 +26,9 @@ CREATE TABLE IF NOT EXISTS unidad_academica (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE unidad_academica
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE unidad_academica
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla carrera (depende de unidad_academica)
 CREATE TABLE IF NOT EXISTS carrera (
@@ -43,9 +43,9 @@ CREATE TABLE IF NOT EXISTS carrera (
     CONSTRAINT fk_unidad_academica FOREIGN KEY (unidad_academica_id) REFERENCES unidad_academica (unidad_academica_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE carrera
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE carrera
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tipo Usuario
 CREATE TABLE IF NOT EXISTS tipo_usuario (
@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS tipo_usuario (
     CONSTRAINT tipo_usuario_unico UNIQUE (nombre)
 );
 
-ALTER TABLE tipo_usuario
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tipo_usuario
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tipo Dedicacion
 
@@ -73,9 +73,9 @@ CREATE TABLE IF NOT EXISTS tipo_dedicacion (
     fecha_modificacion TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE tipo_dedicacion
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tipo_dedicacion
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 3. Tabla usuario
 CREATE TABLE IF NOT EXISTS usuario (
@@ -103,9 +103,9 @@ CREATE TABLE IF NOT EXISTS usuario (
     CONSTRAINT fk_tipo_dedicacion FOREIGN KEY (tipo_dedicacion_id) REFERENCES tipo_dedicacion (tipo_dedicacion_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE usuario
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 4. Tabla usuario_carrera (M:N entre usuario y carrera)
 CREATE TABLE IF NOT EXISTS usuario_carrera (
@@ -122,9 +122,9 @@ CREATE TABLE IF NOT EXISTS usuario_carrera (
     CONSTRAINT unico_usuario_carrera UNIQUE (usuario_id, carrera_id)
 );
 
-ALTER TABLE usuario_carrera
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_carrera
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS estado_tema (
     estado_tema_id SERIAL PRIMARY KEY,
@@ -135,9 +135,9 @@ CREATE TABLE IF NOT EXISTS estado_tema (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE estado_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE estado_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla enlaces
 CREATE TABLE IF NOT EXISTS enlace_usuario (
@@ -151,9 +151,9 @@ CREATE TABLE IF NOT EXISTS enlace_usuario (
     CONSTRAINT fk_enlace_usuario_u FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id) ON DELETE cascade
 );
 
-ALTER TABLE enlace_usuario
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE enlace_usuario
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 
 -- 1) Tabla proyecto
@@ -167,9 +167,9 @@ CREATE TABLE IF NOT EXISTS proyecto (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE proyecto
-    ADD COLUMN  IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE proyecto
+--     ADD COLUMN  IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 1) TEMA
 CREATE TABLE IF NOT EXISTS tema (
@@ -194,9 +194,9 @@ CREATE TABLE IF NOT EXISTS tema (
     CONSTRAINT fk_t_carrera FOREIGN KEY (carrera_id) REFERENCES carrera (carrera_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS recurso (
     recurso_id SERIAL PRIMARY KEY,
@@ -210,9 +210,9 @@ CREATE TABLE IF NOT EXISTS recurso (
     CONSTRAINT fk_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE recurso
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE recurso
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 2) HISTORIAL_TEMA (depende de tema)
 CREATE TABLE IF NOT EXISTS historial_tema (
@@ -239,9 +239,9 @@ CREATE TABLE IF NOT EXISTS historial_tema (
     CONSTRAINT fk_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE historial_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE historial_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Agregar clave foránea para estado_tema_id
 ALTER TABLE historial_tema
@@ -270,9 +270,9 @@ CREATE TABLE IF NOT EXISTS tema_similar (
     CONSTRAINT chk_temas_distintos CHECK (tema_id <> tema_relacion_id)
 );
 
-ALTER TABLE tema_similar
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tema_similar
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 3) ROL
 CREATE TABLE IF NOT EXISTS rol (
@@ -286,9 +286,9 @@ CREATE TABLE IF NOT EXISTS rol (
     CONSTRAINT rol_unico UNIQUE (nombre)
 );
 
-ALTER TABLE rol
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE rol
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 4) TIPO_SOLICITUD
 CREATE TABLE IF NOT EXISTS tipo_solicitud (
@@ -301,9 +301,9 @@ CREATE TABLE IF NOT EXISTS tipo_solicitud (
 );
 -- NUEVAS TABLAS MANEJO DE ESTADOS Y ACCIONES EN SOLICITUD
 
-ALTER TABLE tipo_solicitud
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tipo_solicitud
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla de roles en la solicitud
 CREATE TABLE IF NOT EXISTS rol_solicitud (
@@ -315,9 +315,9 @@ CREATE TABLE IF NOT EXISTS rol_solicitud (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE rol_solicitud
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE rol_solicitud
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla de estados de solicitud
 CREATE TABLE IF NOT EXISTS estado_solicitud (
@@ -329,9 +329,9 @@ CREATE TABLE IF NOT EXISTS estado_solicitud (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE estado_solicitud
-    ADD COLUMN IF NOT EXISTS  usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE estado_solicitud
+--     ADD COLUMN IF NOT EXISTS  usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla de acciones sobre la solicitud
 CREATE TABLE IF NOT EXISTS accion_solicitud (
@@ -343,9 +343,9 @@ CREATE TABLE IF NOT EXISTS accion_solicitud (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE accion_solicitud
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE accion_solicitud
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 5) SOLICITUD (depende de tipo_solicitud)
 CREATE TABLE IF NOT EXISTS solicitud
@@ -384,9 +384,9 @@ estado             INTEGER                  NOT NULL,
 );
 
 
-ALTER TABLE solicitud
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE solicitud
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 -- Asegúrate de estar en el schema correcto si no lo has hecho globalmente
 --SET search_path TO sgtadb;
 
@@ -500,9 +500,9 @@ solicitud_completada BOOLEAN                  NOT NULL DEFAULT FALSE,
             ON DELETE RESTRICT
 );
 
-ALTER TABLE usuario_solicitud
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_solicitud
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
     tipo_rechazo_tema_id SERIAL PRIMARY KEY,
@@ -513,9 +513,9 @@ CREATE TABLE IF NOT EXISTS tipo_rechazo_tema (
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-ALTER TABLE tipo_rechazo_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE tipo_rechazo_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 7) USUARIO_TEMA (M:N entre usuario, tema y rol)
 CREATE TABLE IF NOT EXISTS usuario_tema (
@@ -538,9 +538,9 @@ CREATE TABLE IF NOT EXISTS usuario_tema (
     CONSTRAINT fk_tipo_rechazo_tema FOREIGN KEY (tipo_rechazo_tema_id) REFERENCES tipo_rechazo_tema (tipo_rechazo_tema_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE usuario_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 8) AREA_CONOCIMIENTO
 CREATE TABLE IF NOT EXISTS area_conocimiento (
@@ -554,9 +554,9 @@ CREATE TABLE IF NOT EXISTS area_conocimiento (
     CONSTRAINT fk_ac_carrera FOREIGN KEY (carrera_id) REFERENCES carrera (carrera_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE area_conocimiento
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE area_conocimiento
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 9) SUB_AREA_CONOCIMIENTO (depende de area_conocimiento)
 CREATE TABLE IF NOT EXISTS sub_area_conocimiento (
@@ -570,9 +570,9 @@ CREATE TABLE IF NOT EXISTS sub_area_conocimiento (
     CONSTRAINT fk_area_conocimiento FOREIGN KEY (area_conocimiento_id) REFERENCES area_conocimiento (area_conocimiento_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE sub_area_conocimiento
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE sub_area_conocimiento
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 10) SUB_AREA_CONOCIMIENTO_TEMA (M:N entre sub_area_conocimiento y tema)
 CREATE TABLE IF NOT EXISTS sub_area_conocimiento_tema (
@@ -589,9 +589,9 @@ CREATE TABLE IF NOT EXISTS sub_area_conocimiento_tema (
     CONSTRAINT fk_sact_tema FOREIGN KEY (tema_id) REFERENCES tema (tema_id) ON DELETE CASCADE
 );
 
-ALTER TABLE sub_area_conocimiento_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE sub_area_conocimiento_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 11) USUARIO_SUB_AREA_CONOCIMIENTO (M:N entre usuario y sub_area_conocimiento)
 CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
@@ -605,9 +605,9 @@ CREATE TABLE IF NOT EXISTS usuario_sub_area_conocimiento (
     CONSTRAINT fk_usac_sac FOREIGN KEY (sub_area_conocimiento_id) REFERENCES sub_area_conocimiento (sub_area_conocimiento_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE usuario_sub_area_conocimiento
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_sub_area_conocimiento
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 12) USUARIO_AREA_CONOCIMIENTO (M:N entre usuario y area_conocimiento)
 CREATE TABLE IF NOT EXISTS usuario_area_conocimiento (
@@ -621,9 +621,9 @@ CREATE TABLE IF NOT EXISTS usuario_area_conocimiento (
     CONSTRAINT fk_uac_ac FOREIGN KEY (area_conocimiento_id) REFERENCES area_conocimiento (area_conocimiento_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE usuario_area_conocimiento
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_area_conocimiento
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- USUARIO_ROL
 CREATE TABLE IF NOT EXISTS usuario_rol (
@@ -637,9 +637,9 @@ CREATE TABLE IF NOT EXISTS usuario_rol (
     CONSTRAINT fk_ur_rol FOREIGN KEY (rol_id) REFERENCES rol (rol_id) ON DELETE CASCADE
 );
 
-ALTER TABLE usuario_rol
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_rol
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 3) MODULO
 CREATE TABLE IF NOT EXISTS modulo (
@@ -726,9 +726,9 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion (
     fecha_modificacion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE grupo_investigacion
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE grupo_investigacion
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 2) Tabla usuario_grupo_investigacion (asigna usuarios a grupos)
 CREATE TABLE IF NOT EXISTS usuario_grupo_investigacion (
@@ -742,9 +742,9 @@ CREATE TABLE IF NOT EXISTS usuario_grupo_investigacion (
     CONSTRAINT fk_ugi_grupo FOREIGN KEY (grupo_investigacion_id) REFERENCES grupo_investigacion (grupo_investigacion_id) ON DELETE CASCADE
 );
 
-ALTER TABLE usuario_grupo_investigacion
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_grupo_investigacion
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 2) Tabla usuario_proyecto (relación M:N entre usuario y proyecto)
 CREATE TABLE IF NOT EXISTS usuario_proyecto (
@@ -759,9 +759,9 @@ CREATE TABLE IF NOT EXISTS usuario_proyecto (
     CONSTRAINT fk_up_proyecto FOREIGN KEY (proyecto_id) REFERENCES proyecto (proyecto_id) ON DELETE CASCADE
 );
 
-ALTER TABLE usuario_proyecto
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE usuario_proyecto
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 3) Tabla grupo_investigacion_proyecto (relaciona grupos con proyectos)
 CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
@@ -775,9 +775,9 @@ CREATE TABLE IF NOT EXISTS grupo_investigacion_proyecto (
     CONSTRAINT fk_gip_proyecto FOREIGN KEY (proyecto_id) REFERENCES proyecto (proyecto_id) ON DELETE CASCADE
 );
 
-ALTER TABLE grupo_investigacion_proyecto
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE grupo_investigacion_proyecto
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS etapa_formativa (
     etapa_formativa_id SERIAL PRIMARY KEY,
@@ -792,9 +792,9 @@ CREATE TABLE IF NOT EXISTS etapa_formativa (
 );
 
 
-ALTER TABLE etapa_formativa
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE etapa_formativa
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- 1) Tabla parametro_configuracion
 CREATE TABLE IF NOT EXISTS parametro_configuracion (
@@ -889,9 +889,9 @@ CREATE TABLE IF NOT EXISTS ciclo (
     CONSTRAINT ciclo_unico UNIQUE (nombre)
 );
 
-ALTER TABLE ciclo
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE ciclo
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS estado_planificacion (
     estado_planificacion_id SERIAL PRIMARY KEY,
@@ -925,9 +925,9 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo (
     CONSTRAINT fk_efc_ciclo FOREIGN KEY (ciclo_id) REFERENCES ciclo (ciclo_id) ON DELETE RESTRICT
 );
 
-ALTER TABLE etapa_formativa_x_ciclo
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE etapa_formativa_x_ciclo
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema (
     etapa_formativa_x_ciclo_x_tema_id SERIAL PRIMARY KEY,
@@ -942,9 +942,9 @@ CREATE TABLE IF NOT EXISTS etapa_formativa_x_ciclo_x_tema (
     CONSTRAINT unica_efxc_x_tema UNIQUE (etapa_formativa_x_ciclo_id, tema_id)
 );
 
-ALTER TABLE etapa_formativa_x_ciclo_x_tema
-    ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
-    ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
+-- ALTER TABLE etapa_formativa_x_ciclo_x_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 -- Tabla exposicion
 CREATE TABLE IF NOT EXISTS exposicion (
@@ -1194,6 +1194,10 @@ CREATE TABLE IF NOT EXISTS entregable_x_tema (
 );
 ALTER TABLE entregable_x_tema
 ADD COLUMN corregido BOOLEAN DEFAULT FALSE;
+
+-- ALTER TABLE entregable_x_tema
+--     ADD COLUMN IF NOT EXISTS usuario_creacion     TEXT,
+--     ADD COLUMN IF NOT EXISTS usuario_modificacion TEXT;
 
 CREATE TABLE IF NOT EXISTS revision_criterio_entregable (
     revision_criterio_entregable_id SERIAL PRIMARY KEY,

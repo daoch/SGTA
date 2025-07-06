@@ -64,11 +64,7 @@ public class EtapaFormativa {
     @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
     private Carrera carrera;
 
-	@Column(name = "usuario_creacion")          
-    private String usuarioCreacion;
 
-    @Column(name = "usuario_modificacion")     
-    private String usuarioModificacion;
 
     /**
      * Converter para transformar Duration a PostgreSQL interval
