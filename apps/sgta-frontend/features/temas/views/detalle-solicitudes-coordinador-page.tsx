@@ -24,6 +24,7 @@ import {
   SolicitudAction,
   SolicitudGeneral,
   SolicitudPendiente,
+  SolicitudType,
   TemaSimilar,
   TypeSolicitud,
 } from "../types/solicitudes/entities";
@@ -207,12 +208,25 @@ export default function DetalleSolicitudesCoordinadorPage({
     getSolicitudes();
   }, []);
 
+  const temaPorAprobar = [
+    EstadoTemaNombre.INSCRITO,
+    EstadoTemaNombre.OBSERVADO,
+  ].includes(solicitud.estado);
+
+  const temaInscritoConSolicitudAprobacion =
+    EstadoTemaNombre.INSCRITO === solicitud.estado &&
+    solicitudes.some(
+      (sol) => sol.tipo_solicitud === SolicitudType.APROBACION_TEMA,
+    ); // Evitar error al observar
+
+  const temaPorObservar =
+    EstadoTemaNombre.OBSERVADO === solicitud.estado ||
+    temaInscritoConSolicitudAprobacion;
+
   // Config Actions
   const accionesConfig = {
     observar: {
-      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-        solicitud.estado,
-      ),
+      show: temaPorObservar,
       disabled:
         tipoSolicitud === "no-enviar" ||
         !comentario.trim().length ||
@@ -220,18 +234,14 @@ export default function DetalleSolicitudesCoordinadorPage({
         loading,
     },
     aprobar: {
-      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-        solicitud.estado,
-      ),
+      show: temaPorAprobar,
       disabled:
         // (!listoSolicitudes &&
         //   solicitud.estado === EstadoTemaNombre.OBSERVADO) ||
         tipoSolicitud !== "no-enviar" || loading,
     },
     rechazar: {
-      show: [EstadoTemaNombre.INSCRITO, EstadoTemaNombre.OBSERVADO].includes(
-        solicitud.estado,
-      ),
+      show: temaPorAprobar,
       disabled: tipoSolicitud !== "no-enviar" || loading,
     },
     eliminar: { show: true, disabled: loading },
@@ -245,15 +255,11 @@ export default function DetalleSolicitudesCoordinadorPage({
     <DialogSolicitudes
       solicitudes={solicitudes}
       estadoTema={solicitud.estado}
-      listoSolicitudes={listoSolicitudes}
+      listoSolicitudes={listoSolicitudes} // Solicitudes ok
       setListoSolicitudes={setListoSolicitudes}
     />
   );
 
-  const temaPorAprobar = [
-    EstadoTemaNombre.INSCRITO,
-    EstadoTemaNombre.OBSERVADO,
-  ].includes(solicitud.estado);
   return (
     <>
       <Toaster position="top-right" richColors />
@@ -273,7 +279,7 @@ export default function DetalleSolicitudesCoordinadorPage({
             {moduloSolicitudes}
 
             {/* Comentarios del Comité y selección del tipo de solicitud */}
-            {temaPorAprobar && (
+            {temaPorObservar && (
               <ComentariosDetalleSolicitudTema
                 tipoSolicitud={tipoSolicitud}
                 setTipoSolicitud={setTipoSolicitud}

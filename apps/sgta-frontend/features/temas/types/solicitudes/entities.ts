@@ -96,7 +96,7 @@ export interface User {
 export interface SolicitudGeneral {
   solicitud_id: number;
   descripcion: string;
-  tipo_solicitud: string;
+  tipo_solicitud: SolicitudType;
   estado_solicitud: SolicitudState;
   tema_id: number;
   fecha_creacion: string; // formato ISO
