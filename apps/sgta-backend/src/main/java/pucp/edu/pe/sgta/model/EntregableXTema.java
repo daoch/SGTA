@@ -69,11 +69,7 @@ public class EntregableXTema {
     @OneToMany(mappedBy = "entregableXTema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RevisionCriterioEntregable> revisionesCriterio;
 
-    @Column(name = "usuario_creacion")          
-    private String usuarioCreacion;
 
-    @Column(name = "usuario_modificacion")     
-    private String usuarioModificacion;
 
     @PostLoad
     void fillTransient() {
