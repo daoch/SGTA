@@ -1473,3 +1473,11 @@ WITH
     INOUT AS ASSIGNMENT;
 
 --CREATE CAST (CHARACTER VARYING AS enum_estado_actividad) WITH INOUT AS ASSIGNMENT;
+
+CREATE TABLE IF NOT EXISTS historial_acciones (
+    historial_id    BIGSERIAL PRIMARY KEY,        -- identificador único de la fila
+    id_cognito      TEXT            NOT NULL,     -- usuario que ejecuta la acción
+    fecha_creacion  TIMESTAMP WITH TIME ZONE
+                                 NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    accion          TEXT            NOT NULL      -- descripción de la acción
+);
