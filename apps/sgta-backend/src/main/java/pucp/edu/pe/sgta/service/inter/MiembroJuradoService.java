@@ -57,19 +57,19 @@ public interface MiembroJuradoService {
         ResponseEntity<ExposicionCalificacionDto> listarExposicionCalificacion(
                         ExposicionCalificacionRequest exposicionCalificacionRequest, String juradoId);
 
-        ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request);
+        ResponseEntity<?> actualizarRevisionCriterios(String usuarioCognito,RevisionCriteriosRequest request);
 
-        ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request);
+        ResponseEntity<?> actualizarObservacionFinal(String usuarioCognito,ExposicionObservacionRequest request);
 
         List<EtapasFormativasDto> obtenerEtapasFormativasPorUsuario(String usuarioId);
 
         List<ExposicionCoordinadorDto> listarExposicionesPorCoordinador(String coordinadorId);
 
-        ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request);
+        ResponseEntity<?> actualizarNotaRevisionFinal(String usuarioCognito,ExposicionNotaRevisionRequest request);
 
         public ResponseEntity<List<ExposicionCalificacionJuradoDTO>> obtenerCalificacionExposicionJurado(
                         ExposicionCalificacionRequest exposicionCalificacionRequest);
-        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId);
+        public ResponseEntity<?> actualizarNotaFinalExposicion(String usuarioCognito,Integer exposicionId);
 
 
         Map<String, Object> actualizarLinkGrabacion(UpdateLinkGrabacionRequest request);
