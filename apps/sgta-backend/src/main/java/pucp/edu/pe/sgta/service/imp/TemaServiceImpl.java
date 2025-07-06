@@ -39,7 +39,6 @@ import pucp.edu.pe.sgta.util.EstadoSolicitudEnum;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.RolSolicitudEnum;
-import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -110,6 +109,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private SubAreaConocimientoService subAreaService;
 
+	private final HistorialAccionService historialAccionService;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -138,7 +139,8 @@ public class TemaServiceImpl implements TemaService {
 			AccionSolicitudRepository accionSolicitudRepository,
 			TemaSimilarRepository temaSimilarRepository,
 						   CarreraXParametroConfiguracionService carreraXParametroConfiguracionService,
-						   SubAreaConocimientoXTemaRepository sactRepo, SubAreaConocimientoService subAreaService) {
+						   SubAreaConocimientoXTemaRepository sactRepo, SubAreaConocimientoService subAreaService, 
+						   HistorialAccionService historialAccionService) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -166,6 +168,7 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraXParametroConfiguracionService = carreraXParametroConfiguracionService;
 		this.sactRepo = sactRepo;
 		this.subAreaService = subAreaService;
+		this.historialAccionService = historialAccionService;
 	}
 
 	@Override
@@ -340,6 +343,8 @@ public class TemaServiceImpl implements TemaService {
 		saveUsuariosInvolucrados(tema, usuarioDto.getId(), dto.getTesistas(), RolEnum.Alumno.name(), false, false); // Save
 		// Start historial tema
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
+
+		historialAccionService.registrarAccion(idUsuarioCreador, "Creó el tema con propuesta " + (tipoPropuesta == 1 ? "DIRECTA" : "GENERAL" )+ " con ID: " + tema.getId());
 
 		return tema.getId();// return tema id
 	}
@@ -557,6 +562,9 @@ public class TemaServiceImpl implements TemaService {
 				idUsuarioCreador,
 				comentario,
 				"Solicitud de cambio de título");
+		historialAccionService.registrarAccion(
+				idUsuario,
+				"Solicitud de cambio de título para el tema con ID: " + temaId);
 	}
 
 	@Override
@@ -571,6 +579,9 @@ public class TemaServiceImpl implements TemaService {
 				idUsuarioCreador,
 				comentario,
 				"Solicitud de cambio de resumen");
+		historialAccionService.registrarAccion(
+				idUsuario,
+				"Solicitud de cambio de resumen para el tema con ID: " + temaId);
 	}
 
 	@Transactional
@@ -775,11 +786,13 @@ public class TemaServiceImpl implements TemaService {
 					.setParameter("coas", coasesorIds)
 					.setParameter("tes", tesistaIds)
 					.getSingleResult(); // función retorna VOID
+					historialAccionService.registrarAccion(idUsuario, "Se inscribió el tema con ID: " + temaId);
 
 		}
 		else{
 			tema = temaRepository.findById(temaId)
 					.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + dto.getId()));
+			historialAccionService.registrarAccion(idUsuario, "Se reinscribió el tema con ID: " + temaId);
 		}
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
@@ -2267,6 +2280,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		validarCoordinadorYEstado(temaId, nuevoEstadoNombre, usuarioId);
 
 		actualizarTemaYHistorial(temaId, nuevoEstadoNombre, comentario);
+		historialAccionService.registrarAccion(coordinadorId, "Se cambió el estado del tema con ID: " + temaId + " a " + nuevoEstadoNombre);
 
 		// 1) Intentamos cargar SIEMPRE la solicitud
 		Solicitud solicitud = cargarSolicitud(temaId);
@@ -2406,6 +2420,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		}
 		// 3) Llamas al procedure puro, que sólo hace los UPDATEs
 		temaRepository.desactivarTemaYDesasignarUsuarios(temaId);
+		historialAccionService.registrarAccion(coordinadorId, "Se eliminó el  tema con ID: " + temaId);
+
 	}
 
 	@Override
@@ -2480,6 +2496,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					.getSingleResult();
 
 			logger.info("Tesista " + tesistaId + " successfully applied to tema libre " + temaId);
+			historialAccionService.registrarAccion(tesistaId, "Se postuló al tema con ID: " + temaId);
+
 		} catch (Exception e) {
 			logger.severe("Error applying tesista " + tesistaId + " to tema libre " + temaId + ": " + e.getMessage());
 			throw new RuntimeException("No se pudo postular al tema libre", e);
@@ -2533,6 +2551,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				tema.getResumen(),
 				"Inscripción de tema por Asesor");
 		crearSolicitudAprobacionTemaV2(tema);
+		historialAccionService.registrarAccion(idUsuario, "Se inscribió el tema preinscrito con ID: " + temaId);
 	}
 
 	@Override
@@ -2699,6 +2718,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		// tema
 		eliminarPostulacionesTema(temaId);
 		crearSolicitudAprobacionTemaV2(tema);
+		historialAccionService.registrarAccion(idAsesor, "Se aceptó la postulación del tesista con ID: " + idTesista + " al tema con ID: " + temaId);
 	}
 
 	private void eliminarPostulacionesTema(Integer idTema) {
@@ -2742,6 +2762,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		registro.setFechaModificacion(OffsetDateTime.now());
 		registro.setComentario(comentario != null ? comentario : "Postulación rechazada por el asesor");
 		usuarioXTemaRepository.save(registro);
+		historialAccionService.registrarAccion(idAsesor, "Se rechazó la postulación del tesista con ID: " + idTesista + " al tema con ID: " + temaId);
 	}
 
 	@Override
@@ -2766,6 +2787,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			usuarioXTemaRepository.softDeleteById(asignacion.getId());
 			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: "
 					+ temaId);
+			historialAccionService.registrarAccion(idUsuario, "Eliminó la postulación al tema con ID: " + temaId);
+
 		}
 	}
 
@@ -3226,6 +3249,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				.setParameter("p_rel_ids", relIds)
 				.setParameter("p_porcs", porcs)
 				.getSingleResult();
+		historialAccionService.registrarAccion(cognitoId, "Se guardaron similitudes para el tema con ID: " + temaId);
 	}
 
 	@Override
@@ -3352,6 +3376,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			if (result != null && result.startsWith("ERROR:")) {
 				throw new ResponseStatusException(HttpStatus.OK, result);
 			}
+			historialAccionService.registrarAccion(usuarioId, "Se " +  (action == 1 ? "rechazó" : "aprobó") + " la propuesta de cotesista al tema con ID: " + temaId);
+
 		}
 		catch (ResponseStatusException e) {
 			logger.severe("Error al aceptar propuesta de cotesista: " + e.getMessage());
@@ -3429,7 +3455,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	@Override
 	public void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes) {
 		try {
-			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
+			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 
 			Optional<Tema> temaAux = temaRepository.findById(temaId);
 
@@ -3450,6 +3476,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				
 				saveHistorialTemaChange(temaAux.get(),temaAux.get().getTitulo(),temaAux.get().getResumen(),tipoAux.get().getNombre());
 			}
+
+			historialAccionService.registrarAccion(usuarioId, "Registró una solicitud de modificación al tema con ID: " + temaId);
 
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
@@ -3496,6 +3524,13 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
                     "Actualizacion del tema"));
 
 			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
+			try{
+				historialAccionService.registrarAccion(String.valueOf(dto.getCoasesores().get(0).getId()), "Se actualizó al tema con ID: " + temaId );
+
+			} catch(Exception ex){
+				logger.warning("No se pudo registrar la acción de historial: " + ex.getMessage());
+			}
+
 		} catch (Exception e) {
 			logger.severe("Error al actualizar tema: " + e.getMessage());
 			throw new RuntimeException("No se pudo actualizar el tema", e);
@@ -3533,6 +3568,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
             logger.severe("Error al reenviar solicitud de aprobación: " + e.getMessage());
             throw new RuntimeException("No se pudo reenviar la solicitud de aprobación del tema", e);
         }
+
+		// Registrar la acción en el historial
+		historialAccionService.registrarAccion(usuarioId, "Reenvió solicitud de aprobación del tema con ID: " + dto.getId());
 
     }
 
@@ -3598,6 +3636,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				"Tema creado desde importación OAI-PMH");
 
 			logger.info("Tema created successfully from OAI with ID: " + savedTema.getId());
+			historialAccionService.registrarAccion("Admin", "Se registró por OAI al tema con ID: " + savedTema.getId());
+
 			return savedTema.getId();
 
 		} catch (Exception e) {
@@ -3696,7 +3736,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
 				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
-		
+
+		historialAccionService.registrarAccion(coordinadorCognitoSub, "Solicitud de cese de asesor para tema " + temaAfectado.getId());
+
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
 			.findByNombre("ASESOR_ENTRADA")
 			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_ENTRADA' no encontrado."));
@@ -3785,6 +3827,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + solicitud.getTema().getId()));
 
 			saveHistorialTemaChange(temaAux, temaAux.getTitulo(), temaAux.getResumen(), "Solicitud de " + tipo.getNombre() + "aprobada" );
+			historialAccionService.registrarAccion(usuarioId, "Se aprobó la solicitud del tipo " + tipo.getNombre()  + " del tema con ID: " + solicitud.getTema().getId());
 
 		} catch (Exception e) {
 			Logger.getLogger(TemaServiceImpl.class.getName())

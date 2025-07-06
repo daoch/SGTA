@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/pagination";
 
 export function ReviewerReports() {
-  const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,22 +34,6 @@ export function ReviewerReports() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  const fetchEtapas = async () => {
-    try {
-      const response = await etapaFormativaCicloService.getAllByIdCarrera();
-      if (response) {
-        setEtapas(response);
-      }
-    } catch (error) {
-      console.error("Error al cargar las etapas:", error);
-      toast.error("Error al cargar las etapas");
-    }
-  };
-
-  useEffect(() => {
-      fetchEtapas();
-  }, []);
 
 
   useEffect(() => {
@@ -246,8 +229,6 @@ export function ReviewerReports() {
             <span>
               {filteredStudents.length} estudiante{filteredStudents.length !== 1 ? "s" : ""} encontrado
               {filteredStudents.length !== 1 ? "s" : ""}
-              {courseFilter !== "all" &&
-                ` en ${etapas.find((e) => e.id.toString() === courseFilter)?.nombreEtapaFormativa ?? ""}`}
             </span>
           </div>
         </CardContent>
@@ -428,7 +409,5 @@ export function ReviewerReports() {
     </div>
   );
 }
-function setEtapas(response: EtapaFormativaCiclo[]) {
-  throw new Error("Function not implemented.");
-}
+
 

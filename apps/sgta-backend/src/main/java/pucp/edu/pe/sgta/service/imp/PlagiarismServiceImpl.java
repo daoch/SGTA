@@ -30,8 +30,9 @@ public class PlagiarismServiceImpl {
 
     private static final String API_URL = "https://api.gowinston.ai/v2/plagiarism";
     private static final String API_URL_IA = "https://api.gowinston.ai/v2/ai-content-detection";
-    private static final String API_TOKEN = "yy6ghgeIg2kMOHnyL6yUbSfaJSVBiBUqPKJPh0CK98d5960c"; // Reemplaza con tu
-                                                                                                // token real
+    
+    @Value("${API_TOKEN_GOWINSTON}")
+    private String API_TOKEN;
 
     private final S3DownloadService s3DownloadService;
 

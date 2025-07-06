@@ -12,6 +12,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 
@@ -44,5 +45,14 @@ public class CarreraXParametroConfiguracionController {
 		String idCognito = jwtService.extractSubFromRequest(request);
 
 		return this.carreraXParametroConfiguracionService.getParametrosPorAlumno(idCognito);
+	}
+
+	@GetMapping("/parametros-etapa-formativa")
+	public List<CarreraXParametroConfiguracionDto> getParametrosPorEtapaFormativa(
+			HttpServletRequest request,
+			@RequestParam(required = false) Integer etapaFormativaId) {
+		String idCognito = jwtService.extractSubFromRequest(request);
+
+		return this.carreraXParametroConfiguracionService.getParametrosPorCarreraYEtapaFormativa(idCognito, etapaFormativaId);
 	}
 }

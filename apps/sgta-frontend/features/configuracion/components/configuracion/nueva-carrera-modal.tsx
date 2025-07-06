@@ -16,24 +16,27 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { carreraService, Carrera, unidadAcademicaService, UnidadAcademica } from "../../services/carrera-service";
+import { CarreraCreateDto } from "../../dtos/carrera";
+import { useEffect } from "react";
 
 interface NuevaCarreraModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 // Unidades académicas disponibles
-const unidadesAcademicas = [
-  { id: 1, nombre: "Facultad de Ciencias e Ingeniería" },
-  { id: 2, nombre: "Facultad de Ciencias Empresariales" },
-];
 
-export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
+
+export function NuevaCarreraModal({ isOpen, onClose, onSuccess }: NuevaCarreraModalProps) {
+
+  const [unidadesAcademicas, setUnidadesAcademicas] = useState<UnidadAcademica[]>([]);
   const [formData, setFormData] = useState({
     codigo: "",
     nombre: "",
     descripcion: "",
-    unidadAcademica: "",
+    unidadAcademicaId: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -45,12 +48,42 @@ export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Datos del formulario:", formData);
-    // Aquí iría la lógica para guardar la carrera
-    onClose();
+    
+    try {
+      const carreraData: Omit<Carrera, "id"> = {
+        codigo: formData.codigo,
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        unidadAcademicaId: parseInt(formData.unidadAcademicaId),
+        activo: true
+      };
+      
+      await carreraService.create(carreraData);
+      console.log("Carrera creada exitosamente");
+      onClose();
+      // Reset form
+      setFormData({
+        codigo: "",
+        nombre: "",
+        descripcion: "",
+        unidadAcademicaId: "",
+      });
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error("Error al crear la carrera:", error);
+    }
   };
+
+  useEffect(() => {
+    unidadAcademicaService.getAll().then((unidades) => {
+      setUnidadesAcademicas(unidades);
+    });
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -75,8 +108,8 @@ export function NuevaCarreraModal({ isOpen, onClose }: NuevaCarreraModalProps) {
             <div className="space-y-2">
               <Label htmlFor="unidadAcademica">Unidad Académica</Label>
               <Select
-                value={formData.unidadAcademica}
-                onValueChange={(value) => handleSelectChange("unidadAcademica", value)}
+                value={formData.unidadAcademicaId}
+                onValueChange={(value) => handleSelectChange("unidadAcademicaId", value)}
               >
                 <SelectTrigger id="unidadAcademica">
                   <SelectValue placeholder="Seleccionar" />

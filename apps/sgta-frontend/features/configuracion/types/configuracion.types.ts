@@ -7,11 +7,13 @@ export interface BackStore {
     cargando: boolean
     error: string | null
 
+
     // Acciones
     setParametros: (parametros: CarreraXParametroConfiguracionDto[]) => void
     actualizarParametro: (id: number, valor: string | boolean | number | Date) => void
 
+
     // Funciones para llamadas al backend
-    cargarParametros: (carreraId: number) => Promise<void>
+    cargarParametros: () => Promise<void>
     guardarParametros: () => Promise<void>
 }

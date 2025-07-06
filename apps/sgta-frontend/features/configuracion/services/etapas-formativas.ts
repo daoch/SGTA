@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 
 // Interfaz para el listado de etapas formativas
 export interface EtapaFormativaListItem {
@@ -26,6 +27,16 @@ export interface EtapaFormativaDetail {
   }>;
 }
 
+// Interfaz para etapas formativas del coordinador
+export interface EtapaFormativaCoordinador {
+  id: number;
+  nombre: string;
+  creditajePorTema: number;
+  duracionExposicion: string;
+  activo: boolean;
+  carreraId: number;
+}
+
 export const etapasFormativasService = {
   // Obtener todas las etapas formativas
   getAll: async (): Promise<EtapaFormativaListItem[]> => {
@@ -36,6 +47,17 @@ export const etapasFormativasService = {
   // Obtener una etapa formativa por ID
   getById: async (id: string | number): Promise<EtapaFormativaDetail> => {
     const response = await axiosInstance.get(`/etapas-formativas/${id}`);
+    return response.data;
+  },
+
+  // Obtener etapas formativas activas por coordinador
+  getActivasByCoordinador: async (): Promise<EtapaFormativaCoordinador[]> => {
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
     return response.data;
   },
 

@@ -47,6 +47,7 @@ import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.*;
@@ -99,6 +100,9 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private RolRepository rolRepository;
+
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     private static final String ROL_NOMBRE_TESISTA = "Tesista";
     @Autowired
@@ -427,6 +431,8 @@ public class SolicitudServiceImpl implements SolicitudService {
             dto.setId(temaId);
             temaService.createInscripcionTemaV2(dto, usuarioId, true);
             temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
+            historialAccionService.registrarAccion(usuarioId, "Se atendieron las solicitud del tema con ID: " + temaId );
+
         }
 
     }

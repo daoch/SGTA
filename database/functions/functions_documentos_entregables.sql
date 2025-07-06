@@ -109,7 +109,8 @@ RETURNS TABLE (
     nombre_documento VARCHAR,
     fecha_subida TIMESTAMP WITH TIME ZONE,
     link_archivo_subido TEXT,
-    entregable_tema_id INTEGER
+    entregable_tema_id INTEGER,
+    documento_principal BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -118,7 +119,8 @@ BEGIN
         d.nombre_documento,
         d.fecha_subida,
         v.link_archivo_subido,
-        v.entregable_x_tema_id AS entregable_tema_id
+        v.entregable_x_tema_id AS entregable_tema_id,
+        v.documento_principal
     FROM version_documento v
     JOIN documento d ON d.documento_id = v.documento_id
     WHERE v.entregable_x_tema_id = p_entregable_x_tema_id AND v.activo = TRUE AND d.activo = TRUE;

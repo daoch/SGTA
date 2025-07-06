@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -161,6 +162,8 @@ public class BloqueHorarioExposicionController {
 
     @PostMapping("/crear-eventos-calendar/{idExposicion}")
     public void crearReunionesZoom(@PathVariable("idExposicion") Integer idExposicion) {
+
+
         bloqueHorarioExposicionService.crearReunionesZoom(idExposicion);
     }
 }

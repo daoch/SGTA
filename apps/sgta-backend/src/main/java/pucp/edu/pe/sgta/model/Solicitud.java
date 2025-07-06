@@ -56,6 +56,7 @@ public class Solicitud {
 	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
 	private String respuesta;
 
+
 	@PrePersist
 	protected void onCreate() {
 		fechaCreacion = OffsetDateTime.now();

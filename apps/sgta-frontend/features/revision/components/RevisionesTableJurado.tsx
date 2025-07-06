@@ -22,7 +22,7 @@ import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 
 interface RevisionesTableJuradoProps {
   data: DocumentoAgrupado[];
-  filter?: string;
+  filter?: string | string[]; 
   searchQuery?: string;
   cursoFilter?: string;
 }
@@ -39,11 +39,19 @@ export function RevisionesTableJurado({
 
   // Filtrar por estado
   if (filter) {
+  // Si filter es un array de strings
+  if (Array.isArray(filter)) {
+    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
+      filter.includes(revision.estado) // Compara si el estado está en el array
+    );
+  } else {
+    // Si filter es un solo string
     revisionesFiltradas = revisionesFiltradas.filter(
-      (revision) => revision.estado === filter,
+      (revision) => revision.estado === filter
     );
   }
-
+}
+  console.log("revisionesFiltradas", revisionesFiltradas);
   // Filtrar por curso
   if (cursoFilter !== "todos") {
     revisionesFiltradas = revisionesFiltradas.filter(
@@ -92,9 +100,9 @@ export function RevisionesTableJurado({
           <TableHeader>
             <TableRow>
               <TableHead>
-                <span className="ml-2">Documento</span>
+                <span className="ml-2">Entregable</span>
               </TableHead>
-              <TableHead>Entregable</TableHead>
+              <TableHead>Documento</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
@@ -118,13 +126,12 @@ export function RevisionesTableJurado({
                 <TableRow key={revision.id}>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span>{revision.titulo}</span>
+                      <span title={revision.entregable}>{revision.entregable}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium max-w-xs truncate text-center">
+                  <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
-                      <span>{revision.entregable}</span>
+                      <span title={revision.titulo}>{revision.titulo}</span>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
@@ -153,9 +160,19 @@ export function RevisionesTableJurado({
                     )}
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajeSimilitud !== null ? (
+                    {revision.porcentajeGenIA !== null ? (
                       <div className="flex items-center gap-2">
-                        <span>-</span>
+                        <span
+                          className={
+                            revision.porcentajeGenIA > 20
+                              ? "text-red-600"
+                              : revision.porcentajeGenIA > 10
+                                ? "text-yellow-600"
+                                : "text-green-600"
+                          }
+                        >
+                          {revision.porcentajeGenIA}%
+                        </span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -178,7 +195,7 @@ export function RevisionesTableJurado({
                       {/* Botón de estado: condicionalmente cambia el href */}
                       <Link
                         href={
-                          revision.estado === "pendiente"
+                          revision.estado === "por_aprobar" || revision.estado === "aprobado"
                             ? `/jurado/revision/revisar-doc/${revision.id}`
                             : `/jurado/revision/detalles-revision/${revision.id}`
                         }
@@ -187,26 +204,19 @@ export function RevisionesTableJurado({
                           variant="ghost"
                           size="sm"
                           className={
-                            revision.estado === "pendiente"
+                            revision.estado === "por_aprobar" || revision.estado === "aprobado"
                               ? "text-yellow-600"
-                              : revision.estado === "en_proceso"
-                                ? "text-blue-600"
-                                : revision.estado === "completados"
-                                  ? "text-green-600"
-                                  : "text-muted-foreground"
+                              : revision.estado === "revisado"
+                              ? "text-green-600"
+                              : "text-muted-foreground"
                           }
                         >
-                          {revision.estado === "pendiente" ? (
+                          {revision.estado === "por_aprobar" || revision.estado === "aprobado" ? (
                             <>
                               <Search className="mr-1 h-4 w-4 text-yellow-600" />
-                              <span className="text-yellow-600 font-semibold">Pendiente</span>
+                              <span className="text-yellow-600 font-semibold">Por revisar</span>
                             </>
-                          ) : revision.estado === "en_proceso" ? (
-                            <>
-                              <Search className="mr-1 h-4 w-4 text-blue-600" />
-                              <span className="text-blue-600 font-semibold">En proceso</span>
-                            </>
-                          ) : revision.estado === "completados" ? (
+                          ) : revision.estado === "revisado" ? (
                             <>
                               <CheckCircle className="mr-1 h-4 w-4 text-green-600" />
                               <span className="text-green-600 font-semibold">Revisado</span>
@@ -219,7 +229,6 @@ export function RevisionesTableJurado({
                           )}
                         </Button>
                       </Link>
-
                     </div>
                   </TableCell>
                 </TableRow>

@@ -49,4 +49,19 @@ public class CarreraController {
         return carreraService.getCarreraCoordinadaPorUsuario(usuarioId);
     }
 
+    @PostMapping("/create")
+    public CarreraDto createCarrera(@RequestBody CarreraDto carreraDto) {
+        return carreraService.createCarrera(carreraDto);
+    }
+
+    @PostMapping("/update")
+    public CarreraDto updateCarrera(@RequestBody CarreraDto carreraDto) {
+        return carreraService.updateCarrera(carreraDto);
+    }
+
+    @PostMapping("/delete/{id}")
+    public void deleteCarrera(@PathVariable Integer id) {
+        carreraService.deleteCarrera(id);
+    }
+
 } 

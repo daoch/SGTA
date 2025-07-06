@@ -287,7 +287,7 @@ export function TemasTable({
             <TableRow>
               <TableHead>Título</TableHead>
               <TableHead>Área</TableHead>
-              <TableHead>Asesor</TableHead>
+              <TableHead>Coasesor(es)</TableHead>
               <TableHead>Estudiante(s)</TableHead>
               <TableHead>Postulaciones</TableHead>
               <TableHead>Tipo</TableHead>

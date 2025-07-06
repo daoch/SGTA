@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -179,4 +180,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
 
     @Query(value = "SELECT * FROM obtener_documentos_jurado(:juradoId)", nativeQuery = true)
     List<Object[]> listarRevisionDocumentosPorJurado(@Param("juradoId") Integer juradoId);
-}
+    
+    @Procedure(procedureName = "actualizar_estado_revision_todos")
+    void actualizarEstadoTodosRevisiones(Integer p_revision_id, String p_nuevo_estado);
+    }

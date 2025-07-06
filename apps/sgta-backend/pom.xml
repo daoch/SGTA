@@ -282,6 +282,19 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 
 		</dependency>
+		<dependency>
+			<groupId>com.openhtmltopdf</groupId>        <!-- ó io.github.openhtmltopdf para la serie 1.0.11+ -->
+			<artifactId>openhtmltopdf-pdfbox</artifactId>
+			<version>1.0.10</version>                   <!-- última estable al 26-jun-2025 -->
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-freemarker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

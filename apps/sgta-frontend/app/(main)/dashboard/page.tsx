@@ -2,15 +2,12 @@
 
 import {
   BarChart3,
-  BarChart4,
-  BookOpen,
   CalendarCheck,
   CalendarIcon,
   CheckSquare,
   ClipboardList,
   FileCheck2,
   FileText,
-  LockKeyhole,
   LucideIcon,
   MailQuestion,
   MessageSquare,
@@ -18,23 +15,23 @@ import {
   SearchCheck,
   Settings,
   Shuffle,
-  User2,
   Users,
   Users2,
 } from "lucide-react";
 
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/features/auth";
+import { Carrera } from "@/features/configuracion/services/carrera-service";
+import { carreraService } from "@/features/configuracion/services/carrera-service";
 
 const estadisticas = [
     { 
@@ -233,22 +230,37 @@ const estadisticas = [
     ],
   };
 
-// const rolesDisponibles = ["alumno", "coordinador","administrador","jurado","revisor","asesor"] as const;
-// type Rol = typeof rolesDisponibles[number];
-
 export default function DashboardPage() {
   const { user } = useAuth();
   const rolesDisponibles = user?.roles ?? [];
   type Rol = string;
   const [rolActivo, setRolActivo] = useState<Rol>(rolesDisponibles[0] ?? "");
-  // const [rolActivo, setRolActivo] = useState<Rol>("alumno");
+  const [carrera, setCarrera] = useState<Carrera | null>(null);
+
+  useEffect(() => {
+    const fetchCarrera = async () => {
+      try {
+        if (rolActivo === "coordinador" && user?.id) {
+          const data = await carreraService.getCarreraDelCoordinador();
+          console.log("Carrera del coordinador:", data);
+          setCarrera(data);
+        } else {
+          setCarrera(null);
+        }
+      } catch (error) {
+        console.error("Error al obtener la carrera del coordinador:", error);
+      }
+    };
+    fetchCarrera();
+  }, [rolActivo, user?.id]);
 
   return (
     <div className="p-6 space-y-8">
       <div>
         <h1 className="text-3xl font-bold mb-1">Bienvenido al SGTA</h1>
         <p className="text-muted-foreground text-sm">
-          Sistema de Gestión de Tesis Académicas de la Facultad de Ciencias e Ingeniería
+          Sistema de Gestión de Tesis Académicas
+          {rolActivo === "coordinador" && carrera && ` de ${carrera.nombre}`}
         </p>
       </div>
 

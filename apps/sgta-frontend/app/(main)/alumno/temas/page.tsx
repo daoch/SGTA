@@ -36,10 +36,10 @@ export default function AlumnoTemasDashboard() {
       <div className="container mx-auto py-8 px-4 max-w-6xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Gestión del Personal Académico
+            Gestión de Temas
           </h1>
           <p className="text-muted-foreground max-w-2xl">
-            Administre las funciones relacionadas con asesores académicos.
+            Gestiona tus temas, postulaciones y propuestas de tesis.
           </p>
         </div>
 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .mensaje {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3367D6;
+        }
+    </style>
+</head>
+<body>
+<div class="mensaje" th:text="${mensaje}">[mensaje de confirmación]</div>
+
+<button onclick="window.location.href='https://mail.google.com/mail/u/0/#inbox'">
+    Volver a Gmail
+</button>
+</body>
+</html>

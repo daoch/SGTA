@@ -16,5 +16,8 @@
 	"packageManager": "pnpm@10.10.0",
 	"engines": {
 		"node": ">=18"
+	},
+	"dependencies": {
+		"file-saver": "^2.0.5"
 	}
 }

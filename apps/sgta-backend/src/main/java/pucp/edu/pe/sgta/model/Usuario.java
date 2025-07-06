@@ -80,6 +80,8 @@ public class Usuario {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+
+
 	public String getNombreDisplay() {
 		String nombreDisplay = "";
 		nombreDisplay += nombres.split(" ")[0] + " ";
