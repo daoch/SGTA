@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
 import pucp.edu.pe.sgta.model.CriterioEntregable;
 import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
-
+import pucp.edu.pe.sgta.dto.RevisionCriterioEntregableDto;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,5 +53,8 @@ public class CriterioEntregableController {
             criterioEntregableService.insertar_actualizar_revision_criterio_entregable(dto);
         }
     }
-
+    @GetMapping("/revision/entregable-tema/{entregableXtemaId}")
+    public List<RevisionCriterioEntregableDto> listarRevisionCriterioPorEntregableXTema(@PathVariable Integer entregableXtemaId) {
+        return criterioEntregableService.listarRevisionCriterioPorEntregableXTema(entregableXtemaId);
+    }
 }

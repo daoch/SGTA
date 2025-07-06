@@ -5,6 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
+import pucp.edu.pe.sgta.dto.RevisionCriterioEntregableDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -136,5 +137,29 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
     @Override
     public Optional<CriterioEntregable> findById(Integer id) {
         return criterioEntregableRepository.findById(id);
+    }
+    @Override
+    public List<RevisionCriterioEntregableDto> listarRevisionCriterioPorEntregableXTema(Integer entregableXtemaId) {
+        List<Object[]> resultados = criterioEntregableRepository.listarRevisionCriterioPorEntregableXTema(entregableXtemaId);
+        List<RevisionCriterioEntregableDto> lista = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            RevisionCriterioEntregableDto dto = new RevisionCriterioEntregableDto(
+                (Integer) fila[0],  // entregable_x_tema_id
+                (Integer) fila[1],  // criterio_entregable_id
+                (Integer) fila[2],  // usuario_id
+                (String) fila[3],   // nombre completo usuario
+                (Integer) fila[4],  // revision_documento_id
+                fila[5] != null ? ((Number) fila[5]).doubleValue() : null, // nota
+                (String) fila[6],   // observacion
+                (Integer) fila[7],  // entregable_id
+                (String) fila[8],   // nombre_criterio
+                fila[9] != null ? ((Number) fila[9]).doubleValue() : null, // nota_maxima
+                (String) fila[10]   // descripcion_criterio
+            );
+            lista.add(dto);
+        }
+
+        return lista;
     }
 }

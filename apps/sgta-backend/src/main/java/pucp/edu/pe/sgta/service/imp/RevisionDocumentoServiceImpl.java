@@ -6,7 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.RevisoresTemaDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
@@ -499,5 +501,25 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         // Llamas al repositorio con la nueva consulta que actualiza todas las revisiones
         revisionDocumentoRepository.actualizarEstadoTodosRevisiones(revisionId, nuevoEstado);
+    }
+    @Override
+    public List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId) {
+        List<Object[]> result = revisionDocumentoRepository.listarRevisoresYJuradosPorTemaId(temaId);
+        List<RevisoresTemaDTO> lista = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisoresTemaDTO dto = new RevisoresTemaDTO();
+
+            dto.setUsuarioId(row[0] != null ? ((Number) row[0]).intValue() : null);         // usuario_id
+            dto.setNombres(row[1] != null ? row[1].toString() : null);                     // nombres
+            dto.setPrimerApellido(row[2] != null ? row[2].toString() : null);              // primer_apellido
+            dto.setSegundoApellido(row[3] != null ? row[3].toString() : null);             // segundo_apellido
+            dto.setRolId(row[4] != null ? ((Number) row[4]).intValue() : null);            // rol_id
+            dto.setTemaId(row[5] != null ? ((Number) row[5]).intValue() : null);           // tema_id
+
+            lista.add(dto);
+        }
+
+        return lista;
     }
 }

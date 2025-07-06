@@ -203,18 +203,21 @@ public class EntregableServiceImpl implements EntregableService {
         EntregableAlumnoDto dto = new EntregableAlumnoDto();
         dto.setEntregableId(entregableId);
         dto.setTemaId(temaId);
-        dto.setEntregableNombre((String) result[1]);           // nombre entregable
-        dto.setEntregableDescripcion((String) result[0]);      // nombre del tema
-        dto.setEntregableEstado((String) result[2]);           // estado (String)
+        dto.setEntregableXTemaId((Integer) result[0]);              // entregable_x_tema_id
+        dto.setEntregableDescripcion((String) result[1]);           // nombre_tema
+        dto.setEntregableNombre((String) result[2]);                // nombre_entregable
+        dto.setEntregableEstado(result[3] != null ? result[3].toString() : null); // estado_revision
+        
         dto.setEntregableFechaEnvio(
-            result[3] != null ? ((Instant) result[3]).atOffset(ZoneOffset.UTC) : null
+            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
         );
         dto.setEntregableFechaFin(
-            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
+            result[5] != null ? ((Instant) result[5]).atOffset(ZoneOffset.UTC) : null
         );
 
         // Los demás campos quedarán null o valores por defecto.
-        dto.setEntregableEsEvaluable(false); // Puedes ajustar según lo que devuelva la función
+        dto.setEntregableEsEvaluable(false); // Puedes ajustar esto según lo que quieras retornar
+        dto.setCorregido(false); // Puedes ajustar esto si luego quieres traerlo de la BD
         return dto;
     }
 }
