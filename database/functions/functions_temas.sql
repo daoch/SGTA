@@ -1444,7 +1444,8 @@ BEGIN
     FROM estado_tema
     WHERE nombre ILIKE p_nuevo_estado_nombre
     LIMIT 1
-  )
+  ),
+  fecha_modificacion = CURRENT_TIMESTAMP
   WHERE tema_id = p_tema_id;
 END;
 $$;
