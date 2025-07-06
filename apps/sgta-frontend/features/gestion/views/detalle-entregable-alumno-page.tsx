@@ -21,20 +21,27 @@ import { useAuthStore } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Observacion } from "@/features/temas/types/temas/entidades";
 import TabsObservacionesAlumno from "@/features/revision/components/Tabs_observaciones_alumno";
+import { RevisionCriterioEntregableDto } from "@/features/revision/dtos/RevisionCriterioEntregableDto";
+import { ProfesoresTemaDto } from "@/features/revision/dtos/ProfesoresTemaDto";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 // Add the correct import for ObservacionesRevisionDTO
 
 
 
 export default function DetalleEntregableAlumnoPage() {
+  const [selectedRevisor, setSelectedRevisor] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const id = params?.DetalleEntregable;
   const searchParams = useSearchParams();
   const temaId = searchParams.get("tema");
+  const [criterios, setCriterios] = useState<RevisionCriterioEntregableDto[]>([]);
   const [observaciones, setObservaciones] = useState<ObservacionAlumnoDTO[]>([]);
   const [detalleEntregable, setDetalleEntregable] = useState<DetalleSimplificadoEntregable | null>(null);
   console.log("Tema ID:", temaId);
+  const [usuarios, setUsuarios] = useState<ProfesoresTemaDto[]>([]);
   const [orden, setOrden] = useState("pagina");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
@@ -80,41 +87,98 @@ export default function DetalleEntregableAlumnoPage() {
     fetchObservaciones();
     
   }, [id, temaId]);
+
   useEffect(() => {
-    const fetchDetalleEntregable = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
+  const fetchRevisoresYJurados = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+
+      if (!temaId) {
+        console.error("Falta el parámetro temaId para consultar revisores y jurados");
+        return;
+      }
+
+      const response = await axiosInstance.get(
+        `/revision/usuarios/tema/${temaId}`,   // <-- Endpoint del servicio backend
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
         }
-        if (!id || !temaId) {
-          console.error("Faltan parámetros para la consulta del detalle del entregable");
-          return;
+      );
+
+      setUsuarios(response.data); // Asumiendo que tienes un estado llamado usuarios
+      console.log("Usuarios cargados:", response.data);
+
+    } catch (error) {
+      console.error("Error al cargar los revisores y jurados:", error);
+    }
+  };
+
+  fetchRevisoresYJurados();
+
+}, [temaId]);
+
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+      if (!id || !temaId) {
+        console.error("Faltan parámetros para la consulta del detalle del entregable");
+        return;
+      }
+
+      // Primero, traer el detalle del entregable y tema
+      const detalleResponse = await axiosInstance.get(
+        `/entregable/${id}/tema/${temaId}/detalle-simplificado`,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
         }
-        const response = await axiosInstance.get(
-          `/entregable/${id}/tema/${temaId}/detalle-simplificado`,
+      );
+
+      const detalle = detalleResponse.data;
+      setDetalleEntregable(detalle);
+      console.log("Detalle simplificado cargado:", detalle);
+
+      // Segundo, con el entregableXTemaId, traer los criterios de revisión
+      if (detalle.entregableXTemaId) {
+        const criteriosResponse = await axiosInstance.get(
+          `/criterio-entregable/revision/entregable-tema/${detalle.entregableXTemaId}`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
-              "Content-Type": "application/json", // Nuevo header
+              "Content-Type": "application/json",
             },
           }
         );
-        setDetalleEntregable(response.data);
-        console.log("Detalle simplificado cargado:", response.data);
-      } catch (error) {
-        console.error("Error al cargar el detalle simplificado:", error);
+        setCriterios(criteriosResponse.data);
+        console.log("Criterios cargados:", criteriosResponse.data);
       }
-    };
-    fetchDetalleEntregable();
-  }, [id, temaId]);
+    } catch (error) {
+      console.error("Error al cargar los datos:", error);
+    }
+  };
+    fetchData();
+}, [id, temaId]);
   const observacionesConRoles = observaciones.map((obs: ObservacionAlumnoDTO) => ({
   ...obs,
   roles: obs.rolesUsuario
     ? obs.rolesUsuario.split(",").map((r) => Number(r.trim()))
     : [],
 }));
+const agrupado: { [nombreCompleto: string]: RevisionCriterioEntregableDto[] } = {};
 const totalObservaciones = observaciones.length;
 const totalResueltas = observaciones.filter((obs) => obs.corregido).length;
 const totalPendientes = totalObservaciones - totalResueltas;
@@ -170,7 +234,30 @@ const observacionesFiltradas = useMemo(() => {
     }
     return arr;
   }, [observacionesConRoles, orden, busqueda, filtroCorregido]);
-  
+  const criteriosAgrupadosPorUsuario = useMemo(() => {
+  const agrupado: { [nombreCompleto: string]: RevisionCriterioEntregableDto[] } = {};
+
+  criterios.forEach((criterio) => {
+    const usuario = usuarios.find((u) => u.usuarioId === criterio.usuarioId);
+    const nombreCompleto = usuario
+      ? `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`
+      : "Desconocido";
+
+    if (!agrupado[nombreCompleto]) {
+      agrupado[nombreCompleto] = [];
+    }
+
+    agrupado[nombreCompleto].push(criterio);
+  });
+
+  return agrupado;
+}, [criterios, usuarios]);
+  const [open, setOpen] = useState(false);
+
+  function onClose(open: boolean): void {
+    setOpen(open);
+  }
+
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
       <div className="flex-1 space-y-6">
@@ -296,24 +383,158 @@ const observacionesFiltradas = useMemo(() => {
           </div>
         </div>
 
-        {/*<div className="bg-white border rounded-md p-4">
-          <h3 className="font-semibold mb-2">Historial de Revisión</h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>
-              <strong>Inicio de revisión</strong><br /> 5/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Detección de plagio completada</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Revisión completada</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Entregable aprobado</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-          </ul>
+    
+
+        {/* Sección con tarjetas de usuarios y suma de notas */}
+      <div className="bg-white border rounded-md p-4">
+        <h3 className="font-semibold mb-2">Historial de Revisión</h3>
+        {/* Revisores y Notas */}
+        <div className="space-y-4">
+          <h4 className="font-semibold mb-2 text-xs">Revisores y Notas</h4>
+          <div className="space-y-2">
+            {Object.entries(criteriosAgrupadosPorUsuario).map(([nombre, lista], idx) => {
+              const sumaNotas = lista.reduce((acc, crit) => acc + (crit.nota || 0), 0);
+              const usuario = usuarios.find(u => `${u.nombres} ${u.primerApellido} ${u.segundoApellido}` === nombre);
+              let rolLabel = "";
+              let nombreLabel = nombre;
+              if (usuario?.rolId === 2) {
+                // Jurado numerado
+                const jurados = usuarios.filter(u => u.rolId === 2);
+                const juradoIndex = jurados.findIndex(u => u.usuarioId === usuario.usuarioId) + 1;
+                rolLabel = `Jurado ${juradoIndex}`;
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              } else if (usuario?.rolId === 1) {
+                rolLabel = "Asesor";
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              } else if (usuario?.rolId === 4) {
+                rolLabel = "Revisor";
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              }
+              
+              return (
+                <Card key={nombre} className="shadow-sm border">
+                  <CardHeader className="pb-1">
+                    <CardTitle className="text-xs font-normal">
+                      <span className="font-semibold">Revisado por:</span>{" "}
+                      <span className="font-normal">{nombreLabel}</span>
+                      {rolLabel && (
+                        <span className="font-normal text-muted-foreground"> ({rolLabel})</span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-xs text-muted-foreground flex items-center justify-between w-full">
+                    <span className="font-semibold text-black mt-1">
+                      Nota: {sumaNotas.toFixed(1)}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-2 py-1 px-2"
+                      onClick={() => setSelectedRevisor(nombre)}
+                    >
+                      Ver Detalles
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Nota final */}
+            <div className="pt-3 text-xs">
+              <h4 className="font-semibold mb-1">Nota Final</h4>
+              <div className="text-muted-foreground text-base font-bold">
+                {criterios.length > 0
+                  ? (
+                      criterios.reduce((acc, crit) => acc + (crit.nota || 0), 0) / criterios.length
+                    ).toFixed(2)
+                  : "Sin nota"}
+              </div>
+            </div>
+          </div>
         </div>
-         */}
+        <Dialog open={!!selectedRevisor} onOpenChange={() => setSelectedRevisor(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Rúbrica de Evaluación</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {selectedRevisor && criteriosAgrupadosPorUsuario[selectedRevisor]?.[0]?.entregableDescripcion
+                  ? `Entregable: ${criteriosAgrupadosPorUsuario[selectedRevisor][0].entregableDescripcion}`
+                  : ""}
+              </p>
+            </DialogHeader>
+
+            {selectedRevisor && (
+              <>
+                <div className="flex items-center justify-between mb-4 p-4 bg-muted rounded-lg">
+                  <div>
+                    <h3 className="font-medium text-sm">Puntuación Total</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                        .reduce((acc, crit) => acc + (crit.nota || 0), 0)
+                        .toFixed(1)}{" "}
+                      /{" "}
+                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                        .reduce((acc, crit) => acc + (crit.notaMaxima || 0), 0)}
+                      {" "}puntos
+                    </p>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardContent className="pt-4">
+                    <Accordion type="multiple">
+                      {criteriosAgrupadosPorUsuario[selectedRevisor].map((item) => (
+                        <AccordionItem
+                          key={item.criterioEntregableId}
+                          value={item.criterioEntregableId?.toString()}
+                        >
+                          <AccordionTrigger>
+                            <div className="flex justify-between w-full">
+                              <div className="flex items-center gap-2 text-left">
+                                <span>{item.nombreCriterio}</span>
+                                {(item.nota ?? 0) > 0 && (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                )}
+                              </div>
+                              <Badge variant="outline">{item.notaMaxima} pts</Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-3 text-sm">
+                              <div>
+                                <h4 className="font-medium">Descripción:</h4>
+                                <p className="whitespace-pre-line">
+                                  {item.descripcionCriterio}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Comentario:</h4>
+                                <p className="whitespace-pre-line">
+                                  {item.observacion || "Sin comentario"}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Nota:</h4>
+                                <p>
+                                  {item.nota} / {item.notaMaxima} pts
+                                </p>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            <DialogFooter className="pt-4">
+              <Button onClick={() => setSelectedRevisor(null)}>Cerrar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>  
       </div>
     </div>
   );

@@ -362,6 +362,50 @@ useEffect(() => {
             <CardDescription>Observaciones realizadas por revisores o jurados</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Filtros dentro del Card */}
+            <div className="flex flex-col md:flex-row gap-2 mb-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1">Ordenar por:</label>
+                <Select value={orden} onValueChange={setOrden}>
+                  <SelectTrigger className="w-48 border rounded px-2 py-1 text-sm">
+                    <SelectValue placeholder="Ordenar por..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {opcionesOrden.map((op) => (
+                      <SelectItem key={op.value} value={op.value}>
+                        {op.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1">Estado:</label>
+                <Select value={filtroCorregido} onValueChange={v => setFiltroCorregido(v as "todos" | "corregidos" | "sin_corregir")}>
+                  <SelectTrigger className="w-48 border rounded px-2 py-1 text-sm">
+                    <SelectValue placeholder="Filtrar por estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {opcionesCorregido.map((op) => (
+                      <SelectItem key={op.value} value={op.value}>
+                        {op.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-semibold mb-1">Buscar:</label>
+                <input
+                  type="text"
+                  className="border rounded px-2 py-1 w-full text-sm"
+                  placeholder="Buscar por comentario, texto o tipo..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+              </div>
+            </div>
+            {/* Observaciones */}
             <div className="space-y-2">
               {comentariosRevisor.length === 0 ? (
                 <div className="text-sm text-muted-foreground">No hay observaciones registradas.</div>
@@ -464,39 +508,39 @@ useEffect(() => {
                 ))
               )}
             </div>
-                {totalPagesRevisor > 1 && (
-                  <Pagination className="mt-4">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => {
-                            if (pageRevisor > 1) setPageRevisor((p) => p - 1);
-                          }}
-                          className={pageRevisor === 1 ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalPagesRevisor }).map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            isActive={pageRevisor === i + 1}
-                            onClick={() => setPageRevisor(i + 1)}
-                          >
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => {
-                            if (pageRevisor < totalPagesRevisor) setPageRevisor((p) => p + 1);
-                          }}
-                          className={pageRevisor === totalPagesRevisor ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </CardContent>
+            {totalPagesRevisor > 1 && (
+              <Pagination className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => {
+                        if (pageRevisor > 1) setPageRevisor((p) => p - 1);
+                      }}
+                      className={pageRevisor === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPagesRevisor }).map((_, i) => (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        isActive={pageRevisor === i + 1}
+                        onClick={() => setPageRevisor(i + 1)}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => {
+                        if (pageRevisor < totalPagesRevisor) setPageRevisor((p) => p + 1);
+                      }}
+                      className={pageRevisor === totalPagesRevisor ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </CardContent>
             </Card>
         {/* ... copiar el bloque del TabsContent revisor ... */}
       </TabsContent>
