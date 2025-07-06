@@ -39,7 +39,6 @@ import pucp.edu.pe.sgta.util.EstadoSolicitudEnum;
 import pucp.edu.pe.sgta.util.EstadoTemaEnum;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.RolSolicitudEnum;
-import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -110,6 +109,8 @@ public class TemaServiceImpl implements TemaService {
 
 	private SubAreaConocimientoService subAreaService;
 
+	private final HistorialAccionService historialAccionService;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -138,7 +139,8 @@ public class TemaServiceImpl implements TemaService {
 			AccionSolicitudRepository accionSolicitudRepository,
 			TemaSimilarRepository temaSimilarRepository,
 						   CarreraXParametroConfiguracionService carreraXParametroConfiguracionService,
-						   SubAreaConocimientoXTemaRepository sactRepo, SubAreaConocimientoService subAreaService) {
+						   SubAreaConocimientoXTemaRepository sactRepo, SubAreaConocimientoService subAreaService, 
+						   HistorialAccionService historialAccionService) {
 		this.temaRepository = temaRepository;
 		this.usuarioXTemaRepository = usuarioXTemaRepository;
 		this.subAreaConocimientoXTemaRepository = subAreaConocimientoXTemaRepository;
@@ -166,6 +168,7 @@ public class TemaServiceImpl implements TemaService {
 		this.carreraXParametroConfiguracionService = carreraXParametroConfiguracionService;
 		this.sactRepo = sactRepo;
 		this.subAreaService = subAreaService;
+		this.historialAccionService = historialAccionService;
 	}
 
 	@Override
@@ -775,11 +778,13 @@ public class TemaServiceImpl implements TemaService {
 					.setParameter("coas", coasesorIds)
 					.setParameter("tes", tesistaIds)
 					.getSingleResult(); // función retorna VOID
+					historialAccionService.registrarAccion(idUsuario, "Se inscribió el tema con ID: " + temaId);
 
 		}
 		else{
 			tema = temaRepository.findById(temaId)
 					.orElseThrow(() -> new EntityNotFoundException("Tema no encontrado con ID: " + dto.getId()));
+			historialAccionService.registrarAccion(idUsuario, "Se reinscribió el tema con ID: " + temaId);
 		}
 		// 1–5) Delegar a la función PL/pgSQL
 		entityManager.flush(); // asegurar que tema.id ya esté asignado
