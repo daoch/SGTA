@@ -200,15 +200,28 @@ public class MiembroJuradoController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
-
+    //Jurado --Agregar //Agregado
     @PutMapping("/criterios")
-    public ResponseEntity<?> actualizarCriterios(@RequestBody RevisionCriteriosRequest request) {
-        return juradoService.actualizarRevisionCriterios(request);
+    public ResponseEntity<?> actualizarCriterios(HttpServletRequest requestCognito,@RequestBody RevisionCriteriosRequest request) {
+        try{
+            String usuarioCognito = jwtService.extractSubFromRequest(requestCognito);
+            return juradoService.actualizarRevisionCriterios(usuarioCognito,request);
+        }catch (RuntimeException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
+    //Jurado --Agregar //Agregado
     @PutMapping("/observacionfinal")
-    public ResponseEntity<?> actualizarObservacionFinal(@RequestBody ExposicionObservacionRequest request) {
-        return juradoService.actualizarObservacionFinal(request);
+    public ResponseEntity<?> actualizarObservacionFinal(HttpServletRequest requestCognito,@RequestBody ExposicionObservacionRequest request) {
+        try{
+            String usuarioCognito = jwtService.extractSubFromRequest(requestCognito);
+            return juradoService.actualizarObservacionFinal(usuarioCognito,request);
+        }catch (RuntimeException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+
+
     }
 
     // Jurado-Asesor
@@ -231,11 +244,12 @@ public class MiembroJuradoController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
-
+    //Jurado --Agregar //Agregado
     @PutMapping("actualizar-nota-final-exposicion/{exposicionTemaId}")
-    public ResponseEntity<?> actualizarNotaFinalExposicion(@PathVariable Integer exposicionTemaId) {
+    public ResponseEntity<?> actualizarNotaFinalExposicion(HttpServletRequest requestCognito,@PathVariable Integer exposicionTemaId) {
         try {
-            return juradoService.actualizarNotaFinalExposicion(exposicionTemaId);
+            String usuarioCognito = jwtService.extractSubFromRequest(requestCognito);
+            return juradoService.actualizarNotaFinalExposicion(usuarioCognito,exposicionTemaId);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
@@ -252,9 +266,16 @@ public class MiembroJuradoController {
         }
     }
 
+    //Jurado --Agregar //Agregado
     @PutMapping("/nota-revision")
-    public ResponseEntity<?> actualizarNotaRevisionFinal(@RequestBody ExposicionNotaRevisionRequest request) {
-        return juradoService.actualizarNotaRevisionFinal(request);
+    public ResponseEntity<?> actualizarNotaRevisionFinal(HttpServletRequest requestCognito,@RequestBody ExposicionNotaRevisionRequest request) {
+        try{
+            String usuarioCognito = jwtService.extractSubFromRequest(requestCognito);
+            return juradoService.actualizarNotaRevisionFinal(usuarioCognito,request);
+        }catch (RuntimeException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,e.getMessage());
+        }
+
     }
 
     @PutMapping("/actualizar-link-grabacion")
