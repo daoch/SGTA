@@ -344,6 +344,8 @@ public class TemaServiceImpl implements TemaService {
 		// Start historial tema
 		saveHistorialTemaChange(tema, dto.getTitulo(), dto.getResumen(), "Creación de propuesta");
 
+		historialAccionService.registrarAccion(idUsuarioCreador, "Creó el tema con propuesta " + (tipoPropuesta == 1 ? "DIRECTA" : "GENERAL" )+ " con ID: " + tema.getId());
+
 		return tema.getId();// return tema id
 	}
 
@@ -578,7 +580,7 @@ public class TemaServiceImpl implements TemaService {
 				comentario,
 				"Solicitud de cambio de resumen");
 		historialAccionService.registrarAccion(
-				idUsuario, 
+				idUsuario,
 				"Solicitud de cambio de resumen para el tema con ID: " + temaId);
 	}
 
@@ -2494,6 +2496,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					.getSingleResult();
 
 			logger.info("Tesista " + tesistaId + " successfully applied to tema libre " + temaId);
+			historialAccionService.registrarAccion(tesistaId, "Se postuló al tema con ID: " + temaId);
+
 		} catch (Exception e) {
 			logger.severe("Error applying tesista " + tesistaId + " to tema libre " + temaId + ": " + e.getMessage());
 			throw new RuntimeException("No se pudo postular al tema libre", e);
@@ -2783,6 +2787,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			usuarioXTemaRepository.softDeleteById(asignacion.getId());
 			logger.info("Postulación eliminada para el tesista con ID: " + usuDto.getId() + " en el tema con ID: "
 					+ temaId);
+			historialAccionService.registrarAccion(idUsuario, "Eliminó la postulación al tema con ID: " + temaId);
+
 		}
 	}
 
@@ -3370,6 +3376,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 			if (result != null && result.startsWith("ERROR:")) {
 				throw new ResponseStatusException(HttpStatus.OK, result);
 			}
+			historialAccionService.registrarAccion(usuarioId, "Se " +  (action == 1 ? "rechazó" : "aprobó") + " la propuesta de cotesista al tema con ID: " + temaId);
+
 		}
 		catch (ResponseStatusException e) {
 			logger.severe("Error al aceptar propuesta de cotesista: " + e.getMessage());
@@ -3447,7 +3455,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 	@Override
 	public void registrarSolicitudesModificacionTema(Integer temaId, String usuarioId, List<Map<String, Object>> solicitudes) {
 		try {
-			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId); // JWT te da String, pero BD espera int
+			UsuarioDto usuDto = usuarioService.findByCognitoId(usuarioId);
 
 			Optional<Tema> temaAux = temaRepository.findById(temaId);
 
@@ -3468,6 +3476,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				
 				saveHistorialTemaChange(temaAux.get(),temaAux.get().getTitulo(),temaAux.get().getResumen(),tipoAux.get().getNombre());
 			}
+
+			historialAccionService.registrarAccion(usuarioId, "Registró una solicitud de modificación al tema con ID: " + temaId);
 
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Error al convertir solicitudes a JSON", e);
@@ -3514,6 +3524,13 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
                     "Actualizacion del tema"));
 
 			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
+			try{
+				historialAccionService.registrarAccion(String.valueOf(dto.getCoasesores().get(0).getId()), "Se actualizó al tema con ID: " + temaId );
+
+			} catch(Exception ex){
+				logger.warning("No se pudo registrar la acción de historial: " + ex.getMessage());
+			}
+
 		} catch (Exception e) {
 			logger.severe("Error al actualizar tema: " + e.getMessage());
 			throw new RuntimeException("No se pudo actualizar el tema", e);
@@ -3619,6 +3636,8 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 				"Tema creado desde importación OAI-PMH");
 
 			logger.info("Tema created successfully from OAI with ID: " + savedTema.getId());
+			historialAccionService.registrarAccion("Admin", "Se registró por OAI al tema con ID: " + savedTema.getId());
+
 			return savedTema.getId();
 
 		} catch (Exception e) {
@@ -3717,7 +3736,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
 				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
-		
+
+		historialAccionService.registrarAccion(coordinadorCognitoSub, "Solicitud de cese de asesor para tema " + temaAfectado.getId());
+
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
 			.findByNombre("ASESOR_ENTRADA")
 			.orElseThrow(() -> new ResourceNotFoundException("Rol de solicitud 'ASESOR_ENTRADA' no encontrado."));
@@ -3806,6 +3827,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					.orElseThrow(() -> new RuntimeException("Tema no encontrado con ID: " + solicitud.getTema().getId()));
 
 			saveHistorialTemaChange(temaAux, temaAux.getTitulo(), temaAux.getResumen(), "Solicitud de " + tipo.getNombre() + "aprobada" );
+			historialAccionService.registrarAccion(usuarioId, "Se aprobó la solicitud del tipo " + tipo.getNombre()  + " del tema con ID: " + solicitud.getTema().getId());
 
 		} catch (Exception e) {
 			Logger.getLogger(TemaServiceImpl.class.getName())
