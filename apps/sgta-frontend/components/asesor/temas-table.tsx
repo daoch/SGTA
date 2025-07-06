@@ -99,7 +99,7 @@ export function TemasTable({
           colSpan={9}
           className="text-center py-8 text-muted-foreground"
         >
-          No hay propuestas disponibles
+          No hay temas disponibles
         </TableCell>
       </TableRow>
     );

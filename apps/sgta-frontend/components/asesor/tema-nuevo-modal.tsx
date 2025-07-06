@@ -721,10 +721,7 @@ const NuevoTemaDialog: React.FC<NuevoTemaDialogProps> = ({
                         >
                           <div>
                             <p className="text-sm font-medium">
-                              {estudiante.nombres}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {estudiante.codigoPucp}
+                              {`${estudiante.nombres} ${estudiante.primerApellido} ${estudiante.segundoApellido}`}
                             </p>
                           </div>
                           <Button
