@@ -56,11 +56,6 @@ public class Solicitud {
 	@Column(name = "respuesta", columnDefinition = "TEXT", nullable = true)
 	private String respuesta;
 
-	@Column(name = "usuario_creacion")          
-    private String usuarioCreacion;
-
-    @Column(name = "usuario_modificacion")     
-    private String usuarioModificacion;
 
 	@PrePersist
 	protected void onCreate() {
