@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -21,11 +20,12 @@ import {
 } from "@/components/ui/select";
 import type { User } from "@/features/auth/types/auth.types";
 import { getEntregablesAlumno, getEntregablesAlumnoSeleccionado, getEntregablesConCriterios } from "@/features/reportes/services/report-services";
+import type { EntregableCriteriosDetalle, GradesData, StudentData } from "@/features/reportes/types/Entregable.type";
 import { addDays, format, isBefore, parseISO } from "date-fns";
-import { Eye } from "lucide-react";
+import { ClipboardList, Eye } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnalisisAcademico } from "./analisis-academico";
-import type { EntregableCriteriosDetalle, GradesData, StudentData } from "@/features/reportes/types/Entregable.type";
 
 // Convierte "no_iniciado" → "No Iniciado", etc.
 const humanize = (raw: string) =>
@@ -74,8 +74,6 @@ interface Props {
 }
 
 export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
-
-  console.log("Valor de selectedStudentId recibido en línea de tiempo:", selectedStudentId);
   const [activeTab, setActiveTab] = useState<"entregas" | "avances" | "analisis">("entregas");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -106,8 +104,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         const data = selectedStudentId != null
         ? await getEntregablesAlumnoSeleccionado(selectedStudentId)
         : await getEntregablesAlumno();
-        
-        console.log("📦 Datos obtenidos de la API:", data);
 
         type RawEntregable = {
           nombreEntregable: string;
@@ -147,9 +143,11 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 statusInterno === "Pendiente" &&
                 !isLateFlag;
 
+              const fechaFormateada = format(eventDate, "dd-MM-yyyy");
+
               return {
                 event: item.nombreEntregable,
-                date: format(eventDate, "yyyy-MM-dd"),
+                date: fechaFormateada,
                 rawEstadoEntregable: item.estadoEntregable,
                 rawEstadoXTema: item.estadoXTema,
                 estadoRevision: item.estadoRevision,
@@ -170,6 +168,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 date: "Fecha no disponible",
                 rawEstadoEntregable: item.estadoEntregable,
                 rawEstadoXTema: item.estadoXTema,
+                estadoRevision: item.estadoRevision,
                 status: "Pendiente",
                 isLate: false,
                 daysRemaining: 0,
@@ -184,9 +183,20 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           });
 
         // Orden descendente:
-        eventosTransformados.sort(
-          (a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()
-        );
+        eventosTransformados.sort((a, b) => {
+          if (a.date === "Fecha no disponible") return 1;
+          if (b.date === "Fecha no disponible") return -1;
+          
+          const parseDate = (dateStr: string) => {
+            if (dateStr.includes("-") && dateStr.length === 10) {
+              const [day, month, year] = dateStr.split("-");
+              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            }
+            return parseISO(dateStr);
+          };
+          
+          return parseDate(b.date).getTime() - parseDate(a.date).getTime();
+        });
 
         setTimelineEvents(eventosTransformados);
       } catch (error) {
@@ -251,7 +261,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
         return {
           id: entregable.entregableId.toString(),
           name: entregable.entregableNombre,
-          date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "yyyy-MM-dd") : "Sin fecha",
+          date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "dd-MM-yyyy") : "Sin fecha",
           criteria,
           expositionGrade: 0, // No tenemos datos de exposición en la API actual
           finalGrade: entregable.notaGlobal || 0
@@ -283,7 +293,18 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
 
   // Filtrado por tiempo
   const filteredByTime = timelineEvents.filter((event) => {
-    const eventDate = parseISO(event.date);
+    // Si la fecha está en formato dd-MM-yyyy, la convertimos para parsearla
+    if (event.date === "Fecha no disponible") return true;
+    
+    let eventDate: Date;
+    if (event.date.includes("-") && event.date.length === 10) {
+      // Si es formato dd-MM-yyyy, convertirlo a Date
+      const [day, month, year] = event.date.split("-");
+      eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      eventDate = parseISO(event.date);
+    }
+    
     switch (timeFilter) {
       case "past":
         return isBefore(eventDate, currentDate);
@@ -351,9 +372,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
       {/* Contenido */}
       {(activeTab === "entregas" || activeTab === "avances") && (
         <Card>
-          <CardHeader className="flex justify-between items-center">
+          <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <CardTitle className="text-lg">Avances y Entregas</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-2 justify-end">
               <Select
                 value={timeFilter}
                 onValueChange={(v) => setTimeFilter(v as TimeFilter)}
@@ -378,7 +399,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                     <div className="p-3 space-y-2">
                       <h4 className="font-medium text-sm">Estado</h4>
                       <div className="space-y-1">
-                        {/* Opción “Todos” */}
+                        {/* Opción "Todos" */}
                         <Button
                           key="all"
                           variant={statusFilter === "all" ? "default" : "outline"}
@@ -443,7 +464,9 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           </CardHeader>
 
           <CardContent>
-            <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6">
+            <div className="overflow-x-auto px-2">
+              <div className="relative border-l border-gray-200 ml-3 pl-8 space-y-6 min-w-[300px]">
+
               {
                 isLoading ? (
                 <div className="text-center py-8 text-gray-500">
@@ -467,6 +490,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                     terminado:   "text-green-600",
                   }[event.rawEstadoEntregable] ?? "";
 
+                  const colorRevision = {
+                    por_aprobar: "bg-purple-100 text-purple-800",
+                    aprobado:    "bg-green-100 text-green-800",
+                    observado:   "bg-red-100 text-red-800",
+                  }[event.estadoRevision ?? ""] ?? "bg-gray-100 text-gray-800";
+
+
                   let circleClass = "bg-gray-300 border-gray-300";
                   if (event.rawEstadoXTema === "enviado_a_tiempo") {
                     circleClass = "bg-green-500 border-green-500";
@@ -481,13 +511,13 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                         className={`absolute -left-10 mt-1.5 h-4 w-4 rounded-full border ${circleClass}`}
                       />
                       <div>
-                        <div className="flex justify-between items-center">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 w-full">
+                          <div className="flex-1 min-w-0">
                             <time className="mb-1 text-xs font-normal text-gray-500">
                               {event.date}
                             </time>
-                            <h3 className="text-sm font-medium">
-                              {event.event}
+                            <div className="text-sm font-medium break-words flex flex-wrap gap-1 max-w-[300px] sm:max-w-[500px]">
+                              <span>{event.event}</span>
                               <span
                                 className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
                                   colorXTema === "text-red-600"
@@ -503,19 +533,19 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                                 {textoEntregable}
                               </span>
                               {event.estadoRevision && (
-                                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${colorRevision}`}>
                                   {humanize(event.estadoRevision)}
                                 </span>
                               )}
-
                               {event.isAtRisk && (
                                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
                                   En riesgo ({event.daysRemaining} días)
                                 </span>
                               )}
-                            </h3>
+                            </div>
+
                           </div>
-                          <div className="flex items-center justify-end space-x-4 min-w-[200px]">
+                          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-end gap-2 w-full sm:w-auto">
                             <Link
                               href={`/alumno/mi-proyecto/entregables/${event.entregableId}?tema=${event.temaId}`}
                               className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
@@ -528,7 +558,8 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                               size="sm"
                               onClick={() => openCriteriosModal(event.criterios)}
                             >
-                              Ver criterios
+                              <ClipboardList className="h-4 w-4" />
+                              <span className="ml-1">Ver criterios</span>
                             </Button>
                             {activeTab === "entregas" && (
                               <span className="text-base font-medium">
@@ -559,6 +590,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                   No hay eventos que coincidan con los filtros seleccionados
                 </div>
               )}
+              </div>
             </div>
           </CardContent>
         </Card>

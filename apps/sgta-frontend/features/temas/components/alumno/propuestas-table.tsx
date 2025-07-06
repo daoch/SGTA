@@ -161,7 +161,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
   const pendientesAdaptados: PropuestaPendiente[] = pendientesCotesistas.map((p) => ({
     id: String(p.id),
     titulo: p.titulo,
-    area: p.subareas[0]?.nombre || "—",
+    area: Array.isArray(p.subareas) && p.subareas.length > 0
+    ? p.subareas.map(sa => sa.nombre).join(", ")
+    : "—",
     estudiantes: p.tesistas.map(t => `${t.nombres} ${t.primerApellido}`),
     codigos: p.tesistas.map(t => String(t.id)),
     postulaciones: p.cantPostulaciones ?? 0,
@@ -267,7 +269,11 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                   <TableCell className="font-medium max-w-xs truncate">
                     {p.titulo}
                   </TableCell>
-                  <TableCell>{p.subareas[0]?.nombre || "—"}</TableCell>
+                  <TableCell>
+                    {Array.isArray(p.subareas) && p.subareas.length > 0
+                      ? p.subareas.map(sa => sa.nombre).join(", ")
+                      : "—"}
+                  </TableCell>
 
                   {/* Cotesistas no asignados, excluyendo al propio usuario */}
                   <TableCell>
@@ -353,7 +359,9 @@ export function PropuestasTable({ filter }: PropuestasTableProps) {
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
                                 <Label>Área</Label>
-                                <p>{selectedPropuesta.subareas[0]?.nombre || "—"}</p>
+                                <p>{Array.isArray(selectedPropuesta.subareas) && selectedPropuesta.subareas.length > 0
+                                  ? selectedPropuesta.subareas.map((s: SubAreaConocimiento) => s.nombre).join(", ")
+                                  : "—"}</p>
                               </div>
                               {selectedPropuesta.fechaLimite && (
                                 <div className="space-y-1">

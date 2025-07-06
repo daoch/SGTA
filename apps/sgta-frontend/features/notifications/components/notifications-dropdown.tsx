@@ -20,10 +20,27 @@ export function NotificationsDropdown() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [notificadosPorToast, setNotificadosPorToast] = useState<Set<number>>(() => {
+    if (typeof window !== "undefined") {
+      const cache = localStorage.getItem("toastNotificados");
+      return new Set(cache ? JSON.parse(cache) : []);
+    }
+    return new Set();
+  });
+
+
+  useEffect(() => {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        console.log("Permiso de notificación:", permission);
+      });
+    }
+  }, []);
 
   const marcarComoLeida = async (notificacionId: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log("Marcar notificación como leída:", notificacionId);
     const element = document.getElementById(`notificacion-${notificacionId}`);
     if (element) {
       element.style.height = `${element.offsetHeight}px`;
@@ -116,17 +133,64 @@ export function NotificationsDropdown() {
       try {
         setLoading(true);
         const data = await getUnreadNotifications();
-        if (notificaciones){
-          const notificacionesNuevas = data.filter(nueva => !notificaciones.some(existente => existente.notificacionId === nueva.notificacionId));
-          notificacionesNuevas.forEach(nueva => {
+        console.log("Notificaciones cargadas:", data);
+
+        // Evitar repetir toasts
+        const nuevasNoMostradas = data.filter(n =>
+          !notificadosPorToast.has(n.notificacionId)
+        );
+        
+        nuevasNoMostradas.forEach(nueva => {
+          console.log("modulo:", nueva.modulo);
+          if(nueva.modulo == "Gestion"){
             toast({
               title: "Notificación nueva",
               description: nueva.mensaje,
               variant: "default",
               duration: 6000,
             });
-          });
-        }
+
+            // Notificación del sistema
+            if (Notification.permission === "granted") {
+              new Notification("Notificación nueva", {
+                body: nueva.mensaje,
+                icon: "/logo.png", // puedes poner un ícono propio
+              });
+            }
+
+            notificadosPorToast.add(nueva.notificacionId);
+          }
+        });
+
+        // Guardar el nuevo set en localStorage
+        localStorage.setItem("toastNotificados", JSON.stringify([...notificadosPorToast]));
+        setNotificadosPorToast(new Set(notificadosPorToast));
+
+        // if (notificaciones){
+        //   const notificacionesNuevas = data.filter(nueva => !notificaciones.some(existente => existente.notificacionId === nueva.notificacionId));
+        //   notificacionesNuevas.forEach(nueva => {
+        //     toast({
+        //       title: "Notificación nueva",
+        //       description: nueva.mensaje,
+        //       variant: "default",
+        //       duration: 6000,
+        //     });
+        //   });
+        // }
+        
+        // const notificacionesNuevas = notificaciones
+        //   ? data.filter(nueva => !notificaciones.some(existente => existente.notificacionId === nueva.notificacionId))
+        //   : data;
+
+        // notificacionesNuevas.forEach(nueva => {
+        //   toast({
+        //     title: "Notificación nueva",
+        //     description: nueva.mensaje,
+        //     variant: "default",
+        //     duration: 6000,
+        //   });
+        // });
+
         setNotificaciones(data);
       } catch (error) {
         console.error("Error al cargar notificaciones:", error);

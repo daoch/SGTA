@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -58,4 +59,6 @@ public class UsuarioDto {
 	private Boolean asignado; // we need mapping on this for proposals and general tema management
 
 	private Boolean esCoordinador; // if the user is a coordinator in the tema
+
+	private List<SubAreaConocimientoDto> subareas;
 }

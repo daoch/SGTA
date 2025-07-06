@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
+import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
 import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
@@ -23,7 +24,8 @@ import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
-import { analizarPlagioArchivoS3, borrarObservacion, descargarArchivoS3RevisionID, existePlagioJsonF, getJsonPlagio, guardarObservacion, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
+import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
 // ...otros imports...
 
 // Datos de ejemplo para una revisión específica
@@ -45,8 +47,52 @@ const revisionData = {
 
   ],
 };
-
-
+function getIAColorClass(score: number) {
+  if (score >= 90) return "bg-red-50 border-red-200";
+  if (score >= 70) return "bg-orange-50 border-orange-200";
+  if (score >= 50) return "bg-yellow-50 border-yellow-200";
+  return "bg-green-50 border-green-200";
+}
+function getIAScoreTextClass(score: number) {
+  if (score >= 90) return "text-black-700";
+  if (score >= 70) return "text-black-700";
+  if (score >= 50) return "text-black-700";
+  return "text-green-700";
+}
+function getIAScoreBadgeClass(score: number) {
+  if (score >= 90) return "bg-red-600";
+  if (score >= 70) return "bg-orange-500";
+  if (score >= 50) return "bg-yellow-500";
+  return "bg-green-600";
+}
+function getBlockquoteBg(tipo: string) {
+  switch (tipo) {
+    case "Contenido":
+      return "bg-yellow-50";
+    case "Similitud":
+      return "bg-red-50";
+    case "Citado":
+      return "bg-blue-50";
+    case "GeneradoIA":
+      return "bg-green-50";
+    default:
+      return "bg-gray-50";
+  }
+}
+function getBlockquoteBorder(tipo: string) {
+  switch (tipo) {
+    case "Contenido":
+      return "border-yellow-400";
+    case "Similitud":
+      return "border-red-500";
+    case "Citado":
+      return "border-blue-500";
+    case "GeneradoIA":
+      return "border-green-600";
+    default:
+      return "border-gray-300";
+  }
+}
 export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
   const router = useRouter();
   interface Observacion {
@@ -83,7 +129,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   });
   const [highlights, setHighlights] = useState<IHighlight[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
-
+  const [revision2, setRevision2] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -105,22 +151,64 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   }
 
   const [plagioData, setPlagioData] = useState<PlagioData | null>(null);
+  const [IAData, setIAData] = useState<IAApiResponse | null>(null); // Cambia 'any' por el tipo adecuado si lo tienes
   const [isAnalizandoPlagio, setIsAnalizandoPlagio] = useState(false);
-  const [existePlagioJson, setExistePlagioJson] = useState<boolean | null>(null);
-
+  const [existePlagioJson, setExistePlagioJson] = useState<string | null>(null);
+  const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
   useEffect(() => {
-    async function checkExistePlagioJson() {
-      const exists = await existePlagioJsonF(params.id_revision);
-      setExistePlagioJson(exists);
+    async function fetchData() {
+      try {
+        const data = await getRevisionById(params.id_revision.toString());
+        setRevision2(data);
+      } catch {
+
+      } finally {
+
+      }
     }
+
+    fetchData();
+  }, [params.id_revision]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getStudentsByRevisor(params.id_revision.toString());
+        setAlumnos(data);
+      } catch {
+      } finally {
+      }
+    }
+
+    fetchData();
+  }, [params.id_revision]);
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    async function checkExistePlagioJson() {
+      const exists = await checkStatusProcesamiento(params.id_revision);
+      console.log("Estado de procesamiento:", exists);
+      if (!isMounted) return;
+      setExistePlagioJson(exists);
+      if (exists !== "COMPLETADO") {
+        // Vuelve a consultar en 10 segundos
+        intervalId = setTimeout(checkExistePlagioJson, 10000);
+      }
+    }
+
     checkExistePlagioJson();
+
+    return () => {
+      isMounted = false;
+      if (intervalId) clearTimeout(intervalId);
+    };
   }, [params.id_revision]);
 
   useEffect(() => {
-    if (existePlagioJson === false && !isAnalizandoPlagio) {
+    if (existePlagioJson == "PENDING" || existePlagioJson == "ERROR" && !isAnalizandoPlagio) {
       console.log("No existe JSON de plagio, iniciando análisis...");
       handleAnalizarPlagio();
-    } else if (existePlagioJson === true) {
+    } else if (existePlagioJson == "COMPLETADO") {
       console.log("Existe JSON de plagio, no es necesario analizar nuevamente.");
       const fetchPlagioData = async () => {
         const apiData = await getJsonPlagio(params.id_revision);
@@ -130,7 +218,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         apiData.sources.forEach((src) => {
           src.plagiarismFound.forEach((frag) => {
             detalles.push({
-              pagina: 1, // Si tienes la página real, asígnala aquí
+              pagina: frag.page || 0, // Si tienes la página real, asígnala aquí
               texto: `Coincidencia del ${src.score}% con "${src.title}"${src.author ? ` (autor: ${src.author})` : ""}: "${frag.sequence}"`,
               url: src.url,
               title: src.title,
@@ -145,31 +233,37 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         });
       };
       fetchPlagioData();
+      const fetchIAData = async () => {
+        const apiData = await getJsonIA(params.id_revision);
+        console.log("Datos de IA obtenidos:", apiData);
+        setIAData(apiData);
+      };
+      fetchIAData();
     }
     // eslint-disable-next-line
   }, [existePlagioJson]);
   const handleAnalizarPlagio = async () => {
     setIsAnalizandoPlagio(true);
     try {
-      const apiData = await analizarPlagioArchivoS3(params.id_revision);
-      console.log("Datos de plagio obtenidos:", apiData);
-      const detalles: PlagioDetalle[] = [];
-      apiData.sources.forEach((src) => {
-        src.plagiarismFound.forEach((frag) => {
-          detalles.push({
-            pagina: 1, // Si tienes la página real, asígnala aquí
-            texto: `Coincidencia del ${src.score}% con "${src.title}"${src.author ? ` (autor: ${src.author})` : ""}: "${frag.sequence}"`,
-            url: src.url,
-            title: src.title,
-            author: src.author ?? "Desconocido",
-            fragmento: frag.sequence,
-          });
-        });
-      });
-      setPlagioData({
-        coincidencias: apiData.result.score,
-        detalles
-      });
+      const apiData = await checkPlagiarismAsync(params.id_revision);
+      console.log("NUEVO ESTADO:", apiData);
+      // const detalles: PlagioDetalle[] = [];
+      // apiData.sources.forEach((src) => {
+      //   src.plagiarismFound.forEach((frag) => {
+      //     detalles.push({
+      //       pagina: frag.page || 0, // Si tienes la página real, asígnala aquí
+      //       texto: `Coincidencia del ${src.score}% con "${src.title}"${src.author ? ` (autor: ${src.author})` : ""}: "${frag.sequence}"`,
+      //       url: src.url,
+      //       title: src.title,
+      //       author: src.author ?? "Desconocido",
+      //       fragmento: frag.sequence,
+      //     });
+      //   });
+      // });
+      // setPlagioData({
+      //   coincidencias: apiData.result.score,
+      //   detalles
+      // });
     } catch (e) {
       setPlagioData(null);
     } finally {
@@ -298,9 +392,9 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     });
   };
   const handleDeleteHighlight = (highlightId: string) => {
-    setHighlights(prev => prev.filter(h => h.id !== highlightId));
-    setHighlightToDelete(highlightId);
+
     setShowDeleteDialog(true);
+    setHighlightToDelete(highlightId);
   };
   const confirmDeleteHighlight = async () => {
     if (!highlightToDelete) return;
@@ -461,16 +555,16 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   /> */}
                   {(() => {
                     let plagioClass = "";
-                    if (revision.porcentajePlagio > 20) {
+                    if ((plagioData?.coincidencias ?? 0) > 20) {
                       plagioClass = "text-red-600 font-medium";
-                    } else if (revision.porcentajePlagio > 10) {
+                    } else if ((plagioData?.coincidencias ?? 0) > 10) {
                       plagioClass = "text-yellow-600 font-medium";
                     } else {
                       plagioClass = "text-green-600 font-medium";
                     }
                     return (
                       <span className={plagioClass}>
-                        {revision.porcentajePlagio}%
+                        {plagioData?.coincidencias ?? 0}%
                       </span>
                     );
                   })()}
@@ -588,17 +682,27 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         <div className="lg:col-span-2">
           <Card className="min-h-[800px]">
             <CardHeader>
-              <CardTitle>{revision.titulo}</CardTitle>
+              <CardTitle>{revision2?.titulo}</CardTitle>
               <CardDescription>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <span>
-                    Estudiante: {revision.estudiante} ({revision.codigo})
+                    Estudiantes:
+                    {alumnos.length > 0 ? (
+                      alumnos.map((alumno, index) => (
+                        <span key={alumno.id}>
+                          {alumno.nombres} {alumno.primerApellido} {alumno.segundoApellido} ({alumno.codigoPucp})
+                          {index < alumnos.length - 1 ? ", " : " "}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">No hay estudiantes asignados</span>
+                    )}
                   </span>
                   <Badge variant="outline" className="w-fit">
-                    {revision.curso === "1INF42" ? "1INF42" : "1INF46"}
+                    {revision2?.curso}
                   </Badge>
                   <Badge variant="outline" className="w-fit bg-blue-100 text-blue-800">
-                    {revision.entregable}
+                    {revision2?.entregable}
                   </Badge>
                 </div>
               </CardDescription>
@@ -625,15 +729,95 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
             <CardHeader>
               <CardTitle>Observaciones</CardTitle>
               <CardDescription>
-                Lista de observaciones encontradas
+                <div className="flex items-center justify-between">
+                  <span>Lista de observaciones encontradas</span>
+                  {existePlagioJson === "PENDING" && (
+                    <span className="flex items-center gap-2 text-blue-700 font-semibold animate-pulse text-medium">
+                      <svg className="h-7 w-7 animate-spin" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                      Iniciando análisis de documento. Esto podría tomar unos minutos...
+                    </span>
+                  )}
+                  {existePlagioJson === "EN_PROCESO" && (
+                    <span className="flex items-center gap-2 text-blue-700 font-semibold animate-pulse text-medium">
+                      <svg className="h-7 w-7 animate-spin" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                      Analizando documento...
+                    </span>
+                  )}
+                  {existePlagioJson === "ERROR" && (
+                    <span className="flex items-center gap-2 text-red-700 font-semibold text-medium">
+                      <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          d="M15 9l-6 6m0-6l6 6"
+                        />
+                      </svg>
+                      Ocurrió un error, inténtelo más tarde.
+                    </span>
+                  )}
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio")}>
-                <TabsList className="mb-4 w-full">
-                  <TabsTrigger value="revisor">Revisor</TabsTrigger>
-                  <TabsTrigger value="plagio">Deteccion de similitud</TabsTrigger>
-                  <TabsTrigger value="ia" className="flex-1">Generado con IA</TabsTrigger>
+                <TabsList className="mb-4 w-full flex items-stretch">
+                  <TabsTrigger
+                    value="revisor"
+                    className={`font-semibold transition-all w-full ${tab === "revisor"
+                      ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                      : ""
+                      }`}
+                  >
+                    Revisor ({highlights.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="plagio" className={`font-semibold transition-all ${tab === "plagio"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}>Deteccion de similitud ({plagioData?.detalles.length || 0})</TabsTrigger>
+                  <TabsTrigger value="ia" className={`font-semibold transition-all ${tab === "ia"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}>Generado con IA ({IAData?.sentences.length || 0})</TabsTrigger>
                 </TabsList>
                 <TabsContent value="revisor">
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
@@ -648,20 +832,20 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     }).map((highlight) => (
                       <div
                         key={highlight.id}
-                        className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
+                        className={`p-3 rounded-lg border transition-colors cursor-pointer ${getBlockquoteBg(highlight.comment.emoji)}`}
                         onClick={() => handleHighlightClick(highlight)}
                       >
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-700">
-                              {highlight.content.text}
+                            <p className="text-sm font-medium italic text-black-1000">
+                              <em>&quot;{highlight.content.text}&quot;</em>
                             </p>
-                            {highlight.comment && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                {highlight.comment.text}
-                              </p>
+                            {highlight.comment && highlight.comment.text && (
+                              <blockquote className={`border-l-4 pl-3 my-2 text-sm text-gray-900 rounded ${getBlockquoteBg(highlight.comment.emoji)} ${getBlockquoteBorder(highlight.comment.emoji)}`}>
+                                Comentario: {highlight.comment.text}
+                              </blockquote>
                             )}
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-gray-800 mt-1">
                               Página {highlight.position.pageNumber}
                             </p>
                           </div>
@@ -689,31 +873,48 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </TabsContent>
                 <TabsContent value="plagio">
                   <div className="space-y-4">
-                    {plagioData?.detalles.map((obs, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 bg-red-50 rounded-lg border border-red-200"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-red-700">
-                            {obs.texto}
+                    {plagioData?.detalles.map((obs) => {
+                      const key = `${obs.url ?? ""}-${obs.fragmento ?? obs.texto}`;
+                      // Extrae el porcentaje y el nombre de la fuente del texto si no tienes campos separados
+                      const match = obs.texto.match(/Coincidencia del (\d+)% con "([^"]+)"/);
+                      const porcentaje = match?.[1] ?? "?";
+                      const fuente = obs.title ?? match?.[2] ?? "Fuente desconocida";
+                      return (
+                        <div
+                          key={key}
+                          className="p-3 rounded-lg border bg-red-50 border-red-200 flex flex-col gap-2"
+                        >
+                          <p className="text-sm font-medium italic text-black-700">
+                            &quot;{obs.fragmento ?? obs.texto}&quot;
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-gray-700">
+                              Fuente: {fuente}
+                            </span>
                             {obs.url && (
                               <a
                                 href={obs.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="ml-2 underline text-blue-700"
+                                className="text-xs underline text-blue-700 ml-2"
                               >
                                 Ver fuente
                               </a>
                             )}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Página {obs.pagina}
-                          </p>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow bg-red-600">
+                              <AlertTriangle className="h-4 w-4 mr-1" />
+                              {porcentaje}%
+                            </span>
+                            <span className="text-s text-gray-500">
+                              Página {obs.pagina}
+                            </span>
+                          </div>
+
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {(!plagioData || plagioData.detalles.length === 0) && (
                       <div className="text-center py-6 text-gray-500">
                         No hay observaciones de similitud
@@ -722,21 +923,87 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   </div>
                 </TabsContent>
                 <TabsContent value="ia">
-                  <div className="text-center py-6 text-gray-500">
-                    No hay observaciones de contenido generado por IA
-                  </div>
+                  {IAData && IAData.sentences && IAData.sentences.length > 0 ? (
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                      {IAData.sentences.map((sentence) => {
+                        const key = `ia-${sentence.page}-${sentence.text}`;
+                        const colorClass = getIAColorClass(sentence.score);
+                        const scoreTextClass = getIAScoreTextClass(sentence.score);
+                        const scoreBadgeClass = getIAScoreBadgeClass(sentence.score);
+                        return (
+                          <div
+                            key={key}
+                            className={`p-3 rounded-lg border cursor-pointer ${colorClass}`}
+                            tabIndex={0}
+                            role="button"
+                            onClick={() => {
+                              // Highlight temporal solo para scroll
+                              const tempHighlight: IHighlight = {
+                                id: key,
+                                content: { text: sentence.text },
+                                position: {
+                                  pageNumber: sentence.page,
+                                  boundingRect: {
+                                    x1: 0, y1: 0, x2: 0, y2: 0, width: 0, height: 0
+                                  },
+                                  rects: [],
+                                  usePdfCoordinates: false,
+                                },
+                                comment: { text: "Detectado como IA", emoji: "GeneradoIA" },
+                              };
+                              setActiveHighlight(undefined);
+                              setTimeout(() => setActiveHighlight(tempHighlight), 0);
+                              console.log("Highlight temporal activado:", tempHighlight);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                const tempHighlight: IHighlight = {
+                                  id: key,
+                                  content: { text: sentence.text },
+                                  position: {
+                                    pageNumber: sentence.page,
+                                    boundingRect: {
+                                      x1: 0, y1: 0, x2: 0, y2: 0, width: 0, height: 0
+                                    },
+                                    rects: [],
+                                    usePdfCoordinates: false,
+                                  },
+                                  comment: { text: "Detectado como IA", emoji: "GeneradoIA" },
+                                };
+                                setActiveHighlight(undefined);
+                                setTimeout(() => setActiveHighlight(tempHighlight), 0);
+
+                              }
+                            }}
+                          >
+                            <div>
+                              <p className={`text-sm font-medium italic ${scoreTextClass} text-justify`}>
+                                &quot;{sentence.text}&quot;
+                              </p>
+                              <div className="flex items-center gap-2 mt-3">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow ${scoreBadgeClass}`}>
+                                  <Sparkles className="h-4 w-4 mr-1" />
+                                  {sentence.score}%
+                                </span>
+                                <span className="text-s text-gray-500">
+                                  Página {sentence.page}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-600">
+                      No hay observaciones de contenido generado por IA
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
-          <Button
-            onClick={handleAnalizarPlagio}
-            disabled={isAnalizandoPlagio}
-            variant="outline"
-            className="w-full mb-4"
-          >
-            {isAnalizandoPlagio ? "Analizando similitudes..." : "Analizar similitud"}
-          </Button>
           {/* <Button
                         onClick={handleSaveAnnotatedPDF}
                         disabled={isLoading}
@@ -776,7 +1043,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Similitud</span>
                   </div>
                   <Badge variant="outline" className="bg-red-100 text-red-800">
-                    {highlights.filter((h) => h.comment.emoji === "Similitud").length}
+                    {highlights.filter((h) => h.comment.emoji === "Similitud").length + (plagioData?.detalles?.length ?? 0)}
                   </Badge>
                 </div>
 
@@ -795,7 +1062,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     <span>Generado con IA</span>
                   </div>
                   <Badge variant="outline" className="bg-green-100 text-green-800">
-                    {revision.observaciones.filter((o) => o.tipo === "Inteligencia Artificial").length}
+                    {IAData && IAData.sentences ? IAData.sentences.length : 0}
                   </Badge>
                 </div>
               </div>

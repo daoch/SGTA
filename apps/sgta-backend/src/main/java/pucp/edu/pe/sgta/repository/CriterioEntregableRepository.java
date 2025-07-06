@@ -28,5 +28,5 @@ public interface CriterioEntregableRepository extends JpaRepository<CriterioEntr
           AND c.activo = true
        """)
     List<CriterioEntregableDto> listarCriteriosEntregableXEntregable(@Param("entregableId") Integer entregableId);
-
+    //void insertar_actualizar_revision_criterio_entregable(@Param("entregableId") Integer revision_criterio_entregable_id)
 }

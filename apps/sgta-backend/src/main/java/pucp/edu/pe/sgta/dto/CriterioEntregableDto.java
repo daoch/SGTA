@@ -13,6 +13,14 @@ public class CriterioEntregableDto {
     private BigDecimal notaMaxima;
     private String descripcion;
     private Double nota; // este puede quedar null o asignarlo luego
+    private Integer revision_documento_id; //nullable
+    private Integer usuario_revisor_id; //nullable
+    private Integer tema_x_entregable_id;//nullable
+    private Integer entregable_id; //nullable
+    private String entregable_descripcion; //nullable
+    private Integer revision_criterio_entregable_id;//nullable
+    //rivate BigDecimal nota;//nullable
+    private String observacion;//nullable
 
     /** Este constructor de 4 argumentos es el que usará la consulta JPQL “new …” */
     public CriterioEntregableDto(Integer id,
