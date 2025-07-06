@@ -5,7 +5,7 @@ import {
   Tema,
   Tesista,
 } from "@/features/temas/types/temas/entidades";
-import { Calendar, FileText, Target, User } from "lucide-react";
+import { FileText, Target, User } from "lucide-react";
 
 interface DetalleTemaProps {
   tema?: Tema;
@@ -46,7 +46,7 @@ export function DetalleTema({ tema }: DetalleTemaProps) {
       : tema?.estadoTemaNombre === "INSCRITO"
         ? "bg-purple-100 text-purple-700"
         : "bg-gray-100 text-gray-700";
-
+  console.log(tema);
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-3 flex flex-col gap-6">
@@ -81,19 +81,6 @@ export function DetalleTema({ tema }: DetalleTemaProps) {
                   <span className="ml-1">{nombresCoasesores}</span>
                 </>
               )}
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="font-semibold">Fecha:</span>
-              <span className="ml-1">
-                {tema?.fechaCreacion
-                  ? new Date(tema?.fechaCreacion).toLocaleDateString("es-PE", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : ""}
-              </span>
             </div>
           </div>
         </div>

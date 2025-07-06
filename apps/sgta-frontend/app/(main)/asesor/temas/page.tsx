@@ -103,14 +103,15 @@ const Page = () => {
           itemsPerPage,
           offset,
         )) || [];
+      console.log("data traida", dataSinFiltrar);
       let data: Tema[] = [];
       switch (estadoTema) {
         case EstadoTemaNombre.INSCRITO:
           data = dataSinFiltrar.filter(
             (tema) =>
-              tema.estadoTemaNombre === EstadoTemaNombre.INSCRITO ||
               tema.estadoTemaNombre === EstadoTemaNombre.OBSERVADO ||
               tema.estadoTemaNombre === EstadoTemaNombre.REGISTRADO ||
+              tema.estadoTemaNombre === EstadoTemaNombre.EN_PROGRESO ||
               tema.estadoTemaNombre === EstadoTemaNombre.INSCRITO,
           );
           break;
@@ -127,6 +128,17 @@ const Page = () => {
               tema.estadoTemaNombre === EstadoTemaNombre.PREINSCRITO,
           );
           break;
+        case EstadoTemaNombre.FINALIZADO:
+          data = dataSinFiltrar.filter(
+            (tema) => tema.estadoTemaNombre === EstadoTemaNombre.FINALIZADO,
+          );
+          break;
+        case EstadoTemaNombre.PAUSADO:
+          data = dataSinFiltrar.filter(
+            (tema) => tema.estadoTemaNombre === EstadoTemaNombre.PAUSADO,
+          );
+          break;
+
         default:
           console.log("Entro al defaul");
           break;
