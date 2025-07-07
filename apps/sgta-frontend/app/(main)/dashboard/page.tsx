@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  CalendarCheck,
   CalendarIcon,
   CheckSquare,
   ClipboardList,
@@ -16,22 +15,21 @@ import {
   Settings,
   Shuffle,
   Users,
-  Users2,
+  Users2
 } from "lucide-react";
 
 import {
   Card,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useAuth } from "@/features/auth";
-import { Carrera } from "@/features/configuracion/services/carrera-service";
-import { carreraService } from "@/features/configuracion/services/carrera-service";
+import { Carrera, carreraService } from "@/features/configuracion/services/carrera-service";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const estadisticas = [
     { 
@@ -170,11 +168,11 @@ const estadisticas = [
         href: "/coordinador/temas",
         icon: FileText,
       },
-      { title: "Propuestas", 
+/*       { title: "Propuestas", 
         description: "Visualiza y gestiona propuestas realizadas", 
         href: "/coordinador/propuestas",
         icon: CalendarCheck, 
-      },
+      }, */
       { title: "Aprobaciones", 
         description: "Gestiona solicitudes de cambios en tesis", 
         href: "/coordinador/aprobaciones",
@@ -190,11 +188,11 @@ const estadisticas = [
         href: "/coordinador/exposiciones",
         icon: MessageSquare, 
       },
-      { title: "Revisión", 
+/*       { title: "Revisión", 
         description: "Revisa entregables y documentos", 
         href: "/coordinador/revision",
         icon: Search, 
-      },
+      }, */
       { title: "Asesores", 
         description: "Consulta y gestiona el directorio de asesores", 
         href: "/coordinador/asesores/directorio-de-asesores",
