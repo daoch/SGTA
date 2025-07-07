@@ -2834,8 +2834,9 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		return temas;
 	}
 
-	public void asociarTemaACurso(Integer cursoId, Integer temaId) {
+	public void asociarTemaACurso(Integer cursoId, Integer temaId, String cognitoId) {
 		temaRepository.asociarTemaACurso(cursoId, temaId);
+		historialAccionService.registrarAccion(cognitoId, "Se asoció el tema " + temaId + " al curso " + cursoId);
 	}
 
 	@Override

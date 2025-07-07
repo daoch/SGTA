@@ -41,7 +41,8 @@ public class DocumentoController {
     }
 
     @PostMapping("/borrar-documento/{documentoId}")
-    public void borrarDocumento(@PathVariable Integer documentoId) {
-        documentoService.borrarDocumento(documentoId);
+    public void borrarDocumento(@PathVariable Integer documentoId, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        documentoService.borrarDocumento(documentoId, cognitoId);
     }
 }
