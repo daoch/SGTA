@@ -178,7 +178,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         
             Integer carreraId = carrera.getId();
             List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
-                .findAllByCarreraIdAndActivoTrue(carreraId);
+                .findAllByCarreraIdAndActivoTrueOrderByNombreAsc(carreraId);
             List<AreaConocimientoDto> dtos = areasConocimiento.stream()
                 .map(AreaConocimientoMapper::toDto)
                 .toList();
