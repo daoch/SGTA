@@ -23,6 +23,11 @@ import jakarta.persistence.EntityNotFoundException;
 
 import java.util.NoSuchElementException;
 
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
+import java.time.OffsetDateTime;
+
+
 @Service
 public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     @Autowired
@@ -37,6 +42,8 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public EtapaFormativaServiceImpl(EtapaFormativaRepository etapaFormativaRepository) {
         this.etapaFormativaRepository = etapaFormativaRepository;
@@ -73,7 +80,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
     }
 
     @Override
-    public EtapaFormativaDto update(EtapaFormativaDto dto) {
+    public EtapaFormativaDto update(String usuarioCognito, EtapaFormativaDto dto) {
         // 1) Cargar la entidad existente
         var etapa = etapaFormativaRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Etapa no encontrada: " + dto.getId()));
@@ -92,6 +99,15 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
         // 4) Persistir
         var updated = etapaFormativaRepository.save(etapa);
+
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Actualizó una nueva etapa formativa por ciclo con ID: " + updated.getId()
+                )
+        );
 
         // 5) Mapear Entidad → DTO
         return EtapaFormativaDto.builder()
@@ -188,7 +204,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                 .toList();
     }
 
-    public EtapaFormativaDto create(EtapaFormativaDto dto) {
+    public EtapaFormativaDto create(String usuarioCognito, EtapaFormativaDto dto) {
         try {
             // 1) Validar y cargar la Carrera
             var carrera = carreraRepository.findById(dto.getCarreraId())
@@ -213,6 +229,16 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                 // Actualizamos el campo transitorio para el DTO de respuesta
                 saved.setDuracionExposicion(duration);
             }
+
+            eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva etapa formativa por ciclo con ID: " + saved.getId()
+                )
+            );
+
 
             // 6) Construir DTO de respuesta
             return EtapaFormativaDto.builder()
@@ -315,11 +341,19 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
 
     @Override
     @Transactional
-    public void delete(Integer id) {
+    public void delete(String usuarioCognito, Integer id) {
         EtapaFormativa e = etapaFormativaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No existe etapa formativa: " + id));
         e.setActivo(false);
         etapaFormativaRepository.save(e);
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Eliminó una etapa formativa por ciclo con ID: " + id
+                )
+        );
     }
 
     @Override
