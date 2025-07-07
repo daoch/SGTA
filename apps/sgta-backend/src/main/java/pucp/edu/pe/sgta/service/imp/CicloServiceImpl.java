@@ -8,6 +8,8 @@ import pucp.edu.pe.sgta.mapper.CicloMapper;
 import pucp.edu.pe.sgta.model.Ciclo;
 import pucp.edu.pe.sgta.repository.CicloRepository;
 import pucp.edu.pe.sgta.service.inter.CicloService;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -17,9 +19,12 @@ import java.util.List;
 public class CicloServiceImpl implements CicloService {
 
     private final CicloRepository cicloRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    
 
-    public CicloServiceImpl(CicloRepository cicloRepository) {
+    public CicloServiceImpl(CicloRepository cicloRepository, ApplicationEventPublisher eventPublisher) {
         this.cicloRepository = cicloRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -37,16 +42,25 @@ public class CicloServiceImpl implements CicloService {
     }
 
     @Override
-    public void create(CicloDto cicloDto) {
+    public void create(String usuarioCognito,CicloDto cicloDto) {
         cicloDto.setId(null);
         cicloDto.setActivo(true);
         Ciclo ciclo = CicloMapper.toEntity(cicloDto);
         cicloRepository.save(ciclo);
 
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Se crea un nuevo ciclo " + ciclo.getSemestre() + " con ID: " + ciclo.getId()
+                )
+        );
+
     }
 
     @Override
-    public void update(CicloDto ciclodto) {
+    public void update(String usuarioCognito,CicloDto ciclodto) {
         if (ciclodto == null || ciclodto.getId() == null) {
             throw new IllegalArgumentException("El CicloDto o su id no pueden ser nulos.");
         }
@@ -70,6 +84,16 @@ public class CicloServiceImpl implements CicloService {
 
         try {
             cicloRepository.save(ciclo);
+            
+            // Una vez actualizado el ciclo, se puede publicar un evento de auditoría
+            eventPublisher.publishEvent(
+                    new AuditoriaEvent(
+                            this,
+                            usuarioCognito,
+                            OffsetDateTime.now(),
+                            "Se actualiza el ciclo con ID: " + ciclo.getId()
+                    )
+            );
         } catch (Exception e) {
             throw new RuntimeException("Error al actualizar el ciclo: " + e.getMessage(), e);
         }
