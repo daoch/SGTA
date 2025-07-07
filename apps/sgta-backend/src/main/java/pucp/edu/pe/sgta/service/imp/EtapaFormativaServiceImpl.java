@@ -351,7 +351,7 @@ public class EtapaFormativaServiceImpl implements EtapaFormativaService {
                         this,
                         usuarioCognito,
                         OffsetDateTime.now(),
-                        "Eliminó una etapa formativa por ciclo con ID: " + id
+                        "Eliminó una etapa formativa con ID: " + id
                 )
         );
     }

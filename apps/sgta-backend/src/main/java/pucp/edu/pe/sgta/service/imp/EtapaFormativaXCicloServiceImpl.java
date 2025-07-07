@@ -73,9 +73,17 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
     @Override
     public EtapaFormativaXCicloDto create(String usuarioCognito, EtapaFormativaXCicloDto dto) {
+        // Validar si ya existe una etapa formativa con el mismo etapaFormativaId y cicloId activa
+        if (etapaFormativaXCicloRepository.existsByEtapaFormativa_IdAndCiclo_IdAndActivoTrue(
+                dto.getEtapaFormativaId(), dto.getCicloId())) {
+            throw new RuntimeException("Ya existe una etapa formativa activa para esta etapa y ciclo. " +
+                    "No se puede crear una duplicada.");
+        }
+        
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
         etapaFormativaXCiclo.setActivo(true);
         etapaFormativaXCiclo.setEstado("En Curso");
+        
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
         eventPublisher.publishEvent(
                 new AuditoriaEvent(
