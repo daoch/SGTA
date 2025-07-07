@@ -288,8 +288,9 @@ const filteredEvents = useMemo(() =>
       format(event.end, "yyyy-MM-dd"),
       format(event.end, "HH:mm"),
       //event.description || ""
-      //`"${(event.description || "").replace(/"/g, '""')}"`, // ← Asegura el escape correcto de comillas dobles
-      "\"" + (event.description || "").replace(/"/g, '""') + "\"",
+      //`"${(event.description || "").replace(/"/g, '""')}"`,
+      //"\"" + (event.description || "").replace(/"/g, '""') + "\"",
+      "\"" + (event.description || "").replace(/"/g, "\"\"") + "\"",
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
