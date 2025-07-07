@@ -300,6 +300,7 @@ CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
     p_entregable_id INTEGER,
     p_tema_id INTEGER
 ) RETURNS TABLE (
+    entregable_x_tema_id INTEGER,
     nombre_tema VARCHAR,
     nombre_entregable VARCHAR,
     estado enum_estado_revision,
@@ -309,16 +310,17 @@ CREATE OR REPLACE FUNCTION obtener_detalles_entregable_y_tema(
 BEGIN
     RETURN QUERY
     SELECT
+        ext.entregable_x_tema_id,
         t.titulo AS nombre_tema,
         e.nombre AS nombre_entregable,
-        rd.estado_revision AS estado,  -- Obtener el estado desde revision_documento
+        rd.estado_revision AS estado,
         ext.fecha_envio,
         e.fecha_fin
     FROM
         entregable_x_tema ext
     JOIN tema t ON t.tema_id = ext.tema_id
     JOIN entregable e ON e.entregable_id = ext.entregable_id
-    LEFT JOIN version_documento vd ON vd.entregable_x_tema_id = ext.entregable_x_tema_id  -- Corrección aquí
+    LEFT JOIN version_documento vd ON vd.entregable_x_tema_id = ext.entregable_x_tema_id
     LEFT JOIN revision_documento rd ON rd.version_documento_id = vd.version_documento_id
     WHERE
         ext.entregable_id = p_entregable_id
@@ -767,3 +769,51 @@ BEGIN
 END;
 $function$
 ;
+
+DROP FUNCTION IF EXISTS listar_revision_criterio_por_entregable_x_tema;
+
+CREATE OR REPLACE FUNCTION sgtadb.listar_revision_criterio_por_entregable_x_tema(
+    p_entregable_x_tema_id integer
+)
+RETURNS TABLE (
+    entregable_x_tema_id integer,
+    criterio_entregable_id integer,
+    usuario_id integer,
+    nombre_completo_usuario text,
+    revision_documento_id integer,
+    nota numeric,
+    observacion text,
+    entregable_id integer,
+    nombre_criterio text,
+    nota_maxima numeric,
+    descripcion_criterio text
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        rce.entregable_x_tema_id,
+        rce.criterio_entregable_id,
+        rce.usuario_id,
+        CONCAT(u.nombres, ' ', u.primer_apellido, ' ', u.segundo_apellido)::text AS nombre_completo_usuario,
+        rce.revision_documento_id,
+        rce.nota,
+        rce.observacion,
+        ce.entregable_id,
+        ce.nombre::text AS nombre_criterio,
+        ce.nota_maxima,
+        ce.descripcion::text AS descripcion_criterio
+    FROM
+        revision_criterio_entregable rce
+    INNER JOIN usuario u ON rce.usuario_id = u.usuario_id
+    INNER JOIN criterio_entregable ce ON rce.criterio_entregable_id = ce.criterio_entregable_id
+    WHERE
+        rce.entregable_x_tema_id = p_entregable_x_tema_id
+        AND rce.activo = true
+        AND ce.activo = true
+        AND u.usuario_id IS NOT NULL
+    ORDER BY
+        ce.criterio_entregable_id;
+END;
+$$;

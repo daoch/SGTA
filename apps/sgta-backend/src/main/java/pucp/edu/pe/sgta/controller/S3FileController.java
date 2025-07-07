@@ -13,8 +13,10 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import pucp.edu.pe.sgta.model.HistorialAccion;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
 
 import java.io.ByteArrayOutputStream;
@@ -33,6 +35,8 @@ public class S3FileController {
     private final S3DownloadService downloadService;
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     @Autowired
     public S3FileController(S3DownloadService downloadService) {
@@ -220,7 +224,9 @@ public class S3FileController {
             builder.withHtmlContent(html, null);        // baseURI = null si no hay imágenes locales
             builder.toStream(pdf);
             builder.run();
-
+            historialAccionService.registrarAccion(revision.getUsuario().getIdCognito(),
+                    "Se ha descargado un reporte de similitud/IA de la revisión con ID: " + revisionId);
+            // 3. Devolver el PDF como respuesta
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION,
