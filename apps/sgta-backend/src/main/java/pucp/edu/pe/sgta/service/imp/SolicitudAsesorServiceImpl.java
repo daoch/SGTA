@@ -355,6 +355,16 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         solicitudRepository.save(solicitud);
         log.info("Solicitud ID {} restablecida a estado PREACEPTADA.", solicitudOriginalId);
 
+        // --- AUDITORÍA ---
+        Tema temaAReasignar = solicitud.getTema(); // Asegúrate de que temaAReasignar se carga aquí
+        String temaTitulo = (temaAReasignar != null) ? temaAReasignar.getTitulo() : "sin título";
+        historialAccionService.registrarAccion(
+            asesorCognitoSub,
+            String.format("Asesor '%s %s' (ID: %d) rechazó la invitación de asesoría (ID: %d) para el tema '%s' con motivo: '%s'.",
+                asesor.getNombres(), asesor.getPrimerApellido(), asesor.getId(), solicitudOriginalId, temaTitulo, motivoRechazo)
+        );
+        // --- FIN AUDITORÍA ---
+        
         // 3) (Opcional) Notificar al coordinador para nueva propuesta
         Tema temaAReasignar = solicitud.getTema();
         List<UsuarioXCarrera> usCoordinadores = usuarioXCarreraRepository.findByCarreraIdAndEsCoordinadorTrueAndActivoTrue(temaAReasignar.getCarrera().getId());
@@ -368,7 +378,7 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         for (Usuario coord : coordinadores) {
             notificacionService.crearNotificacionParaUsuario(coord.getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
         }
-}
+        }
 
     @Override
     @Transactional
@@ -494,6 +504,15 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
 
         solicitudRepository.save(solicitudOriginal);
         log.info("Solicitud ID {} actualizada a ESTADO_REASIGNACION_COMPLETADA.", solicitudOriginalId);
+
+        // --- AUDITORÍA ---
+        String temaTitulo = (solicitudOriginal.getTema() != null) ? solicitudOriginal.getTema().getTitulo() : "sin título";
+        historialAccionService.registrarAccion(
+            asesorCognitoSub,
+            String.format("Asesor '%s %s' (ID: %d) aceptó la invitación de asesoría (ID: %d) para el tema '%s' y fue asignado como nuevo asesor.",
+                asesorQueAcepta.getNombres(), asesorQueAcepta.getPrimerApellido(), asesorQueAcepta.getId(), solicitudOriginalId, temaTitulo)
+        );
+        // --- FIN AUDITORÍA ---
 
         //6. Notificar a todas las partes
         //a. Coordinador

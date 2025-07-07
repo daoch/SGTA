@@ -12,6 +12,8 @@ import pucp.edu.pe.sgta.model.*; // Todas tus entidades
 import pucp.edu.pe.sgta.repository.*; // Todos tus repositorios
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
 import pucp.edu.pe.sgta.service.inter.SolicitudCoordinadorService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService; 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
     private UsuarioXSolicitudRepository usuarioXSolicitudRepository;
     // Otros Servicios
     @Autowired private NotificacionService notificacionService;
+    @Autowired private HistorialAccionService historialAccionService; 
 
 
     // Nombres de referencia (idealmente serían Enums o constantes en una clase dedicada)
@@ -253,6 +256,12 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
             }
         }
 
+        // Registrar acción en el historial
+        historialAccionService.registrarAccion(
+            asesorCognitoSub, 
+            String.format("Creó solicitud de cese de asesoría (ID: %d) para el tema '%s'.", solicitudGuardada.getId(), tema.getTitulo())
+        );
+
         return solicitudGuardada;
     }
 
@@ -335,6 +344,13 @@ public class SolicitudCoordinadorServiceImpl implements SolicitudCoordinadorServ
                 );
             }
         }
+
+        // INICIO AUDITORIA
+        historialAccionService.registrarAccion(
+            coordinadorCognitoSub, 
+            String.format("Aprobó la solicitud de cese de asesoría (ID: %d) para el tema '%s'.", solicitudActualizada.getId(), solicitudActualizada.getTema().getTitulo())
+        );
+        // FIN AUDITORIA
 
         return new SolicitudActualizadaDto(
                 solicitudActualizada.getId(),
