@@ -25,6 +25,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService; 
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -65,6 +66,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private TipoDedicacionRepository tipoDedicacionRepository;
     @Autowired
     private EnlaceUsuarioServiceImpl enlaceUsuarioServiceImpl;
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
                               UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -746,7 +749,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void assignAdvisorRoleToUser(Integer userId) {
+    public void assignAdvisorRoleToUser(Integer userId, String idCognito) {
         // 1. Buscar usuario activo y validar que sea Profesor
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -790,6 +793,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Asignó el rol de Asesor al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
@@ -802,7 +812,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void removeAdvisorRoleFromUser(Integer userId) {
+    public void removeAdvisorRoleFromUser(Integer userId, String idCognito) {
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
 
@@ -833,6 +843,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Quitó el rol de Asesor al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Asesor quitado exitosamente al usuario ID: " + userId);
         } else {
             throw new IllegalArgumentException("El usuario no tiene el rol de Asesor asignado");
@@ -845,7 +862,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void assignJuryRoleToUser(Integer userId) {
+    public void assignJuryRoleToUser(Integer userId, String idCognito) {
         // 1. Buscar usuario y validar
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -887,6 +904,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Asignó el rol de Jurado al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
@@ -899,7 +923,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void removeJuryRoleFromUser(Integer userId) {
+    public void removeJuryRoleFromUser(Integer userId, String idCognito) {
         // 1. Buscar usuario
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -933,6 +957,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Quitó el rol de Jurado al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Jurado quitado exitosamente al usuario ID: " + userId);
         } else {
             throw new IllegalArgumentException("El usuario no tiene el rol de Jurado asignado");
