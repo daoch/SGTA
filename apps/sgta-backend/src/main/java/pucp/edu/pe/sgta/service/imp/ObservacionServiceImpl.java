@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import org.checkerframework.checker.units.qual.h;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.repository.RevisionXDocumentoRepository;
 import pucp.edu.pe.sgta.repository.TipoObservacionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
+import pucp.edu.pe.sgta.service.inter.HistorialTemaService;
 import pucp.edu.pe.sgta.service.inter.ObservacionService;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -44,14 +47,15 @@ public class ObservacionServiceImpl implements ObservacionService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private TipoObservacionRepository tipoObservacionRepository;
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     @Transactional
     public Integer guardarObservaciones(Integer revisionId, HighlightDto h, Integer usuarioId) {
         RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
                 .orElseThrow(() -> new RuntimeException("Revisión no encontrada"));
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Usuario usuario = revision.getUsuario();
 
         String nombreTipo = h.getComment().getEmoji(); // Cambia esto si el campo es otro
         Integer tipoId = getTipoObservacionIdByNombre(nombreTipo);
@@ -103,6 +107,7 @@ public class ObservacionServiceImpl implements ObservacionService {
         obs.setFechaModificacion(ZonedDateTime.now());
         observacionRepository.saveAndFlush(obs);
         System.out.println("Observación guardada: " + obs.getObservacionId());
+        historialAccionService.registrarAccion(usuario.getIdCognito(), "Se ha creado una nueva observación con ID: " + obs.getObservacionId() + " en la revisión con ID: " + revisionId);
         return obs.getObservacionId(); // Retorna el ID de la observación guardada
     }
 
@@ -221,6 +226,8 @@ public class ObservacionServiceImpl implements ObservacionService {
         Observacion obs = observacionRepository.findById(observacionId)
                 .orElseThrow(() -> new RuntimeException("Observación no encontrada"));
         obs.setActivo(false); // O el campo que uses para el borrado lógico
+        // Aquí podrías agregar lógica adicional si es necesario, como registrar un historial de acción
+        historialAccionService.registrarAccion(obs.getUsuarioCreacion().getIdCognito(), "Se ha borrado lógicamente la observación con ID: " + observacionId);
         observacionRepository.save(obs);
     }
 
