@@ -11,7 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.RevisoresTemaDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Observacion;
 import pucp.edu.pe.sgta.service.inter.JwtService;
@@ -186,5 +188,9 @@ public class RevisionDocumentoController {
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error actualizando estado");
         }
+    }
+    @GetMapping("/usuarios/tema/{temaId}")
+    public List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(@PathVariable Integer temaId) {
+        return revisionDocumentoService.listarRevisoresYJuradosPorTemaId(temaId);
     }
 }

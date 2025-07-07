@@ -183,4 +183,23 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     
     @Procedure(procedureName = "actualizar_estado_revision_todos")
     void actualizarEstadoTodosRevisiones(Integer p_revision_id, String p_nuevo_estado);
+    @Query(value = """
+    SELECT
+        u.usuario_id AS usuarioId,
+        u.nombres AS nombres,
+        u.primer_apellido AS primerApellido,
+        u.segundo_apellido AS segundoApellido,
+        ut.rol_id AS rolId,
+        ut.tema_id AS temaId
+    FROM
+        usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+    WHERE
+        ut.tema_id = :temaId
+        AND ut.asignado = true
+        AND ut.rechazado = false
+        AND ut.activo = true
+        AND u.activo = true
+""", nativeQuery = true)
+List<Object[]> listarRevisoresYJuradosPorTemaId(@Param("temaId") Integer temaId);
     }
