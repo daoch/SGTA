@@ -164,7 +164,7 @@ const MiCronogramaPage = () => {
     }
   };
 
-  fetchEventosAsesor();
+  //fetchEventosAsesor();
 
   useEffect(() => {
     fetchEventosAsesor();
@@ -287,7 +287,8 @@ const filteredEvents = useMemo(() =>
       format(event.start ?? event.end, "HH:mm"),
       format(event.end, "yyyy-MM-dd"),
       format(event.end, "HH:mm"),
-      event.description || ""
+      //event.description || ""
+      `"${(event.description || "").replace(/"/g, '""')}"`, // ← Asegura el escape correcto de comillas dobles
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
