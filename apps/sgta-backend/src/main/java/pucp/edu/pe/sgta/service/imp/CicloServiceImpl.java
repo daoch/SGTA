@@ -53,7 +53,7 @@ public class CicloServiceImpl implements CicloService {
                         this,
                         usuarioCognito,
                         OffsetDateTime.now(),
-                        "Se crea un nuevo ciclo " + ciclo.getSemestre() + " con ID: " + ciclo.getId()
+                        "Se crea un nuevo ciclo " + ciclo.getAnio()+"-"+ciclo.getSemestre() + " con ID: " + ciclo.getId()
                 )
         );
 
