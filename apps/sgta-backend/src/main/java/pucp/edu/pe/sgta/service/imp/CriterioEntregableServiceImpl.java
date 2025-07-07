@@ -14,6 +14,7 @@ import pucp.edu.pe.sgta.model.CriterioEntregable;
 import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.repository.CriterioEntregableRepository;
 import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -28,12 +29,15 @@ import java.util.Optional;
 public class CriterioEntregableServiceImpl implements CriterioEntregableService {
 
     private final CriterioEntregableRepository criterioEntregableRepository;
+    private final HistorialAccionService historialAccionService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository) {
+    public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository,
+                                         HistorialAccionService historialAccionService) {
         this.criterioEntregableRepository = criterioEntregableRepository;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Transactional
     @Override
-    public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
+    public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto, String cognitoId) {
         criterioEntregableDto.setId(null);
         CriterioEntregable criterioEntregable = CriterioEntregableMapper.toEntity(criterioEntregableDto);
         Entregable entregable = new Entregable();
@@ -52,12 +56,14 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         criterioEntregable.setEntregable(entregable);
         criterioEntregable.setFechaCreacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregable);
+        historialAccionService.registrarAccion(cognitoId, "Se creó el criterio de entregable " + criterioEntregable.getId()
+                + " para el entregable " + entregableId);
         return criterioEntregable.getId();
     }
 
     @Transactional
     @Override
-    public void update(CriterioEntregableDto criterioEntregableDto) {
+    public void update(CriterioEntregableDto criterioEntregableDto, String cognitoId) {
         CriterioEntregable criterioEntregableToUpdate = criterioEntregableRepository.findById(criterioEntregableDto.getId())
                 .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + criterioEntregableDto.getId()));
 
@@ -66,6 +72,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         criterioEntregableToUpdate.setDescripcion(criterioEntregableDto.getDescripcion());
         criterioEntregableToUpdate.setFechaModificacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregableToUpdate);
+        historialAccionService.registrarAccion(cognitoId, "Se actualizó el criterio de entregable " + criterioEntregableDto.getId());
     }
 
     @Override
@@ -125,13 +132,14 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Transactional
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id, String cognitoId) {
         CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + id));
 
         criterioEntregableToDelete.setActivo(false);
         criterioEntregableToDelete.setFechaModificacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregableToDelete);
+        historialAccionService.registrarAccion(cognitoId, "Se eliminó el criterio de entregable " + id);
     }
 
     @Override

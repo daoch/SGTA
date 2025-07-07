@@ -14,13 +14,17 @@ import pucp.edu.pe.sgta.model.CriterioExposicion;
 import pucp.edu.pe.sgta.model.Exposicion;
 import pucp.edu.pe.sgta.repository.CriterioExposicionRepository;
 import pucp.edu.pe.sgta.service.inter.CriterioExposicionService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 
 @Service
 public class CriterioExposicionServiceImpl implements CriterioExposicionService {
     private final CriterioExposicionRepository criterioExposicionRepository;
+    private final HistorialAccionService historialAccionService;
 
-    public CriterioExposicionServiceImpl(CriterioExposicionRepository criterioExposicionRepository) {
+    public CriterioExposicionServiceImpl(CriterioExposicionRepository criterioExposicionRepository,
+                                          HistorialAccionService historialAccionService) {
         this.criterioExposicionRepository = criterioExposicionRepository;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -54,7 +58,7 @@ public class CriterioExposicionServiceImpl implements CriterioExposicionService 
 
     @Transactional
     @Override
-    public Integer create(Integer exposicionId, CriterioExposicionDto dto) {
+    public Integer create(Integer exposicionId, CriterioExposicionDto dto, String cognitoId) {
         dto.setId(null);
         CriterioExposicion criterioExposicion = CriterioExposicionMapper.toEntity(dto);
         Exposicion exposicion = new Exposicion();
@@ -63,13 +67,15 @@ public class CriterioExposicionServiceImpl implements CriterioExposicionService 
         criterioExposicion.setFechaCreacion(OffsetDateTime.now());
 
         criterioExposicionRepository.save(criterioExposicion);
+        historialAccionService.registrarAccion(cognitoId, "Se creó el criterio de exposición " + criterioExposicion.getId() +
+                " para la exposición " + exposicionId);
         criterioExposicionRepository.asociarTemasACriterioExposicion(criterioExposicion.getId(), exposicionId);
         return criterioExposicion.getId();
     }
 
     @Transactional
     @Override
-    public void update(CriterioExposicionDto dto) {
+    public void update(CriterioExposicionDto dto, String cognitoId) {
         CriterioExposicion criterioToUpdate = criterioExposicionRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + dto.getId()));
 
@@ -78,15 +84,17 @@ public class CriterioExposicionServiceImpl implements CriterioExposicionService 
         criterioToUpdate.setNotaMaxima(dto.getNotaMaxima());
         criterioToUpdate.setFechaModificacion(OffsetDateTime.now());
         criterioExposicionRepository.save(criterioToUpdate);
+        historialAccionService.registrarAccion(cognitoId, "Se actualizó el criterio de exposición " + dto.getId());
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id, String cognitoId) {
         CriterioExposicion criterioExposicionToDelete = criterioExposicionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CriterioExposicion no encontrado con ID: " + id));
 
         criterioExposicionToDelete.setActivo(false);
         criterioExposicionToDelete.setFechaModificacion(OffsetDateTime.now());
         criterioExposicionRepository.save(criterioExposicionToDelete);
+        historialAccionService.registrarAccion(cognitoId, "Se eliminó el criterio de exposición " + id);
     }
 }

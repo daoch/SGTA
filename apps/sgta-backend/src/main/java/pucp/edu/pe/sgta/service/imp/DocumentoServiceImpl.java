@@ -28,18 +28,21 @@ public class DocumentoServiceImpl implements DocumentoService {
     private final RevisionDocumentoService revisionDocumentoService;
     private final UsuarioService usuarioService;
     private final EntregableRepository entregableRepository;
+    private final HistorialAccionService historialAccionService;
     
     private static final String S3_PATH_DELIMITER = "/";
 
     public DocumentoServiceImpl(DocumentoRepository documentoRepository,VersionXDocumentoService versionXDocumentoService,
                                 S3DownloadService s3DownloadService, RevisionDocumentoService revisionDocumentoService,
-                                UsuarioService usuarioService, EntregableRepository entregableRepository) {
+                                UsuarioService usuarioService, EntregableRepository entregableRepository,
+                                HistorialAccionService historialAccionService) {
         this.documentoRepository = documentoRepository;
         this.versionXDocumentoService = versionXDocumentoService;
         this.s3DownloadService = s3DownloadService;
         this.revisionDocumentoService = revisionDocumentoService;
         this.usuarioService = usuarioService;
         this.entregableRepository = entregableRepository;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -105,6 +108,8 @@ public class DocumentoServiceImpl implements DocumentoService {
                 entregableXTema.setEntregableXTemaId(entregableXTemaId);
                 version.setEntregableXTema(entregableXTema);
                 versionXDocumentoService.create(version);
+                historialAccionService.registrarAccion(cognitoId, "Se subió el documento " + documentoId +
+                        " para el entregable " + entregableXTemaId);
                 revisionDocumentoService.crearRevisiones(entregableXTemaId);
                 revisionDocumentoService.crearRevisionesRevisores(entregableXTemaId);
                 revisionDocumentoService.crearRevisionesJurado(entregableXTemaId);
@@ -117,8 +122,9 @@ public class DocumentoServiceImpl implements DocumentoService {
 
     @Transactional
     @Override
-    public void borrarDocumento(Integer documentoId) {
+    public void borrarDocumento(Integer documentoId, String cognitoId) {
         documentoRepository.borrarDocumento(documentoId);
+        historialAccionService.registrarAccion(cognitoId, "Se borró el documento con ID: " + documentoId);
     }
 
 }

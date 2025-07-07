@@ -11,9 +11,9 @@ public interface CriterioExposicionService {
 
     CriterioExposicionDto findById(Integer id);
 
-    Integer create(Integer criterioExposicionId,CriterioExposicionDto dto);
+    Integer create(Integer criterioExposicionId,CriterioExposicionDto dto, String cognitoId);
 
-    void update(CriterioExposicionDto dto);
+    void update(CriterioExposicionDto dto, String cognitoId);
 
-    void delete(Integer id);
+    void delete(Integer id, String cognitoId);
 }
