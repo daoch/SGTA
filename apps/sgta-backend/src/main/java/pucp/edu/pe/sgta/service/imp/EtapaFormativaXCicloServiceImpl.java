@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
+import java.time.OffsetDateTime;
 
 @Service
 public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloService {
@@ -51,6 +54,9 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     @Autowired
     private ExposicionRepository exposicionRepository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     public List<EtapaFormativaXCicloDto> getAll() {
         return List.of();
@@ -66,11 +72,19 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto) {
+    public EtapaFormativaXCicloDto create(String usuarioCognito, EtapaFormativaXCicloDto dto) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
         etapaFormativaXCiclo.setActivo(true);
         etapaFormativaXCiclo.setEstado("En Curso");
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva etapa formativa por ciclo con ID: " + savedEtapaFormativaXCiclo.getId()
+                )
+        );
         return EtapaFormativaXCicloMapper.toDto(savedEtapaFormativaXCiclo);
     }
 
@@ -80,11 +94,19 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(String usuarioCognito, Integer id) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = etapaFormativaXCicloRepository.findById(id).orElse(null);
         if (etapaFormativaXCiclo != null) {
             etapaFormativaXCiclo.setActivo(false);
             etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+            eventPublisher.publishEvent(
+                    new AuditoriaEvent(
+                            this,
+                            usuarioCognito,
+                            OffsetDateTime.now(),
+                            "Eliminó la etapa formativa por ciclo con ID: " + id
+                    )
+            );
         }
     }
 

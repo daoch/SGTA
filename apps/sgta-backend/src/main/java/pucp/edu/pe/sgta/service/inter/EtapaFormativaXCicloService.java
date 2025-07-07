@@ -16,11 +16,11 @@ public interface EtapaFormativaXCicloService {
 
     EtapaFormativaXCicloDto findById(Integer id);
 
-    EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto);
+    EtapaFormativaXCicloDto create(String usuarioCognito, EtapaFormativaXCicloDto dto);
 
     void update(EtapaFormativaXCicloDto dto);
 
-    void delete(Integer id);
+    void delete(String usuarioCognito, Integer id);
 
     List<EtapaFormativaXCicloDto> getAllByCarreraId(String idCognito);
 

@@ -45,8 +45,9 @@ public class EtapaFormativaXCicloController {
 
     
     @PostMapping("/create")
-    public ResponseEntity<EtapaFormativaXCicloDto> create(@RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
-        EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService.create(etapaFormativaXCicloDto);
+    public ResponseEntity<EtapaFormativaXCicloDto> create(HttpServletRequest request, @RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService.create(idCognito, etapaFormativaXCicloDto);
         return ResponseEntity.ok(createdEtapaFormativaXCiclo);
     }
 
@@ -89,8 +90,9 @@ public class EtapaFormativaXCicloController {
     }
 
     @PostMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        etapaFormativaXCicloService.delete(id);
+    public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable Integer id) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        etapaFormativaXCicloService.delete(idCognito, id);
         return ResponseEntity.noContent().build();
     }
 

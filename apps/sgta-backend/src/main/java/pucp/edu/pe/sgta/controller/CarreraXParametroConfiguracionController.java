@@ -26,11 +26,9 @@ public class CarreraXParametroConfiguracionController {
 	private JwtService jwtService;
 
 	@PostMapping("/update")
-	public void update(@RequestBody CarreraXParametroConfiguracionDto dto) {
-
-		// ?DUDA: Se tiene que devolver ResponseEntity?
-
-		this.carreraXParametroConfiguracionService.updateCarreraXParametroConfiguracion(dto);
+	public void update(HttpServletRequest request, @RequestBody CarreraXParametroConfiguracionDto dto) {
+		String usuarioCognito = jwtService.extractSubFromRequest(request);
+		this.carreraXParametroConfiguracionService.updateCarreraXParametroConfiguracion(usuarioCognito, dto);
 	}
 
 	@GetMapping("/parametros")
