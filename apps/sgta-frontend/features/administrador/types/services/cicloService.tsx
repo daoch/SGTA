@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios/axios-instance";
-import { CrearCicloDto } from "../ciclo.type";
+import { ActualizarCicloDto, CrearCicloDto } from "../ciclo.type";
 
 
 export async function crearCiclo(data: CrearCicloDto) {
@@ -19,5 +19,22 @@ export async function listarCiclosConEtapas() {
     } catch (error) {
         console.error("Error al listar Ciclos con etapas:", error);
         throw new Error("Error al listar Ciclos con etapas");
+    }
+}
+
+export async function actualizarCiclo(id: number, data: CrearCicloDto): Promise<ActualizarCicloDto> {
+    try {
+        const cicloDto: ActualizarCicloDto = {
+            id: id,
+            semestre: data.semestre,
+            anio: data.anio,
+            fechaInicio: data.fechaInicio,
+            fechaFin: data.fechaFin
+        };
+        const response = await axiosInstance.put("/ciclos/update", cicloDto);
+        return response.data;
+    } catch (error) {
+        console.error("Error al actualizar ciclo:", error);
+        throw new Error("Error al actualizar ciclo");
     }
 }

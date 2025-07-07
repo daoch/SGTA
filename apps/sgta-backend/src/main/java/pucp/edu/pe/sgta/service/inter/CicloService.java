@@ -12,9 +12,9 @@ public interface CicloService {
 
     CicloDto findById(Integer id);
 
-    void create(CicloDto dto);
+    void create(String usuarioCognito,CicloDto dto);
 
-    void update(CicloDto dto);
+    void update(String usuarioCognito,CicloDto dto);
 
     void delete(Integer id);
 

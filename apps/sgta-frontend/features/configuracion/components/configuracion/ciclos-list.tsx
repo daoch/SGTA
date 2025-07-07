@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CicloEtapas } from "@/features/administrador/types/ciclo.type";
+import { Edit } from "lucide-react";
 
 // Datos de ejemplo
 const ciclos = [
@@ -47,6 +49,7 @@ const ciclos = [
 
 interface CiclosListProps {
   ciclos: CicloEtapas[];
+  onEdit?: (ciclo: CicloEtapas) => void;
 }
 
 // export function CiclosList({ ciclos }: CiclosListProps) {
@@ -75,7 +78,7 @@ interface CiclosListProps {
 // }
 
 
-export function CiclosList({ ciclos }: CiclosListProps) {
+export function CiclosList({ ciclos, onEdit }: CiclosListProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -86,7 +89,7 @@ export function CiclosList({ ciclos }: CiclosListProps) {
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Fecha Fin</th>
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Estado</th>
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Etapas Formativas</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Acciones</th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">Editar</th>
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -99,6 +102,20 @@ export function CiclosList({ ciclos }: CiclosListProps) {
                 <Badge variant={ciclo.activo ? "default" : "secondary"}>{ciclo.activo ? "Activo" : "Inactivo"}</Badge>
             </td>
             <td className="px-4 py-3 text-sm">{ciclo.cantidadEtapas}</td>
+            <td className="px-4 py-3 text-sm">
+              <div className="flex gap-2">
+                {onEdit && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => onEdit(ciclo)}
+                  >
+                    <Edit size={16} />
+                  </Button>
+                )}
+              </div>
+            </td>
             
           </tr>
         ))}
