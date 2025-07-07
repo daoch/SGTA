@@ -264,7 +264,8 @@ const MiCronogramaPage = () => {
       format(event.end, "yyyy-MM-dd"),
       format(event.end, "HH:mm"),
       //event.description || "",
-      `"${(event.description || "").replace(/"/g, '""')}"`, // ← Asegura el escape correcto de comillas dobles
+      //`"${(event.description || "").replace(/"/g, '""')}"`, // ← Asegura el escape correcto de comillas dobles
+      "\"" + (event.description || "").replace(/"/g, '""') + "\"",
     ]);
     const csvContent = [
       headers.join(","),
