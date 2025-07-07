@@ -817,3 +817,77 @@ BEGIN
         ce.criterio_entregable_id;
 END;
 $$;
+DROP FUNCTION IF EXISTS asignar_revision_jurado;
+CREATE OR REPLACE FUNCTION asignar_revision_jurado(tema_id_in INTEGER, usuario_id_in INTEGER)
+RETURNS VOID AS
+$$
+DECLARE
+    entregable RECORD;
+    version RECORD;
+    estado_previo enum_estado_revision;
+    fecha_revision_previa TIMESTAMP;
+BEGIN
+    FOR entregable IN
+        SELECT ext.entregable_x_tema_id, ext.entregable_id
+        FROM entregable_x_tema ext
+        WHERE ext.tema_id = tema_id_in
+          AND ext.activo = true
+          AND EXISTS (
+              SELECT 1 FROM exposicion e
+              WHERE e.entregable_id = ext.entregable_id
+                AND e.activo = true
+          )
+    LOOP
+        -- Buscar la versión activa que sea documento principal
+        SELECT vd.version_documento_id, vd.link_archivo_subido
+        INTO version
+        FROM version_documento vd
+        WHERE vd.entregable_x_tema_id = entregable.entregable_x_tema_id
+          AND vd.activo = true
+          AND vd.documento_principal = true
+        LIMIT 1;
+
+        -- Si no hay versión activa principal, pasar al siguiente entregable
+        IF version.version_documento_id IS NULL THEN
+            CONTINUE;
+        END IF;
+
+        -- Verificar si ya existe una revisión activa para este usuario y versión
+        IF NOT EXISTS (
+            SELECT 1 FROM revision_documento rd
+            WHERE rd.usuario_id = usuario_id_in
+              AND rd.version_documento_id = version.version_documento_id
+              AND rd.activo = true
+        ) THEN
+            -- Obtener estado y fecha_revision de alguna revisión previa activa
+            SELECT estado_revision, fecha_revision INTO estado_previo, fecha_revision_previa
+            FROM revision_documento
+            WHERE version_documento_id = version.version_documento_id
+              AND estado_revision IN ('por_aprobar'::enum_estado_revision, 'aprobado'::enum_estado_revision)
+              AND activo = true
+            LIMIT 1;
+
+            -- Insertar la nueva revisión
+            INSERT INTO revision_documento (
+                usuario_id,
+                version_documento_id,
+                fecha_revision,
+                estado_revision,
+                link_archivo_revision,
+                activo,
+                fecha_creacion,
+                fecha_modificacion
+            ) VALUES (
+                usuario_id_in,
+                version.version_documento_id,
+                COALESCE(fecha_revision_previa, NOW()),
+                COALESCE(estado_previo, 'por_aprobar'::enum_estado_revision),
+                version.link_archivo_subido,
+                true,
+                NOW(),
+                NOW()
+            );
+        END IF;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;

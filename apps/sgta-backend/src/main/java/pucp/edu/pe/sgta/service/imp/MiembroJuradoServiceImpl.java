@@ -63,6 +63,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final SubAreaConocimientoRepository subAreaConocimientoRepository;
         private final UsuarioXCarreraRepository usuarioXCarreraRepository;
         private final ExposicionRepository exposicionRepository;
+        private final RevisionDocumentoRepository revisionDocumentoRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -82,7 +83,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
                                         UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
                                         SubAreaConocimientoRepository subAreaConocimientoRepository,
-                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository) {
+                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository,
+                                        RevisionDocumentoRepository revisionDocumentoRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -104,6 +106,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.subAreaConocimientoRepository = subAreaConocimientoRepository;
                 this.usuarioXCarreraRepository = usuarioXCarreraRepository;
             this.exposicionRepository = exposicionRepository;
+            this.revisionDocumentoRepository = revisionDocumentoRepository;
         }
 
         @Override
@@ -341,7 +344,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 // llamar al procedure de insertar revision criterio exposicion repository
                 revisionCriterioExposicionRepository
                                 .insertarRevisionCriterioExposicion(temaId, usuarioId);
-
+                revisionDocumentoRepository.asignarRevisionJurado(temaId, usuarioId);
                 return ResponseEntity.ok(Map.of("mensaje", "Jurado asignado correctamente"));
         }
 
