@@ -3737,7 +3737,13 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
 				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
 
-		historialAccionService.registrarAccion(coordinadorCognitoSub, "Solicitud de cese de asesor para tema " + temaAfectado.getId());
+		// --- AUDITORÍA ---
+        historialAccionService.registrarAccion(
+            coordinadorCognitoSub,
+            String.format("Coordinador propuso al asesor '%s %s' (ID: %d) para reasignación en la solicitud de cese (ID: %d) para el tema '%s'.",
+                nuevoAsesorPropuesto.getNombres(), nuevoAsesorPropuesto.getPrimerApellido(), nuevoAsesorPropuestoId, solicitudDeCeseOriginalId, temaAfectado.getTitulo())
+        );
+        // --- FIN AUDITORÍA ---
 
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
 			.findByNombre("ASESOR_ENTRADA")
