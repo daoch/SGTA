@@ -89,7 +89,7 @@ export function CiclosList({ ciclos, onEdit }: CiclosListProps) {
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Fecha Fin</th>
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Estado</th>
             <th className="px-4 py-3 text-sm font-medium text-gray-500">Etapas Formativas</th>
-            <th className="px-4 py-3 text-sm font-medium text-gray-500">Acciones</th>
+            <th className="px-4 py-3 text-sm font-medium text-gray-500">Editar</th>
           </tr>
         </thead>
         <tbody className="divide-y">
