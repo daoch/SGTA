@@ -1762,7 +1762,8 @@ public class TemaServiceImpl implements TemaService {
             throw new RuntimeException("No se pudo crear el tema", e);
         }
 
-        return temaId;
+		historialAccionService.registrarAccion(asesorId, "Creó el tema libre con ID: " + temaId);
+		return temaId;
     }
 
 	@Override
@@ -2709,6 +2710,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		temaRepository.actualizarEstadoTema(temaId, EstadoTemaEnum.INSCRITO.name());
 		saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(),
 				"Aceptación de postulante");
+		historialAccionService.registrarAccion(idAsesor, "Se aceptó la postulación al tema con ID: " + temaId + " del alumno con ID " + idTesista);
 
 		// 6) (Opcional) Eliminar postulaciones previas de ese alumno a otros temas
 		eliminarPostulacionesTesista(idTesista);
@@ -3504,7 +3506,7 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					? dto.getCoasesores().stream().map(user -> user.getId()).toArray(Integer[]::new)
 					: null;
 
-			
+
 			temaId = (Integer) entityManager.createNativeQuery(
 							"SELECT actualizar_tema_libre(:temaId, :titulo, :resumen, :metodologia, :objetivos, :carreraId, :fechaLimite, :requisitos, :subareaIds, :coasesorIds)")
 					.setParameter("temaId", dto.getId())
@@ -3520,14 +3522,14 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 					.getSingleResult();
 
 			Optional<Tema> auxTema = temaRepository.findById(dto.getId());
-            auxTema.ifPresent(tema -> saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(),
-                    "Actualizacion del tema"));
+			auxTema.ifPresent(tema -> saveHistorialTemaChange(tema, tema.getTitulo(), tema.getResumen(),
+					"Actualizacion del tema"));
 
 			logger.info("Tema actualizado exitosamente: " + dto.getTitulo());
-			try{
-				historialAccionService.registrarAccion(String.valueOf(dto.getCoasesores().get(0).getId()), "Se actualizó al tema con ID: " + temaId );
+			try {
+				historialAccionService.registrarAccion(String.valueOf(dto.getCoasesores().get(0).getId()), "Se actualizó al tema con ID: " + temaId);
 
-			} catch(Exception ex){
+			} catch (Exception ex) {
 				logger.warning("No se pudo registrar la acción de historial: " + ex.getMessage());
 			}
 
@@ -3737,7 +3739,13 @@ private boolean esCoordinadorActivo(Integer usuarioId, Integer carreraId) {
 		log.info("Solicitud de cese ID {} actualizada. Asesor propuesto: ID {}, Estado reasignación: {}",
 				solicitudDeCeseOriginalId, nuevoAsesorPropuestoId, solicitudDeCese.getEstadoSolicitud().getNombre());
 
-		historialAccionService.registrarAccion(coordinadorCognitoSub, "Solicitud de cese de asesor para tema " + temaAfectado.getId());
+		// --- AUDITORÍA ---
+        historialAccionService.registrarAccion(
+            coordinadorCognitoSub,
+            String.format("Coordinador propuso al asesor '%s %s' (ID: %d) para reasignación en la solicitud de cese (ID: %d) para el tema '%s'.",
+                nuevoAsesorPropuesto.getNombres(), nuevoAsesorPropuesto.getPrimerApellido(), nuevoAsesorPropuestoId, solicitudDeCeseOriginalId, temaAfectado.getTitulo())
+        );
+        // --- FIN AUDITORÍA ---
 
 		RolSolicitud rolAsesorNuevo = rolSolicitudRepository
 			.findByNombre("ASESOR_ENTRADA")
