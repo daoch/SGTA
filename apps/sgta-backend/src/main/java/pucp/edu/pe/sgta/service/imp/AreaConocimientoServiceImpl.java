@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
 
 
 @Service
@@ -40,6 +42,9 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     
 
@@ -69,7 +74,14 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
             AreaConocimiento areaConocimiento = AreaConocimientoMapper.toEntity(dto);
             areaConocimiento.setCarrera(carrera);
             AreaConocimiento savedArea = areaConocimientoRepository.save(areaConocimiento);
-
+            eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        idCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva área de conocimiento " + savedArea.getNombre() + " con ID: " + savedArea.getId()
+                )
+            );
             return AreaConocimientoMapper.toDto(savedArea);
         } else {
             throw new NoSuchElementException("No se encontró la carrera para el usuario con id: " + usuario.getId());
@@ -166,7 +178,7 @@ public class AreaConocimientoServiceImpl implements AreaConocimientoService {
         
             Integer carreraId = carrera.getId();
             List<AreaConocimiento> areasConocimiento = areaConocimientoRepository
-                .findAllByCarreraIdAndActivoTrue(carreraId);
+                .findAllByCarreraIdAndActivoTrueOrderByNombreAsc(carreraId);
             List<AreaConocimientoDto> dtos = areasConocimiento.stream()
                 .map(AreaConocimientoMapper::toDto)
                 .toList();

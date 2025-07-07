@@ -73,9 +73,17 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
 
     @Override
     public EtapaFormativaXCicloDto create(String usuarioCognito, EtapaFormativaXCicloDto dto) {
+        // Validar si ya existe una etapa formativa con el mismo etapaFormativaId y cicloId activa
+        if (etapaFormativaXCicloRepository.existsByEtapaFormativa_IdAndCiclo_IdAndActivoTrue(
+                dto.getEtapaFormativaId(), dto.getCicloId())) {
+            throw new RuntimeException("Ya existe una etapa formativa activa para esta etapa y ciclo. " +
+                    "No se puede crear una duplicada.");
+        }
+        
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
         etapaFormativaXCiclo.setActivo(true);
         etapaFormativaXCiclo.setEstado("En Curso");
+        
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
         eventPublisher.publishEvent(
                 new AuditoriaEvent(
@@ -109,6 +117,7 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             );
         }
     }
+
 
     //get all by carrera id, agregar que sea activo true
     @Override
@@ -161,12 +170,23 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request) {
+    public EtapaFormativaXCicloDto actualizarEstadoRelacion(String usuarioCognito, Integer relacionId, UpdateEtapaFormativaRequest request) {
         // Buscar la relación por ID
         EtapaFormativaXCiclo relacion = etapaFormativaXCicloRepository.findById(relacionId)
-            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); // <-- Usar RuntimeException
+            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); 
 
         relacion.setEstado(request.getEstado());
+
+        // Publicar evento de auditoría
+        eventPublisher.publishEvent(
+            new AuditoriaEvent(
+                this,
+                usuarioCognito,
+                OffsetDateTime.now(),
+                "Actualizó el estado de la etapa formativa por ciclo con ID: " + relacionId
+            )
+        );
+
         EtapaFormativaXCiclo relacionActualizada = etapaFormativaXCicloRepository.save(relacion);
         return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
     }

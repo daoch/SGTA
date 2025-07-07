@@ -13,6 +13,7 @@ import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
 import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
 import pucp.edu.pe.sgta.dto.PageResponseDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
+import pucp.edu.pe.sgta.dto.ErrorResponse;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,10 +46,14 @@ public class EtapaFormativaXCicloController {
 
     
     @PostMapping("/create")
-    public ResponseEntity<EtapaFormativaXCicloDto> create(HttpServletRequest request, @RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
-        String idCognito = jwtService.extractSubFromRequest(request);
-        EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService.create(idCognito, etapaFormativaXCicloDto);
-        return ResponseEntity.ok(createdEtapaFormativaXCiclo);
+    public ResponseEntity<?> create(HttpServletRequest request, @RequestBody EtapaFormativaXCicloDto etapaFormativaXCicloDto) {
+        try {
+            String idCognito = jwtService.extractSubFromRequest(request);
+            EtapaFormativaXCicloDto createdEtapaFormativaXCiclo = etapaFormativaXCicloService.create(idCognito, etapaFormativaXCicloDto);
+            return ResponseEntity.ok(createdEtapaFormativaXCiclo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
     }
 
     @GetMapping("/carreraList")
@@ -98,13 +103,17 @@ public class EtapaFormativaXCicloController {
 
      @PutMapping("/actualizar-relacion/{relacionId}") 
     public ResponseEntity<EtapaFormativaXCicloDto> actualizarEstadoRelacion(
+        HttpServletRequest requestHttp,
         @PathVariable Integer relacionId,
         @RequestBody UpdateEtapaFormativaRequest request) {
 
+        String idCognito = jwtService.extractSubFromRequest(requestHttp);
+
         EtapaFormativaXCicloDto updatedRelacion = 
-            etapaFormativaXCicloService.actualizarEstadoRelacion(relacionId, request);
+            etapaFormativaXCicloService.actualizarEstadoRelacion(idCognito, relacionId, request);
         return ResponseEntity.ok(updatedRelacion);
     }
+
 
     @GetMapping("/listarEtapasFormativasXCicloXCarrera")
     public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(HttpServletRequest request) {

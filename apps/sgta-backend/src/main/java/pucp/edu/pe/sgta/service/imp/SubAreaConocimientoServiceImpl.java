@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
+import java.time.OffsetDateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoService {
@@ -32,6 +36,8 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	private final AreaConocimientoServiceImpl areaConocimientoServiceImpl;
 
 	private final UsuarioService usuarioService;
+	@Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 	public SubAreaConocimientoServiceImpl(SubAreaConocimientoRepository subAreaConocimientoRepository,
 			AreaConocimientoRepository areaConocimientoRepository,
@@ -80,7 +86,7 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 	}
 
 	@Override
-	public SubAreaConocimientoDto create(SubAreaConocimientoDto dto) {
+	public SubAreaConocimientoDto create(String idCognito, SubAreaConocimientoDto dto) {
 		if (dto.getAreaConocimiento() == null || dto.getAreaConocimiento().getId() == null) {
 			throw new IllegalArgumentException("El área de conocimiento es requerida");
 		}
@@ -100,6 +106,15 @@ public class SubAreaConocimientoServiceImpl implements SubAreaConocimientoServic
 				.orElseThrow(() -> new EntityNotFoundException(
 						"Área de conocimiento no encontrada con id: " + savedSubArea.getAreaConocimiento().getId()));
 		AreaConocimientoDto areaDto = AreaConocimientoMapper.toDto(area);
+
+		eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        idCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva subárea de conocimiento " + savedSubArea.getNombre() + " con ID: " + savedSubArea.getId()
+                )
+        );
 
 		return SubAreaConocimientoMapper.toDto(savedSubArea, areaDto);
 	}
