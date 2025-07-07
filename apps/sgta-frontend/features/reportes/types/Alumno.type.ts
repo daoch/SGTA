@@ -21,6 +21,7 @@ export interface AlumnoReviewer {
   temaTitulo: string;
   asesor: string;
   coasesor?: string;
+  etapaFormativaNombre?: string;
   activo?: boolean;
   temaId?: number;
 }
