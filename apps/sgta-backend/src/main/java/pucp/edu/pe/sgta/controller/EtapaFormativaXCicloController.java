@@ -103,13 +103,17 @@ public class EtapaFormativaXCicloController {
 
      @PutMapping("/actualizar-relacion/{relacionId}") 
     public ResponseEntity<EtapaFormativaXCicloDto> actualizarEstadoRelacion(
+        HttpServletRequest requestHttp,
         @PathVariable Integer relacionId,
         @RequestBody UpdateEtapaFormativaRequest request) {
 
+        String idCognito = jwtService.extractSubFromRequest(requestHttp);
+
         EtapaFormativaXCicloDto updatedRelacion = 
-            etapaFormativaXCicloService.actualizarEstadoRelacion(relacionId, request);
+            etapaFormativaXCicloService.actualizarEstadoRelacion(idCognito, relacionId, request);
         return ResponseEntity.ok(updatedRelacion);
     }
+
 
     @GetMapping("/listarEtapasFormativasXCicloXCarrera")
     public List<EtapaFormativaXCicloXCarreraDto> listarEtapasFormativasXCicloXCarrera(HttpServletRequest request) {
