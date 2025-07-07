@@ -55,7 +55,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
             ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
             GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService,
-            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
+            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository,ApplicationEventPublisher eventPublisher) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
@@ -63,6 +63,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         this.exposicionService = exposicionService;
         this.request = request;
         this.temaRepository = temaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
