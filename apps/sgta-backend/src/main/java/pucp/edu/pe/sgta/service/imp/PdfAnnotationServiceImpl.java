@@ -8,6 +8,7 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.pdmodel.interactive.annotation.*;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationPopup;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.model.Observacion;
 import pucp.edu.pe.sgta.service.inter.PdfAnnotationService;
