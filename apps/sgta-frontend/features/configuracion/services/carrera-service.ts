@@ -31,17 +31,23 @@ export const carreraService = {
     },
 
     create: async (carrera: Omit<Carrera, "id">): Promise<Carrera> => {
-        const response = await axiosInstance.post("/carrera/create", carrera);
+        const response = await axiosInstance.post("/carrera/create", carrera, {
+            headers: { Authorization: `Bearer ${idToken}` },
+        });
         return response.data;
     },
 
     update: async (carrera: Carrera): Promise<Carrera> => {
-        const response = await axiosInstance.post("/carrera/update", carrera);
+        const response = await axiosInstance.post("/carrera/update", carrera, {
+            headers: { Authorization: `Bearer ${idToken}` },
+        });
         return response.data;
     },
 
     delete: async (id: number): Promise<void> => {
-        await axiosInstance.post(`/carrera/delete/${id}`);
+        await axiosInstance.post(`/carrera/delete/${id}`, {
+            headers: { Authorization: `Bearer ${idToken}` },
+        });
     },
 
     getCarreraDelCoordinador: async (): Promise<Carrera> => {

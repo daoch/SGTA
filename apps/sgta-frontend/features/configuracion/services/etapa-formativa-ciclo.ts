@@ -80,12 +80,22 @@ export const etapaFormativaCicloService = {
     },
 
     create: async (etapaFormativaCiclo: EtapaFormativaCicloCreate): Promise<EtapaFormativaCiclo> => {
-        const response = await axiosInstance.post("/etapa-formativa-x-ciclo/create", etapaFormativaCiclo);
+        const { idToken } = useAuthStore.getState();
+        const response = await axiosInstance.post("/etapa-formativa-x-ciclo/create", etapaFormativaCiclo, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
         return response.data;
     },
 
     delete: async (id: number): Promise<void> => {
-        await axiosInstance.post(`/etapa-formativa-x-ciclo/delete/${id}`);
+        const { idToken } = useAuthStore.getState();
+        await axiosInstance.post(`/etapa-formativa-x-ciclo/delete/${id}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
     },
 
     actualizarEstado: async (relacionId: number, estado: string): Promise<EtapaFormativaCiclo> => {

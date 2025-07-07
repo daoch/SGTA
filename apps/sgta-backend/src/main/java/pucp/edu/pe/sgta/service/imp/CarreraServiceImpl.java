@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
+import java.time.OffsetDateTime;
 
 @Service
 public class CarreraServiceImpl implements CarreraService {
@@ -28,17 +31,20 @@ public class CarreraServiceImpl implements CarreraService {
     private final EtapaFormativaRepository etapaFormativaRepository;
     private final CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository;
     private final UsuarioService usuarioService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CarreraServiceImpl(CarreraRepository carreraRepository, 
                              UnidadAcademicaRepository unidadAcademicaRepository,
                              EtapaFormativaRepository etapaFormativaRepository,
                              CarreraXParametroConfiguracionRepository carreraXParametroConfiguracionRepository,
-                             UsuarioService usuarioService) {
+                             UsuarioService usuarioService,
+                             ApplicationEventPublisher eventPublisher) {
         this.carreraRepository = carreraRepository;
         this.unidadAcademicaRepository = unidadAcademicaRepository;
         this.etapaFormativaRepository = etapaFormativaRepository;
         this.carreraXParametroConfiguracionRepository = carreraXParametroConfiguracionRepository;
         this.usuarioService = usuarioService;
+        this.eventPublisher = eventPublisher;
     }
     
 
@@ -145,18 +151,28 @@ public class CarreraServiceImpl implements CarreraService {
     }
 
     @Override
-    public CarreraDto createCarrera(CarreraDto carreraDto) {
+    public CarreraDto createCarrera(String usuarioCognito, CarreraDto carreraDto) {
+
         Carrera carrera = CarreraMapper.toEntity(carreraDto);
         carreraRepository.save(carrera);
         
         // Crear parámetros base para la nueva carrera
         crearParametrosBaseParaNuevaCarrera(carrera.getId());
+
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva carrera " + carrera.getNombre() + " con ID: " + carrera.getId()
+                )
+        );
         
         return CarreraMapper.toDto(carrera);
     }
 
     @Override
-    public CarreraDto updateCarrera(CarreraDto carreraDto) {
+    public CarreraDto updateCarrera(String usuarioCognito, CarreraDto carreraDto) {
         // Buscar la carrera existente
         Carrera carrera = carreraRepository.findById(carreraDto.getId())
                 .orElseThrow(() -> new ResponseStatusException(
@@ -182,11 +198,21 @@ public class CarreraServiceImpl implements CarreraService {
 
         // Guardar los cambios
         Carrera updatedCarrera = carreraRepository.save(carrera);
+
+        // Publicar evento de auditoría
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Actualizó la carrera con ID: " + carreraDto.getId()
+                )
+        );
         return CarreraMapper.toDto(updatedCarrera);
     }
 
     @Override
-    public void deleteCarrera(Integer id) {
+    public void deleteCarrera(String usuarioCognito, Integer id) {
         // Buscar la carrera existente
         Carrera carrera = carreraRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -197,6 +223,15 @@ public class CarreraServiceImpl implements CarreraService {
         // Soft delete - marcar como inactiva en lugar de eliminar físicamente
         carrera.setActivo(false);
         carreraRepository.save(carrera);
+        // Publicar evento de auditoría
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Eliminó la carrera con ID: " + id
+                )
+        );
     }
 
     

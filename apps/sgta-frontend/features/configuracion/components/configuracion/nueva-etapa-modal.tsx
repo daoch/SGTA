@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
-import { etapasFormativasService, type EtapaFormativaListItem } from "../../services/etapas-formativas";
+import { EtapaFormativaCoordinador, etapasFormativasService } from "../../services/etapas-formativas";
 import { etapaFormativaCicloService, ciclosService } from "../../services/etapa-formativa-ciclo";
 import { Ciclo } from "../../types/etapa-formativa-ciclo";
 import { toast } from "sonner";
@@ -32,7 +32,7 @@ interface NuevaEtapaModalProps {
 
 export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
   const [open, setOpen] = useState(false);
-  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaListItem[]>([]);
+  const [etapasFormativas, setEtapasFormativas] = useState<EtapaFormativaCoordinador[]>([]);
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
   const [selectedCiclo, setSelectedCiclo] = useState<string>("");
@@ -42,7 +42,8 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
     const fetchData = async () => {
       try {
         const [etapasResponse, ciclosResponse] = await Promise.all([
-          etapasFormativasService.getAll(),
+          etapasFormativasService.getActivasByCoordinador(),
+
           ciclosService.getAll()
         ]);
         setEtapasFormativas(etapasResponse);
