@@ -1630,7 +1630,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         String sql = """
                 SELECT *
-                FROM obtener_alumnos_por_carrera_revisor(:usuarioId, :cadena)
+                FROM obtener_alumnos_por_revisor_etapa_formativa(:usuarioId, :cadena)
                 """;
 
         @SuppressWarnings("unchecked")
@@ -1651,7 +1651,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .temaId((Integer) r[6])
                     .asesor((String) r[7])
                     .coasesor((String) r[8])
-                    .activo((Boolean) r[9])
+                    .etapaFormativaNombre((String) r[9])
+                    .activo((Boolean) r[10])
                     .build();
 
             lista.add(alumno);
