@@ -198,7 +198,7 @@ const MiCronogramaPage = () => {
     }
   }, [tesistasList, initialTesistasLoaded]);
 
-  // Función para manejar cambios en los checkboxes
+  // Función para manejar cambios en todos los checkboxes
   const handleTesistaChange = (tesista: string) => {
     setSelectedTesistas(prev => ({
       ...prev,
