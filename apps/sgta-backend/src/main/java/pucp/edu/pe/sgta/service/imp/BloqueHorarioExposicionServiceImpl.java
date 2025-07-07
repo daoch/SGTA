@@ -15,9 +15,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
@@ -45,13 +47,15 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final TemaRepository temaRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     @Value("${url.back}")
     private String backURL;
 
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
             ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
             GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService,
-            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
+            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository,ApplicationEventPublisher eventPublisher) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
@@ -59,6 +63,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         this.exposicionService = exposicionService;
         this.request = request;
         this.temaRepository = temaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -387,11 +392,13 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean finishPlanning(Integer exposicionId) {
+    public boolean finishPlanning(String usuarioCognito, Integer exposicionId) {
 
         try {
             Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
-
+            eventPublisher.publishEvent(
+                new AuditoriaEvent(this, usuarioCognito, OffsetDateTime.now(), "Finalizó la planificación de bloques de la exposición con ID: " + exposicionId)
+            );
             return Boolean.TRUE.equals(result);
         } catch (Exception e) {
             e.printStackTrace();
