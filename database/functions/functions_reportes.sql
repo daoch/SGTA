@@ -1673,3 +1673,95 @@ BEGIN
     ORDER BY et.fecha_envio DESC, ce.criterio_entregable_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_alumnos_por_revisor_etapa_formativa(
+    p_usuario_id INTEGER,
+    p_cadena_busqueda VARCHAR
+)
+RETURNS TABLE (
+    usuario_id INTEGER,
+    codigo_pucp VARCHAR,
+    nombres VARCHAR,
+    primer_apellido VARCHAR,
+    segundo_apellido VARCHAR,
+    tema_titulo VARCHAR,
+    tema_id INTEGER,
+    asesor VARCHAR,
+    coasesor VARCHAR,
+    etapa_formativa_nombre VARCHAR,
+    activo BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH etapas_revisor AS (
+        -- Obtener las etapas formativas donde el usuario tiene rol de revisor (rol_id = 3)
+        SELECT DISTINCT 
+            efcxt.etapa_formativa_x_ciclo_id,
+            efcxt.tema_id,
+            ef.nombre AS etapa_formativa_nombre
+        FROM etapa_formativa_x_ciclo_x_usuario_rol efcxur
+        JOIN usuario_rol ur ON ur.usuario_rol_id = efcxur.usuario_rol_id
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.etapa_formativa_x_ciclo_id = efcxur.etapa_formativa_x_ciclo_id
+        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxur.etapa_formativa_x_ciclo_id
+        JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+        WHERE ur.usuario_id = p_usuario_id
+        AND ur.rol_id = 3  -- Rol de revisor
+        AND efcxur.activo = true
+        AND ur.activo = true
+        AND efcxt.activo = true
+        AND efc.activo = true
+        AND ef.activo = true
+    )
+    SELECT DISTINCT
+        u.usuario_id,
+        u.codigo_pucp,
+        u.nombres,
+        u.primer_apellido,
+        u.segundo_apellido,
+        t.titulo as tema_titulo,
+        t.tema_id,
+        CAST((
+            SELECT CONCAT(u2.nombres, ' ', u2.primer_apellido, ' ', u2.segundo_apellido)
+            FROM usuario_tema ut2
+            JOIN usuario u2 ON ut2.usuario_id = u2.usuario_id
+            WHERE ut2.tema_id = t.tema_id
+            AND ut2.rol_id = 1  -- Rol de asesor
+            AND ut2.activo = true
+            LIMIT 1
+        ) AS VARCHAR) as asesor,
+        CAST((
+            SELECT CONCAT(u3.nombres, ' ', u3.primer_apellido, ' ', u3.segundo_apellido)
+            FROM usuario_tema ut3
+            JOIN usuario u3 ON ut3.usuario_id = u3.usuario_id
+            WHERE ut3.tema_id = t.tema_id
+            AND ut3.rol_id = 5  -- Rol de coasesor
+            AND ut3.activo = true
+            LIMIT 1
+        ) AS VARCHAR) as coasesor,
+        CAST(er.etapa_formativa_nombre AS VARCHAR) AS etapa_formativa_nombre,
+        u.activo
+    FROM usuario u
+    JOIN tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
+    JOIN usuario_tema ut ON u.usuario_id = ut.usuario_id
+    JOIN tema t ON t.tema_id = ut.tema_id
+    JOIN etapas_revisor er ON er.tema_id = t.tema_id
+    WHERE u.activo = true
+    AND tu.nombre ILIKE 'alumno'
+    AND ut.rol_id = 4  -- Rol de tesista
+    AND ut.activo = true
+    AND ut.asignado = true
+    AND t.activo = true
+    AND (
+        COALESCE(p_cadena_busqueda, '') = '' OR
+        u.nombres ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.primer_apellido ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.segundo_apellido ILIKE '%' || p_cadena_busqueda || '%'
+        OR u.codigo_pucp ILIKE '%' || p_cadena_busqueda || '%'
+        OR t.titulo ILIKE '%' || p_cadena_busqueda || '%'
+        OR er.etapa_formativa_nombre ILIKE '%' || p_cadena_busqueda || '%'
+    )
+    ORDER BY etapa_formativa_nombre, u.primer_apellido, u.nombres;
+END;
+$$;
