@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
 import pucp.edu.pe.sgta.service.inter.SolicitudAsesorService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService; 
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -60,6 +61,9 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
 
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
+
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     private static final String ROL_NOMBRE_ASESOR = "Asesor";
     private static final String ROL_NOMBRE_TESISTA = "Tesista";
@@ -356,17 +360,20 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
         log.info("Solicitud ID {} restablecida a estado PREACEPTADA.", solicitudOriginalId);
 
         // --- AUDITORÍA ---
-        Tema temaAReasignar = solicitud.getTema(); // Asegúrate de que temaAReasignar se carga aquí
+        // temaAReasignar ya se obtiene de solicitud.getTema() más arriba en el método.
+        // Solo necesitamos referenciarlo, no declararlo de nuevo.
+        Tema temaAReasignar = solicitud.getTema(); // <-- Esta es la declaración correcta y única
         String temaTitulo = (temaAReasignar != null) ? temaAReasignar.getTitulo() : "sin título";
         historialAccionService.registrarAccion(
-            asesorCognitoSub,
-            String.format("Asesor '%s %s' (ID: %d) rechazó la invitación de asesoría (ID: %d) para el tema '%s' con motivo: '%s'.",
+                asesorCognitoSub,
+                String.format("Asesor '%s %s' (ID: %d) rechazó la invitación de asesoría (ID: %d) para el tema '%s' con motivo: '%s'.",
                 asesor.getNombres(), asesor.getPrimerApellido(), asesor.getId(), solicitudOriginalId, temaTitulo, motivoRechazo)
         );
         // --- FIN AUDITORÍA ---
         
         // 3) (Opcional) Notificar al coordinador para nueva propuesta
-        Tema temaAReasignar = solicitud.getTema();
+        // NO declarar Tema temaAReasignar = solicitud.getTema(); aquí de nuevo.
+        // Simplemente usa la variable `temaAReasignar` que ya está declarada.
         List<UsuarioXCarrera> usCoordinadores = usuarioXCarreraRepository.findByCarreraIdAndEsCoordinadorTrueAndActivoTrue(temaAReasignar.getCarrera().getId());
         List<Usuario> coordinadores = usCoordinadores.stream()
                 .map(UsuarioXCarrera::getUsuario)
@@ -376,9 +383,10 @@ public class SolicitudAsesorServiceImpl implements SolicitudAsesorService {
                 asesor.getNombres(), asesor.getPrimerApellido(), temaAReasignar.getTitulo(), solicitudOriginalId);
         String enlaceCoord = String.format("/coordinador/solicitudes-cese?id=%d", solicitudOriginalId);
         for (Usuario coord : coordinadores) {
-            notificacionService.crearNotificacionParaUsuario(coord.getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
+                notificacionService.crearNotificacionParaUsuario(coord.getId(), MODULO_SOLICITUDES_CESE, TIPO_NOTIF_INFORMATIVA, msgCoord, "SISTEMA", enlaceCoord);
         }
         }
+
 
     @Override
     @Transactional

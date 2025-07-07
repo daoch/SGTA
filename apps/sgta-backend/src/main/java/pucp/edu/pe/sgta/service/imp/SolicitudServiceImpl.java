@@ -723,6 +723,9 @@ public class SolicitudServiceImpl implements SolicitudService {
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
+
+        String accionString = aprobar ? "Aprobó" : "Rechazó";
+
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
         }else{
@@ -751,6 +754,9 @@ public class SolicitudServiceImpl implements SolicitudService {
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
+
+        String accionString = aprobar ? "Aprobó" : "Rechazó";
+        
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
         }else{
