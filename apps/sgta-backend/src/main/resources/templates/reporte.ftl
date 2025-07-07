@@ -55,6 +55,7 @@
     <tr>
       <th>Oración</th>
       <th>Fuente</th>
+      <th>Pagina</th>
       <th>Score</th>
     </tr>
   </thead>
@@ -77,4 +78,42 @@
 </table>
 
 </body>
+<hr style="margin:2rem 0;"/>
+
+<h1>Reporte de puntuación humana</h1>
+
+<#-- Semáforo de colores para IA (puedes ajustar los rangos si lo deseas) -->
+<#if ia.score?number < 5>
+    <#assign badgeClassIA = "red">
+<#elseif ia.score?number < 20>
+    <#assign badgeClassIA = "amber">
+<#else>
+    <#assign badgeClassIA = "green">
+</#if>
+
+<p style="text-align:center;">
+  <span class="score-badge ${badgeClassIA}">
+    Puntuación Humana: ${ia.score}%
+  </span>
+</p>
+
+<h2>Fragmentos detectados</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Texto</th>
+      <th>Página</th>
+      <th>Score</th>
+    </tr>
+  </thead>
+  <tbody>
+  <#list ia.sentences as sentence>
+    <tr>
+      <td>${sentence.text?html}</td>
+      <td style="text-align:center;">${sentence.page}</td>
+      <td class="scr">${sentence.score}%</td>
+    </tr>
+  </#list>
+  </tbody>
+</table>
 </html>

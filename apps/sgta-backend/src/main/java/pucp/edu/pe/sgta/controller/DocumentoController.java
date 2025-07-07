@@ -34,9 +34,10 @@ public class DocumentoController {
                                                   @RequestParam("curso") String curso,
                                                   @RequestParam("comentario") String comentario,
                                                   @RequestParam("estado") String estado,
+                                                  @RequestParam("documentoPrincipalNombre") String documentoPrincipalNombre,
                                                   HttpServletRequest request) throws IOException {
         String cognitoId = jwtService.extractSubFromRequest(request);
-        return documentoService.subirDocumentos(entregableXTemaId, archivos, ciclo, curso, comentario, estado, cognitoId);
+        return documentoService.subirDocumentos(entregableXTemaId, archivos, ciclo, curso, comentario, estado, documentoPrincipalNombre, cognitoId);
     }
 
     @PostMapping("/borrar-documento/{documentoId}")

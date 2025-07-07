@@ -57,5 +57,6 @@ public class VersionXDocumento {
     @Column(name = "estado_procesamiento")
     private String estadoProcesamiento = "PENDING"; // PENDING, IN_PROGRESS, COMPLE
 
-
+    @Column(name = "documento_principal")
+    private boolean documentoPrincipal = false;
 }

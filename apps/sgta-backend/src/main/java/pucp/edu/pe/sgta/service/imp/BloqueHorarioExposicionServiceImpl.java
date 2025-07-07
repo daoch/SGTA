@@ -248,7 +248,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
             System.out.println(bloquesList);
-            int i = 0;
+
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
             System.out.println("==================================================================");
             for (ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
@@ -288,11 +288,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String accessToken = (String) session.getAttribute("googleAccessToken");
             if (accessToken == null)
                 throw new RuntimeException("No hay access token en sesión");
+
             try {
                 // 1. Construir cliente Gmail
                 Gmail gmail = googleGmailService.buildGmailClient(accessToken);
                 for (ListBloqueHorarioExposicionSimpleDTO bloque : bloquesCambiado) {
-                    if (bloque.getExpo() == null) {
+                    if (bloque.getExpo() == null ) {
                         continue;
                     }
                     TemaConAsesorJuradoDTO tema = bloque.getExpo();
@@ -304,7 +305,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                         if (!usuario.getRol().getNombre().equals("Asesor")
                                 && !usuario.getRol().getNombre().equals("Jurado"))
                             continue;
-
+                        /*if(!usuario.getCorreo().equals("a20191810@pucp.edu.pe")){
+                            continue;
+                        }*/
                         // 2. Datos del correo
                         String token = UUID.randomUUID().toString();// ESTE ES EL TOKEN IDENTIFICADOR
                         try {
@@ -360,6 +363,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             googleGmailService.sendEmail(gmail, destinatario, asunto, cuerpoHtml);
                             System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
                             System.out.println("Correo enviado correctamente.");
+
 
                         } catch (Exception e) {
                             System.err.println("Error al enviar correo a: " + usuario.getCorreo());
@@ -491,8 +495,10 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
                 }
 
+
                 try {
                     googleCalendarService.sendEvent(summary, description, attendes, start, end, sala, calendar);
+
                     attendes.clear();
                 } catch (Exception e) {
                     e.printStackTrace();
