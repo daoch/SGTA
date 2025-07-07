@@ -108,6 +108,7 @@ export const etapaFormativaCicloService = {
 
 };
 
+
 export const ciclosService = {
     getAll: async () => {
         const response = await axiosInstance.get("/ciclos/listarCiclos");
