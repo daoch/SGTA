@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { EtapaFormativaCiclo, EtapaFormativaCicloCreate } from "../types/etapa-formativa-ciclo";
+import type { AxiosError } from "axios";
 
 export interface EtapaFormativaXCicloTesista {
     id: number;
@@ -81,12 +82,28 @@ export const etapaFormativaCicloService = {
 
     create: async (etapaFormativaCiclo: EtapaFormativaCicloCreate): Promise<EtapaFormativaCiclo> => {
         const { idToken } = useAuthStore.getState();
-        const response = await axiosInstance.post("/etapa-formativa-x-ciclo/create", etapaFormativaCiclo, {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-        return response.data;
+        try {
+          const response = await axiosInstance.post("/etapa-formativa-x-ciclo/create", etapaFormativaCiclo, {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          });
+          return response.data;
+        } catch (error: unknown) {
+          let message = "Error al crear la etapa";
+          if (
+            typeof error === "object" &&
+            error !== null &&
+            "isAxiosError" in error &&
+            (error as AxiosError).isAxiosError
+          ) {
+            const axiosError = error as AxiosError<{ message?: string }>;
+            message = axiosError.response?.data?.message || message;
+          } else if (error instanceof Error) {
+            message = error.message;
+          }
+          throw new Error(message);
+        }
     },
 
     delete: async (id: number): Promise<void> => {

@@ -16,11 +16,11 @@ public interface EtapaFormativaService {
      * 
      * @return DTO con el ID generado y datos guardados
      */
-    EtapaFormativaDto create(EtapaFormativaDto dto);
+    EtapaFormativaDto create(String usuarioCognito, EtapaFormativaDto dto);
 
-    EtapaFormativaDto update(EtapaFormativaDto dto);
+    EtapaFormativaDto update(String usuarioCognito, EtapaFormativaDto dto);
 
-    void delete(Integer id);
+    void delete(String usuarioCognito, Integer id);
 
     List<EtapaFormativaNombreDTO> findToInitializeByCoordinador(Integer id);
 

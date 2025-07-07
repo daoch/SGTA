@@ -80,7 +80,7 @@ export function NuevaEtapaModal({ onSuccess }: NuevaEtapaModalProps) {
       onSuccess?.();
     } catch (error) {
       console.error("Error al crear la etapa:", error);
-      toast.error("Error al crear la etapa");
+      toast.error(error instanceof Error ? error.message : "Error al crear la etapa");
     } finally {
       setIsSubmitting(false);
     }
