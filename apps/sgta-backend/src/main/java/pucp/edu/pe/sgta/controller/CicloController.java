@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import pucp.edu.pe.sgta.dto.CarreraDto;
 import pucp.edu.pe.sgta.dto.CicloConEtapasDTO;
 import pucp.edu.pe.sgta.dto.CicloDto;
 import pucp.edu.pe.sgta.model.Ciclo;
