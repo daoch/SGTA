@@ -396,7 +396,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         try {
             Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
             eventPublisher.publishEvent(
-                new AuditoriaEvent(this, usuarioCognito, OffsetDateTime.now(), "Actualizó")
+                new AuditoriaEvent(this, usuarioCognito, OffsetDateTime.now(), "Finalizó la planificación de bloques de la exposición con ID: " + exposicionId)
             );
             return Boolean.TRUE.equals(result);
         } catch (Exception e) {
