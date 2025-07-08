@@ -93,11 +93,9 @@ export function RevisionesTableAsesor({
               <TableHead>Curso</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>
-                <span className="ml-2">Curso</span>
+                <span className="ml-2">Entregable</span>
               </TableHead>
-              <TableHead>Entregable</TableHead>
               <TableHead>Documento</TableHead>
-              <TableHead>Estudiante</TableHead>
               <TableHead>Similitud (%)</TableHead>
               <TableHead>Punt. Human (%)</TableHead>
               <TableHead>F. de Subida</TableHead>
@@ -108,7 +106,7 @@ export function RevisionesTableAsesor({
             {revisionesFiltradas.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="text-center py-8 text-muted-foreground"
                 >
                   No hay revisiones disponibles
@@ -122,6 +120,7 @@ export function RevisionesTableAsesor({
                       {revision.curso}
                     </Badge>
                   </TableCell>
+                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
                       <span title={revision.entregable}>{revision.entregable}</span>
@@ -132,7 +131,6 @@ export function RevisionesTableAsesor({
                       <span title={revision.titulo}>{revision.titulo}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell>
                     {revision.porcentajeSimilitud !== null ? (
                       <div className="flex items-center gap-2">
