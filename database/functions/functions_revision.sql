@@ -653,9 +653,20 @@ $function$
 --DROP FUNCTION sgtadb.obtener_documentos_revisor(int4);
 
 CREATE OR REPLACE FUNCTION sgtadb.obtener_documentos_revisor(revisorid integer)
- RETURNS TABLE(revision_id integer, tema text, entregable text, estudiante text, codigo text, curso text, fecha_carga timestamp with time zone, estado_revision text, entrega_a_tiempo boolean, fecha_limite timestamp with time zone, similitud double precision, ia double precision)
- LANGUAGE plpgsql
-AS $function$
+RETURNS TABLE(
+    revision_id integer,
+    tema text,
+    entregable text,
+    estudiante text,
+    codigo text,
+    curso text,
+    fecha_carga timestamp with time zone,
+    estado_revision text,
+    entrega_a_tiempo boolean,
+    fecha_limite timestamp with time zone,
+    similitud double precision,
+    ia double precision
+) LANGUAGE plpgsql AS $function$
 BEGIN
     RETURN QUERY
     SELECT
@@ -680,17 +691,29 @@ BEGIN
     JOIN entregable_x_tema ext ON ext.entregable_x_tema_id = vd.entregable_x_tema_id
     JOIN entregable e ON e.entregable_id = ext.entregable_id
     JOIN tema t ON t.tema_id = ext.tema_id
-    JOIN usuario_tema ut_est ON ut_est.tema_id = t.tema_id AND ut_est.rol_id = 4 AND ut_est.asignado = TRUE
-    JOIN usuario u_est ON u_est.usuario_id = ut_est.usuario_id
     JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+    -- Estudiantes
+    JOIN usuario_tema ut_est ON ut_est.tema_id = t.tema_id AND ut_est.rol_id = 4 AND ut_est.asignado = TRUE
+    JOIN usuario u_est ON u_est.usuario_id = ut_est.usuario_id
+    -- Revisores: solo los que están activos en el curso/ciclo
     WHERE rd.usuario_id = revisorid
       AND EXISTS (
+        SELECT 1
+        FROM etapa_formativa_x_ciclo_x_usuario_rol efcur
+        JOIN usuario_rol ur ON efcur.usuario_rol_id = ur.usuario_rol_id
+        WHERE efcur.etapa_formativa_x_ciclo_id = e.etapa_formativa_x_ciclo_id
+          AND efcur.activo = TRUE
+          AND ur.rol_id = 3
+          AND ur.usuario_id = revisorid
+      )
+      -- Cuando un documento ha sido aprobado
+      AND EXISTS (
           SELECT 1
-          FROM usuario_tema ut_rev
-          WHERE ut_rev.usuario_id = revisorid
-            AND ut_rev.rol_id = 3
-            AND ut_rev.asignado = TRUE
+          FROM revision_documento rd_apr
+          WHERE rd_apr.version_documento_id = rd.version_documento_id
+            AND rd_apr.estado_revision = 'aprobado'
+            AND rd_apr.activo = TRUE
       )
       AND rd.estado_revision IN ('pendiente', 'en_proceso', 'completada')
       AND rd.activo = TRUE
@@ -711,39 +734,40 @@ CREATE OR REPLACE FUNCTION sgtadb.crear_revisiones_revisores(entregablextemaid i
 AS $function$
 DECLARE
     version_id INT;
-    v_tema_id INT;
     v_link_archivo TEXT;
-    user_id INT;
     v_fecha_revision TIMESTAMP;
+    v_etapa_formativa_x_ciclo_id INT;
+    user_id INT;
 BEGIN
-    -- 1. Obtener el tema_id y fecha_fin (como fecha_revision) del entregable
-    SELECT ext.tema_id, e.fecha_fin
-    INTO v_tema_id, v_fecha_revision
+    -- 1. Obtener etapa_formativa_x_ciclo_id y fecha_fin del entregable
+    SELECT e.etapa_formativa_x_ciclo_id, e.fecha_fin
+    INTO v_etapa_formativa_x_ciclo_id, v_fecha_revision
     FROM entregable_x_tema ext
     JOIN entregable e ON e.entregable_id = ext.entregable_id
     WHERE ext.entregable_x_tema_id = entregablextemaid
       AND ext.activo = TRUE;
 
-    IF v_tema_id IS NULL THEN
-        RAISE NOTICE 'No se encontró tema asociado al entregable_x_tema_id=%', entregablextemaid;
+    IF v_etapa_formativa_x_ciclo_id IS NULL THEN
+        RAISE NOTICE 'No se encontró etapa_formativa_x_ciclo asociada al entregable_x_tema_id=%', entregablextemaid;
         RETURN;
     END IF;
 
-    -- 2. Iterar sobre las versiones del documento asociadas al entregable_x_tema
-    -- CAMBIO: Agregado filtro WHERE vd.documento_principal = TRUE
+    -- 2. Iterar sobre las versiones principales y activas del entregable_x_tema
     FOR version_id, v_link_archivo IN
         SELECT vd.version_documento_id, vd.link_archivo_subido
         FROM version_documento vd
         WHERE vd.entregable_x_tema_id = entregablextemaid
+          AND vd.activo = TRUE
           AND vd.documento_principal = TRUE
     LOOP
-        -- 3. Iterar sobre los revisores asignados al tema (rol_id = 3)
+        -- 3. Iterar sobre los revisores activos del curso/ciclo
         FOR user_id IN
-            SELECT DISTINCT ut.usuario_id
-            FROM usuario_tema ut
-            WHERE ut.tema_id = v_tema_id
-              AND ut.rol_id = 3
-              AND ut.asignado = TRUE
+            SELECT ur.usuario_id
+            FROM etapa_formativa_x_ciclo_x_usuario_rol efcur
+            JOIN usuario_rol ur ON efcur.usuario_rol_id = ur.usuario_rol_id
+            WHERE efcur.etapa_formativa_x_ciclo_id = v_etapa_formativa_x_ciclo_id
+              AND efcur.activo = TRUE
+              AND ur.rol_id = 3
         LOOP
             -- 4. Verificar si ya existe una revisión para ese usuario y versión
             IF NOT EXISTS (
@@ -777,8 +801,7 @@ BEGIN
         END LOOP;
     END LOOP;
 END;
-$function$
-;
+$function$;
 
 DROP FUNCTION IF EXISTS listar_revision_criterio_por_entregable_x_tema;
 

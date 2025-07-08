@@ -484,8 +484,18 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
                   </div>
                 )}
 
-                {/* Si el rolId no es 2 */}
-                {rolId !== 2 && (
+                {/* Si el rolId es 1 (asesor) */}
+                {rolId === 1 && (
+                  <div className="flex flex-col gap-2">
+                    {/* El asesor puede calificar en cualquier estado */}
+                    <Button variant="outline" onClick={() => setShowRubricaDialog(!showRubricaDialog)}>
+                      Calificar Entregable
+                    </Button>
+                  </div>
+                )}
+
+                {/* Si el rolId no es 2 ni 1 */}
+                {rolId !== 2 && rolId !== 1 && (
                   <div className="flex flex-col gap-2">
                     {/* Si el estado es "por_aprobar" */}
                     {estado === "por_aprobar" && (

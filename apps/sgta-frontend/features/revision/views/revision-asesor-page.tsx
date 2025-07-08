@@ -100,7 +100,9 @@ const RevisionAsesorPage = () => {
         });
 
         const agrupados = agruparPorDocumento(response.data);
-        setDocumentos(agrupados);
+        // Filtrar solo los estados permitidos
+        const estadosPermitidos = ["aprobado", "revisado", "por_aprobar"];
+        setDocumentos(agrupados.filter(doc => estadosPermitidos.includes(doc.estado)));
       } catch (error) {
         console.error("Error al cargar los documentos:", error);
       }
