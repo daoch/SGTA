@@ -11,4 +11,6 @@ public interface EventoService {
 
 	//Creado para pruebas
 	List<EventoDto> listarEventosXTesistaPorId(Integer id);
+	List<EventoDto> listarEventosXAsesorPorId(Integer id);
+
 }

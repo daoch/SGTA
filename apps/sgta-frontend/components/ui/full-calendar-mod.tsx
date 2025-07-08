@@ -44,7 +44,7 @@ import {
   type ReunionFormData,
 } from "@/features/cronograma/editar-reunion-modal";
 
-type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
+//type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
@@ -91,6 +91,8 @@ type ContextType = {
   enableHotkeys?: boolean;
   today: Date;
   numTesistas: number; // <-- Nuevo
+  tesistasUnicos?: string[];
+  fetchEventos?: () => void; // ✅ ← Agregado
 };
 
 const Context = createContext<ContextType>({} as ContextType);
@@ -117,7 +119,9 @@ type CalendarProps = {
   onChangeView?: (view: View) => void;
   onEventClick?: (event: CalendarEvent) => void;
   numTesistas?: number; // <-- Nuevo
+  tesistasUnicos?: string[]; 
   tipoUsuario: string;
+  fetchEventos?: () => void; // ✅ ← Agregado
 };  
 
 const Calendar = ({
@@ -130,6 +134,8 @@ const Calendar = ({
   events: defaultEvents = [],
   onChangeView,
   numTesistas = 1,
+  tesistasUnicos = [], // ✅ Añadir esta línea
+  fetchEventos, // ✅ ← agrégalo aquí también
 }: CalendarProps) => {
   const [view, setView] = useState<View>(_defaultMode);
   const [date, setDate] = useState(defaultDate);
@@ -175,6 +181,8 @@ const Calendar = ({
         onChangeView,
         today: new Date(),
         numTesistas,
+        tesistasUnicos,
+        fetchEventos, // ✅ ← Pasado al contexto
       }}
     >
       {children}
@@ -189,11 +197,12 @@ const CalendarViewTrigger = forwardRef<
   React.HTMLAttributes<HTMLButtonElement> & {
     view: View;
   }
->(({ children, view, ...props }) => {
+>(({ children, view, ...props }, ref) => {
   const { view: currentView, setView, onChangeView } = useCalendar();
 
   return (
     <Button
+      ref={ref} // importante: reenvía el ref si se necesita más adelante
       aria-current={currentView === view}
       size="sm"
       variant="ghost"
@@ -221,7 +230,7 @@ const EventGroup = ({
   tipoVista: string;
   tipoUsuario: string;
 }) => {
-  const { numTesistas } = useContext(Context);
+  const { numTesistas, view, fetchEventos } = useContext(Context);
 
   const [isReunionModalOpen, setIsReunionModalOpen] = useState(false);
   const [eventoSeleccionado, setEventoSeleccionado] = useState<CalendarEvent | null>(null);
@@ -239,6 +248,7 @@ const EventGroup = ({
     }
   };
 
+  /*
   const tesistasOrdenados = useMemo(() => {
     const setTesistas = new Set<string>();
     events.forEach((e) => {
@@ -246,6 +256,18 @@ const EventGroup = ({
     });
     return Array.from(setTesistas).sort();
   }, [events]);
+  */
+
+  const { tesistasUnicos } = useContext(Context);
+
+  const tesistasOrdenados = useMemo(() => {
+    return tesistasUnicos ?? [];
+  }, [tesistasUnicos]);
+
+  // Vista mensual no necesita columnas por tesista
+  if (view === "month") {
+    return null;
+  }
 
   return (
     <div
@@ -265,7 +287,7 @@ const EventGroup = ({
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
             {eventos.map((event) => {
               const isDeadline = event.type === "ENTREGABLE";
-              const isClickable = tipoUsuario === "Alumno" && event.type === "REUNION";
+              const isClickable = event.type === "REUNION";
               const hoursDifference = isDeadline
                 ? 1
                 : differenceInMinutes(event.end, event.start ?? event.end) / 60;
@@ -315,7 +337,7 @@ const EventGroup = ({
                       </p>
                     )}
 
-                  {event.tesista !== "X" && (
+                  {event.tesista !== "Tesista" && (
                     <p className="text-xs opacity-80 truncate cursor-inherit">
                       Tsta.: {event.tesista}
                     </p>
@@ -349,11 +371,17 @@ const EventGroup = ({
             setEventoSeleccionado(null);
           }}
           evento={eventoSeleccionado}
+          listaEventos={events}
+          emisor={tipoUsuario}
+          onUpdateSuccess={() => {
+            if (fetchEventos) fetchEventos(); // ✅ Solo llama si está definido
+          }}
         />
       )}
     </div>
   );
 };
+
 
 
 
