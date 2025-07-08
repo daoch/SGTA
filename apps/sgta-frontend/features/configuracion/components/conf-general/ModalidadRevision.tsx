@@ -69,7 +69,7 @@ export default function ModalidadRevisionCard() {
       <CardHeader>
         <CardTitle>Modalidad de revisión</CardTitle>
         <CardDescription>
-          Configure las opciones de revisión y detección de plagio
+          Configure las opciones de revisión y detección de similitud
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
