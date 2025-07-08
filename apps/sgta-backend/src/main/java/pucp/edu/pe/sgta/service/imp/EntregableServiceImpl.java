@@ -12,6 +12,7 @@ import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
 import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
@@ -31,12 +32,16 @@ import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
 public class EntregableServiceImpl implements EntregableService {
 
     private final EntregableRepository entregableRepository;
+    private final EntregableXTemaRepository entregableXTemaRepository;
     private final UsuarioRepository usuarioRepository;
     private final HistorialAccionService historialAccionService;
 
-    public EntregableServiceImpl(EntregableRepository entregableRepository, UsuarioRepository usuarioRepository,
-                                 HistorialAccionService historialAccionService) {
+    public EntregableServiceImpl(EntregableRepository entregableRepository, 
+                                EntregableXTemaRepository entregableXTemaRepository,
+                                UsuarioRepository usuarioRepository,
+                                HistorialAccionService historialAccionService) {
         this.entregableRepository = entregableRepository;
+        this.entregableXTemaRepository = entregableXTemaRepository;
         this.usuarioRepository = usuarioRepository;
         this.historialAccionService = historialAccionService;
     }
@@ -226,5 +231,11 @@ public class EntregableServiceImpl implements EntregableService {
         dto.setEntregableEsEvaluable(false); // Puedes ajustar esto según lo que quieras retornar
         dto.setCorregido(false); // Puedes ajustar esto si luego quieres traerlo de la BD
         return dto;
+    }
+
+    @Transactional
+    @Override
+    public void marcarComoCorregido(Integer revisionId) {
+        entregableXTemaRepository.actualizarCorregidoPorRevisionId(revisionId, true);
     }
 }
