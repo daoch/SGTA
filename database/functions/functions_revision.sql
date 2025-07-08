@@ -675,6 +675,14 @@ BEGIN
     JOIN etapa_formativa_x_ciclo efc ON e.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
     JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
     WHERE rd.usuario_id = revisorid
+      -- Cuando un documento ha sido aprobado
+      AND EXISTS (
+          SELECT 1
+          FROM revision_documento rd_apr
+          WHERE rd_apr.version_documento_id = rd.version_documento_id
+            AND rd_apr.estado_revision = 'aprobado'
+            AND rd_apr.activo = TRUE
+      )
       AND EXISTS (
           SELECT 1
           FROM usuario_tema ut_rev

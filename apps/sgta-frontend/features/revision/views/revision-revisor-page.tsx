@@ -23,6 +23,7 @@ import { LayoutGrid, LayoutList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesTableRevisor } from "../components/RevisionesTableRevisor";
+import { RevisionesCardsRevisor } from "../components/revisiones-cards-revisor";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoRevisorDto } from "../dtos/RevisionDocumentoRevisorDto";
 
@@ -175,6 +176,7 @@ const RevisionRevisorPage = () => {
               </CardHeader>
               <CardContent>
                 {viewMode === "table" ? (
+                  // La tabla ya muestra 'Curso' como primera columna desde RevisionesTableRevisor
                   <TableComponent
                     data={documentos}
                     filter={estado.value === "todas" ? undefined : estado.value}
@@ -182,7 +184,12 @@ const RevisionRevisorPage = () => {
                     cursoFilter={cursoFilter}
                   />
                 ) : (
-                  <div>Vista de tarjetas no implementada para revisor</div>
+                  <RevisionesCardsRevisor
+                    data={documentos}
+                    filter={estado.value === "todas" ? undefined : estado.value}
+                    searchQuery={searchQuery}
+                    cursoFilter={cursoFilter}
+                  />
                 )}
               </CardContent>
             </Card>

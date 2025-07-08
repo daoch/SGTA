@@ -92,11 +92,11 @@ export function RevisionesTableAsesor({
           <TableHeader>
             <TableRow>
               <TableHead>
-                <span className="ml-2">Entregable</span>
+                <span className="ml-2">Curso</span>
               </TableHead>
+              <TableHead>Entregable</TableHead>
               <TableHead>Documento</TableHead>
               <TableHead>Estudiante</TableHead>
-              <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
               <TableHead>Gen. IA (%)</TableHead>
               <TableHead>F. de Subida</TableHead>
@@ -107,7 +107,7 @@ export function RevisionesTableAsesor({
             {revisionesFiltradas.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="text-center py-8 text-muted-foreground"
                 >
                   No hay revisiones disponibles
@@ -116,6 +116,11 @@ export function RevisionesTableAsesor({
             ) : (
               revisionesFiltradas.map((revision) => (
                 <TableRow key={revision.id}>
+                  <TableCell>
+                    <Badge variant="outline" className="bg-gray-100">
+                      {revision.curso}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
                       <span title={revision.entregable}>{revision.entregable}</span>
@@ -127,11 +132,6 @@ export function RevisionesTableAsesor({
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-gray-100">
-                      {revision.curso}
-                    </Badge>
-                  </TableCell>
                   <TableCell>
                     {revision.porcentajeSimilitud !== null ? (
                       <div className="flex items-center gap-2">
