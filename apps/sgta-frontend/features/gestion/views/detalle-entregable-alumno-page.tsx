@@ -346,36 +346,7 @@ const observacionesFiltradas = useMemo(() => {
         </div>
 
         <div className="bg-white border rounded-md p-4 space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="flex items-start gap-3">
-            <div>
-              {detalle && (
-                <>
-                  <h2 className="font-bold text-lg text-gray-900">{detalle.entregableDescripcion}</h2>
-                  <p className="text-sm text-muted-foreground">Entrega:</p>
-                  <div className="text-sm text-black">
-                    <strong>{detalle.entregableNombre}</strong>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-            <div className="flex flex-col gap-2">
-              {selectedRevisor && (
-                <div className="text-xs text-muted-foreground text-right">
-                  PDF de: {selectedRevisor}
-                </div>
-              )}
-              <Button 
-                variant="outline" 
-                onClick={handleDownload}
-                disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
-              >
-                <Download className="w-4 h-4 mr-2" /> 
-                {selectedRevisor ? "Descargar PDF Revisado" : "Seleccionar Revisor"}
-              </Button>
-            </div>
-          </div>
+        
 
           <hr className="border-gray-200" />
 
@@ -506,7 +477,7 @@ const observacionesFiltradas = useMemo(() => {
             <Button 
               onClick={handleDownload} 
               disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-[#042354] hover:bg-[#00112d]"
               size="sm"
             >
               <Download className="w-4 h-4 mr-2" />
