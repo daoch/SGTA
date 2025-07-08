@@ -174,7 +174,11 @@ public class PlagiarismServiceImpl {
         }
         // Paso 2: Asignar página a cada sentence
         for (JsonNode sentence : sentences) {
-            int start = sentence.get("start_position").asInt();
+            JsonNode startNode = sentence.get("start_position");
+            if (startNode == null || startNode.isNull()) {
+                continue; // o maneja el caso como prefieras
+            }
+            int start = startNode.asInt();
             int page = 1;
             for (int i = 0; i < pageOffsets.size(); i++) {
                 if (i == pageOffsets.size() - 1 || (start >= pageOffsets.get(i) && start < pageOffsets.get(i + 1))) {
