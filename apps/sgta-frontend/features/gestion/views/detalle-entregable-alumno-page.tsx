@@ -434,12 +434,12 @@ const observacionesFiltradas = useMemo(() => {
                 }
               >
                 {detalle?.entregableEstado
-                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1)
+                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1).replace(/_/g, ' ')
                   : "Sin estado"}
               </Badge>
             </div>
             <div>
-              <span className="block mb-1">Detección de Plagio</span>
+              <span className="block mb-1">Detección de Similitud</span>
              {/*  <progress value={1} className="h-2" />
               <span className="text-xs text-muted-foreground mt-1 block">Nivel aceptable de plagio</span>
               */}
