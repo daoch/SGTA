@@ -18,16 +18,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
+import { DocumentoConVersionDto } from "@/features/gestion/dtos/DocumentoConVersionDto";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
 import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
-import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileWarning, Info, Quote, Sparkles, X } from "lucide-react";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileArchive, FileAudio, FileCode, FileImage, FileSpreadsheet, FileText, FileVideo, FileWarning, Info, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
+import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getdocumentosSubidos, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
@@ -118,6 +120,40 @@ function getBlockquoteBorder(tipo: string) {
       return "border-gray-300";
   }
 }
+function getFileIcon(ext: string) {
+  switch (ext) {
+    case "xls":
+    case "xlsx":
+    case "csv":
+      return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+    case "doc":
+    case "docx":
+    case "txt":
+      return <FileText className="h-4 w-4 text-blue-600" />;
+    case "pdf":
+      return <FileText className="h-4 w-4 text-red-600" />;
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+      return <FileImage className="h-4 w-4 text-yellow-600" />;
+    case "zip":
+    case "rar":
+      return <FileArchive className="h-4 w-4 text-orange-600" />;
+    case "mp3":
+    case "wav":
+      return <FileAudio className="h-4 w-4 text-purple-600" />;
+    case "mp4":
+    case "avi":
+      return <FileVideo className="h-4 w-4 text-pink-600" />;
+    case "js":
+    case "ts":
+    case "json":
+      return <FileCode className="h-4 w-4 text-gray-600" />;
+    default:
+      return <FileText className="h-4 w-4 text-blue-500" />;
+  }
+}
 export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number; readonly rol_id?: number; } }) {
   const router = useRouter();
   interface Observacion {
@@ -156,6 +192,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
   const [revision2, setRevision2] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
+  const [tabPrincipal, setTabPrincipal] = useState<"principal" | "anexos">("principal");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -180,6 +217,41 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [isAnalizandoPlagio, setIsAnalizandoPlagio] = useState(false);
   const [existePlagioJson, setExistePlagioJson] = useState<string | null>(null);
   const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
+  const [archivosSubidos, setArchivosSubidos] = useState<
+    DocumentoConVersionDto[]
+  >([]);
+  // Anexos state and handlers
+  interface Anexo {
+    id: number;
+    nombre: string;
+    url?: string;
+  }
+  const [anexos, setAnexos] = useState<Anexo[]>([]);
+  const [comentarioAnexos, setComentarioAnexos] = useState<string>("");
+
+  // Dummy descargarAnexo handler
+  const handleDescargarDocumento = async (documentoNombre: string) => {
+    const documentoNombreBase64 = window.btoa(documentoNombre);
+    const response = await axiosInstance.get(
+      `s3/archivos/getUrlFromCloudFront/${documentoNombreBase64}`,
+    );
+    const fileUrl = response.data;
+    window.open(fileUrl, "_blank");
+  };
+
+  useEffect(() => {
+    const fetchArchivosSubidos = async () => {
+      try {
+        const response = await getdocumentosSubidos(params.id_revision);
+        setArchivosSubidos(response);
+      } catch (error) {
+        toast({ title: "Error al conseguir archivos subido", variant: "destructive" });
+      } finally {
+      }
+    };
+    fetchArchivosSubidos(); // Set to [] or fetch real anexos
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -691,13 +763,13 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
                     const rolId = params.rol_id ?? 0;
-                     if (rolId === 2) {
-                        // Si rol_id es 2, redirigir a la página del jurado
-                        router.push(`/jurado/revision/detalles-revision/${params.id_revision}`);
-                      } else {
-                        // Si rol_id no es 2, redirigir a la página del asesor
-                        router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
-                      }
+                    if (rolId === 2) {
+                      // Si rol_id es 2, redirigir a la página del jurado
+                      router.push(`/jurado/revision/detalles-revision/${params.id_revision}`);
+                    } else {
+                      // Si rol_id no es 2, redirigir a la página del asesor
+                      router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                    }
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {
@@ -754,20 +826,92 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="relative h-[800px]" >
-              {isHighlightsLoading ? (
-                <AppLoading />
-              ) : (
-                <HighlighterPdfViewer
-                  pdfUrl={pdfUrl ?? ""}
-                  onAddHighlight={handleNewHighlight}
-                  onDeleteHighlight={handleDeleteHighlight}
-                  onUpdateHighlight={handleUpdateHighlight}
-                  highlights={highlights}
-                  scrollToHighlight={activeHighlight}
-                />
-              )}
-            </CardContent>
+            <Tabs value={tabPrincipal} onValueChange={v => setTabPrincipal(v as "principal" | "anexos")} className="w-full">
+              <TabsList className="mb-4 flex gap-2 justify-start ml-2">
+                <TabsTrigger
+                  value="principal"
+                  className={`font-semibold transition-all px-4 py-2 rounded ${tabPrincipal === "principal"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}
+                >
+                  Documento principal
+                </TabsTrigger>
+                <TabsTrigger
+                  value="anexos"
+                  className={`font-semibold transition-all px-4 py-2 rounded ${tabPrincipal === "anexos"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}
+                >
+                  Anexos
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="principal">
+                <Card className="min-h-[800px]">
+                  <CardContent className="relative h-[800px]">
+                    {/* ...visor PDF y observaciones... */}
+                    {isHighlightsLoading ? (
+                      <AppLoading />
+                    ) : (
+                      <HighlighterPdfViewer
+                        pdfUrl={pdfUrl ?? ""}
+                        onAddHighlight={handleNewHighlight}
+                        onDeleteHighlight={handleDeleteHighlight}
+                        onUpdateHighlight={handleUpdateHighlight}
+                        highlights={highlights}
+                        scrollToHighlight={activeHighlight}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="anexos">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Anexos</CardTitle>
+                    <CardDescription>
+                      Descarga los documentos anexos y deja un comentario general si es necesario.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      {archivosSubidos && archivosSubidos.length > 0 ? (
+                        archivosSubidos.map((anexo) => (
+                          <div key={anexo.documentoId} className="flex items-center gap-2 w-full py-1 border-b last:border-b-0">
+                            <span className="mr-1">
+                              {getFileIcon(anexo.documentoNombre.split(".").pop()?.toLowerCase() ?? "")}
+                            </span>
+                            <span className="truncate flex-1 min-w-0">{anexo.documentoNombre}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDescargarDocumento(anexo.documentoLinkArchivo)}
+                            >
+                              <Download className="h-4 w-4 mr-1" /> Descargar
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">No hay anexos disponibles.</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Comentario general sobre los anexos:</label>
+                      <textarea
+                        className="w-full border rounded p-2 text-sm"
+                        rows={3}
+                        value={comentarioAnexos}
+                        onChange={e => setComentarioAnexos(e.target.value)}
+                        placeholder="Escribe aquí tu comentario general sobre los anexos..."
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </Card>
         </div>
 
@@ -845,28 +989,34 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </div>
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio")}>
-                <TabsList className="mb-4 w-full flex items-stretch">
+            <CardContent >
+              <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio" | "ia")} >
+                <TabsList className="mb-4 w-full flex gap-2 items-stretch bg-gray-100 overflow-x-auto whitespace-nowrap">
                   <TabsTrigger
                     value="revisor"
-                    className={`font-semibold transition-all w-full ${tab === "revisor"
-                      ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                      : ""
+                    className={` font-semibold transition-all ${tab === "revisor" ? "bg-pucp-blue text-white shadow" : ""
                       }`}
                   >
                     Revisor ({highlights.length || 0})
                   </TabsTrigger>
-                  <TabsTrigger value="plagio" className={`font-semibold transition-all ${tab === "plagio"
-                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                    : ""
-                    }`}>Deteccion de similitud ({plagioData?.detalles.length || 0})</TabsTrigger>
-                  <TabsTrigger value="ia" className={`font-semibold transition-all ${tab === "ia"
-                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                    : ""
-                    }`}>Generado con IA ({IAData?.sentences.length || 0})</TabsTrigger>
+
+                  <TabsTrigger
+                    value="plagio"
+                    className={` font-semibold transition-all ${tab === "plagio" ? "bg-pucp-blue text-white shadow" : ""
+                      }`}
+                  >
+                    Similitud ({plagioData?.detalles.length || 0})
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="ia"
+                    className={` font-semibold transition-all ${tab === "ia" ? "bg-pucp-blue text-white shadow" : ""
+                      }`}
+                  >
+                    IA ({IAData?.sentences.length || 0})
+                  </TabsTrigger>
                 </TabsList>
-                <TabsContent value="revisor">
+                <TabsContent value="revisor" className="mt-2 relative z-0">
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {highlights.slice().sort((a, b) => {
                       const pageA = a.position.pageNumber ?? 0;
@@ -918,7 +1068,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     )}
                   </div>
                 </TabsContent>
-                <TabsContent value="plagio">
+                <TabsContent value="plagio" className="mt-2 relative z-0">
                   <div className="space-y-4">
                     {plagioData && plagioData.detalles && plagioData.detalles.length > 0 && (
                       <div className={`p-3 rounded-lg border flex items-center gap-2 justify-center mb-2 ${getPlagioColorClass(plagioData.coincidencias)}`}>
@@ -979,7 +1129,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     )}
                   </div>
                 </TabsContent>
-                <TabsContent value="ia">
+                <TabsContent value="ia" className="mt-4 relative z-0">
 
                   {IAData && IAData.sentences && IAData.sentences.length > 0 ? (
                     <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">

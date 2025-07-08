@@ -14,6 +14,15 @@ export interface CrearCicloDto {
   fechaFin: string;
 }
 
+export interface ActualizarCicloDto {
+  id: number;
+  semestre: string;
+  anio: number;
+  fechaInicio: string;
+  fechaFin: string;
+  activo?: boolean;
+}
+
 export interface CicloEtapas {
   id: number;
   semestre: string;

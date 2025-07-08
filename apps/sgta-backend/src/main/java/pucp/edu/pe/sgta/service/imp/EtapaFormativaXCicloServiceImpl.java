@@ -21,6 +21,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloAsesorDto;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,6 +119,7 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
         }
     }
 
+
     //get all by carrera id, agregar que sea activo true
     @Override
     public List<EtapaFormativaXCicloDto> getAllByCarreraId(String idCognito) {
@@ -169,12 +171,23 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request) {
+    public EtapaFormativaXCicloDto actualizarEstadoRelacion(String usuarioCognito, Integer relacionId, UpdateEtapaFormativaRequest request) {
         // Buscar la relación por ID
         EtapaFormativaXCiclo relacion = etapaFormativaXCicloRepository.findById(relacionId)
-            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); // <-- Usar RuntimeException
+            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); 
 
         relacion.setEstado(request.getEstado());
+
+        // Publicar evento de auditoría
+        eventPublisher.publishEvent(
+            new AuditoriaEvent(
+                this,
+                usuarioCognito,
+                OffsetDateTime.now(),
+                "Actualizó el estado de la etapa formativa por ciclo con ID: " + relacionId
+            )
+        );
+
         EtapaFormativaXCiclo relacionActualizada = etapaFormativaXCicloRepository.save(relacion);
         return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
     }
@@ -285,6 +298,29 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
         } else {
             throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
         }
+    }
+
+    @Override
+    public List<EtapaFormativaXCicloAsesorDto> obtenerEtapasFormativasPorAsesorYCicloActivo(String idCognito) {
+        Integer usuarioId = usuarioService.findByCognitoId(idCognito).getId();
+
+        List<Object[]> result = etapaFormativaXCicloRepository.obtenerEtapasFormativasPorAsesorYCicloActivo(usuarioId);
+        List<EtapaFormativaXCicloAsesorDto> etapas = new ArrayList<>();
+
+        for(Object[] row: result){
+            EtapaFormativaXCicloAsesorDto etapa = EtapaFormativaXCicloAsesorDto.builder()
+                .etapaFormativaXCicloId((Integer) row[0])
+                .etapaFormativaId((Integer) row[1])
+                .etapaFormativaNombre((String) row[2])
+                .carreraId((Integer) row[3])
+                .carreraNombre((String) row[4])
+                .cicloId((Integer) row[5])
+                .cicloNombre((String) row[6])
+                .cantidadTesistas((Integer) row[7])
+                .build();
+            etapas.add(etapa);
+        }
+        return etapas;
     }
 
 }

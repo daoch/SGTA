@@ -1,10 +1,8 @@
 "use client";
 
 import {
-  AlertTriangle,
   CheckCircle,
   Eye,
-  FileText,
   Search
 } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +20,7 @@ import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 
 interface RevisionesTableJuradoProps {
   data: DocumentoAgrupado[];
-  filter?: string | string[]; 
+  filter?: string | string[];
   searchQuery?: string;
   cursoFilter?: string;
 }
@@ -39,18 +37,18 @@ export function RevisionesTableJurado({
 
   // Filtrar por estado
   if (filter) {
-  // Si filter es un array de strings
-  if (Array.isArray(filter)) {
-    revisionesFiltradas = revisionesFiltradas.filter((revision) =>
-      filter.includes(revision.estado) // Compara si el estado está en el array
-    );
-  } else {
-    // Si filter es un solo string
-    revisionesFiltradas = revisionesFiltradas.filter(
-      (revision) => revision.estado === filter
-    );
+    // Si filter es un array de strings
+    if (Array.isArray(filter)) {
+      revisionesFiltradas = revisionesFiltradas.filter((revision) =>
+        filter.includes(revision.estado) // Compara si el estado está en el array
+      );
+    } else {
+      // Si filter es un solo string
+      revisionesFiltradas = revisionesFiltradas.filter(
+        (revision) => revision.estado === filter
+      );
+    }
   }
-}
   console.log("revisionesFiltradas", revisionesFiltradas);
   // Filtrar por curso
   if (cursoFilter !== "todos") {
@@ -99,14 +97,14 @@ export function RevisionesTableJurado({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Curso</TableHead>
+              <TableHead>Estudiante</TableHead>
               <TableHead>
                 <span className="ml-2">Entregable</span>
               </TableHead>
               <TableHead>Documento</TableHead>
-              <TableHead>Estudiante</TableHead>
-              <TableHead>Curso</TableHead>
               <TableHead>Similitud (%)</TableHead>
-              <TableHead>Gen. IA (%)</TableHead>
+              <TableHead>Punt. Human (%)</TableHead>
               <TableHead>F. de Subida</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -124,6 +122,12 @@ export function RevisionesTableJurado({
             ) : (
               revisionesFiltradas.map((revision) => (
                 <TableRow key={revision.id}>
+                  <TableCell>
+                    <Badge variant="outline" className="bg-gray-100">
+                      {revision.curso}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell className="font-medium max-w-xs truncate">
                     <div className="flex items-center gap-2">
                       <span title={revision.entregable}>{revision.entregable}</span>
@@ -133,12 +137,6 @@ export function RevisionesTableJurado({
                     <div className="flex items-center gap-2">
                       <span title={revision.titulo}>{revision.titulo}</span>
                     </div>
-                  </TableCell>
-                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-gray-100">
-                      {revision.curso}
-                    </Badge>
                   </TableCell>
                   <TableCell>
                     {revision.porcentajeSimilitud !== null ? (
@@ -164,11 +162,13 @@ export function RevisionesTableJurado({
                       <div className="flex items-center gap-2">
                         <span
                           className={
-                            revision.porcentajeGenIA > 20
-                              ? "text-red-600"
-                              : revision.porcentajeGenIA > 10
-                                ? "text-yellow-600"
-                                : "text-green-600"
+                            revision.porcentajeGenIA >= 90
+                              ? "text-green-600"
+                              : revision.porcentajeGenIA >= 70
+                                ? "text-yellow-500"
+                                : revision.porcentajeGenIA >= 50
+                                  ? "text-orange-500"
+                                  : "text-red-600"
                           }
                         >
                           {revision.porcentajeGenIA}%
@@ -207,8 +207,8 @@ export function RevisionesTableJurado({
                             revision.estado === "por_aprobar" || revision.estado === "aprobado"
                               ? "text-yellow-600"
                               : revision.estado === "revisado"
-                              ? "text-green-600"
-                              : "text-muted-foreground"
+                                ? "text-green-600"
+                                : "text-muted-foreground"
                           }
                         >
                           {revision.estado === "por_aprobar" || revision.estado === "aprobado" ? (

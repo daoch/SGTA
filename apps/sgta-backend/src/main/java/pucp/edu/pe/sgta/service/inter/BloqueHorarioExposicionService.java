@@ -22,7 +22,7 @@ public interface BloqueHorarioExposicionService {
 
     boolean updateBlouqesListNextPhase(List<ListBloqueHorarioExposicionSimpleDTO> bloquesList,Integer exposicionId,Integer origen);
 
-    boolean finishPlanning(Integer exposicionId);
+    boolean finishPlanning(String usuarioCognito, Integer exposicionId);
 
     Integer createAll(List<BloqueHorarioExposicionCreateDTO> dtos);
 

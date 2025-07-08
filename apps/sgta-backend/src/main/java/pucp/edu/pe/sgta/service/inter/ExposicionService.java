@@ -15,11 +15,11 @@ public interface ExposicionService {
 
     ExposicionDto findById(Integer id);
 
-    Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto);
+    Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto, String cognitoId);
 
-    void update(ExposicionDto dto);
+    void update(ExposicionDto dto, String cognitoId);
 
-    void delete(Integer id);
+    void delete(Integer id, String cognitoId);
 
     List<ExposicionNombreDTO> listarExposicionXCicloActualEtapaFormativa(Integer etapaFormativaId);
 
