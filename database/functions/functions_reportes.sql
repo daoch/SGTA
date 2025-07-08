@@ -1439,15 +1439,18 @@ BEGIN
         RETURN;
     END IF;
 
-    -- 3. Calcular las estadísticas y obtener el siguiente entregable no enviado
+    -- 3. Calcular las estadísticas y obtener el siguiente entregable no enviado (SOLO EVALUABLES)
     RETURN QUERY
     WITH estadisticas AS (
         SELECT 
             COUNT(et.entregable_x_tema_id) as total,
             COUNT(CASE WHEN et.estado = 'enviado_a_tiempo' THEN 1 END) as enviados
         FROM entregable_x_tema et
+        JOIN entregable e_eval ON e_eval.entregable_id = et.entregable_id
         WHERE et.tema_id = v_tema_id
         AND et.activo = true
+        AND e_eval.es_evaluable = TRUE  -- ✅ FILTRO AGREGADO: Solo entregables evaluables
+        AND e_eval.activo = TRUE
     ),
     siguiente_entregable AS (
         SELECT e.nombre, e.fecha_fin
@@ -1458,6 +1461,7 @@ BEGIN
         AND e.fecha_fin > NOW()
         AND e.activo = TRUE
         AND et.activo = TRUE
+        AND e.es_evaluable = TRUE  -- ✅ FILTRO AGREGADO: Solo mostrar siguiente entregable evaluable
         ORDER BY e.fecha_fin ASC
         LIMIT 1
     )
