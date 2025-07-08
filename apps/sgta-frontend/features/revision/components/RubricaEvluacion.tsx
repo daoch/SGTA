@@ -130,7 +130,7 @@ export function RubricaEvaluacion({ revisionId, onCancel, onComplete: onComplete
       }
     }
     fetchCriteriosEntData();
-  }, []);
+  }, [revisionId]);
 
 
   return (

@@ -81,7 +81,6 @@ public class EntregableController {
 
     @PutMapping("/marcar-corregido/{revisionId}")
     public void marcarComoCorregido(@PathVariable Integer revisionId, HttpServletRequest request) {
-        String cognitoId = jwtService.extractSubFromRequest(request);
         entregableService.marcarComoCorregido(revisionId);
     }
 }

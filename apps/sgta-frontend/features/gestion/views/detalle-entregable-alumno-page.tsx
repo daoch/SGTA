@@ -434,7 +434,7 @@ const observacionesFiltradas = useMemo(() => {
                 }
               >
                 {detalle?.entregableEstado
-                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1).replace(/_/g, ' ')
+                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1).replace(/_/g, " ")
                   : "Sin estado"}
               </Badge>
             </div>
