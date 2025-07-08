@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.UsuarioRolRevisorDto;
 import pucp.edu.pe.sgta.repository.EtapaFormativaXCicloXUsuarioRolRepository;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloXUsuarioRolService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +13,17 @@ import java.util.List;
 public class EtapaFormativaXCicloXUsuarioRolServiceImpl implements EtapaFormativaXCicloXUsuarioRolService {
 
     private final EtapaFormativaXCicloXUsuarioRolRepository etapaFormativaXCicloXUsuarioRolRepository;
+    private final HistorialAccionService historialAccionService;
 
-    public EtapaFormativaXCicloXUsuarioRolServiceImpl(EtapaFormativaXCicloXUsuarioRolRepository etapaFormativaXCicloXUsuarioRolRepository) {
+    public EtapaFormativaXCicloXUsuarioRolServiceImpl(EtapaFormativaXCicloXUsuarioRolRepository etapaFormativaXCicloXUsuarioRolRepository,
+                                                      HistorialAccionService historialAccionService) {
         this.etapaFormativaXCicloXUsuarioRolRepository = etapaFormativaXCicloXUsuarioRolRepository;
+        this.historialAccionService = historialAccionService;
     }
 
-    public void asignarRevisor(Integer cursoId, Integer revisorId) {
+    public void asignarRevisor(Integer cursoId, Integer revisorId, String cognitoId) {
         etapaFormativaXCicloXUsuarioRolRepository.asignarRevisor(cursoId, revisorId);
+        historialAccionService.registrarAccion(cognitoId, "Se asignó el revisor " + revisorId + " al curso " + cursoId);
         etapaFormativaXCicloXUsuarioRolRepository.asociarTemasARevisor(cursoId, revisorId);
     }
 

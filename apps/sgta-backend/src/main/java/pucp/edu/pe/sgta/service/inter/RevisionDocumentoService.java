@@ -12,7 +12,8 @@ import pucp.edu.pe.sgta.util.EstadoRevision;
 import java.util.List;
 
 public interface RevisionDocumentoService {
-    
+
+    RevisionDocumento findById(Integer revisionId);
     List<RevisionDocumento> findByUsuarioId(Integer usuarioId);
     
     List<RevisionDocumento> findByVersionDocumentoId(Integer versionDocumentoId);
@@ -51,4 +52,5 @@ public interface RevisionDocumentoService {
     List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId);
     void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado);
     List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId);
+    void borrarRevision(Integer versionid);
 }

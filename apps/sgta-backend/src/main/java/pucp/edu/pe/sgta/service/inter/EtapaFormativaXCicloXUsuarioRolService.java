@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface EtapaFormativaXCicloXUsuarioRolService {
 
-    void asignarRevisor(Integer cursoId, Integer revisorId);
+    void asignarRevisor(Integer cursoId, Integer revisorId, String cognitoId);
     List<UsuarioRolRevisorDto> listarRevisoresXCarreraCicloActivo(Integer carreraId);
 }

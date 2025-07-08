@@ -10,6 +10,7 @@ import pucp.edu.pe.sgta.dto.UsuarioRolRevisorDto;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.EtapaFormativaXCicloXUsuarioRolService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import pucp.edu.pe.sgta.service.inter.UsuarioXCarreraService;
 
 import java.util.List;
@@ -28,9 +29,11 @@ public class EtapaFormativaXCicloXUsuarioRolController {
     UsuarioXCarreraService usuarioXCarreraService;
 
     @PostMapping("/asignarRevisor/curso/{cursoId}/revisor/{revisorId}")
-    public ResponseEntity<String> asignarRevisor(@PathVariable Integer cursoId, @PathVariable Integer revisorId) {
+    public ResponseEntity<String> asignarRevisor(@PathVariable Integer cursoId, @PathVariable Integer revisorId,
+                                                 HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
         try {
-            etapaFormativaXCicloXUsuarioRolService.asignarRevisor(cursoId, revisorId);
+            etapaFormativaXCicloXUsuarioRolService.asignarRevisor(cursoId, revisorId, cognitoId);
             return ResponseEntity.ok("Revisor asignado correctamente.");
         } catch (Exception e) {
             if (e.getMessage().contains("Ya existe un revisor")) {

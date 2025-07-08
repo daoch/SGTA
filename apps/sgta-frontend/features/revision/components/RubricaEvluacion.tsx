@@ -31,7 +31,10 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
     async function postNotas() {
       try {
         await guardarNota(rubricaItems);
-
+        await axiosInstance.put(`/revision/${revisionId}/estado`, {
+        estado: "revisado"
+      });
+      console.log("Notas guardadas correctamente");
         //Envio de correo a alumno
         const nombreEntregable = rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : "Entregable";
         axiosInstance.post("/notifications/notificar-estado", null, {
