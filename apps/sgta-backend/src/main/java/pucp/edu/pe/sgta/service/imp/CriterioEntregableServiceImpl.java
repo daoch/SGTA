@@ -5,6 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.CriterioEntregableDto;
+import pucp.edu.pe.sgta.dto.RevisionCriterioEntregableDto;
 import pucp.edu.pe.sgta.dto.SubAreaConocimientoDto;
 import pucp.edu.pe.sgta.dto.TemaDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
@@ -13,6 +14,7 @@ import pucp.edu.pe.sgta.model.CriterioEntregable;
 import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.repository.CriterioEntregableRepository;
 import pucp.edu.pe.sgta.service.inter.CriterioEntregableService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -27,12 +29,15 @@ import java.util.Optional;
 public class CriterioEntregableServiceImpl implements CriterioEntregableService {
 
     private final CriterioEntregableRepository criterioEntregableRepository;
+    private final HistorialAccionService historialAccionService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository) {
+    public CriterioEntregableServiceImpl(CriterioEntregableRepository criterioEntregableRepository,
+                                         HistorialAccionService historialAccionService) {
         this.criterioEntregableRepository = criterioEntregableRepository;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -43,7 +48,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Transactional
     @Override
-    public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto) {
+    public int crearCriterioEntregable(Integer entregableId, CriterioEntregableDto criterioEntregableDto, String cognitoId) {
         criterioEntregableDto.setId(null);
         CriterioEntregable criterioEntregable = CriterioEntregableMapper.toEntity(criterioEntregableDto);
         Entregable entregable = new Entregable();
@@ -51,12 +56,14 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         criterioEntregable.setEntregable(entregable);
         criterioEntregable.setFechaCreacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregable);
+        historialAccionService.registrarAccion(cognitoId, "Se creó el criterio de entregable " + criterioEntregable.getId()
+                + " para el entregable " + entregableId);
         return criterioEntregable.getId();
     }
 
     @Transactional
     @Override
-    public void update(CriterioEntregableDto criterioEntregableDto) {
+    public void update(CriterioEntregableDto criterioEntregableDto, String cognitoId) {
         CriterioEntregable criterioEntregableToUpdate = criterioEntregableRepository.findById(criterioEntregableDto.getId())
                 .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + criterioEntregableDto.getId()));
 
@@ -65,6 +72,7 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
         criterioEntregableToUpdate.setDescripcion(criterioEntregableDto.getDescripcion());
         criterioEntregableToUpdate.setFechaModificacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregableToUpdate);
+        historialAccionService.registrarAccion(cognitoId, "Se actualizó el criterio de entregable " + criterioEntregableDto.getId());
     }
 
     @Override
@@ -124,17 +132,42 @@ public class CriterioEntregableServiceImpl implements CriterioEntregableService 
 
     @Transactional
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id, String cognitoId) {
         CriterioEntregable criterioEntregableToDelete = criterioEntregableRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CriterioEntregable no encontrado con ID: " + id));
 
         criterioEntregableToDelete.setActivo(false);
         criterioEntregableToDelete.setFechaModificacion(OffsetDateTime.now());
         criterioEntregableRepository.save(criterioEntregableToDelete);
+        historialAccionService.registrarAccion(cognitoId, "Se eliminó el criterio de entregable " + id);
     }
 
     @Override
     public Optional<CriterioEntregable> findById(Integer id) {
         return criterioEntregableRepository.findById(id);
+    }
+    @Override
+    public List<RevisionCriterioEntregableDto> listarRevisionCriterioPorEntregableXTema(Integer entregableXtemaId) {
+        List<Object[]> resultados = criterioEntregableRepository.listarRevisionCriterioPorEntregableXTema(entregableXtemaId);
+        List<RevisionCriterioEntregableDto> lista = new ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            RevisionCriterioEntregableDto dto = new RevisionCriterioEntregableDto(
+                (Integer) fila[0],  // entregable_x_tema_id
+                (Integer) fila[1],  // criterio_entregable_id
+                (Integer) fila[2],  // usuario_id
+                (String) fila[3],   // nombre completo usuario
+                (Integer) fila[4],  // revision_documento_id
+                fila[5] != null ? ((Number) fila[5]).doubleValue() : null, // nota
+                (String) fila[6],   // observacion
+                (Integer) fila[7],  // entregable_id
+                (String) fila[8],   // nombre_criterio
+                fila[9] != null ? ((Number) fila[9]).doubleValue() : null, // nota_maxima
+                (String) fila[10]   // descripcion_criterio
+            );
+            lista.add(dto);
+        }
+
+        return lista;
     }
 }

@@ -98,9 +98,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/assign-advisor-role")
-    public ResponseEntity<?> assignAdvisorRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> assignAdvisorRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.assignAdvisorRoleToUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.assignAdvisorRoleToUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Asesor asignado exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -119,9 +120,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/remove-advisor-role")
-    public ResponseEntity<?> removeAdvisorRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> removeAdvisorRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.removeAdvisorRoleFromUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.removeAdvisorRoleFromUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Asesor removido exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -140,9 +142,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/assign-jury-role")
-    public ResponseEntity<?> assignJuryRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> assignJuryRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.assignJuryRoleToUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.assignJuryRoleToUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Jurado asignado exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -161,9 +164,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/remove-jury-role")
-    public ResponseEntity<?> removeJuryRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> removeJuryRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.removeJuryRoleFromUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.removeJuryRoleFromUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Jurado removido exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

@@ -35,4 +35,6 @@ public class UsuarioXGrupoInvestigacion {
 	@Column(name = "fecha_modificacion", insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+
+
 }

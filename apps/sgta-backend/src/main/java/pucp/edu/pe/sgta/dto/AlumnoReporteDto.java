@@ -19,5 +19,6 @@ public class AlumnoReporteDto {
     private Integer temaId;
     private String asesor;
     private String coasesor;
+    private String etapaFormativaNombre;
     private Boolean activo;
 } 

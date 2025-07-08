@@ -15,9 +15,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
 import pucp.edu.pe.sgta.mapper.BloqueHorarioExposicionMapper;
 import pucp.edu.pe.sgta.model.BloqueHorarioExposicion;
 import pucp.edu.pe.sgta.repository.BloqueHorarioExposicionRepository;
@@ -45,13 +47,15 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     private final TemaRepository temaRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     @Value("${url.back}")
     private String backURL;
 
     public BloqueHorarioExposicionServiceImpl(BloqueHorarioExposicionRepository bloqueHorarioExposicionRepository,
             ControlExposicionUsuarioTemaRepository controlExposicionUsuarioTemaRepository,
             GoogleCalendarService googleCalendarService, GoogleGmailService googleGmailService,
-            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository) {
+            HttpServletRequest request, ExposicionService exposicionService, TemaRepository temaRepository,ApplicationEventPublisher eventPublisher) {
         this.bloqueHorarioExposicionRepository = bloqueHorarioExposicionRepository;
         this.controlExposicionUsuarioTemaRepository = controlExposicionUsuarioTemaRepository;
         this.googleCalendarService = googleCalendarService;
@@ -59,6 +63,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
         this.exposicionService = exposicionService;
         this.request = request;
         this.temaRepository = temaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -248,7 +253,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             bloqueHorarioExposicionRepository.updateBloquesExposicionNextPhase(jsonString);
 
             System.out.println(bloquesList);
-            int i = 0;
+
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesCambiado = new ArrayList<>();
             System.out.println("==================================================================");
             for (ListBloqueHorarioExposicionSimpleDTO dto : bloquesList) {
@@ -288,11 +293,12 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
             String accessToken = (String) session.getAttribute("googleAccessToken");
             if (accessToken == null)
                 throw new RuntimeException("No hay access token en sesión");
+
             try {
                 // 1. Construir cliente Gmail
                 Gmail gmail = googleGmailService.buildGmailClient(accessToken);
                 for (ListBloqueHorarioExposicionSimpleDTO bloque : bloquesCambiado) {
-                    if (bloque.getExpo() == null) {
+                    if (bloque.getExpo() == null ) {
                         continue;
                     }
                     TemaConAsesorJuradoDTO tema = bloque.getExpo();
@@ -304,7 +310,9 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                         if (!usuario.getRol().getNombre().equals("Asesor")
                                 && !usuario.getRol().getNombre().equals("Jurado"))
                             continue;
-
+                        /*if(!usuario.getCorreo().equals("a20191810@pucp.edu.pe")){
+                            continue;
+                        }*/
                         // 2. Datos del correo
                         String token = UUID.randomUUID().toString();// ESTE ES EL TOKEN IDENTIFICADOR
                         try {
@@ -361,6 +369,7 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
                             System.out.println("Correo enviado correctamente a: " + usuario.getCorreo());
                             System.out.println("Correo enviado correctamente.");
 
+
                         } catch (Exception e) {
                             System.err.println("Error al enviar correo a: " + usuario.getCorreo());
                             e.printStackTrace(); // o usar logger
@@ -383,11 +392,13 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
     @Transactional
     @Override
-    public boolean finishPlanning(Integer exposicionId) {
+    public boolean finishPlanning(String usuarioCognito, Integer exposicionId) {
 
         try {
             Boolean result = bloqueHorarioExposicionRepository.finishPlanning(exposicionId);
-
+            eventPublisher.publishEvent(
+                new AuditoriaEvent(this, usuarioCognito, OffsetDateTime.now(), "Finalizó la planificación de bloques de la exposición con ID: " + exposicionId)
+            );
             return Boolean.TRUE.equals(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -491,8 +502,10 @@ public class BloqueHorarioExposicionServiceImpl implements BloqueHorarioExposici
 
                 }
 
+
                 try {
                     googleCalendarService.sendEvent(summary, description, attendes, start, end, sala, calendar);
+
                     attendes.clear();
                 } catch (Exception e) {
                     e.printStackTrace();

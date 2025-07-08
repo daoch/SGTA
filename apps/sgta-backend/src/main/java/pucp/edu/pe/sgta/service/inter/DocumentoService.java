@@ -9,8 +9,9 @@ import java.util.List;
 
 public interface DocumentoService {
     List<DocumentoConVersionDto> listarDocumentosPorEntregable(Integer entregableXTemaId);
+    List<DocumentoConVersionDto> listarDocumentosPorRevision(Integer revisionId);
     Integer create(Documento documento);
-    void borrarDocumento(Integer documentoId);
+    void borrarDocumento(Integer documentoId, String cognitoId);
     ResponseEntity<String> subirDocumentos(
             Integer entregableXTemaId,
             MultipartFile[] archivos,
@@ -18,6 +19,7 @@ public interface DocumentoService {
             String curso,
             String comentario,
             String estado,
+            String documentoPrincipalNombre,
             String cognitoId
     );
 }

@@ -66,6 +66,8 @@ public class UsuarioXSolicitud {
 	@Column(name = "fecha_modificacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+
+
 	@PrePersist
 	protected void onCreate() {
 		fechaCreacion = OffsetDateTime.now();

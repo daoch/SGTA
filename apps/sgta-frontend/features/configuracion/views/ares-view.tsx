@@ -17,6 +17,7 @@ import {
   getAllSubAreasByAreaId,
 } from "@/features/configuracion/services/configuracion-service";
 import { AreaResponse, AreaType, SubAreaType } from "@/features/configuracion/types/Area.type";
+import { ConfirmarEliminarModal } from "../components/configuracion/confirmar-eliminar-modal";
 
 export default function AreasPage() {
   const [areas, setAreas] = useState<AreaType[]>([]);
@@ -29,6 +30,11 @@ export default function AreasPage() {
     type: "addArea" | "addSubArea" | "deleteArea" | "deleteSubArea" | "save" | null;
     id?: number;
   }>({ type: null });
+  const [modalEliminar, setModalEliminar] = useState<{
+    tipo: "area" | "subarea" | null;
+    idArea?: number;
+    idSubArea?: number;
+  }>({ tipo: null });
 
   // Cargar áreas al montar el componente
   useEffect(() => {
@@ -99,23 +105,7 @@ export default function AreasPage() {
   };
 
   const handleDeleteArea = async (id: number) => {
-    try {
-      setLoadingOperation({ type: "deleteArea", id });
-      await deleteAreaById(id);
-      setAreas((prev) => prev.filter((area) => area.id !== id));
-      // Remove from expanded areas if it was expanded
-      setExpandedAreas(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
-      toast.success("Área eliminada exitosamente");
-    } catch (error) {
-      console.error("Error al eliminar el área:", error);
-      toast.error("Error al eliminar el área");
-    } finally {
-      setLoadingOperation({ type: null });
-    }
+    setModalEliminar({ tipo: "area", idArea: id });
   };
 
   const handleAddSubArea = async (areaId: number) => {
@@ -157,25 +147,50 @@ export default function AreasPage() {
   };
 
   const handleDeleteSubArea = async (areaId: number, subAreaId: number) => {
-    try {
-      setLoadingOperation({ type: "deleteSubArea", id: areaId });
-      await deleteSubAreaById(subAreaId);
-      setAreas((prev) =>
-        prev.map((area) =>
-          area.id === areaId
-            ? {
-                ...area,
-                subAreas: area.subAreas.filter((sub) => sub.id !== subAreaId),
-              }
-            : area,
-        ),
-      );
-      toast.success("Subárea eliminada exitosamente");
-    } catch (error) {
-      console.error("Error al eliminar la subárea:", error);
-      toast.error("Error al eliminar la subárea");
-    } finally {
-      setLoadingOperation({ type: null });
+    setModalEliminar({ tipo: "subarea", idArea: areaId, idSubArea: subAreaId });
+  };
+
+  const confirmarEliminar = async () => {
+    if (modalEliminar.tipo === "area" && modalEliminar.idArea) {
+      try {
+        setLoadingOperation({ type: "deleteArea", id: modalEliminar.idArea });
+        await deleteAreaById(modalEliminar.idArea);
+        setAreas((prev) => prev.filter((area) => area.id !== modalEliminar.idArea));
+        setExpandedAreas((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(modalEliminar.idArea!);
+          return newSet;
+        });
+        toast.success("Área eliminada exitosamente");
+      } catch (error) {
+        console.error("Error al eliminar el área:", error);
+        toast.error("Error al eliminar el área");
+      } finally {
+        setLoadingOperation({ type: null });
+        setModalEliminar({ tipo: null });
+      }
+    } else if (modalEliminar.tipo === "subarea" && modalEliminar.idArea && modalEliminar.idSubArea) {
+      try {
+        setLoadingOperation({ type: "deleteSubArea", id: modalEliminar.idArea });
+        await deleteSubAreaById(modalEliminar.idSubArea);
+        setAreas((prev) =>
+          prev.map((area) =>
+            area.id === modalEliminar.idArea
+              ? {
+                  ...area,
+                  subAreas: area.subAreas.filter((sub) => sub.id !== modalEliminar.idSubArea),
+                }
+              : area,
+          ),
+        );
+        toast.success("Subárea eliminada exitosamente");
+      } catch (error) {
+        console.error("Error al eliminar la subárea:", error);
+        toast.error("Error al eliminar la subárea");
+      } finally {
+        setLoadingOperation({ type: null });
+        setModalEliminar({ tipo: null });
+      }
     }
   };
 
@@ -291,7 +306,7 @@ export default function AreasPage() {
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteArea(area.id);
+                        setModalEliminar({ tipo: "area", idArea: area.id });
                       }}
                       disabled={
                         loadingOperation.type === "deleteArea" &&
@@ -357,7 +372,10 @@ export default function AreasPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleDeleteSubArea(area.id, subArea.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setModalEliminar({ tipo: "subarea", idArea: area.id, idSubArea: subArea.id });
+                                }}
                                 disabled={
                                   loadingOperation.type === "deleteSubArea" &&
                                   loadingOperation.id === area.id
@@ -387,6 +405,17 @@ export default function AreasPage() {
           )}
         </ScrollArea>
       </div>
+
+      <ConfirmarEliminarModal
+        isOpen={modalEliminar.tipo !== null}
+        onClose={() => setModalEliminar({ tipo: null })}
+        onConfirm={confirmarEliminar}
+        title={modalEliminar.tipo === "area" ? "Eliminar área" : "Eliminar subárea"}
+        description={modalEliminar.tipo === "area"
+          ? "¿Estás seguro de que deseas eliminar esta área? Se eliminarán también todas sus subáreas."
+          : "¿Estás seguro de que deseas eliminar esta subárea?"}
+        isLoading={loadingOperation.type === "deleteArea" || loadingOperation.type === "deleteSubArea"}
+      />
     </div>
   );
 } 

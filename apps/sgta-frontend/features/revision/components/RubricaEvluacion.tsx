@@ -34,7 +34,7 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
 
         //Envio de correo a alumno
         const nombreEntregable = rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : "Entregable";
-        await axiosInstance.post("/notifications/notificar-estado", null, {
+        axiosInstance.post("/notifications/notificar-estado", null, {
           params: {
             revisionId: revisionId,
             nombreDocumento: " ", 
@@ -44,7 +44,7 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
         });  
 
         // Envío de correo al revisor
-        await axiosInstance.post("/notifications/send-email-a-revisor", null, {
+        axiosInstance.post("/notifications/send-email-a-revisor", null, {
           params: {
             revisionId: revisionId,
             nombreDocumento: " ",

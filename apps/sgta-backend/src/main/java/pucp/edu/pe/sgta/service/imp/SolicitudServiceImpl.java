@@ -23,23 +23,32 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter; // De local
 
+import pucp.edu.pe.sgta.dto.SolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import pucp.edu.pe.sgta.exception.ResourceNotFoundException; // De local
+import org.springframework.web.server.ResponseStatusException;
 
 import pucp.edu.pe.sgta.dto.*;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudCambioAsesorResponseDto.AprobarCambioAsesorAsignacionDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudCambioAsesorResponseDto.CambioAsignacionDto;
+import pucp.edu.pe.sgta.dto.AprobarSolicitudResponseDto.AprobarAsignacionDto;
+import pucp.edu.pe.sgta.dto.RechazoSolicitudResponseDto.AsignacionDto;
 import pucp.edu.pe.sgta.dto.asesores.DetalleSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.dto.asesores.EstudianteSimpleDto;
 import pucp.edu.pe.sgta.dto.asesores.ReasignacionPendienteDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCambioAsesorResumenDto;
+import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseAsesoriaResumenDto;
 import pucp.edu.pe.sgta.dto.asesores.SolicitudCeseDetalleDto;
 import pucp.edu.pe.sgta.dto.asesores.UsuarioSolicitudCambioAsesorDto;
 import pucp.edu.pe.sgta.model.*;
 import pucp.edu.pe.sgta.dto.temas.SolicitudTemaDto;
 import pucp.edu.pe.sgta.repository.*;
 import pucp.edu.pe.sgta.service.inter.NotificacionService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import pucp.edu.pe.sgta.service.inter.SolicitudService;
 import pucp.edu.pe.sgta.service.inter.TemaService;
 import pucp.edu.pe.sgta.util.*;
@@ -92,6 +101,9 @@ public class SolicitudServiceImpl implements SolicitudService {
     private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private RolRepository rolRepository;
+
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     private static final String ROL_NOMBRE_TESISTA = "Tesista";
     @Autowired
@@ -274,6 +286,8 @@ public class SolicitudServiceImpl implements SolicitudService {
             dto.setId(temaId);
             temaService.createInscripcionTemaV2(dto, usuarioId, true);
             temaService.actualizarTemaYHistorial(temaId, "INSCRITO", "Todas las observaciones fueron atendidas");
+            historialAccionService.registrarAccion(usuarioId, "Se atendieron las solicitud del tema con ID: " + temaId );
+
         }
 
     }
@@ -424,6 +438,16 @@ public class SolicitudServiceImpl implements SolicitudService {
                 "SISTEMA",
                 null
         );
+        // --- AUDITORÍA ---
+        // 'tema' debe haber sido cargado previamente en el método (temaRepository.findById(solicitud.getTemaId()))
+        String temaTitulo = tema.getTitulo();
+        historialAccionService.registrarAccion(
+            cognitoId,
+            String.format("Registró solicitud de cambio de asesor (ID: %d) para el tema '%s'.",
+                nuevaSolicitud.getId(), temaTitulo)
+        );
+        // --- FIN AUDITORÍA ---
+
         return solicitud;
     }
 
@@ -512,6 +536,17 @@ public class SolicitudServiceImpl implements SolicitudService {
         if(estado == EstadoTemaEnum.INSCRITO){
             solicitudRepository.procesarRetiroAlumnoAutomatico(alumno.getId(), registroDto.getTemaId(), registroDto.getCreadorId());
         }
+
+        // --- AUDITORÍA ---
+        // 'tema' debe haber sido cargado previamente en el método (e.g., temaServiceIm1pl.validarTemaConEstado)
+        String temaTitulo = tema.getTitulo();
+        historialAccionService.registrarAccion(
+            cognitoId,
+            String.format("Registró solicitud de cese de tema (ID: %d) para el tema '%s' con motivo: '%s'.",
+                solicitud.getId(), temaTitulo, registroDto.getMotivo())
+        );
+        // --- FIN AUDITORÍA ---
+
         return registroDto;
     }
 
@@ -605,6 +640,9 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
+
+        String accionString = aprobar ? "Aprobó" : "Rechazó";
+
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorAsesor(idCognito, idSolicitud, comentario, rol);
             //El mensaje de aprobación
@@ -622,6 +660,19 @@ public class SolicitudServiceImpl implements SolicitudService {
                     rolSolictud
             );
         }
+
+        // --- AUDITORÍA ---
+        // Necesitamos la solicitud para obtener el tema
+        Solicitud solicitud = solicitudRepository.findById(idSolicitud)
+                .orElse(null); // Esto no debería ser null si la validación `existsSolicitudByIdAndEstadoSolicitud_Nombre` pasó
+        String temaTitulo = (solicitud != null && solicitud.getTema() != null) ? solicitud.getTema().getTitulo() : "sin título";
+
+        historialAccionService.registrarAccion(
+            idCognito,
+            String.format("Asesor %s la solicitud de cambio de asesor (ID: %d) para el tema '%s' con comentario: '%s'.",
+                accionString, idSolicitud, temaTitulo, comentario)
+        );
+        // --- FIN AUDITORÍA ---
 
         // Las notificaciones se envian al alumno y al otro asesor
         notificacionService.crearNotificacionParaUsuario(
@@ -662,6 +713,9 @@ public class SolicitudServiceImpl implements SolicitudService {
                 EstadoSolicitudEnum.PENDIENTE.name());
         if (!validar)
             throw new RuntimeException("Solicitud no puede ser modificada");
+
+        String accionString = aprobar ? "Aprobó" : "Rechazó";
+
         if(aprobar){
             usuarioXSolicitudRepository.aprobarSolicitudCambioAsesorCoordinador(idCognito, idSolicitud, comentario);
             //El mensaje de aprobación
@@ -677,6 +731,19 @@ public class SolicitudServiceImpl implements SolicitudService {
                     tema.getTitulo()
             );
         }
+
+        // --- AUDITORÍA ---
+        // Necesitamos la solicitud para obtener el tema
+        Solicitud solicitud = solicitudRepository.findById(idSolicitud)
+                .orElse(null); // Esto no debería ser null si la validación `existsSolicitudByIdAndEstadoSolicitud_Nombre` pasó
+        String temaTitulo = (solicitud != null && solicitud.getTema() != null) ? solicitud.getTema().getTitulo() : "sin título";
+
+        historialAccionService.registrarAccion(
+            idCognito,
+            String.format("Coordinador %s la solicitud de cambio de asesor (ID: %d) para el tema '%s' con comentario: '%s'.",
+                accionString, idSolicitud, temaTitulo, comentario)
+        );
+        // --- FIN AUDITORÍA ---
 
         // Las notificaciones se envian al alumno y los 2 asesores
         notificacionService.crearNotificacionParaUsuario(
@@ -1013,6 +1080,16 @@ public class SolicitudServiceImpl implements SolicitudService {
 
         log.info("Solicitud ID {} RECHAZADA exitosamente por coordinador ID {} (Cognito Sub: {})",
                 solicitudId, coordinador.getId(), coordinatorCognitoSub);
+
+        // --- AUDITORÍA ---
+        String temaTitulo = (solicitud.getTema() != null) ? solicitud.getTema().getTitulo() : "sin título";
+        historialAccionService.registrarAccion(
+            coordinatorCognitoSub,
+            String.format("Rechazó la solicitud de cese de asesoría (ID: %d) para el tema '%s' con motivo: '%s'.",
+                solicitudId, temaTitulo, responseText)
+        );
+        // --- FIN AUDITORÍA ---
+
         // TODO: Lógica de notificación.
     }
 

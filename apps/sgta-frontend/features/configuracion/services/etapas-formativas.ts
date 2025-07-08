@@ -53,28 +53,59 @@ export const etapasFormativasService = {
   // Obtener etapas formativas activas por coordinador
   getActivasByCoordinador: async (): Promise<EtapaFormativaCoordinador[]> => {
     const { idToken } = useAuthStore.getState();
-    const response = await axiosInstance.get("/etapas-formativas/listarActivasPorCoordinador", {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
+    const response = await axiosInstance.get(
+      "/etapas-formativas/listarActivasPorCoordinador",
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
       },
-    });
+    );
     return response.data;
   },
 
   // Crear una nueva etapa formativa
-  create: async (etapaFormativa: Omit<EtapaFormativaDetail, "id">): Promise<EtapaFormativaDetail> => {
-    const response = await axiosInstance.post("/etapas-formativas/crear", etapaFormativa);
+  create: async (
+    etapaFormativa: Omit<EtapaFormativaDetail, "id">,
+  ): Promise<EtapaFormativaDetail> => {
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.post(
+      "/etapas-formativas/crear",
+      etapaFormativa,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      },
+    );
     return response.data;
   },
 
   // Actualizar una etapa formativa
-  update: async (id: string | number, etapaFormativa: Partial<EtapaFormativaDetail>): Promise<EtapaFormativaDetail> => {
-    const response = await axiosInstance.put(`/etapas-formativas/actualizar/${id}`, etapaFormativa);
+  update: async (
+    id: string | number,
+    etapaFormativa: Partial<EtapaFormativaDetail>,
+  ): Promise<EtapaFormativaDetail> => {
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.put(
+      `/etapas-formativas/actualizar/${id}`,
+      etapaFormativa,
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      },
+    );
     return response.data;
   },
 
   // Eliminar una etapa formativa
   delete: async (id: string | number): Promise<void> => {
-    await axiosInstance.delete(`/etapas-formativas/eliminar/${id}`);
-  }
-}; 
+    const { idToken } = useAuthStore.getState();
+    await axiosInstance.delete(`/etapas-formativas/eliminar/${id}`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+  },
+};

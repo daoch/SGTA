@@ -48,7 +48,7 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
 
     @Override
     @Transactional
-    public ResponseEntity<?> initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto) {
+    public ResponseEntity<?> initializeJornadasExposicion(IniatilizeJornadasExposicionCreateDTO dto, String cognitoId) {
 
         EtapaFormativaDto etapaFormativaDto = etapaFormativaService.findById(dto.getEtapaFormativaId());
         List<BloqueHorarioExposicionCreateDTO> bloqueHorarioExposicionCreateDTOs = new ArrayList<BloqueHorarioExposicionCreateDTO>();
@@ -109,7 +109,7 @@ public class JornadaExposicionOrchestratorServiceImpl implements JornadaExposici
 
         ExposicionDto exposicionDto = exposicionService.findById(dto.getExposicionId());
         exposicionDto.setEstadoPlanificacionId(2);
-        exposicionService.update(exposicionDto);
+        exposicionService.update(exposicionDto, cognitoId);
         try{
             controlExposicionUsuarioTemaRepository.insertarControlesDeExposicion(dto.getExposicionId(),
                     dto.getEtapaFormativaId());

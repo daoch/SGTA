@@ -1,4 +1,5 @@
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
+import { DocumentoConVersionDto } from "@/features/gestion/dtos/DocumentoConVersionDto";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { IHighlight } from "react-pdf-highlighter";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
@@ -263,4 +264,8 @@ export interface IAApiResponse {
 export async function getJsonIA(revisionId: number): Promise<IAApiResponse> {
   const response = await axiosInstance.get(`/s3/archivos/get-IA-json/${revisionId}`);
   return typeof response.data === "string" ? JSON.parse(response.data) as IAApiResponse : response.data;
+}
+export async function getdocumentosSubidos(revisionId: number): Promise<DocumentoConVersionDto[]> {
+  const response = await axiosInstance.get(`/documento/entregable/${revisionId}/revision`);
+  return response.data;
 }

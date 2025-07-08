@@ -58,4 +58,6 @@ public class UsuarioXTema {
 	@Column(name = "fecha_modificacion", nullable = false, insertable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
 	private OffsetDateTime fechaModificacion;
 
+
+
 }

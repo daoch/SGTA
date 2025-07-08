@@ -12,8 +12,8 @@ export default function Configuracion() {
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
           <p className="text-gray-600">
-            Configure los parámetros generales del sistema y las opciones de la
-            facultad.
+            Configura los parámetros generales del sistema y las opciones de la
+            carrera.
           </p>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function Configuracion() {
               Configuración General
             </h2>
             <p className="text-gray-500 text-sm">
-              Gestioné configuraciones clave del proceso de tesis: áreas, temas,
+              Gestiona configuraciones clave del proceso de tesis: áreas, temas,
               fechas, asesores, jurados y revisión.
             </p>
           </div>
@@ -47,7 +47,7 @@ export default function Configuracion() {
           <div>
             <h2 className="font-semibold text-lg mb-1">Configuración de Proceso</h2>
             <p className="text-gray-500 text-sm">
-              Configure las fases, cursos, entregables y exposiciones del proyecto de fin de carrera.
+              Configura las fases, cursos, entregables y exposiciones del proyecto de fin de carrera.
             </p>
           </div>
         </Link>
@@ -64,7 +64,7 @@ export default function Configuracion() {
               Registro de Usuarios
             </h2>
             <p className="text-gray-500 text-sm">
-              Gestioné configuraciones clave del proceso de tesis: áreas, temas,
+              Gestiona configuraciones clave del proceso de tesis: áreas, temas,
               fechas, asesores, jurados y revisión.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function Configuracion() {
               Asignación de Revisores a Cursos
             </h2>
             <p className="text-gray-500 text-sm">
-              Configure la asignación de revisores a los cursos para facilitar la
+              Configura la asignación de revisores a los cursos para facilitar la
               gestión de proyectos de fin de carrera.
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function Configuracion() {
               Asociación de Temas a Cursos
             </h2>
             <p className="text-gray-500 text-sm">
-              Configure la asociación de temas a los cursos para facilitar la
+              Configura la asociación de temas a los cursos para facilitar la
               gestión de proyectos de fin de carrera.
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function Configuracion() {
               Configuracion servicios de google
             </h2>
             <p className="text-gray-500 text-sm">
-              Configure el correo  a usar para procesos que involucren enviar correos o el google calendar
+              Configura el correo  a usar para procesos que involucren enviar correos o el google calendar
             </p>
           </div>
         </Link>

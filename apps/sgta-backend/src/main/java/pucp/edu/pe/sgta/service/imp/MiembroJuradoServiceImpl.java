@@ -20,6 +20,7 @@ import pucp.edu.pe.sgta.dto.temas.DetalleTemaDto;
 import pucp.edu.pe.sgta.dto.temas.EtapaFormativaTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ExposicionTemaDto;
 import pucp.edu.pe.sgta.dto.temas.ParticipanteDto;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
 import pucp.edu.pe.sgta.event.EstadoControlExposicionActualizadoEvent;
 import pucp.edu.pe.sgta.event.ExposicionCalificadaEvent;
 import pucp.edu.pe.sgta.model.*;
@@ -62,6 +63,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         private final SubAreaConocimientoRepository subAreaConocimientoRepository;
         private final UsuarioXCarreraRepository usuarioXCarreraRepository;
         private final ExposicionRepository exposicionRepository;
+        private final RevisionDocumentoRepository revisionDocumentoRepository;
 
         public MiembroJuradoServiceImpl(UsuarioRepository usuarioRepository,
                                         UsuarioXTemaRepository usuarioXTemaRepository,
@@ -81,7 +83,8 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                         EtapaFormativaXCicloXTemaRepository etapaFormativaXCicloXTemaRepository,
                                         UsuarioXAreaConocimientoRepository usuarioXAreaConocimientoRepository,
                                         SubAreaConocimientoRepository subAreaConocimientoRepository,
-                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository) {
+                                        UsuarioXCarreraRepository usuarioXCarreraRepository, ExposicionRepository exposicionRepository,
+                                        RevisionDocumentoRepository revisionDocumentoRepository) {
                 this.usuarioRepository = usuarioRepository;
                 this.usuarioXTemaRepository = usuarioXTemaRepository;
                 this.rolRepository = rolRepository;
@@ -103,6 +106,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 this.subAreaConocimientoRepository = subAreaConocimientoRepository;
                 this.usuarioXCarreraRepository = usuarioXCarreraRepository;
             this.exposicionRepository = exposicionRepository;
+            this.revisionDocumentoRepository = revisionDocumentoRepository;
         }
 
         @Override
@@ -340,7 +344,7 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 // llamar al procedure de insertar revision criterio exposicion repository
                 revisionCriterioExposicionRepository
                                 .insertarRevisionCriterioExposicion(temaId, usuarioId);
-
+                revisionDocumentoRepository.asignarRevisionJurado(temaId, usuarioId);
                 return ResponseEntity.ok(Map.of("mensaje", "Jurado asignado correctamente"));
         }
 
@@ -950,6 +954,17 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 eventPublisher.publishEvent(new EstadoControlExposicionActualizadoEvent(
                                 request.getExposicionTemaId(), temaId));
 
+
+                // Evento de auditoría
+                eventPublisher.publishEvent(
+                        new AuditoriaEvent(
+                                this,
+                                juradoId,
+                                OffsetDateTime.now(),
+                                "Actualizó el estado de exposición a: " + request.getEstadoExposicionUsuario()
+                        )
+                );
+
                 response.put("mensaje",
                                 "Se actualizó correctamente al estado: " + request.getEstadoExposicionUsuario());
                 response.put("exito", true);
@@ -1074,7 +1089,11 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
         }
 
         @Override
-        public ResponseEntity<?> actualizarRevisionCriterios(RevisionCriteriosRequest request) {
+        public ResponseEntity<?> actualizarRevisionCriterios(String usuarioCognito,RevisionCriteriosRequest request) {
+                UsuarioDto userDto = usuarioService.findByCognitoId(usuarioCognito);
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
                 Map<String, Object> response = new HashMap<>();
                 try {
                         for (RevisionCriterioUpdateRequest dto : request.getCriterios()) {
@@ -1110,6 +1129,15 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                                 }
 
                         }
+                        // Evento de auditoría
+                        eventPublisher.publishEvent(
+                                new AuditoriaEvent(
+                                        this,
+                                        usuarioCognito,
+                                        OffsetDateTime.now(),
+                                        "Actualizó los criterios de revisión de la exposición"
+                                )
+                        );
 
                         response.put("mensaje", "Se actualizaron correctamente los criterios.");
                         response.put("exito", true);
@@ -1125,7 +1153,11 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         @Override
         @Transactional
-        public ResponseEntity<?> actualizarObservacionFinal(ExposicionObservacionRequest request) {
+        public ResponseEntity<?> actualizarObservacionFinal(String usuarioCognito,ExposicionObservacionRequest request) {
+                UsuarioDto userDto = usuarioService.findByCognitoId(usuarioCognito);
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
                 Map<String, Object> response = new HashMap<>();
 
                 try {
@@ -1153,6 +1185,19 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                         controlExposicionUsuarioTema.setObservacionesFinalesExposicion(request.getObservacion_final());
                         controlExposicionUsuarioTemaRepository.save(controlExposicionUsuarioTema);
+
+
+                        // Evento de auditoría
+                        eventPublisher.publishEvent(
+                                new AuditoriaEvent(
+                                        this,
+                                        usuarioCognito,
+                                        OffsetDateTime.now(),
+                                        "Actualizó la observación final de la exposición con ID: " + exposicionXTema.getId() +
+                                                " a: " + request.getObservacion_final()
+                                )
+                        );
+
                         response.put("mensaje", "Se actualizo correctamente la observacion final");
                         response.put("exito", true);
                 } catch (ResponseStatusException e) {
@@ -1385,7 +1430,11 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
         @Override
         @Transactional
-        public ResponseEntity<?> actualizarNotaRevisionFinal(ExposicionNotaRevisionRequest request) {
+        public ResponseEntity<?> actualizarNotaRevisionFinal(String usuarioCognito,ExposicionNotaRevisionRequest request) {
+                UsuarioDto userDto = usuarioService.findByCognitoId(usuarioCognito);
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
                 Map<String, Object> response = new HashMap<>();
 
                 try {
@@ -1413,6 +1462,18 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
 
                         controlExposicionUsuarioTema.setNotaRevision(request.getNota_revision());
                         controlExposicionUsuarioTemaRepository.save(controlExposicionUsuarioTema);
+
+
+                        // Evento de auditoría
+                        eventPublisher.publishEvent(
+                                new AuditoriaEvent(
+                                        this,
+                                        usuarioCognito,
+                                        OffsetDateTime.now(),
+                                        "Actualizó la nota de revisión final a: " + request.getNota_revision()
+                                )
+                        );
+
                         response.put("mensaje", "Se actualizo correctamente la nota revisión");
                         response.put("exito", true);
                 } catch (ResponseStatusException e) {
@@ -1426,7 +1487,10 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 return ResponseEntity.ok(response);
         }
 
-        public ResponseEntity<?> actualizarNotaFinalExposicion(Integer exposicionId) {
+        public ResponseEntity<?> actualizarNotaFinalExposicion(String usuarioCognito,Integer exposicionId) {
+                UsuarioDto userDto = usuarioService.findByCognitoId(usuarioCognito);
+                Usuario usuario = usuarioRepository.findById(userDto.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
                 ExposicionCalificacionRequest request = new ExposicionCalificacionRequest();
                 request.setExposicion_tema_id(exposicionId);
@@ -1542,6 +1606,18 @@ public class MiembroJuradoServiceImpl implements MiembroJuradoService {
                 // actualizamos la nota final en la BD
                 exposicionXTema.setNotaFinal(notaFinal);
                 exposicionXTemaRepository.save(exposicionXTema);
+
+                // Evento de auditoría
+                eventPublisher.publishEvent(
+                        new AuditoriaEvent(
+                                this,
+                                usuarioCognito,
+                                OffsetDateTime.now(),
+                                "Actualizó la nota final de la exposición con ID: " + exposicionId +
+                                        " con valor: " + notaFinal.setScale(2, RoundingMode.HALF_UP)
+                        )
+                );
+
 
                 return ResponseEntity.ok(notaFinal.setScale(2, RoundingMode.HALF_UP));
         }

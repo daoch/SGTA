@@ -8,7 +8,12 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 export const updateCarreraXParametroConfiguracion = async (
     dto: CarreraXParametroConfiguracionDto
 ): Promise<void> => {
-    await axiosInstance.post("/carreraXParametroConfiguracion/update", dto);
+    const { idToken } = useAuthStore.getState();
+    await axiosInstance.post("/carreraXParametroConfiguracion/update", dto, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
 };
 
 export const getAllByCarreraId = async (

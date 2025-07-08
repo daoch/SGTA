@@ -49,4 +49,5 @@ public class TemaSimilar {
     @Column(name = "fecha_modificacion", insertable = false,
             columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP")
     private OffsetDateTime fechaModificacion;
+
 }

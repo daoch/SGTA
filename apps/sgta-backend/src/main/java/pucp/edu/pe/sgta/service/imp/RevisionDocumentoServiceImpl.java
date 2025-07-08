@@ -6,7 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.RevisoresTemaDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
@@ -25,6 +27,11 @@ import java.util.logging.Logger;
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
+    @Override
+    public RevisionDocumento findById(Integer id) {
+        Optional<RevisionDocumento> revision = revisionDocumentoRepository.findById(id);
+        return revision.orElse(null);
+    }
 
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
@@ -36,6 +43,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         this.revisionDocumentoRepository = revisionDocumentoRepository;
         this.usuarioRepository = usuarioRepository;
     }
+
 
     @Override
     public List<RevisionDocumento> findByUsuarioId(Integer usuarioId) {
@@ -432,23 +440,27 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         List<RevisionDocumentoRevisorDto> documentos = new ArrayList<>();
         for (Object[] row : result) {
             RevisionDocumentoRevisorDto dto = new RevisionDocumentoRevisorDto();
+
             dto.setId((Integer) row[0]); // revision_id
             dto.setTitulo((String) row[1]); // tema
             dto.setEntregable((String) row[2]); // entregable
             dto.setEstudiante((String) row[3]); // estudiante
             dto.setCodigo((String) row[4]); // código PUCP
             dto.setCurso((String) row[5]); // curso
-            dto.setFechaEntrega(
-                    row[6] != null ? ((java.time.Instant) row[6]).atOffset(java.time.ZoneOffset.UTC) : null);
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null);
+
             dto.setEstado((String) row[7]); // estado_revision
-            dto.setFechaLimiteEntrega(
-                    row[8] != null ? ((java.time.Instant) row[8]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaRevision(
-                    row[9] != null ? ((java.time.Instant) row[9]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setFechaLimiteRevision(
-                    row[10] != null ? ((java.time.Instant) row[10]).atOffset(java.time.ZoneOffset.UTC) : null);
-            dto.setUltimoCiclo(null);
-            dto.setUrlDescarga(null);
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_limite
+
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Number) row[10]).doubleValue() : null);
+            dto.setPorcentajeGenIA(row[11] != null ? ((Number) row[11]).doubleValue() : null);
+
             documentos.add(dto);
         }
         return documentos;
@@ -487,5 +499,33 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             documentos.add(dto);
         }
         return documentos;
+    }
+    @Override
+    @Transactional
+    public void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando todas las revisiones relacionadas al entregable_x_tema con ID: " + revisionId + " al estado: " + nuevoEstado);
+
+        // Llamas al repositorio con la nueva consulta que actualiza todas las revisiones
+        revisionDocumentoRepository.actualizarEstadoTodosRevisiones(revisionId, nuevoEstado);
+    }
+    @Override
+    public List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId) {
+        List<Object[]> result = revisionDocumentoRepository.listarRevisoresYJuradosPorTemaId(temaId);
+        List<RevisoresTemaDTO> lista = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisoresTemaDTO dto = new RevisoresTemaDTO();
+
+            dto.setUsuarioId(row[0] != null ? ((Number) row[0]).intValue() : null);         // usuario_id
+            dto.setNombres(row[1] != null ? row[1].toString() : null);                     // nombres
+            dto.setPrimerApellido(row[2] != null ? row[2].toString() : null);              // primer_apellido
+            dto.setSegundoApellido(row[3] != null ? row[3].toString() : null);             // segundo_apellido
+            dto.setRolId(row[4] != null ? ((Number) row[4]).intValue() : null);            // rol_id
+            dto.setTemaId(row[5] != null ? ((Number) row[5]).intValue() : null);           // tema_id
+
+            lista.add(dto);
+        }
+
+        return lista;
     }
 }

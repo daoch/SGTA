@@ -162,6 +162,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
       try {
         // 1. Guardar observaciones finales
         const resultadoObservaciones = await actualizarComentarioFinalJurado(
+          token!,
           exposicionId,
           observacionesFinales,
         );
@@ -177,6 +178,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         );
         
         const resultadoCalificacionFinal = await actualizarCalificacionFinalJurado(
+          token!,
           exposicionId,
           parseFloat(notaFinal.toFixed(2))
         );
@@ -192,6 +194,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
             parseInt(id_exposicion) : id_exposicion;
             
           const resultadoCalificacionFinalExposicion = await actualizarCalificacionFinalExposicionTema(
+            token!,
             exposicionTemaId
           );
           
@@ -219,6 +222,7 @@ const CalificarExposicionJuradoPage: React.FC<Props> = ({ id_exposicion }) => {
         );
         if (criteriosParaActualizar.length > 0) {
           const resultadoCriterios = await actualizarCriteriosEvaluacion(
+            token!,
             criteriosParaActualizar,
           );
 

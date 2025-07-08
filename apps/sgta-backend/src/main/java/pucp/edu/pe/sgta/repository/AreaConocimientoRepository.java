@@ -24,4 +24,6 @@ public interface AreaConocimientoRepository extends JpaRepository<AreaConocimien
 
     @Query(value = "select * from listar_areas_conocimiento_perfil_por_usuario(:usuarioId)", nativeQuery = true)
     List<Object[]> listarParaPerfilPorUsuarioId(@Param("usuarioId") Integer usuarioId);
+
+    List<AreaConocimiento> findAllByCarreraIdAndActivoTrueOrderByNombreAsc(Integer idCarrera);
 }

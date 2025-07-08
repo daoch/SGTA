@@ -1,14 +1,14 @@
-import axiosInstance from "@/lib/axios/axios-instance";
 import { IAsesorTemaActivo, IMyCessationRequestListItemTransformed, IMyCessationRequestListProcessed, IMyCessationRequestListResponseFetched, ISolicitudActualizadaResponse } from "@/features/asesores/types/cessation-request"; // El tipo que definimos
-import axios from "axios";
 import { useAuthStore } from "@/features/auth";
+import axiosInstance from "@/lib/axios/axios-instance";
+import axios from "axios";
 
 // Importar los tipos relevantes desde el nuevo archivo de tipos para invitaciones
 import {
-  IInvitacionesAsesoriaListResponseFetched,
-  IInvitacionesAsesoriaListProcessed,
   IInvitacionAsesoriaFetched,
   IInvitacionAsesoriaTransformed,
+  IInvitacionesAsesoriaListProcessed,
+  IInvitacionesAsesoriaListResponseFetched,
   IRechazarPropuestaPayload,
 } from "@/features/asesores/types/asesor-invitations.types"; // Ajusta la ruta
 
@@ -32,6 +32,7 @@ export interface Student {
   entregableActualEstado: string;
   entregableEnvioEstado: string;
   entregableEnvioFecha: string | null;
+  porcentajeEntregablesEnviados: number;
 }
 
 export interface StudentDetail {
