@@ -40,6 +40,13 @@ public class EventoController {
         return ResponseEntity.ok(eventos);
     }
 
+    //Creado para pruebas
+    @GetMapping("/asesor/{id}")
+    public ResponseEntity<List<EventoDto>> listarEventosXAsesor(@PathVariable Integer id) {
+        List<EventoDto> eventos = eventoService.listarEventosXAsesorPorId(id);
+        return ResponseEntity.ok(eventos);
+    }
+
     @GetMapping("/asesor")
     public ResponseEntity<List<EventoDto>> listarEventosXAsesor(HttpServletRequest request) {
         String id = jwtService.extractSubFromRequest(request);

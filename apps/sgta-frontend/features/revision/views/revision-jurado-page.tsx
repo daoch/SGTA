@@ -185,7 +185,7 @@ const documentosFiltrados = (estado: string) => {
             <CardContent>
               <RevisionesTableJurado
                 data={documentos}
-                filter={["por_aprobar", "aprobado"]} // Filtramos por ambos estados
+                filter={["aprobado"]} // Filtramos por ambos estados
                 searchQuery={searchQuery}
                 cursoFilter={cursoFilter}
               />

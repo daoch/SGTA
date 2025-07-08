@@ -34,6 +34,9 @@ public interface UsuarioXReunionService {
 
     Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId,String usuarioId);
 
+    //Funcion de Pool    
+    Optional<UsuarioXReunion> findByReunionIdAndUsuarioId(Integer reunionId, Integer usuarioId);
+
     //Agregada
     Optional<UsuarioXReunion> findById(Integer id);
 

@@ -552,6 +552,8 @@ BEGIN
 END;
 $$LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS obtener_documentos_jurado;
+
 CREATE OR REPLACE FUNCTION obtener_documentos_jurado(juradoid integer)
  RETURNS TABLE(
     revision_id INTEGER,
@@ -563,7 +565,9 @@ CREATE OR REPLACE FUNCTION obtener_documentos_jurado(juradoid integer)
     fecha_carga TIMESTAMP WITH TIME ZONE,
     estado_revision TEXT,
     entrega_a_tiempo BOOLEAN,
-    fecha_limite TIMESTAMP WITH TIME ZONE
+    fecha_limite TIMESTAMP WITH TIME ZONE,
+    porcentaje_similitud FLOAT8,
+    porcentaje_ia FLOAT8
  )
  LANGUAGE plpgsql
 AS $function$
@@ -583,7 +587,9 @@ BEGIN
                  AND vd.fecha_ultima_subida::DATE <= rd.fecha_limite_revision THEN TRUE
             ELSE FALSE
         END AS entrega_a_tiempo,
-        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE
+        rd.fecha_limite_revision::TIMESTAMP WITH TIME ZONE,
+        vd.porcentaje_similitud,
+        vd.porcentaje_ia
     FROM usuario_tema ut_jurado
     JOIN tema t ON ut_jurado.tema_id = t.tema_id
     JOIN usuario_tema ut_estudiante 
@@ -599,11 +605,12 @@ BEGIN
     WHERE ut_jurado.usuario_id = juradoid
       AND ut_jurado.rol_id = 2
       AND vd.activo = TRUE
+      AND vd.documento_principal = TRUE
       AND ext.activo = TRUE
       AND e.activo = TRUE
       AND rd.usuario_id = juradoid;
 END;
-$$ LANGUAGE plpgsql;
+$function$;
 
 
 drop function if exists insertar_actualizar_criterio_entregable_id;
