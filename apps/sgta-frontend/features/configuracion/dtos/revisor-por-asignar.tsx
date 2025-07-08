@@ -10,4 +10,5 @@ export interface RevisorPorAsignar {
   rolNombre: string;
   carreraId: number;
   carreraNombre: string;
+  etapaFormativaXCicloId: number;
 };

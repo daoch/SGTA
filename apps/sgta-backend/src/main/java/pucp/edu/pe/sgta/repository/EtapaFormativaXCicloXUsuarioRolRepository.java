@@ -6,6 +6,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCicloXUsuarioRol;
 
+import java.util.List;
+
 @Repository
 public interface EtapaFormativaXCicloXUsuarioRolRepository extends JpaRepository<EtapaFormativaXCicloXUsuarioRol, Integer> {
 
@@ -14,4 +16,7 @@ public interface EtapaFormativaXCicloXUsuarioRolRepository extends JpaRepository
 
     @Query(value = "SELECT asociar_temas_a_revisor(:cursoId, :revisorId)", nativeQuery = true)
     void asociarTemasARevisor(@Param("cursoId") Integer cursoId, @Param("revisorId") Integer revisorId);
+
+    @Query(value = "SELECT * FROM listar_revisores_ciclo_activo(:carreraId)", nativeQuery = true)
+    List<Object[]> listarRevisoresXCarreraCicloActivo(@Param("carreraId") Integer carreraId);
 }

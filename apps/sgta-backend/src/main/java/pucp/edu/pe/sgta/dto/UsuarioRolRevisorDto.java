@@ -19,4 +19,5 @@ public class UsuarioRolRevisorDto {
     private String rolNombre;
     private Integer carreraId;
     private String carreraNombre;
+    private Integer etapaFormativaXCicloId;
 }

@@ -242,7 +242,9 @@ const AsociacionTemaCursoPage: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-1/32"></TableHead>
-                  <TableHead className="w-29/32 text-left">Nombre del curso</TableHead>
+                  <TableHead className="w-29/32 text-left">
+                    Nombre del curso
+                  </TableHead>
                   <TableHead className="w-1/16 text-left">Ciclo</TableHead>
                 </TableRow>
               </TableHeader>
@@ -371,47 +373,49 @@ const AsociacionTemaCursoPage: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-left">
                         {tema.tesistas && tema.tesistas.length > 0 ? (
-                          <div className="flex items-centergap-2">
+                          <div className="flex items-center gap-2">
                             <span>
-                              {tema.tesistas[0].nombres +
-                                " " +
-                                tema.tesistas[0].primerApellido}{" "}
-                              {/* Muestra el primer tesista */}
+                              {tema.tesistas[0].nombres}{" "}
+                              {tema.tesistas[0].primerApellido}
+                              {tema.tesistas.length > 1 && (
+                                <> + {tema.tesistas.length - 1}</>
+                              )}
                             </span>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 p-0"
-                                  aria-label="Ver todos los tesistas"
-                                >
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-56">
-                                <div>
-                                  <span className="font-semibold text-sm mb-2 block">
-                                    Tesistas:
-                                  </span>
-                                  <ul className="list-disc pl-4">
-                                    {tema.tesistas.map(
-                                      (tesista: {
-                                        nombres: string;
-                                        primerApellido: string;
-                                        id: string;
-                                      }) => (
-                                        <li key={tesista.id}>
-                                          {tesista.nombres +
-                                            " " +
-                                            tesista.primerApellido}
-                                        </li>
-                                      ),
-                                    )}
-                                  </ul>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
+                            {tema.tesistas.length > 1 && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 p-0"
+                                    aria-label="Ver todos los tesistas"
+                                  >
+                                    <ChevronDown className="h-4 w-4" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56">
+                                  <div>
+                                    <span className="font-semibold text-sm mb-2 block">
+                                      Tesistas:
+                                    </span>
+                                    <ul className="list-disc pl-4">
+                                      {tema.tesistas.map(
+                                        (tesista: {
+                                          nombres: string;
+                                          primerApellido: string;
+                                          id: string;
+                                        }) => (
+                                          <li key={tesista.id}>
+                                            {tesista.nombres}{" "}
+                                            {tesista.primerApellido}
+                                          </li>
+                                        ),
+                                      )}
+                                    </ul>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-xs">
