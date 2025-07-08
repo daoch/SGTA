@@ -278,12 +278,9 @@ const ExposicionesJuradoPage: React.FC = () => {
       );
 
     // Filtro por periodo (añadir lógica según tus datos)
-    const fechaExposicion = exposicion.fechahora;
-    // Extraer año y semestre de la fecha de exposición
-    const anioExposicion = fechaExposicion.getFullYear();
-    // Determinar semestre (1 o 2) según el mes
-    const semestreExposicion = fechaExposicion.getMonth() < 6 ? 1 : 2;
-    const periodoExposicion = `${anioExposicion}-${semestreExposicion}`;
+
+    const cicloFiltrado = ciclos.filter((c) => c.id == exposicion.ciclo_id)[0];
+    const periodoExposicion = `${cicloFiltrado.anio}-${cicloFiltrado.semestre}`;
 
     const matchesPeriodo =
       periodoSeleccionado === "" || // Si no hay selección
