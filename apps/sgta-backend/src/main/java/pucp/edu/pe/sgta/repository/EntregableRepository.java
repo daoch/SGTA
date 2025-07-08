@@ -35,13 +35,14 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
                             @Param("estado") String estado);
 
     /**
-     * Busca entregables cuya fecha de fin esté dentro del rango especificado
+     * ✅ CORREGIDO: Busca entregables EVALUABLES cuya fecha de fin esté dentro del rango especificado
      * para generar recordatorios automáticos
      */
     @Query("""
         SELECT e FROM Entregable e
         WHERE e.fechaFin BETWEEN :inicio AND :fin
           AND e.activo = true
+          AND e.esEvaluable = true
     """)
     List<Entregable> findByFechaFinBetween(
             @Param("inicio") OffsetDateTime inicio,
@@ -49,13 +50,14 @@ public interface EntregableRepository extends JpaRepository<Entregable, Integer>
     );
 
     /**
-     * Busca entregables que ya han vencido (fecha fin pasada)
+     * ✅ CORREGIDO: Busca entregables EVALUABLES que ya han vencido (fecha fin pasada)
      * para generar alertas de retraso
      */
     @Query("""
         SELECT e FROM Entregable e
         WHERE e.fechaFin < :ahora
           AND e.activo = true
+          AND e.esEvaluable = true
     """)
     List<Entregable> findVencidos(@Param("ahora") OffsetDateTime ahora);
 

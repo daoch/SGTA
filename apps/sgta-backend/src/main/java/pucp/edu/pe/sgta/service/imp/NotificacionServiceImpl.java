@@ -103,16 +103,21 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Override
     @Transactional(readOnly = true)
     public OverdueAlertDto getOverdueSummary(Integer usuarioId) {
-        OffsetDateTime ahora = OffsetDateTime.now();
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneId.of("America/Lima"));
+        
         List<EntregableXTema> entregablesVencidos = entregableXTemaRepository.findNoEnviadosVencidos(ahora);
         
-        // Filtrar solo los entregables del usuario actual
         List<EntregableXTema> entregablesUsuario = entregablesVencidos.stream()
                 .filter(ext -> {
+                    if (!ext.getEntregable().isEsEvaluable()) {
+                        return false;
+                    }
+                    
                     List<UsuarioXTema> usuariosDelTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ext.getTema().getId());
                     return usuariosDelTema.stream()
                             .anyMatch(ut -> ut.getUsuario().getId().equals(usuarioId) && 
-                                          ut.getRol().getNombre().equals("Tesista"));
+                                          ut.getRol().getNombre().equals("Tesista") &&
+                                          Boolean.TRUE.equals(ut.getAsignado()));
                 })
                 .toList();
 
@@ -121,9 +126,15 @@ public class NotificacionServiceImpl implements NotificacionService {
 
         for (EntregableXTema ext : entregablesUsuario) {
             Entregable entregable = ext.getEntregable();
-            long diasAtraso = ChronoUnit.DAYS.between(entregable.getFechaFin(), ahora);
             
-            String fechaFormateada = entregable.getFechaFin().format(
+            OffsetDateTime fechaFinEntregable = entregable.getFechaFin();
+            if (fechaFinEntregable.isAfter(ahora)) {
+                continue;
+            }
+            
+            long diasAtraso = ChronoUnit.DAYS.between(fechaFinEntregable, ahora);
+            
+            String fechaFormateada = fechaFinEntregable.format(
                     DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             
             entregablesVencidosDto.add(new OverdueAlertDto.EntregableVencidoDto(
@@ -195,9 +206,9 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Transactional
     public void generarRecordatoriosAutomaticos() {
         log.info("Iniciando generación de recordatorios automáticos con configuración personalizada");
-        OffsetDateTime ahora = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        // ✅ CORREGIDO: Usar zona horaria de Lima para validaciones precisas
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneId.of("America/Lima")).truncatedTo(ChronoUnit.DAYS);
 
-        // Buscar todos los entregables próximos a vencer (en los próximos 8 días)
         List<Entregable> entregables = entregableRepository.findByFechaFinBetween(
             ahora, ahora.plusDays(8)
         );
@@ -206,20 +217,26 @@ public class NotificacionServiceImpl implements NotificacionService {
         int notificacionesCreadas = 0;
 
         for (Entregable entregable : entregables) {
-            // Buscar todos los EntregableXTema no enviados para este entregable
             List<EntregableXTema> entregablesNoEnviados = entregableXTemaRepository.findNoEnviadosByEntregableId(entregable.getId());
 
             for (EntregableXTema ext : entregablesNoEnviados) {
-                // Obtener el usuario tesista del tema
                 List<UsuarioXTema> usuariosDelTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ext.getTema().getId());
                 Optional<UsuarioXTema> tesistaOpt = usuariosDelTema.stream()
-                    .filter(ut -> ut.getRol().getNombre().equals("Tesista"))
+                    .filter(ut -> ut.getRol().getNombre().equals("Tesista") && 
+                                  Boolean.TRUE.equals(ut.getAsignado()) && // ✅ AGREGADO: Solo tesistas asignados
+                                  Boolean.TRUE.equals(ut.getActivo()))    // ✅ AGREGADO: Solo relaciones activas
                     .findFirst();
 
                 if (tesistaOpt.isPresent()) {
                     Integer usuarioId = tesistaOpt.get().getUsuario().getId();
 
-                    // Obtener configuración de recordatorio del usuario
+                    // ✅ VALIDACIÓN ADICIONAL: Verificar que el entregable sea evaluable (por seguridad)
+                    if (!entregable.isEsEvaluable()) {
+                        log.debug("Entregable {} no es evaluable, saltando recordatorio para usuario {}", 
+                                 entregable.getNombre(), usuarioId);
+                        continue;
+                    }
+
                     ConfiguracionRecordatorio config = configRepo.findByUsuarioId(usuarioId)
                         .orElseGet(() -> getDefaultConfig(usuarioId));
 
@@ -228,12 +245,9 @@ public class NotificacionServiceImpl implements NotificacionService {
                         continue;
                     }
 
-                    // Calcular días de anticipación
                     long diasRestantes = ChronoUnit.DAYS.between(ahora, entregable.getFechaFin().truncatedTo(ChronoUnit.DAYS));
                     
-                    // Verificar si debe notificarse en este día específico
                     if (Arrays.asList(config.getDiasAnticipacion()).contains((int) diasRestantes)) {
-                        // Verificar si ya existe una notificación de recordatorio hoy para este usuario y entregable
                         if (!yaExisteNotificacionRecordatorioHoy(usuarioId, entregable.getId())) {
                             String fechaFormateada = entregable.getFechaFin().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                             String mensaje = String.format("En %d %s vence tu entregable \"%s\" (fecha: %s).",
@@ -243,7 +257,6 @@ public class NotificacionServiceImpl implements NotificacionService {
                                 fechaFormateada
                             );
 
-                            // Enviar notificación por los canales elegidos
                             if (Boolean.TRUE.equals(config.getCanalSistema())) {
                                 crearNotificacion(usuarioId, TIPO_RECORDATORIO, mensaje, CANAL_UI);
                                 notificacionesCreadas++;
@@ -251,7 +264,6 @@ public class NotificacionServiceImpl implements NotificacionService {
                                         usuarioId, entregable.getNombre(), diasRestantes);
                             }
                             
-                            // Enviar por correo si está configurado
                             if (Boolean.TRUE.equals(config.getCanalCorreo())) {
                                 try {
                                     Usuario usuario = tesistaOpt.get().getUsuario();
@@ -284,12 +296,11 @@ public class NotificacionServiceImpl implements NotificacionService {
         log.info("Finalizada generación de recordatorios automáticos. {} notificaciones creadas", notificacionesCreadas);
     }
 
-    // Método auxiliar para valores por defecto
     private ConfiguracionRecordatorio getDefaultConfig(Integer usuarioId) {
         ConfiguracionRecordatorio config = new ConfiguracionRecordatorio();
         config.setUsuario(usuarioRepository.findById(usuarioId).orElseThrow());
         config.setActivo(true);
-        config.setDiasAnticipacion(new Integer[]{7, 3, 1, 0}); // 7, 3, 1 días antes y el día de vencimiento
+        config.setDiasAnticipacion(new Integer[]{7, 3, 1, 0});
         config.setCanalCorreo(true);
         config.setCanalSistema(true);
         return config;
@@ -299,7 +310,8 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Transactional
     public void generarAlertasVencidos() {
         log.info("Iniciando generación de alertas para entregables vencidos");
-        OffsetDateTime ahora = OffsetDateTime.now();
+        // ✅ CORREGIDO: Usar zona horaria de Lima para validaciones precisas
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneId.of("America/Lima"));
         
         List<EntregableXTema> entregablesVencidos = entregableXTemaRepository.findNoEnviadosVencidos(ahora);
         log.info("Encontrados {} entregables vencidos sin enviar", entregablesVencidos.size());
@@ -307,16 +319,24 @@ public class NotificacionServiceImpl implements NotificacionService {
         int alertasCreadas = 0;
         
         for (EntregableXTema ext : entregablesVencidos) {
-            // Obtener el usuario tesista del tema
             List<UsuarioXTema> usuariosDelTema = usuarioXTemaRepository.findByTemaIdAndActivoTrue(ext.getTema().getId());
             Optional<UsuarioXTema> tesistaOpt = usuariosDelTema.stream()
-                    .filter(ut -> ut.getRol().getNombre().equals("Tesista"))
+                    .filter(ut -> ut.getRol().getNombre().equals("Tesista") && 
+                                  Boolean.TRUE.equals(ut.getAsignado()) && // ✅ AGREGADO: Solo tesistas asignados
+                                  Boolean.TRUE.equals(ut.getActivo()))    // ✅ AGREGADO: Solo relaciones activas
                     .findFirst();
             
             if (tesistaOpt.isPresent()) {
                 Integer usuarioId = tesistaOpt.get().getUsuario().getId();
                 
-                // Verificar si ya existe una notificación de error hoy para este usuario
+                // ✅ VALIDACIÓN ADICIONAL: Verificar que el entregable sea evaluable (por seguridad)
+                Entregable entregableValidacion = ext.getEntregable();
+                if (!entregableValidacion.isEsEvaluable()) {
+                    log.debug("Entregable {} no es evaluable, saltando alerta para usuario {}", 
+                             entregableValidacion.getNombre(), usuarioId);
+                    continue;
+                }
+                
                 if (!yaExisteNotificacionHoy(usuarioId, TIPO_ERROR)) {
                     Entregable entregable = ext.getEntregable();
                     long diasAtraso = ChronoUnit.DAYS.between(entregable.getFechaFin(), ahora);
@@ -326,7 +346,6 @@ public class NotificacionServiceImpl implements NotificacionService {
                     crearNotificacionError(usuarioId, entregable.getNombre(), 
                                          fechaFormateada, (int) diasAtraso);
                     
-                    // Enviar alerta por correo si el usuario tiene configurado el canal de correo
                     try {
                         ConfiguracionRecordatorio config = configRepo.findByUsuarioId(usuarioId)
                             .orElseGet(() -> getDefaultConfig(usuarioId));
@@ -361,9 +380,6 @@ public class NotificacionServiceImpl implements NotificacionService {
         log.info("Finalizada generación de alertas para entregables vencidos. {} alertas creadas", alertasCreadas);
     }
 
-    /**
-     * Método principal unificado para crear notificaciones
-     */
     private void crearNotificacion(Integer usuarioId, String tipoNotificacion, String mensaje, String canal) {
         try {
             Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
@@ -409,23 +425,18 @@ public class NotificacionServiceImpl implements NotificacionService {
         return false;
     }
 
-    /**
-     * Verificación específica para recordatorios por entregable para evitar spam
-     */
     private boolean yaExisteNotificacionRecordatorioHoy(Integer usuarioId, Integer entregableId) {
         try {
             Optional<Modulo> moduloOpt = moduloRepository.findByNombre(MODULO_REPORTES);
             Optional<TipoNotificacion> tipoOpt = tipoNotificacionRepository.findByNombre(TIPO_RECORDATORIO);
             
             if (moduloOpt.isPresent() && tipoOpt.isPresent()) {
-                // Buscar notificaciones del usuario hoy que contengan el nombre del entregable
                 OffsetDateTime hoy = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
                 OffsetDateTime finDelDia = hoy.plusDays(1).minusSeconds(1);
                 
                 List<Notificacion> notificacionesHoy = notificacionRepository.findByUsuarioAndTipoAndFechaBetween(
                         usuarioId, tipoOpt.get().getId(), hoy, finDelDia);
                 
-                // Verificar si alguna es para este entregable específico
                 Optional<Entregable> entregableOpt = entregableRepository.findById(entregableId);
                 if (entregableOpt.isPresent()) {
                     String nombreEntregable = entregableOpt.get().getNombre();
@@ -486,8 +497,7 @@ public class NotificacionServiceImpl implements NotificacionService {
         notificacion.setModulo(modulo);
         notificacion.setTipoNotificacion(tipoNotificacion);
         notificacion.setMensaje(mensaje);
-        notificacion.setCanal(canal); // Ej: "SISTEMA" para notificaciones in-app
-        // fechaCreacion, activo, etc., se manejan por @PrePersist o defaults
+        notificacion.setCanal(canal);
 
         Notificacion notificacionGuardada = notificacionRepository.save(notificacion);
         log.info("Notificación guardada con ID: {}", notificacionGuardada.getId());
@@ -584,14 +594,12 @@ public class NotificacionServiceImpl implements NotificacionService {
         crearNotificacionEvento(usuarioId, TIPO_RECORDATORIO, mensaje);
     }
 
-
     @Transactional
     public void generarRecordatoriosAutomaticosEventos() {
         log.info("Iniciando generación de recordatorios automáticos de eventos");
         ZoneId zonaLima = ZoneId.of("America/Lima");
         OffsetDateTime ahoraLima = OffsetDateTime.now(ZoneId.of("America/Lima"));
         
-        // Recordatorios para 1 día, 30 minutos y 5 minutos antes
         int[] minutosAntes = {1440, 30, 5};
         
         for (int min : minutosAntes) {

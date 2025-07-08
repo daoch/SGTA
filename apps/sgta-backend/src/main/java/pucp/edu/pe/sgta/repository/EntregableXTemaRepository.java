@@ -16,6 +16,7 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
 
     /**
      * Busca EntregableXTema no enviados para un entregable específico
+     * ✅ FILTRO AGREGADO: Solo entregables evaluables
      * Útil para saber qué estudiantes aún no han entregado
      */
     @Query("""
@@ -24,13 +25,16 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
         JOIN FETCH ext.entregable e
         WHERE ext.entregable.id = :entregableId
           AND ext.activo = true
+          AND e.esEvaluable = true
+          AND e.activo = true
           AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
     """)
     List<EntregableXTema> findNoEnviadosByEntregableId(@Param("entregableId") Integer entregableId);
 
     /**
      * Busca EntregableXTema no enviados para un tema específico
-     * y entregables que vencen en un rango de fechas
+     * y entregables evaluables que vencen en un rango de fechas
+     * ✅ FILTRO AGREGADO: Solo entregables evaluables
      */
     @Query("""
         SELECT ext FROM EntregableXTema ext
@@ -38,8 +42,10 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
         JOIN FETCH ext.entregable e
         WHERE ext.tema.id = :temaId
           AND ext.activo = true
+          AND e.esEvaluable = true
+          AND e.activo = true
           AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
-          AND ext.entregable.fechaFin BETWEEN :inicio AND :fin
+          AND e.fechaFin BETWEEN :inicio AND :fin
     """)
     List<EntregableXTema> findNoEnviadosByTemaAndFechaFin(
             @Param("temaId") Integer temaId,
@@ -48,15 +54,18 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
     );
 
     /**
-     * Busca EntregableXTema no enviados que ya han vencido
+     * ✅ CORREGIDO: Busca EntregableXTema no enviados que ya han vencido
+     * SOLO CONSIDERA ENTREGABLES EVALUABLES y usa zona horaria correcta
      */
     @Query("""
         SELECT ext FROM EntregableXTema ext
         JOIN FETCH ext.tema t
         JOIN FETCH ext.entregable e
         WHERE ext.activo = true
+          AND e.esEvaluable = true
+          AND e.activo = true
           AND (ext.estado = 'no_enviado' OR ext.fechaEnvio IS NULL)
-          AND ext.entregable.fechaFin < :ahora
+          AND e.fechaFin < :ahora
     """)
     List<EntregableXTema> findNoEnviadosVencidos(@Param("ahora") OffsetDateTime ahora);
 
