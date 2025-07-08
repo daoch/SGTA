@@ -9,4 +9,5 @@ public interface VersionXDocumentoService {
     VersionDocumentoDto crearVersion(Integer documentoId, String linkArchivoSubido);
     void create(VersionXDocumento versionXDocumento);
     VersionXDocumento findById(Integer versionId);
+    VersionXDocumento findbyDocumento(Integer documentoId);
 }

@@ -203,8 +203,12 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
 """, nativeQuery = true)
 List<Object[]> listarRevisoresYJuradosPorTemaId(@Param("temaId") Integer temaId);
 
- @Transactional
+    @Transactional
     @Query(value = "SELECT asignar_revision_jurado(:temaId, :usuarioId)", nativeQuery = true)
     void asignarRevisionJurado(@Param("temaId") Integer temaId, @Param("usuarioId") Integer usuarioId);
     
-    }
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE revision_documento SET activo = false WHERE version_documento_id = :versionId", nativeQuery = true)
+    void borrarRevisionesPorVersionId(@Param("versionId") Integer versionId);
+ }
