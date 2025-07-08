@@ -27,6 +27,11 @@ import java.util.logging.Logger;
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
+    @Override
+    public RevisionDocumento findById(Integer id) {
+        Optional<RevisionDocumento> revision = revisionDocumentoRepository.findById(id);
+        return revision.orElse(null);
+    }
 
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
@@ -38,6 +43,7 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         this.revisionDocumentoRepository = revisionDocumentoRepository;
         this.usuarioRepository = usuarioRepository;
     }
+
 
     @Override
     public List<RevisionDocumento> findByUsuarioId(Integer usuarioId) {

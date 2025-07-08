@@ -1,5 +1,6 @@
 package pucp.edu.pe.sgta.service.imp;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import pucp.edu.pe.sgta.dto.DocumentoConVersionDto;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.model.Documento;
 import pucp.edu.pe.sgta.model.EntregableXTema;
+import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.VersionXDocumento;
 import pucp.edu.pe.sgta.repository.DocumentoRepository;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
@@ -59,6 +61,35 @@ public class DocumentoServiceImpl implements DocumentoService {
             dto.setEntregableTemaId((Integer) row[4]);
             dto.setDocumentoPrincipal((Boolean) row[5]);
             documentos.add(dto);
+        }
+        return documentos;
+    }
+    @Override
+    public List<DocumentoConVersionDto> listarDocumentosPorRevision(Integer revisionId) {
+        RevisionDocumento revisionDocumento = revisionDocumentoService.findById(revisionId);
+        if (revisionDocumento == null) {
+            throw new EntityNotFoundException("Revision not found with id: " + revisionId);
+        }
+        
+        VersionXDocumento versionXDocumento = revisionDocumento.getVersionDocumento();
+        if (versionXDocumento == null) {
+            throw new EntityNotFoundException("VersionXDocumento not found for revision with id: " + revisionId);
+        }
+        List<Object[]> result = documentoRepository.listarDocumentosPorEntregable(versionXDocumento.getEntregableXTema().getEntregableXTemaId());
+        List<DocumentoConVersionDto> documentos = new ArrayList<>();
+
+        for(Object[] row : result){
+            DocumentoConVersionDto dto = new DocumentoConVersionDto();
+            dto.setDocumentoId((Integer) row[0]);
+            dto.setDocumentoNombre((String) row[1]);
+            dto.setDocumentoFechaSubida(((Instant) row[2]).atOffset(ZoneOffset.UTC));
+            dto.setDocumentoLinkArchivo((String) row[3]);
+            dto.setEntregableTemaId((Integer) row[4]);
+            dto.setDocumentoPrincipal((Boolean) row[5]);
+            if (!dto.isDocumentoPrincipal()) {
+                documentos.add(dto);
+            }
+            // Solo agregar documentos que no son principales
         }
         return documentos;
     }
