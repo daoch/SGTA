@@ -51,5 +51,12 @@ public class VersionXDocumentoServiceImpl implements VersionXDocumentoService {
     @Transactional
     public void create(VersionXDocumento versionXDocumento) {
         versionXDocumentoRepository.save(versionXDocumento);
+    
     }
+    @Override
+    public VersionXDocumento findById(Integer versionId) {
+        return versionXDocumentoRepository.findById(versionId)
+                .orElseThrow(() -> new DocumentoNotFoundException("VersionXDocumento not found with id: " + versionId));    
+    }
+    
 }
