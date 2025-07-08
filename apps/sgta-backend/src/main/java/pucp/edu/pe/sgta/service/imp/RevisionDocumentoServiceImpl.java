@@ -3,6 +3,8 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityNotFoundException;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
@@ -15,7 +17,7 @@ import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.util.EstadoRevision;
-
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -33,15 +35,19 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
         return revision.orElse(null);
     }
 
+    private final HistorialAccionServiceImpl historialAccionServiceImpl;
+    @Autowired
+    private HistorialAccionService historialAccionService;
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
     private final UsuarioRepository usuarioRepository;
     private static final Logger logger = Logger.getLogger(RevisionDocumentoService.class.getName());
 
     public RevisionDocumentoServiceImpl(RevisionDocumentoRepository revisionDocumentoRepository,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository, HistorialAccionServiceImpl historialAccionServiceImpl) {
         this.revisionDocumentoRepository = revisionDocumentoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.historialAccionServiceImpl = historialAccionServiceImpl;
     }
 
 
@@ -351,6 +357,13 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         // Ya no buscas ni seteas, solo llamas el update con casteo
         revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElseThrow(() -> new EntityNotFoundException("Revision not found with id: " + revisionId));
+
+        historialAccionService.registrarAccion(
+        revision.getUsuario().getId().toString(),
+        "solicitud de cambio de estado de entregable a " + nuevoEstado
+    );
     }
 
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
@@ -507,6 +520,14 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         // Llamas al repositorio con la nueva consulta que actualiza todas las revisiones
         revisionDocumentoRepository.actualizarEstadoTodosRevisiones(revisionId, nuevoEstado);
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElseThrow(() -> new EntityNotFoundException("Revision not found with id: " + revisionId));
+
+        historialAccionService.registrarAccion(
+        revision.getUsuario().getId().toString(),
+        "solicitud de cambio de estado de entregable a " + nuevoEstado
+    );
+        
     }
     @Override
     public List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId) {

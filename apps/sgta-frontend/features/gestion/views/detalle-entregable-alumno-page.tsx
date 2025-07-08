@@ -257,7 +257,7 @@ const observacionesFiltradas = useMemo(() => {
   function onClose(open: boolean): void {
     setOpen(open);
   }
-
+  console.log("Criterios agrupados por usuario:", criteriosAgrupadosPorUsuario);
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
       <div className="flex-1 space-y-6">
@@ -443,11 +443,12 @@ const observacionesFiltradas = useMemo(() => {
             <div className="pt-3 text-xs">
               <h4 className="font-semibold mb-1">Nota Final</h4>
               <div className="text-muted-foreground text-base font-bold">
-                {criterios.length > 0
-                  ? (
-                      criterios.reduce((acc, crit) => acc + (crit.nota || 0), 0) / criterios.length
-                    ).toFixed(2)
-                  : "Sin nota"}
+                {Object.keys(criteriosAgrupadosPorUsuario).length > 0
+                ? (
+                    criterios.reduce((acc, crit) => acc + (crit.nota || 0), 0) /
+                    Object.keys(criteriosAgrupadosPorUsuario).length
+                  ).toFixed(2)
+                : "Sin nota"}
               </div>
             </div>
           </div>

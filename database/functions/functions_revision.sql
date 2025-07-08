@@ -479,21 +479,24 @@ BEGIN
         RETURN;
     END IF;
 
-    -- 2. Verificar que el entregable esté asociado a al menos una exposición
+    -- 2. Verificar que el entregable esté asociado a al menos una exposición activa
     SELECT COUNT(*) INTO exposicion_count
     FROM exposicion
-    WHERE entregable_id = v_entregable_id;
+    WHERE entregable_id = v_entregable_id
+      AND activo = true;
 
     IF exposicion_count = 0 THEN
-        RAISE NOTICE 'El entregable_id % no tiene exposiciones asociadas.', v_entregable_id;
+        RAISE NOTICE 'El entregable_id % no tiene exposiciones activas asociadas.', v_entregable_id;
         RETURN;
     END IF;
 
-    -- 3. Iterar sobre versiones del entregable_x_tema
+    -- 3. Iterar sobre versiones activas y principales del entregable_x_tema
     FOR version_id, v_link_archivo IN
         SELECT vd.version_documento_id, vd.link_archivo_subido
         FROM version_documento vd
         WHERE vd.entregable_x_tema_id = entregablextemaid
+          AND vd.activo = true
+          AND vd.documento_principal = true
     LOOP
         -- 4. Iterar sobre jurados asignados al tema
         FOR user_id IN
@@ -536,7 +539,7 @@ BEGIN
                 VALUES (
                     version_id,
                     user_id,
-                    'por_aprobar',
+                    'por_aprobar'::enum_estado_revision,
                     true,
                     NOW(),
                     NOW(),
@@ -547,7 +550,7 @@ BEGIN
         END LOOP;
     END LOOP;
 END;
-$$ LANGUAGE plpgsql;
+$$LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION obtener_documentos_jurado(juradoid integer)
  RETURNS TABLE(
