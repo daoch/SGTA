@@ -528,4 +528,10 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         return lista;
     }
+
+
+    @Override
+    public void borrarRevision(Integer versionid) {
+       revisionDocumentoRepository.borrarRevisionesPorVersionId(versionid);
+    }
 }

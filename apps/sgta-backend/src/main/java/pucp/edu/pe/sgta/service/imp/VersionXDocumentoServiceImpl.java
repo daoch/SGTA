@@ -58,5 +58,15 @@ public class VersionXDocumentoServiceImpl implements VersionXDocumentoService {
         return versionXDocumentoRepository.findById(versionId)
                 .orElseThrow(() -> new DocumentoNotFoundException("VersionXDocumento not found with id: " + versionId));    
     }
+
+    @Override
+    public VersionXDocumento findbyDocumento(Integer documentoId) {
+        // TODO Auto-generated method stub
+        java.util.List<VersionXDocumento> versiones = versionXDocumentoRepository.findByDocumentoId(documentoId);
+        if (versiones == null || versiones.isEmpty()) {
+            throw new DocumentoNotFoundException("VersionXDocumento not found for documentoId: " + documentoId);
+        }
+        return versiones.get(0);
+    }
     
 }

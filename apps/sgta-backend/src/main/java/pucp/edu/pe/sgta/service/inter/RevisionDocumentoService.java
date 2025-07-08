@@ -52,4 +52,5 @@ public interface RevisionDocumentoService {
     List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId);
     void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado);
     List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId);
+    void borrarRevision(Integer versionid);
 }

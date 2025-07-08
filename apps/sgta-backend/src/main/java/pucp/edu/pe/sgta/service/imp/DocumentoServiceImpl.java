@@ -155,6 +155,11 @@ public class DocumentoServiceImpl implements DocumentoService {
     @Override
     public void borrarDocumento(Integer documentoId, String cognitoId) {
         documentoRepository.borrarDocumento(documentoId);
+        //borrar revisiones asociadas
+        VersionXDocumento version= versionXDocumentoService.findbyDocumento(documentoId);
+        if (version != null) {
+            revisionDocumentoService.borrarRevision(version.getId());
+        }
         historialAccionService.registrarAccion(cognitoId, "Se borró el documento con ID: " + documentoId);
     }
 
