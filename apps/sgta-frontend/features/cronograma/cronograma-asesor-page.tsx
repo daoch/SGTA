@@ -16,10 +16,7 @@ import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -33,6 +30,8 @@ import { useEffect, useMemo  } from "react"; // Añade useEffect aquí
 import { useAuth } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
 
+import { useAuthStore } from "@/features/auth/store/auth-store";
+
 //type TipoEvento = "ENTREGABLE" | "REUNION" | "Otros";
 type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
 
@@ -43,7 +42,7 @@ interface CalendarEvent {
   start?: Date;
   end: Date;
   tipoEvento: TipoEvento;
-  tesistas: string[]; // nombres completos
+  tesista: string; // ← Cambiado de array a string
 }
 
 interface Tesista {
@@ -62,6 +61,7 @@ interface Evento {
   activo: boolean;
   tesistas: Tesista[];
 }
+
 
 const MiCronogramaPage = () => {
   const createDate = (day: number, month: number, year: number, hours = 0, minutes = 0) =>
@@ -101,48 +101,75 @@ const MiCronogramaPage = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  useEffect(() => {
-    const fetchEventosAsesor = async () => {
-      try {
-        const response = await axiosInstance.get("/api/eventos/asesor");
-        const data = response.data;
-  
-        const eventosMapeados: CalendarEvent[] = [];
-  
-        data.forEach((evento: Evento, index: number) => {
-          const {
-            id,
-            nombre,
-            descripcion,
-            tipo,
-            fechaInicio,
-            fechaFin,
-            tesistas,
-          } = evento;
-  
-          tesistas.forEach((tesista: Tesista) => {
-            const eventoMapeado: CalendarEvent = {
-              id: `${id}-${tesista.id}`, // ID único por evento-tesista
-              title: nombre,
-              description: descripcion,
-              start: fechaInicio ? new Date(fechaInicio) : new Date(fechaFin),
-              end: new Date(fechaFin),
-              tipoEvento: tipo as TipoEvento,
-              tesistas: [tesista.nombreCompleto],
-            };
-  
-            eventosMapeados.push(eventoMapeado);
-          });
-        });
-  
-        setEvents(eventosMapeados);
-      } catch (error) {
-        console.error("Error al obtener eventos del asesor:", error);
+  const fetchEventosAsesor = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
-  
+
+      //Response hardcodeado para pruebas
+      //const response = await axiosInstance.get("/api/eventos/asesor/76"); // donde el numero es el ID del usuario asesor
+
+      // Llamada al backend
+      const response = await axiosInstance.get("/api/eventos/asesor");
+      
+      const data: Evento[] = response.data;
+
+      // Mapeo de eventos con URL en reuniones
+      const eventosMapeados: CalendarEvent[] = await Promise.all(
+        data.flatMap((evento) =>
+          evento.tesistas.slice(0, 20).map(async (tesista) => {
+            let url = "";
+
+            // Si es reunión, obtener su URL
+            if (evento.tipo.toUpperCase() === "REUNION") {
+              try {
+                const reunionResponse = await axiosInstance.get(
+                  `/api/reuniones/${evento.id}`
+                );
+                url = reunionResponse.data.url || "";
+              } catch (error) {
+                console.warn(
+                  `No se pudo obtener la URL de la reunión con ID ${evento.id}`,
+                  error
+                );
+              }
+            }
+
+            const endDate = new Date(evento.fechaFin || evento.fechaInicio);
+            const startDate =
+              evento.tipo.toUpperCase() === "ENTREGABLE"
+                ? endDate
+                : new Date(evento.fechaInicio);
+
+            return {
+              id: `${evento.id}-${tesista.id}`,
+              title: evento.nombre || "Sin título",
+              description: evento.descripcion || "",
+              start: startDate,
+              end: endDate,
+              tipoEvento: evento.tipo as TipoEvento,
+              tesista: tesista.nombreCompleto,
+              url, // incluir la URL si aplica
+            };
+          })
+        )
+      );
+
+      setEvents(eventosMapeados);
+    } catch (error) {
+      console.error("Error al obtener eventos del asesor:", error);
+    }
+  };
+
+  //fetchEventosAsesor();
+
+  useEffect(() => {
     fetchEventosAsesor();
   }, []);
+
   
 
   // Estados para el filtro de tesistas
@@ -153,9 +180,10 @@ const MiCronogramaPage = () => {
 
   // Obtener lista única de tesistas
   const tesistasList = useMemo(() => {
-    const nombres = events.flatMap(e => e.tesistas);
-    return Array.from(new Set(nombres)).sort();
-  }, [events]);
+  const nombres = events.map(e => e.tesista);
+  return Array.from(new Set(nombres)).slice(0, 20).sort();
+}, [events]);
+
   
 
   // Inicializar los tesistas seleccionados (todos seleccionados por defecto)
@@ -170,7 +198,7 @@ const MiCronogramaPage = () => {
     }
   }, [tesistasList, initialTesistasLoaded]);
 
-  // Función para manejar cambios en los checkboxes
+  // Función para manejar cambios en todos los checkboxes
   const handleTesistaChange = (tesista: string) => {
     setSelectedTesistas(prev => ({
       ...prev,
@@ -198,12 +226,13 @@ const MiCronogramaPage = () => {
   };
 
   // Filtrar eventos basados en los tesistas seleccionados (usando useMemo para optimización)
-  const filteredEvents = useMemo(() =>
-    events.filter(event => 
-      event.tesistas.some(nombre => selectedTesistas[nombre])
-    ),
-    [events, selectedTesistas]
-  );
+const filteredEvents = useMemo(() =>
+  events.filter(event => 
+    !!event.tesista && !!selectedTesistas?.[event.tesista]
+  ),
+  [events, selectedTesistas]
+);
+
 
   // Mapear eventos para el calendario (también con useMemo)
   const eventosParaCalendario = useMemo(() => 
@@ -215,6 +244,8 @@ const MiCronogramaPage = () => {
     })),
     [filteredEvents]
   );
+
+  //console.log("EVENTOS ANTES DEL CALENDARIO", eventosParaCalendario);
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">("actual");
@@ -256,7 +287,10 @@ const MiCronogramaPage = () => {
       format(event.start ?? event.end, "HH:mm"),
       format(event.end, "yyyy-MM-dd"),
       format(event.end, "HH:mm"),
-      event.description || ""
+      //event.description || ""
+      //`"${(event.description || "").replace(/"/g, '""')}"`,
+      //"\"" + (event.description || "").replace(/"/g, '""') + "\"",
+      "\"" + (event.description || "").replace(/"/g, "\"\"") + "\"",
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
@@ -504,7 +538,11 @@ const MiCronogramaPage = () => {
             events={eventosParaCalendario} 
             key={JSON.stringify(selectedTesistas)} // Forzar re-render al cambiar filtros
             numTesistas={tesistasList.length}
-            tipoUsuario='ASESOR'
+            tesistasUnicos={tesistasList}
+            tipoUsuario='Asesor'
+            fetchEventos={() => {
+                fetchEventosAsesor(); // 👈 vuelve a cargar los datos del backend
+            }}
           >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">

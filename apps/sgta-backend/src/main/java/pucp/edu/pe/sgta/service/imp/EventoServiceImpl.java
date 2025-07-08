@@ -183,6 +183,119 @@ public class EventoServiceImpl implements EventoService {
         return eventos;
     }
 
+    //Creado para pruebas
+    @Override
+    public List<EventoDto> listarEventosXAsesorPorId(Integer usuarioId) {
+        List<EventoDto> eventos = new ArrayList<>();
+
+        // 1. Reuniones
+        List<Object[]> reuniones = usuarioXReunionRepo.listarReunionesXAsesor(usuarioId);
+        for (Object[] obj : reuniones) {
+            Integer reunionId = (Integer) obj[0];
+            String nombre = (String) obj[1];
+            String descripcion = (String) obj[2];
+            OffsetDateTime fechaInicio = OffsetDateTime.ofInstant((Instant) obj[3], ZoneId.systemDefault());
+            OffsetDateTime fechaFin = OffsetDateTime.ofInstant((Instant) obj[4], ZoneId.systemDefault());
+
+            EventoDto evento = new EventoDto();
+            evento.setId(reunionId);
+            evento.setNombre(nombre);
+            evento.setDescripcion(descripcion);
+            evento.setTipo(TipoEventoEnum.REUNION);
+            evento.setFechaInicio(fechaInicio);
+            evento.setFechaFin(fechaFin);
+            evento.setActivo(true);
+            
+            // Obtener tesistas relacionados a la reunión
+            List<Object[]> tesistas = usuarioXReunionRepo.listarTesistasXReunion(reunionId);
+            for (Object[] tes : tesistas) {
+                Integer tesistaId = (Integer) tes[0];
+                String nombreCompleto = (String) tes[1];
+                String temaTesis = (String) tes[2];
+
+                TesistaCronDto tesistaDto = new TesistaCronDto();
+                tesistaDto.setId(tesistaId);
+                tesistaDto.setNombreCompleto(nombreCompleto);
+                tesistaDto.setTemaTesis(temaTesis);
+                evento.getTesistas().add(tesistaDto);
+            }
+            eventos.add(evento);
+        }
+
+        // 2. Entregables
+        List<Object[]> entregables = entregableRepo.listarEntregablesXUsuario(usuarioId);
+        for (Object[] obj : entregables) {
+            Integer entregableId = (Integer) obj[0];
+            String nombre = (String) obj[1];
+            String descripcion = (String) obj[2];
+            OffsetDateTime fechaInicio = OffsetDateTime.ofInstant((Instant) obj[3], ZoneId.systemDefault());
+            OffsetDateTime fechaFin = OffsetDateTime.ofInstant((Instant) obj[4], ZoneId.systemDefault());
+
+            EventoDto evento = new EventoDto();
+            evento.setId(entregableId);
+            evento.setNombre(nombre);
+            evento.setDescripcion(descripcion);
+            evento.setTipo(TipoEventoEnum.ENTREGABLE);
+            evento.setFechaInicio(fechaInicio);
+            evento.setFechaFin(fechaFin);
+            evento.setActivo(true);
+
+            // Obtener tesistas relacionados al entregable
+            List<Object[]> tesistas = asesorTesistaRepository.listarTesistasXAsesor(usuarioId);
+            for (Object[] tes : tesistas) {
+                Integer tesistaId = (Integer) tes[0];
+                String nombreCompleto = (String) tes[1];
+                String temaTesis = (String) tes[2];
+
+                TesistaCronDto tesistaDto = new TesistaCronDto();
+                tesistaDto.setId(tesistaId);
+                tesistaDto.setNombreCompleto(nombreCompleto);
+                tesistaDto.setTemaTesis(temaTesis);
+                evento.getTesistas().add(tesistaDto);
+            }
+
+            eventos.add(evento);
+        }
+
+        // 3. Exposiciones
+        List<Object[]> exposiciones = exposicionRepo.listarExposicionesXUsuario(usuarioId);
+        for (Object[] obj : exposiciones) {
+            Integer exposicionId = (Integer) obj[0];
+            String nombre = (String) obj[1];
+            String descripcion = (String) obj[2];
+            OffsetDateTime fechaInicio = OffsetDateTime.ofInstant((Instant) obj[3], ZoneId.systemDefault());
+            OffsetDateTime fechaFin = OffsetDateTime.ofInstant((Instant) obj[4], ZoneId.systemDefault());
+            Integer bheId = (Integer) obj[5];
+
+            EventoDto evento = new EventoDto();
+            evento.setId(exposicionId);
+            evento.setNombre(nombre);
+            evento.setDescripcion(descripcion);
+            evento.setTipo(TipoEventoEnum.EXPOSICION);
+            evento.setFechaInicio(fechaInicio);
+            evento.setFechaFin(fechaFin);
+            evento.setActivo(true);
+
+            // Obtener tesistas relacionados a la exposición
+            List<Object[]> tesistas = exposicionRepo.listarTesistasXExposicion(bheId);
+            for (Object[] tes : tesistas) {
+                Integer tesistaId = (Integer) tes[0];
+                String nombreCompleto = (String) tes[1];
+                String temaTesis = (String) tes[2];
+
+                TesistaCronDto tesistaDto = new TesistaCronDto();
+                tesistaDto.setId(tesistaId);
+                tesistaDto.setNombreCompleto(nombreCompleto);
+                tesistaDto.setTemaTesis(temaTesis);
+                evento.getTesistas().add(tesistaDto);
+            }
+
+            eventos.add(evento);
+        }
+
+        return eventos;
+    }
+
     @Override
     public List<EventoDto> listarEventosXAsesor(String id) {
         List<EventoDto> eventos = new ArrayList<>();
