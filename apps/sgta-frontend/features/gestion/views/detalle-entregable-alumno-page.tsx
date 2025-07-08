@@ -25,6 +25,8 @@ import { RevisionCriterioEntregableDto } from "@/features/revision/dtos/Revision
 import { ProfesoresTemaDto } from "@/features/revision/dtos/ProfesoresTemaDto";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
+import { toast } from "@/components/ui/use-toast";
 
 // Add the correct import for ObservacionesRevisionDTO
 
@@ -45,6 +47,22 @@ export default function DetalleEntregableAlumnoPage() {
   const [orden, setOrden] = useState("pagina");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
+  
+  // Estados para el dialog de detalles del revisor
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reviewerForDetails, setReviewerForDetails] = useState<string | null>(null);
+  
+  // Función para abrir el dialog de detalles del revisor
+  const handleViewDetails = (reviewerName: string) => {
+    setReviewerForDetails(reviewerName);
+    setIsDialogOpen(true);
+  };
+
+  // Función para cerrar el dialog de detalles
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setReviewerForDetails(null);
+  };
   const getTipoObs = (tipo: number) =>
     tipo === 1
       ? "Contenido"
@@ -257,6 +275,60 @@ const observacionesFiltradas = useMemo(() => {
   function onClose(open: boolean): void {
     setOpen(open);
   }
+
+  // Función para obtener el revisionDocumentoId del revisor seleccionado
+  const getRevisionIdForSelectedRevisor = useMemo(() => {
+    if (!selectedRevisor || !criteriosAgrupadosPorUsuario[selectedRevisor]) {
+      return null;
+    }
+    
+    const criteriosDelRevisor = criteriosAgrupadosPorUsuario[selectedRevisor];
+    if (criteriosDelRevisor.length > 0) {
+      return criteriosDelRevisor[0].revisionDocumentoId;
+    }
+    
+    return null;
+  }, [selectedRevisor, criteriosAgrupadosPorUsuario]);
+
+  // Hook para descargar PDF anotado (solo se activa si hay un revisor seleccionado)
+  const downloadAnnotatedPdf = useDownloadAnnotated(getRevisionIdForSelectedRevisor || 0);
+
+  // Función para manejar la descarga
+  const handleDownload = async () => {
+    if (!selectedRevisor) {
+      toast({
+        title: "Seleccionar revisor",
+        description: "Por favor selecciona un revisor antes de descargar el PDF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!getRevisionIdForSelectedRevisor) {
+      toast({
+        title: "Error",
+        description: "No se pudo obtener la información de revisión para este revisor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await downloadAnnotatedPdf();
+      toast({
+        title: "Descarga exitosa",
+        description: "El PDF anotado se ha descargado correctamente.",
+      });
+    } catch (error) {
+      console.error("Error al descargar:", error);
+      toast({
+        title: "Error en la descarga",
+        description: "No se pudo descargar el PDF. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   console.log("Criterios agrupados por usuario:", criteriosAgrupadosPorUsuario);
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
@@ -288,9 +360,21 @@ const observacionesFiltradas = useMemo(() => {
               )}
             </div>
           </div>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" /> Descargar
-            </Button>
+            <div className="flex flex-col gap-2">
+              {selectedRevisor && (
+                <div className="text-xs text-muted-foreground text-right">
+                  PDF de: {selectedRevisor}
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                onClick={handleDownload}
+                disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
+              >
+                <Download className="w-4 h-4 mr-2" /> 
+                {selectedRevisor ? "Descargar PDF Revisado" : "Seleccionar Revisor"}
+              </Button>
+            </div>
           </div>
 
           <hr className="border-gray-200" />
@@ -388,6 +472,49 @@ const observacionesFiltradas = useMemo(() => {
         {/* Sección con tarjetas de usuarios y suma de notas */}
       <div className="bg-white border rounded-md p-4">
         <h3 className="font-semibold mb-2">Historial de Revisión</h3>
+        
+        {/* Selector de revisor para descarga */}
+        {Object.keys(criteriosAgrupadosPorUsuario).length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-semibold mb-2 text-sm text-blue-800">Descargar PDF Anotado</h4>
+            <Select value={selectedRevisor || ""} onValueChange={setSelectedRevisor}>
+              <SelectTrigger className="w-full mb-2">
+                <SelectValue placeholder="Selecciona un revisor" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(criteriosAgrupadosPorUsuario).map((nombreRevisor) => {
+                  const usuario = usuarios.find(u => `${u.nombres} ${u.primerApellido} ${u.segundoApellido}` === nombreRevisor);
+                  let rolLabel = "";
+                  if (usuario?.rolId === 2) {
+                    const jurados = usuarios.filter(u => u.rolId === 2);
+                    const juradoIndex = jurados.findIndex(u => u.usuarioId === usuario.usuarioId) + 1;
+                    rolLabel = `Jurado ${juradoIndex}`;
+                  } else if (usuario?.rolId === 1) {
+                    rolLabel = "Asesor";
+                  } else if (usuario?.rolId === 4) {
+                    rolLabel = "Revisor";
+                  }
+                  
+                  return (
+                    <SelectItem key={nombreRevisor} value={nombreRevisor}>
+                      {nombreRevisor} {rolLabel && `(${rolLabel})`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={handleDownload} 
+              disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              size="sm"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar PDF Revisado
+            </Button>
+          </div>
+        )}
+
         {/* Revisores y Notas */}
         <div className="space-y-4">
           <h4 className="font-semibold mb-2 text-xs">Revisores y Notas</h4>
@@ -430,7 +557,7 @@ const observacionesFiltradas = useMemo(() => {
                       size="sm"
                       variant="outline"
                       className="ml-2 py-1 px-2"
-                      onClick={() => setSelectedRevisor(nombre)}
+                      onClick={() => handleViewDetails(nombre)}
                     >
                       Ver Detalles
                     </Button>
@@ -453,28 +580,28 @@ const observacionesFiltradas = useMemo(() => {
             </div>
           </div>
         </div>
-        <Dialog open={!!selectedRevisor} onOpenChange={() => setSelectedRevisor(null)}>
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Rúbrica de Evaluación</DialogTitle>
               <p className="text-sm text-muted-foreground">
-                {selectedRevisor && criteriosAgrupadosPorUsuario[selectedRevisor]?.[0]?.entregableDescripcion
-                  ? `Entregable: ${criteriosAgrupadosPorUsuario[selectedRevisor][0].entregableDescripcion}`
+                {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.[0]?.entregableDescripcion
+                  ? `Entregable: ${criteriosAgrupadosPorUsuario[reviewerForDetails][0].entregableDescripcion}`
                   : ""}
               </p>
             </DialogHeader>
 
-            {selectedRevisor && (
+            {reviewerForDetails && (
               <>
                 <div className="flex items-center justify-between mb-4 p-4 bg-muted rounded-lg">
                   <div>
                     <h3 className="font-medium text-sm">Puntuación Total</h3>
                     <p className="text-sm text-muted-foreground">
-                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
                         .reduce((acc, crit) => acc + (crit.nota || 0), 0)
                         .toFixed(1)}{" "}
                       /{" "}
-                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
                         .reduce((acc, crit) => acc + (crit.notaMaxima || 0), 0)}
                       {" "}puntos
                     </p>
@@ -484,7 +611,7 @@ const observacionesFiltradas = useMemo(() => {
                 <Card>
                   <CardContent className="pt-4">
                     <Accordion type="multiple">
-                      {criteriosAgrupadosPorUsuario[selectedRevisor].map((item) => (
+                      {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.map((item) => (
                         <AccordionItem
                           key={item.criterioEntregableId}
                           value={item.criterioEntregableId?.toString()}
@@ -531,7 +658,7 @@ const observacionesFiltradas = useMemo(() => {
             )}
 
             <DialogFooter className="pt-4">
-              <Button onClick={() => setSelectedRevisor(null)}>Cerrar</Button>
+              <Button onClick={handleCloseDialog}>Cerrar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

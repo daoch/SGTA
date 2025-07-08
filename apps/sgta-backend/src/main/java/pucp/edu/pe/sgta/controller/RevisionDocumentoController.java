@@ -16,6 +16,7 @@ import pucp.edu.pe.sgta.dto.UsuarioDto;
 import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Observacion;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.service.inter.S3DownloadService;
@@ -50,6 +51,9 @@ public class RevisionDocumentoController {
 
     @Autowired
     private ObservacionRepository observacionRepository;
+
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     @GetMapping("/findAll")
     public List<RevisionDto> getAllRevisiones() {
@@ -164,6 +168,9 @@ public class RevisionDocumentoController {
             .filename(filename)
             .build());
         
+        historialAccionService.registrarAccion(revision.getUsuario().getIdCognito(),
+                "Se ha descargado la revisión con anotaciones por parte del usuario con ID: " + id);
+
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"").body(annotatedPdf);
     }
   
