@@ -446,8 +446,8 @@ const observacionesFiltradas = useMemo(() => {
         
         {/* Selector de revisor para descarga */}
         {Object.keys(criteriosAgrupadosPorUsuario).length > 0 && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-semibold mb-2 text-sm text-blue-800">Descargar PDF Anotado</h4>
+          <div className="mb-4 p-3 bg-gray-300-50 border border-gray-200 rounded-lg">
+            <h4 className="font-semibold mb-2 text-sm text-black">Descargar PDF Anotado</h4>
             <Select value={selectedRevisor || ""} onValueChange={setSelectedRevisor}>
               <SelectTrigger className="w-full mb-2">
                 <SelectValue placeholder="Selecciona un revisor" />
@@ -477,7 +477,7 @@ const observacionesFiltradas = useMemo(() => {
             <Button 
               onClick={handleDownload} 
               disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
-              className="w-full bg-[#042354] hover:bg-[#00112d]"
+              className="w-full"
               size="sm"
             >
               <Download className="w-4 h-4 mr-2" />
