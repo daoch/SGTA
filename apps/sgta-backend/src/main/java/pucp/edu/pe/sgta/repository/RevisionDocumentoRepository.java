@@ -146,11 +146,7 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = """
             UPDATE revision_documento
             SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
-            WHERE version_documento_id = (
-                SELECT version_documento_id
-                FROM revision_documento
-                WHERE revision_documento_id = :revisionId
-            )
+            WHERE revision_documento_id = :revisionId
             """, nativeQuery = true)
     void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId,
             @Param("nuevoEstado") String nuevoEstado);
