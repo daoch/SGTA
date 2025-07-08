@@ -388,8 +388,10 @@ export function AdvisorReports() {
   const stats = {
     total: students.length,
     delayed: students.filter(s => s.entregableEnvioEstado === "enviado_tarde").length,
+    formulacion: students.filter(s => s.etapaFormativaNombre === "FORMULACIÓN DE PROYECTO DE FIN DE CARRERA").length,
     pfc1: students.filter(s => s.etapaFormativaNombre === "Proyecto de fin de carrera 1").length,
     pfc2: students.filter(s => s.etapaFormativaNombre === "Proyecto de fin de carrera 2").length,
+    pfc3: students.filter(s => s.etapaFormativaNombre === "PROYECTO DE FIN DE CARRERA 3").length,
   };
 
   // Filter options
@@ -444,12 +446,23 @@ export function AdvisorReports() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             {[
               { value: stats.total, label: "Total de tesistas", color: "text-[#002855]" },
               { value: stats.delayed, label: "Con retraso", color: stats.delayed === 0 ? "text-green-600" : "text-red-600" },
-              { value: stats.pfc1, label: "Proyecto de Fin de Carrera 1", color: "text-[#006699]" },
-              { value: stats.pfc2, label: "Proyecto de Fin de Carrera 2", color: "text-[#006699]" },
+            ].map((stat, index) => (
+              <div key={index} className="bg-[#F5F5F5] p-4 rounded-lg">
+                <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-sm text-gray-500">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            {[
+              { value: stats.formulacion, label: "Formulación De Proyecto De Fin De Carrera", color: "text-[#006699]" },
+              { value: stats.pfc1, label: "Proyecto De Fin De Carrera 1", color: "text-[#006699]" },
+              { value: stats.pfc2, label: "Proyecto De Fin De Carrera 2", color: "text-[#006699]" },
+              { value: stats.pfc3, label: "Proyecto De Fin De Carrera 3", color: "text-[#006699]" },
             ].map((stat, index) => (
               <div key={index} className="bg-[#F5F5F5] p-4 rounded-lg">
                 <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
