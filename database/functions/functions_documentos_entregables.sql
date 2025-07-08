@@ -669,3 +669,55 @@ BEGIN
     END LOOP;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION tareas_fin_de_ciclo()
+RETURNS void AS $$
+DECLARE
+    ciclo_id_actual INTEGER;
+    fecha_fin_actual TIMESTAMP;
+BEGIN
+    -- 1. Obtener el ciclo activo
+    SELECT ciclo_id, fecha_fin
+    INTO ciclo_id_actual, fecha_fin_actual
+    FROM ciclo
+    WHERE activo = TRUE
+    LIMIT 1;
+
+    -- Si no hay ciclo activo, termina la función
+    IF ciclo_id_actual IS NULL THEN
+        RAISE NOTICE 'No hay ciclo activo.';
+        RETURN;
+    END IF;
+
+    -- 2. Verificar si la fecha actual es mayor a la fecha_fin del ciclo
+    IF now() <= fecha_fin_actual THEN
+        RAISE NOTICE 'El ciclo activo aún no ha finalizado.';
+        RETURN;
+    END IF;
+
+    -- 3. Buscar todos los temas asociados a ese ciclo mediante etapa_formativa_x_ciclo_x_tema
+    -- y cambiar su estado de EN_PROGRESO a PAUSADO
+
+    UPDATE tema t
+    SET estado_tema_id = (
+        SELECT et2.estado_tema_id
+        FROM estado_tema et2
+        WHERE et2.nombre = 'PAUSADO'
+        LIMIT 1
+    )
+    WHERE t.estado_tema_id = (
+        SELECT et.estado_tema_id
+        FROM estado_tema et
+        WHERE et.nombre = 'EN_PROGRESO'
+        LIMIT 1
+    )
+    AND t.id IN (
+        SELECT efct.tema_id
+        FROM etapa_formativa_x_ciclo_x_tema efct
+        JOIN etapa_formativa_x_ciclo efc ON efct.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+        WHERE efc.ciclo_id = ciclo_id_actual
+    );
+
+    RAISE NOTICE 'Estados de temas actualizados a PAUSADO para el ciclo finalizado.';
+END;
+$$ LANGUAGE plpgsql;

@@ -33,6 +33,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const ESTADOS = [
   { value: "REGISTRADO", label: "Registrado" },
@@ -58,6 +65,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(false);
   const [filtroCodigo, setFiltroCodigo] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const fetchCursos = async () => {
@@ -223,7 +231,7 @@ const AsociacionTemaCursoPage: React.FC = () => {
           disabled={
             !cursoSeleccionado || temasSeleccionados.length === 0 || loading
           }
-          onClick={handleAsociar}
+          onClick={() => setShowConfirmModal(true)}
         >
           {loading ? "Asociando..." : "Asociar temas"}
         </Button>
@@ -444,6 +452,42 @@ const AsociacionTemaCursoPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Confirmar asociación de temas?</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-muted-foreground">
+            ¿Estás seguro de que deseas asociar los temas seleccionados al curso{" "}
+            <b>
+              {cursoSeleccionado?.etapaFormativaNombre} (
+              {cursoSeleccionado?.cicloNombre})
+            </b>
+            ?<br />
+            <span className="text-red-600 font-semibold">
+              Esta acción no se puede revertir.
+            </span>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-[#042354] text-white"
+              onClick={async () => {
+                setShowConfirmModal(false);
+                await handleAsociar();
+              }}
+              disabled={loading}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -25,6 +25,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const AsignacionRevisorCursoPage: React.FC = () => {
   const [loadingEtapas, setLoadingEtapas] = useState(true);
@@ -43,6 +50,7 @@ const AsignacionRevisorCursoPage: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(false);
   const [filtro, setFiltro] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const fetchCursos = async () => {
@@ -182,6 +190,15 @@ const AsignacionRevisorCursoPage: React.FC = () => {
     return <AppLoading />;
   }
 
+  const handleAsignarClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmAsignar = async () => {
+    setShowConfirmModal(false);
+    await handleAsociar();
+  };
+
   return (
     <div className="w-full px-6 py-6">
       <div className="flex items-center mb-6 justify-between">
@@ -204,7 +221,7 @@ const AsignacionRevisorCursoPage: React.FC = () => {
           disabled={
             !cursoSeleccionado || revisoresSeleccionados.length === 0 || loading
           }
-          onClick={handleAsociar}
+          onClick={handleAsignarClick}
         >
           {loading ? "Asignando..." : "Asignar revisores"}
         </Button>
@@ -397,6 +414,40 @@ const AsignacionRevisorCursoPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar asignación de revisores</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-muted-foreground">
+            ¿Estás seguro de que deseas asignar los revisores seleccionados al
+            curso{" "}
+            <b>
+              {cursoSeleccionado?.etapaFormativaNombre} (
+              {cursoSeleccionado?.cicloNombre})
+            </b>
+            ?<br />
+            <span className="text-red-600 font-semibold">
+              Esta acción no se puede revertir.
+            </span>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-[#042354] text-white"
+              onClick={handleConfirmAsignar}
+              disabled={loading}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

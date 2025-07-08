@@ -68,4 +68,7 @@ public interface EtapaFormativaXCicloRepository extends JpaRepository<EtapaForma
     @Query(value = "SELECT * FROM obtener_etapas_formativas_por_asesor_y_ciclo_activo(:asesorId)", nativeQuery = true)
     List<Object[]> obtenerEtapasFormativasPorAsesorYCicloActivo(Integer asesorId);
 
+    @Query(value = "SELECT tareas_fin_de_ciclo()", nativeQuery = true)
+    void tareasFinDeCiclo();
+
 }
