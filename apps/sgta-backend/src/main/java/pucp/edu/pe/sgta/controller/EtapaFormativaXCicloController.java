@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloAsesorDto;
 import pucp.edu.pe.sgta.dto.UsuarioXCarreraDto;
 import pucp.edu.pe.sgta.dto.PageResponseDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
@@ -131,6 +132,13 @@ public class EtapaFormativaXCicloController {
     public ResponseEntity<List<EtapaFormativaXCicloTesistaDto>> listarEtapasFormativasXCicloTesista(HttpServletRequest request) {
         String idCognito = jwtService.extractSubFromRequest(request);
         List<EtapaFormativaXCicloTesistaDto> etapas = etapaFormativaXCicloService.listarEtapasFormativasXCicloTesista(idCognito);
+        return ResponseEntity.ok(etapas);
+    }
+
+    @GetMapping("/asesor")
+    public ResponseEntity<List<EtapaFormativaXCicloAsesorDto>> obtenerEtapasFormativasPorAsesorYCicloActivo(HttpServletRequest request) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        List<EtapaFormativaXCicloAsesorDto> etapas = etapaFormativaXCicloService.obtenerEtapasFormativasPorAsesorYCicloActivo(idCognito);
         return ResponseEntity.ok(etapas);
     }
 
