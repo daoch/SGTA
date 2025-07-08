@@ -528,10 +528,6 @@ public class SolicitudServiceImpl implements SolicitudService {
         Usuario alumno = usuarioServiceImpl.buscarUsuarioPorCognito(cognitoId, "Usuario no encontrado");
         usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(alumno, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.REMITENTE);
 
-        //Agregar al asesor actual para información relevante
-        Usuario asesor = usuarioServiceImpl.buscarUsuarioPorId(registroDto.getAsesorId(), "Asesor no encontrado");
-        usuarioXSolicitudServiceImp.agregarUsuarioSolicitud(asesor, solicitud,AccionSolicitudEnum.SIN_ACCION,RolSolicitudEnum.ASESOR_ACTUAL);
-
         //Si el tema es incrito luego de registrar se procede al retiro
         if(estado == EstadoTemaEnum.INSCRITO){
             solicitudRepository.procesarRetiroAlumnoAutomatico(alumno.getId(), registroDto.getTemaId(), registroDto.getCreadorId());
