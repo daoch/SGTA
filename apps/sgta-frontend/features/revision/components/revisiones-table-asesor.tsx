@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Eye,
-  FileText,
   Search
 } from "lucide-react";
 import Link from "next/link";
@@ -91,6 +90,8 @@ export function RevisionesTableAsesor({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Curso</TableHead>
+              <TableHead>Estudiante</TableHead>
               <TableHead>
                 <span className="ml-2">Curso</span>
               </TableHead>
@@ -98,7 +99,7 @@ export function RevisionesTableAsesor({
               <TableHead>Documento</TableHead>
               <TableHead>Estudiante</TableHead>
               <TableHead>Similitud (%)</TableHead>
-              <TableHead>Gen. IA (%)</TableHead>
+              <TableHead>Punt. Human (%)</TableHead>
               <TableHead>F. de Subida</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -156,11 +157,13 @@ export function RevisionesTableAsesor({
                       <div className="flex items-center gap-2">
                         <span
                           className={
-                            revision.porcentajeGenIA > 20
-                              ? "text-red-600"
-                              : revision.porcentajeGenIA > 10
-                                ? "text-yellow-600"
-                                : "text-green-600"
+                            revision.porcentajeGenIA >= 90
+                              ? "text-green-600"
+                              : revision.porcentajeGenIA >= 70
+                                ? "text-yellow-500"
+                                : revision.porcentajeGenIA >= 50
+                                  ? "text-orange-500"
+                                  : "text-red-600"
                           }
                         >
                           {revision.porcentajeGenIA}%

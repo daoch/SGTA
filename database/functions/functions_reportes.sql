@@ -1765,3 +1765,126 @@ BEGIN
     ORDER BY etapa_formativa_nombre, u.primer_apellido, u.nombres;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_asesor_y_ciclo_activo(
+    p_asesor_id INTEGER
+)
+RETURNS TABLE(
+    etapa_formativa_x_ciclo_id INTEGER,
+    etapa_formativa_id INTEGER,
+    etapa_formativa_nombre TEXT,
+    carrera_id INTEGER,
+    carrera_nombre TEXT,
+    ciclo_id INTEGER,
+    ciclo_nombre TEXT,
+    cantidad_tesistas INTEGER
+)
+LANGUAGE plpgsql
+COST 100
+VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+    v_ciclo_activo INTEGER;
+BEGIN
+    -- 1. Obtener el ciclo único activo
+    SELECT c.ciclo_id
+    INTO v_ciclo_activo
+    FROM ciclo c
+    WHERE c.activo = TRUE
+    LIMIT 1;
+
+    IF v_ciclo_activo IS NULL THEN
+        RAISE EXCEPTION 'No existe un ciclo activo en el sistema.';
+    END IF;
+
+    -- 2. Verificar que el usuario sea asesor
+    IF NOT EXISTS (
+        SELECT 1
+        FROM usuario_tema ut
+        JOIN rol r ON r.rol_id = ut.rol_id
+        WHERE ut.usuario_id = p_asesor_id
+        AND r.nombre = 'Asesor'
+        AND ut.activo = TRUE
+        AND ut.asignado = TRUE
+    ) THEN
+        RAISE EXCEPTION 'El usuario % no tiene rol de Asesor asignado.', p_asesor_id;
+    END IF;
+
+    -- 3. Query principal que obtiene todas las etapas formativas del ciclo activo
+    -- y cuenta los tesistas asociados al asesor para cada etapa
+    RETURN QUERY
+    WITH carreras_asesor AS (
+        -- Obtener todas las carreras de los tesistas que están asociados al asesor
+        SELECT DISTINCT
+            t.carrera_id
+        FROM usuario_tema ut_asesor
+        JOIN tema t ON t.tema_id = ut_asesor.tema_id
+        JOIN rol r_asesor ON r_asesor.rol_id = ut_asesor.rol_id
+        WHERE ut_asesor.usuario_id = p_asesor_id
+        AND r_asesor.nombre = 'Asesor'
+        AND ut_asesor.activo = TRUE
+        AND ut_asesor.asignado = TRUE
+        AND t.activo = TRUE
+    ),
+    etapas_formativas_ciclo AS (
+        -- Obtener todas las etapas formativas del ciclo activo
+        SELECT
+            efc.etapa_formativa_x_ciclo_id,
+            efc.etapa_formativa_id,
+            ef.nombre AS etapa_formativa_nombre,
+            ef.carrera_id,
+            c.nombre::TEXT AS carrera_nombre,
+            efc.ciclo_id,
+            ci.nombre::TEXT AS ciclo_nombre
+        FROM etapa_formativa_x_ciclo efc
+        JOIN etapa_formativa ef ON ef.etapa_formativa_id = efc.etapa_formativa_id
+        JOIN carrera c ON c.carrera_id = ef.carrera_id
+        JOIN ciclo ci ON ci.ciclo_id = efc.ciclo_id
+        JOIN carreras_asesor ca ON ca.carrera_id = ef.carrera_id
+        WHERE efc.ciclo_id = v_ciclo_activo
+        AND efc.activo = TRUE
+        AND ef.activo = TRUE
+        AND c.activo = TRUE
+        AND ci.activo = TRUE
+    ),
+    tesistas_por_etapa AS (
+        -- Contar tesistas por etapa formativa que están asociados al asesor
+        SELECT
+            efcxt.etapa_formativa_x_ciclo_id,
+            COUNT(DISTINCT ut_tesista.usuario_id)::INTEGER AS cantidad_tesistas
+        FROM usuario_tema ut_asesor
+        JOIN tema t ON t.tema_id = ut_asesor.tema_id
+        JOIN rol r_asesor ON r_asesor.rol_id = ut_asesor.rol_id
+        -- Obtener los tesistas del mismo tema
+        JOIN usuario_tema ut_tesista ON ut_tesista.tema_id = t.tema_id
+        JOIN rol r_tesista ON r_tesista.rol_id = ut_tesista.rol_id
+        -- Obtener la etapa formativa del tema
+        JOIN etapa_formativa_x_ciclo_x_tema efcxt ON efcxt.tema_id = t.tema_id
+        JOIN etapa_formativa_x_ciclo efc ON efc.etapa_formativa_x_ciclo_id = efcxt.etapa_formativa_x_ciclo_id
+        WHERE ut_asesor.usuario_id = p_asesor_id
+        AND r_asesor.nombre = 'Asesor'
+        AND r_tesista.nombre = 'Tesista'
+        AND ut_asesor.activo = TRUE
+        AND ut_asesor.asignado = TRUE
+        AND ut_tesista.activo = TRUE
+        AND ut_tesista.asignado = TRUE
+        AND t.activo = TRUE
+        AND efc.ciclo_id = v_ciclo_activo
+        AND efcxt.activo = TRUE
+        AND efc.activo = TRUE
+        GROUP BY efcxt.etapa_formativa_x_ciclo_id
+    )
+    SELECT
+        efc.etapa_formativa_x_ciclo_id,
+        efc.etapa_formativa_id,
+        efc.etapa_formativa_nombre,
+        efc.carrera_id,
+        efc.carrera_nombre,
+        efc.ciclo_id,
+        efc.ciclo_nombre,
+        COALESCE(tpe.cantidad_tesistas, 0) AS cantidad_tesistas
+    FROM etapas_formativas_ciclo efc
+    LEFT JOIN tesistas_por_etapa tpe ON tpe.etapa_formativa_x_ciclo_id = efc.etapa_formativa_x_ciclo_id
+    ORDER BY efc.carrera_nombre, efc.etapa_formativa_nombre;
+END;
+$BODY$;

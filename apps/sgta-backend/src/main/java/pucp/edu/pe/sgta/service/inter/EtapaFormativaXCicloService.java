@@ -9,6 +9,7 @@ import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 import pucp.edu.pe.sgta.dto.PageResponseDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
 import pucp.edu.pe.sgta.service.imp.EtapaFormativaXCicloXUsuarioRolServiceImpl;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloAsesorDto;
 
 
 public interface EtapaFormativaXCicloService {
@@ -35,4 +36,6 @@ public interface EtapaFormativaXCicloService {
     List<EtapaFormativaXCicloTesistaDto> listarEtapasFormativasXCicloTesista(String idCognito);
 
     PageResponseDto<EtapaFormativaXCicloDto> getAllByCarreraIdPaginated(String idCognito, EtapaFormativaXCicloPageRequestDto request);
+
+    List<EtapaFormativaXCicloAsesorDto> obtenerEtapasFormativasPorAsesorYCicloActivo(String idCognito);
 }

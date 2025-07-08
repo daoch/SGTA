@@ -25,6 +25,7 @@ import pucp.edu.pe.sgta.repository.ExposicionRepository;
 import pucp.edu.pe.sgta.repository.UsuarioXTemaRepository;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
 import pucp.edu.pe.sgta.service.inter.ExposicionService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -41,13 +42,15 @@ public class ExposicionServiceImpl implements ExposicionService {
     private final ExposicionRepository exposicionRepository;
     private final UsuarioXTemaRepository usuarioXTemaRepository;
     private final BloqueHorarioExposicionService bloqueHorarioExposicionService;
+    private final HistorialAccionService historialAccionService;
 
     public ExposicionServiceImpl(ExposicionRepository exposicionRepository,
             UsuarioXTemaRepository usuarioXTemaRepository,
-            @Lazy BloqueHorarioExposicionService bloqueHorarioExposicionService) {
+            @Lazy BloqueHorarioExposicionService bloqueHorarioExposicionService, HistorialAccionService historialAccionService) {
         this.exposicionRepository = exposicionRepository;
         this.usuarioXTemaRepository = usuarioXTemaRepository;
         this.bloqueHorarioExposicionService = bloqueHorarioExposicionService;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class ExposicionServiceImpl implements ExposicionService {
 
     @Transactional
     @Override
-    public Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto) {
+    public Integer create(Integer etapaFormativaXCicloId, ExposicionDto dto, String cognitoId) {
         dto.setId(null);
         Exposicion exposicion = ExposicionMapper.toEntity(dto);
         EtapaFormativaXCiclo efc = new EtapaFormativaXCiclo();
@@ -94,13 +97,14 @@ public class ExposicionServiceImpl implements ExposicionService {
         exposicion.setFechaCreacion(OffsetDateTime.now());
 
         exposicionRepository.save(exposicion);
+        historialAccionService.registrarAccion(cognitoId, "Se creó la exposición " + exposicion.getId());
         exposicionRepository.asociarTemasAExposicion(exposicion.getId(), etapaFormativaXCicloId);
         return exposicion.getId();
     }
 
     @Transactional
     @Override
-    public void update(ExposicionDto dto) {
+    public void update(ExposicionDto dto, String cognitoId) {
         Exposicion exposicionToUpdate = exposicionRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Exposicion no encontrada con ID: " + dto.getId()));
 
@@ -117,16 +121,18 @@ public class ExposicionServiceImpl implements ExposicionService {
         exposicionToUpdate.setDescripcion(dto.getDescripcion());
         exposicionToUpdate.setFechaModificacion(OffsetDateTime.now());
         exposicionRepository.save(exposicionToUpdate);
+        historialAccionService.registrarAccion(cognitoId, "Se actualizó la exposición " + dto.getId());
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id, String cognitoId) {
         Exposicion exposicionToDelete = exposicionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Exposicion no encontrada con ID: " + id));
 
         exposicionToDelete.setActivo(false);
         exposicionToDelete.setFechaModificacion(OffsetDateTime.now());
         exposicionRepository.save(exposicionToDelete);
+        historialAccionService.registrarAccion(cognitoId, "Se eliminó la exposición " + id);
     }
 
     @Override
