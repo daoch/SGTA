@@ -47,6 +47,22 @@ export default function DetalleEntregableAlumnoPage() {
   const [orden, setOrden] = useState("pagina");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
+  
+  // Estados para el dialog de detalles del revisor
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reviewerForDetails, setReviewerForDetails] = useState<string | null>(null);
+  
+  // Función para abrir el dialog de detalles del revisor
+  const handleViewDetails = (reviewerName: string) => {
+    setReviewerForDetails(reviewerName);
+    setIsDialogOpen(true);
+  };
+
+  // Función para cerrar el dialog de detalles
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setReviewerForDetails(null);
+  };
   const getTipoObs = (tipo: number) =>
     tipo === 1
       ? "Contenido"
@@ -540,7 +556,7 @@ const observacionesFiltradas = useMemo(() => {
                       size="sm"
                       variant="outline"
                       className="ml-2 py-1 px-2"
-                      onClick={() => setSelectedRevisor(nombre)}
+                      onClick={() => handleViewDetails(nombre)}
                     >
                       Ver Detalles
                     </Button>
@@ -562,28 +578,28 @@ const observacionesFiltradas = useMemo(() => {
             </div>
           </div>
         </div>
-        <Dialog open={!!selectedRevisor} onOpenChange={() => setSelectedRevisor(null)}>
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Rúbrica de Evaluación</DialogTitle>
               <p className="text-sm text-muted-foreground">
-                {selectedRevisor && criteriosAgrupadosPorUsuario[selectedRevisor]?.[0]?.entregableDescripcion
-                  ? `Entregable: ${criteriosAgrupadosPorUsuario[selectedRevisor][0].entregableDescripcion}`
+                {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.[0]?.entregableDescripcion
+                  ? `Entregable: ${criteriosAgrupadosPorUsuario[reviewerForDetails][0].entregableDescripcion}`
                   : ""}
               </p>
             </DialogHeader>
 
-            {selectedRevisor && (
+            {reviewerForDetails && (
               <>
                 <div className="flex items-center justify-between mb-4 p-4 bg-muted rounded-lg">
                   <div>
                     <h3 className="font-medium text-sm">Puntuación Total</h3>
                     <p className="text-sm text-muted-foreground">
-                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
                         .reduce((acc, crit) => acc + (crit.nota || 0), 0)
                         .toFixed(1)}{" "}
                       /{" "}
-                      {criteriosAgrupadosPorUsuario[selectedRevisor]
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
                         .reduce((acc, crit) => acc + (crit.notaMaxima || 0), 0)}
                       {" "}puntos
                     </p>
@@ -593,7 +609,7 @@ const observacionesFiltradas = useMemo(() => {
                 <Card>
                   <CardContent className="pt-4">
                     <Accordion type="multiple">
-                      {criteriosAgrupadosPorUsuario[selectedRevisor].map((item) => (
+                      {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.map((item) => (
                         <AccordionItem
                           key={item.criterioEntregableId}
                           value={item.criterioEntregableId?.toString()}
@@ -640,7 +656,7 @@ const observacionesFiltradas = useMemo(() => {
             )}
 
             <DialogFooter className="pt-4">
-              <Button onClick={() => setSelectedRevisor(null)}>Cerrar</Button>
+              <Button onClick={handleCloseDialog}>Cerrar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
