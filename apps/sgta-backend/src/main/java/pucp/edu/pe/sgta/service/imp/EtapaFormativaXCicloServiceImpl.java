@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
@@ -321,6 +322,13 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             etapas.add(etapa);
         }
         return etapas;
+    }
+
+    //@Scheduled(cron = "0 0 0 * * *")
+    // Pasa todos los temas en estado "EN_PROGRESO" a "PAUSADO" cuando termina el ciclo
+    // Desactivado para evitar contratiempos por ahora, se puede activar cuando se necesite
+    public void FinDeCiclo() {
+        etapaFormativaXCicloRepository.tareasFinDeCiclo();
     }
 
 }
