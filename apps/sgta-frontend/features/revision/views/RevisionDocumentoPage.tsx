@@ -15,18 +15,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
+import { DocumentoConVersionDto } from "@/features/gestion/dtos/DocumentoConVersionDto";
 import HighlighterPdfViewer from "@/features/revision/components/HighlighterPDFViewer";
-import { AlertTriangle, ArrowLeft, CheckCircle, FileWarning, Quote, Sparkles, X } from "lucide-react";
+import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
+import axiosInstance from "@/lib/axios/axios-instance";
+import { AlertTriangle, ArrowLeft, CheckCircle, Download, FileArchive, FileAudio, FileCode, FileImage, FileSpreadsheet, FileText, FileVideo, FileWarning, Info, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PDFDocument } from "pdf-lib";
 import { useCallback, useEffect, useState } from "react";
 import { IHighlight } from "react-pdf-highlighter/dist/types";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
-// ...otros imports...
+import { borrarObservacion, checkPlagiarismAsync, checkStatusProcesamiento, descargarArchivoS3RevisionID, getdocumentosSubidos, getJsonIA, getJsonPlagio, getRevisionById, getStudentsByRevisor, guardarObservacion, IAApiResponse, obtenerObservacionesRevision } from "../servicios/revision-service";
 
 // Datos de ejemplo para una revisión específica
 const revisionData = {
@@ -47,23 +50,47 @@ const revisionData = {
 
   ],
 };
-function getIAColorClass(score: number) {
+function getPlagioColorClass(score: number) {
   if (score >= 90) return "bg-red-50 border-red-200";
   if (score >= 70) return "bg-orange-50 border-orange-200";
   if (score >= 50) return "bg-yellow-50 border-yellow-200";
   return "bg-green-50 border-green-200";
 }
-function getIAScoreTextClass(score: number) {
-  if (score >= 90) return "text-black-700";
-  if (score >= 70) return "text-black-700";
-  if (score >= 50) return "text-black-700";
-  return "text-green-700";
+function getPlagioIconColor(score: number) {
+  if (score >= 90) return "text-red-600";
+  if (score >= 70) return "text-orange-500";
+  if (score >= 50) return "text-yellow-500";
+  return "text-green-600";
 }
-function getIAScoreBadgeClass(score: number) {
+function getPlagioScoreBadgeClass(score: number) {
   if (score >= 90) return "bg-red-600";
   if (score >= 70) return "bg-orange-500";
   if (score >= 50) return "bg-yellow-500";
   return "bg-green-600";
+}
+function getIAColorClass(score: number) {
+  if (score >= 90) return "bg-green-50 border-green-200";
+  if (score >= 70) return "bg-yellow-50 border-yellow-200";
+  if (score >= 50) return "bg-orange-50 border-orange-200";
+  return "bg-red-50 border-red-200";
+}
+function getIAScoreTextClass(score: number) {
+  if (score >= 90) return "text-black-700";
+  if (score >= 70) return "text-black-700";
+  if (score >= 50) return "text-black-700";
+  return "text-black-700";
+}
+function getIAScoreBadgeClass(score: number) {
+  if (score >= 90) return "bg-green-600";
+  if (score >= 70) return "bg-yellow-500";
+  if (score >= 50) return "bg-orange-500";
+  return "bg-red-600";
+}
+function getIAScoreIconColor(score: number) {
+  if (score >= 90) return "text-green-600";
+  if (score >= 70) return "text-yellow-500";
+  if (score >= 50) return "text-orange-500";
+  return "text-red-600";
 }
 function getBlockquoteBg(tipo: string) {
   switch (tipo) {
@@ -93,7 +120,41 @@ function getBlockquoteBorder(tipo: string) {
       return "border-gray-300";
   }
 }
-export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number } }) {
+function getFileIcon(ext: string) {
+  switch (ext) {
+    case "xls":
+    case "xlsx":
+    case "csv":
+      return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+    case "doc":
+    case "docx":
+    case "txt":
+      return <FileText className="h-4 w-4 text-blue-600" />;
+    case "pdf":
+      return <FileText className="h-4 w-4 text-red-600" />;
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+      return <FileImage className="h-4 w-4 text-yellow-600" />;
+    case "zip":
+    case "rar":
+      return <FileArchive className="h-4 w-4 text-orange-600" />;
+    case "mp3":
+    case "wav":
+      return <FileAudio className="h-4 w-4 text-purple-600" />;
+    case "mp4":
+    case "avi":
+      return <FileVideo className="h-4 w-4 text-pink-600" />;
+    case "js":
+    case "ts":
+    case "json":
+      return <FileCode className="h-4 w-4 text-gray-600" />;
+    default:
+      return <FileText className="h-4 w-4 text-blue-500" />;
+  }
+}
+export default function RevisarDocumentoPage({ params }: { readonly params: { readonly id_revision: number; readonly rol_id?: number; } }) {
   const router = useRouter();
   interface Observacion {
     id: string;
@@ -122,15 +183,11 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
   const [isLoading, setIsLoading] = useState(false);
   const [showFinalizarDialog, setShowFinalizarDialog] = useState(false);
-  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
-  const [notificaciones, setNotificaciones] = useState({
-    notificarEstudiante: true,
-    notificarAsesor: true,
-  });
   const [highlights, setHighlights] = useState<IHighlight[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
   const [revision2, setRevision2] = useState<RevisionDocumentoAsesorDto | null>(null);
   const [tab, setTab] = useState<"revisor" | "plagio" | "ia">("revisor");
+  const [tabPrincipal, setTabPrincipal] = useState<"principal" | "anexos">("principal");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -155,6 +212,35 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
   const [isAnalizandoPlagio, setIsAnalizandoPlagio] = useState(false);
   const [existePlagioJson, setExistePlagioJson] = useState<string | null>(null);
   const [alumnos, setAlumnos] = useState<UsuarioDto[]>([]);
+  const [archivosSubidos, setArchivosSubidos] = useState<
+    DocumentoConVersionDto[]
+  >([]);
+  // Anexos state and handlers
+  const [comentarioAnexos, setComentarioAnexos] = useState<string>("");
+
+  // Dummy descargarAnexo handler
+  const handleDescargarDocumento = async (documentoNombre: string) => {
+    const documentoNombreBase64 = window.btoa(documentoNombre);
+    const response = await axiosInstance.get(
+      `s3/archivos/getUrlFromCloudFront/${documentoNombreBase64}`,
+    );
+    const fileUrl = response.data;
+    window.open(fileUrl, "_blank");
+  };
+
+  useEffect(() => {
+    const fetchArchivosSubidos = async () => {
+      try {
+        const response = await getdocumentosSubidos(params.id_revision);
+        setArchivosSubidos(response);
+      } catch (error) {
+        toast({ title: "Error al conseguir archivos subido", variant: "destructive" });
+      } finally {
+      }
+    };
+    fetchArchivosSubidos(); // Set to [] or fetch real anexos
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -414,6 +500,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     ));
   };
 
+  const downloadAnnotated = useDownloadAnnotated(params.id_revision);
+
   const handleNewHighlight = async (highlight: IHighlight) => {
     console.log("New highlight received:", highlight);
 
@@ -479,9 +567,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // // Cerramos el diálogo de finalizar y mostramos la rúbrica
+      // // Cerramos el diálogo de finalizar
       setShowFinalizarDialog(false);
-      setShowRubricaDialog(true);
       setIsLoading(false);
     } catch (error) {
       console.error("Error al finalizar la revisión:", error);
@@ -489,24 +576,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
   };
 
-  const handleNotificacionChange = (key: string, checked: boolean) => {
-    setNotificaciones({
-      ...notificaciones,
-      [key]: checked,
-    });
-  };
 
-  const handleRubricaComplete = async () => {
-    try {
-      // En una aplicación real, aquí se enviaría la evaluación de la rúbrica al backend
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Redirigimos al usuario a la página de detalles de la revisión
-      router.push(`/revision/${revision.id}`);
-    } catch (error) {
-      console.error("Error al guardar la evaluación de la rúbrica:", error);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -527,6 +597,11 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         {revision.estado === "rechazado" && (
           <div className="bg-red-100 text-red-700 ml-50 px-4 py-1 rounded-xl border border-red-300 text-sm font-medium">
             ENTREGABLE RECHAZADO
+          </div>
+        )}
+        {revision.estado === "revisado" && (
+          <div className="bg-red-100 text-blue-700 ml-50 px-4 py-1 rounded-xl border border-blue-300 text-sm font-medium">
+            ENTREGABLE REVISADO
           </div>
         )}
         <Dialog open={showFinalizarDialog} onOpenChange={setShowFinalizarDialog}>
@@ -658,7 +733,14 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   setIsLoading(true);
                   try {
                     await handleFinalizarRevision(); // puede ser solo lógica de guardado
-                    router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                    const rolId = params.rol_id ?? 0;
+                    if (rolId === 2) {
+                      // Si rol_id es 2, redirigir a la página del jurado
+                      router.push(`/jurado/revision/detalles-revision/${params.id_revision}`);
+                    } else {
+                      // Si rol_id no es 2, redirigir a la página del asesor
+                      router.push(`/asesor/revision/detalles-revision/${params.id_revision}`);
+                    }
                   } catch (error) {
                     console.error("Error al redirigir:", error);
                   } finally {
@@ -682,45 +764,125 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
         <div className="lg:col-span-2">
           <Card className="min-h-[800px]">
             <CardHeader>
-              <CardTitle>{revision2?.titulo}</CardTitle>
-              <CardDescription>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <span>
-                    Estudiantes:
-                    {alumnos.length > 0 ? (
-                      alumnos.map((alumno, index) => (
-                        <span key={alumno.id}>
-                          {alumno.nombres} {alumno.primerApellido} {alumno.segundoApellido} ({alumno.codigoPucp})
-                          {index < alumnos.length - 1 ? ", " : " "}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">No hay estudiantes asignados</span>
-                    )}
-                  </span>
-                  <Badge variant="outline" className="w-fit">
-                    {revision2?.curso}
-                  </Badge>
-                  <Badge variant="outline" className="w-fit bg-blue-100 text-blue-800">
-                    {revision2?.entregable}
-                  </Badge>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle>{revision2?.titulo}</CardTitle>
+                  <CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span>
+                        Estudiantes:
+                        {alumnos.length > 0 ? (
+                          alumnos.map((alumno, index) => (
+                            <span key={alumno.id}>
+                              {alumno.nombres} {alumno.primerApellido} {alumno.segundoApellido} ({alumno.codigoPucp})
+                              {index < alumnos.length - 1 ? ", " : " "}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">No hay estudiantes asignados</span>
+                        )}
+                      </span>
+                      <Badge variant="outline" className="w-fit">
+                        {revision2?.curso}
+                      </Badge>
+                      <Badge variant="outline" className="w-fit bg-blue-100 text-blue-800">
+                        {revision2?.entregable}
+                      </Badge>
+                    </div>
+                  </CardDescription>
                 </div>
-              </CardDescription>
+                <Button variant="outline" className="ml-4 gap-2" onClick={downloadAnnotated} disabled={!pdfUrl}>
+                  <Download className="h-4 w-4" />
+                  Descargar
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent className="relative h-[800px]" >
-              {isHighlightsLoading ? (
-                <AppLoading />
-              ) : (
-                <HighlighterPdfViewer
-                  pdfUrl={pdfUrl ?? ""}
-                  onAddHighlight={handleNewHighlight}
-                  onDeleteHighlight={handleDeleteHighlight}
-                  onUpdateHighlight={handleUpdateHighlight}
-                  highlights={highlights}
-                  scrollToHighlight={activeHighlight}
-                />
-              )}
-            </CardContent>
+            <Tabs value={tabPrincipal} onValueChange={v => setTabPrincipal(v as "principal" | "anexos")} className="w-full">
+              <TabsList className="mb-4 flex gap-2 justify-start ml-2">
+                <TabsTrigger
+                  value="principal"
+                  className={`font-semibold transition-all px-4 py-2 rounded ${tabPrincipal === "principal"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}
+                >
+                  Documento principal
+                </TabsTrigger>
+                <TabsTrigger
+                  value="anexos"
+                  className={`font-semibold transition-all px-4 py-2 rounded ${tabPrincipal === "anexos"
+                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
+                    : ""
+                    }`}
+                >
+                  Anexos
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="principal">
+                <Card className="min-h-[800px]">
+                  <CardContent className="relative h-[800px]">
+                    {/* ...visor PDF y observaciones... */}
+                    {isHighlightsLoading ? (
+                      <AppLoading />
+                    ) : (
+                      <HighlighterPdfViewer
+                        pdfUrl={pdfUrl ?? ""}
+                        onAddHighlight={handleNewHighlight}
+                        onDeleteHighlight={handleDeleteHighlight}
+                        onUpdateHighlight={handleUpdateHighlight}
+                        highlights={highlights}
+                        scrollToHighlight={activeHighlight}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="anexos">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Anexos</CardTitle>
+                    <CardDescription>
+                      Descarga los documentos anexos y deja un comentario general si es necesario.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      {archivosSubidos && archivosSubidos.length > 0 ? (
+                        archivosSubidos.map((anexo) => (
+                          <div key={anexo.documentoId} className="flex items-center gap-2 w-full py-1 border-b last:border-b-0">
+                            <span className="mr-1">
+                              {getFileIcon(anexo.documentoNombre.split(".").pop()?.toLowerCase() ?? "")}
+                            </span>
+                            <span className="truncate flex-1 min-w-0">{anexo.documentoNombre}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDescargarDocumento(anexo.documentoLinkArchivo)}
+                            >
+                              <Download className="h-4 w-4 mr-1" /> Descargar
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">No hay anexos disponibles.</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Comentario general sobre los anexos:</label>
+                      <textarea
+                        className="w-full border rounded p-2 text-sm"
+                        rows={3}
+                        value={comentarioAnexos}
+                        onChange={e => setComentarioAnexos(e.target.value)}
+                        placeholder="Escribe aquí tu comentario general sobre los anexos..."
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </Card>
         </div>
 
@@ -798,28 +960,34 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                 </div>
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio")}>
-                <TabsList className="mb-4 w-full flex items-stretch">
+            <CardContent >
+              <Tabs value={tab} onValueChange={v => setTab(v as "revisor" | "plagio" | "ia")} >
+                <TabsList className="mb-4 w-full flex gap-2 items-stretch bg-gray-100 overflow-x-auto whitespace-nowrap">
                   <TabsTrigger
                     value="revisor"
-                    className={`font-semibold transition-all w-full ${tab === "revisor"
-                      ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                      : ""
+                    className={` font-semibold transition-all ${tab === "revisor" ? "bg-pucp-blue text-white shadow" : ""
                       }`}
                   >
                     Revisor ({highlights.length || 0})
                   </TabsTrigger>
-                  <TabsTrigger value="plagio" className={`font-semibold transition-all ${tab === "plagio"
-                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                    : ""
-                    }`}>Deteccion de similitud ({plagioData?.detalles.length || 0})</TabsTrigger>
-                  <TabsTrigger value="ia" className={`font-semibold transition-all ${tab === "ia"
-                    ? "bg-pucp-blue text-white shadow border-b-0 border-pucp-blue scale-105"
-                    : ""
-                    }`}>Generado con IA ({IAData?.sentences.length || 0})</TabsTrigger>
+
+                  <TabsTrigger
+                    value="plagio"
+                    className={` font-semibold transition-all ${tab === "plagio" ? "bg-pucp-blue text-white shadow" : ""
+                      }`}
+                  >
+                    Similitud ({plagioData?.detalles.length || 0})
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="ia"
+                    className={` font-semibold transition-all ${tab === "ia" ? "bg-pucp-blue text-white shadow" : ""
+                      }`}
+                  >
+                    IA ({IAData?.sentences.length || 0})
+                  </TabsTrigger>
                 </TabsList>
-                <TabsContent value="revisor">
+                <TabsContent value="revisor" className="mt-2 relative z-0">
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {highlights.slice().sort((a, b) => {
                       const pageA = a.position.pageNumber ?? 0;
@@ -871,18 +1039,28 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     )}
                   </div>
                 </TabsContent>
-                <TabsContent value="plagio">
-                  <div className="space-y-4">
+                <TabsContent value="plagio" className="mt-2 relative z-0">
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {plagioData && plagioData.detalles && plagioData.detalles.length > 0 && (
+                      <div className={`p-3 rounded-lg border flex items-center gap-2 justify-center mb-2 ${getPlagioColorClass(plagioData.coincidencias)}`}>
+                        <AlertTriangle className={`h-5 w-5 ${getPlagioIconColor(plagioData.coincidencias)}`} />
+                        <span className={`font-bold text-lg ${getPlagioIconColor(plagioData.coincidencias)}`}>
+                          Similitud total: {plagioData.coincidencias ?? 0}%
+                        </span>
+                      </div>
+                    )}
                     {plagioData?.detalles.map((obs) => {
                       const key = `${obs.url ?? ""}-${obs.fragmento ?? obs.texto}`;
                       // Extrae el porcentaje y el nombre de la fuente del texto si no tienes campos separados
                       const match = obs.texto.match(/Coincidencia del (\d+)% con "([^"]+)"/);
                       const porcentaje = match?.[1] ?? "?";
                       const fuente = obs.title ?? match?.[2] ?? "Fuente desconocida";
+                      const colorClass = getPlagioColorClass(Number(porcentaje));
+                      const badgeClass = getPlagioScoreBadgeClass(Number(porcentaje));
                       return (
                         <div
                           key={key}
-                          className="p-3 rounded-lg border bg-red-50 border-red-200 flex flex-col gap-2"
+                          className={`p-3 rounded-lg border flex flex-col gap-2 ${colorClass}`}
                         >
                           <p className="text-sm font-medium italic text-black-700">
                             &quot;{obs.fragmento ?? obs.texto}&quot;
@@ -903,7 +1081,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-3">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow bg-red-600">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-white text-base font-bold shadow ${badgeClass} `}>
                               <AlertTriangle className="h-4 w-4 mr-1" />
                               {porcentaje}%
                             </span>
@@ -922,9 +1100,26 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                     )}
                   </div>
                 </TabsContent>
-                <TabsContent value="ia">
+                <TabsContent value="ia" className="mt-4 relative z-0">
+
                   {IAData && IAData.sentences && IAData.sentences.length > 0 ? (
                     <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                      <div className={`p-3 rounded-lg border cursor-default flex items-center gap-2 justify-center ${getIAColorClass(IAData.score)}`}>
+                        <Sparkles className={`h-5 w-5  ${getIAScoreIconColor(IAData.score)}`} />
+                        <span className="font-bold text-lg">
+                          Puntuación humana: {IAData.score}%
+                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-5 w-5 text-blue-600 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              Un valor bajo indica texto probablemente generado por IA. Un valor alto indica texto probablemente escrito por un humano.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       {IAData.sentences.map((sentence) => {
                         const key = `ia-${sentence.page}-${sentence.text}`;
                         const colorClass = getIAColorClass(sentence.score);

@@ -20,4 +20,10 @@ public interface CarreraService {
 
     CarreraDto getCarreraCoordinadaPorUsuario(Integer usuarioId);
 
+    CarreraDto createCarrera(String usuarioCognito, CarreraDto carreraDto);
+
+    CarreraDto updateCarrera(String usuarioCognito, CarreraDto carreraDto);
+
+    void deleteCarrera(String usuarioCognito, Integer id);
+
 }

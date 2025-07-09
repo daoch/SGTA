@@ -256,3 +256,27 @@ export async function distribuirBloquesExposicion(
     return [];
   }
 }
+
+
+export async function crearCalendar(idExposicion: number): Promise<void> {
+  try {
+    const response = await axiosInstance.post(
+      `/bloqueHorarioExposicion/crear-eventos-calendar/${idExposicion}`,
+      {},
+      {
+        withCredentials: true, 
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const mensaje =
+        error.response?.data?.message || error.response?.data || error.message;
+      console.error("Error al crear eventos en Google Calendar:", mensaje);
+      throw new Error(mensaje);
+    } else {
+      console.error("Error inesperado al crear eventos:", error);
+      throw new Error("Error inesperado al crear eventos.");
+    }
+  }
+}

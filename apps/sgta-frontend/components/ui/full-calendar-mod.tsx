@@ -39,6 +39,13 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 import { es } from "date-fns/locale/es"; // Opcional: para mostrar la fecha en español
 
+import {
+  EditarReunionModal,
+  type ReunionFormData,
+} from "@/features/cronograma/editar-reunion-modal";
+
+//type TipoEvento = "ENTREGABLE" | "REUNION" | "EXPOSICION";
+
 const monthEventVariants = cva("size-2 rounded-full", {
   variants: {
     variant: {
@@ -84,34 +91,38 @@ type ContextType = {
   enableHotkeys?: boolean;
   today: Date;
   numTesistas: number; // <-- Nuevo
+  tesistasUnicos?: string[];
+  fetchEventos?: () => void; // ✅ ← Agregado
 };
 
 const Context = createContext<ContextType>({} as ContextType);
 
 // 1. Primero, actualiza el tipo CalendarEvent (si no está ya extendido)
 type CalendarEvent = {
-    id: string;
-    start?: Date;
-    end: Date;
-    title: string;
-    type?: string;
-    description?: string;  // <-- Añade esto
-    tesista?: string;
-    color?: VariantProps<typeof monthEventVariants>["variant"];
-  };
+  id: string;
+  start?: Date;
+  end: Date;
+  title: string;
+  type?: string;
+  description?: string;  // <-- Añade esto
+  tesista?: string;
+  color?: VariantProps<typeof monthEventVariants>["variant"];
+};
 
-  type CalendarProps = {
-    children: ReactNode;
-    defaultDate?: Date;
-    events?: CalendarEvent[];
-    view?: View;
-    locale?: Locale;
-    enableHotkeys?: boolean;
-    onChangeView?: (view: View) => void;
-    onEventClick?: (event: CalendarEvent) => void;
-    numTesistas?: number; // <-- Nuevo
-    tipoUsuario: string;
-  };  
+type CalendarProps = {
+  children: ReactNode;
+  defaultDate?: Date;
+  events?: CalendarEvent[];
+  view?: View;
+  locale?: Locale;
+  enableHotkeys?: boolean;
+  onChangeView?: (view: View) => void;
+  onEventClick?: (event: CalendarEvent) => void;
+  numTesistas?: number; // <-- Nuevo
+  tesistasUnicos?: string[]; 
+  tipoUsuario: string;
+  fetchEventos?: () => void; // ✅ ← Agregado
+};  
 
 const Calendar = ({
   children,
@@ -123,6 +134,8 @@ const Calendar = ({
   events: defaultEvents = [],
   onChangeView,
   numTesistas = 1,
+  tesistasUnicos = [], // ✅ Añadir esta línea
+  fetchEventos, // ✅ ← agrégalo aquí también
 }: CalendarProps) => {
   const [view, setView] = useState<View>(_defaultMode);
   const [date, setDate] = useState(defaultDate);
@@ -168,6 +181,8 @@ const Calendar = ({
         onChangeView,
         today: new Date(),
         numTesistas,
+        tesistasUnicos,
+        fetchEventos, // ✅ ← Pasado al contexto
       }}
     >
       {children}
@@ -182,11 +197,12 @@ const CalendarViewTrigger = forwardRef<
   React.HTMLAttributes<HTMLButtonElement> & {
     view: View;
   }
->(({ children, view, ...props }) => {
+>(({ children, view, ...props }, ref) => {
   const { view: currentView, setView, onChangeView } = useCalendar();
 
   return (
     <Button
+      ref={ref} // importante: reenvía el ref si se necesita más adelante
       aria-current={currentView === view}
       size="sm"
       variant="ghost"
@@ -214,7 +230,10 @@ const EventGroup = ({
   tipoVista: string;
   tipoUsuario: string;
 }) => {
-  const { numTesistas } = useContext(Context);
+  const { numTesistas, view, fetchEventos } = useContext(Context);
+
+  const [isReunionModalOpen, setIsReunionModalOpen] = useState(false);
+  const [eventoSeleccionado, setEventoSeleccionado] = useState<CalendarEvent | null>(null);
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
@@ -229,7 +248,7 @@ const EventGroup = ({
     }
   };
 
-  // Obtener lista única de tesistas ordenados
+  /*
   const tesistasOrdenados = useMemo(() => {
     const setTesistas = new Set<string>();
     events.forEach((e) => {
@@ -237,6 +256,18 @@ const EventGroup = ({
     });
     return Array.from(setTesistas).sort();
   }, [events]);
+  */
+
+  const { tesistasUnicos } = useContext(Context);
+
+  const tesistasOrdenados = useMemo(() => {
+    return tesistasUnicos ?? [];
+  }, [tesistasUnicos]);
+
+  // Vista mensual no necesita columnas por tesista
+  if (view === "month") {
+    return null;
+  }
 
   return (
     <div
@@ -245,66 +276,79 @@ const EventGroup = ({
         gridTemplateColumns: `repeat(${numTesistas}, minmax(0, 1fr))`,
       }}
     >
-
       {tesistasOrdenados.map((tesista, index) => {
-        const eventos = events
-          .filter((event) => isSameHour(event.start ?? event.end, hour) && event.tesista === tesista);
-  
+        const eventos = events.filter(
+          (event) =>
+            isSameHour(event.start ?? event.end, hour) &&
+            event.tesista === tesista
+        );
+
         return (
           <div key={tesista} className={`h-full relative col-start-${index + 1}`}>
             {eventos.map((event) => {
               const isDeadline = event.type === "ENTREGABLE";
+              const isClickable = event.type === "REUNION";
               const hoursDifference = isDeadline
                 ? 1
                 : differenceInMinutes(event.end, event.start ?? event.end) / 60;
               const startPosition = (event.start?.getMinutes() ?? 0) / 60;
-  
+
               return (
                 <div
                   key={event.id}
                   className={cn(
-                    "h-2 relative flex flex-col p-1 overflow-hidden",
+                    "relative flex flex-col p-1 overflow-hidden",
                     dayEventVariants({ variant: event.color }),
+                    isClickable && "cursor-pointer z-20",
                     isDeadline && "border-t-4 border-t-dashed"
                   )}
                   style={{
                     top: `${startPosition * 100}%`,
                     height: `${hoursDifference * 100}%`,
                   }}
+                  onClick={() => {
+                    if (isClickable) {
+                      setEventoSeleccionado(event);
+                      setIsReunionModalOpen(true);
+                    }
+                  }}
                 >
                   {event.type && (
                     <span
                       className={cn(
-                        "mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit",
+                        "mx-2 text-[10px] font-semibold px-1 py-0.5 rounded w-fit cursor-inherit",
                         getTipoColor(event.type)
                       )}
                     >
-                      {isDeadline && "⏰ "}{event.type}
+                      {isDeadline && "⏰ "}
+                      {event.type}
                     </span>
                   )}
-  
-                  <strong className="font-medium text-xs truncate">
+
+                  <strong className="font-medium text-xs truncate cursor-inherit">
                     {event.title}
                   </strong>
 
-                  {event.description && tipoVista != "Semana" && tipoUsuario == "Alumno" && (
-                    <p className="text-xs opacity-80 truncate">
-                      {event.description}
-                    </p>
-                  )}
+                  {event.description &&
+                    tipoVista !== "Semana" &&
+                    tipoUsuario === "Alumno" && (
+                      <p className="text-xs opacity-80 truncate cursor-inherit">
+                        {event.description}
+                      </p>
+                    )}
 
-                  {event.tesista != "X" && (
-                    <p className="text-xs opacity-80 truncate">
+                  {event.tesista !== "Tesista" && (
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       Tsta.: {event.tesista}
                     </p>
                   )}
-  
+
                   {!isDeadline ? (
-                    <p className="text-xs opacity-80 truncate">
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       {`${format(event.start!, "HH:mm")} - ${format(event.end, "HH:mm")}`}
                     </p>
                   ) : (
-                    <p className="text-xs opacity-80 truncate">
+                    <p className="text-xs opacity-80 truncate cursor-inherit">
                       {`Fin: ${format(event.end, "HH:mm")}`}
                     </p>
                   )}
@@ -314,10 +358,32 @@ const EventGroup = ({
           </div>
         );
       })}
+
+      {eventoSeleccionado && (
+        <EditarReunionModal
+          isOpen={isReunionModalOpen}
+          onClose={() => {
+            setIsReunionModalOpen(false);
+            setEventoSeleccionado(null);
+          }}
+          onSubmit={async (_reunion) => {
+            setIsReunionModalOpen(false);
+            setEventoSeleccionado(null);
+          }}
+          evento={eventoSeleccionado}
+          listaEventos={events}
+          emisor={tipoUsuario}
+          onUpdateSuccess={() => {
+            if (fetchEventos) fetchEventos(); // ✅ Solo llama si está definido
+          }}
+        />
+      )}
     </div>
   );
-  
 };
+
+
+
 
 
 

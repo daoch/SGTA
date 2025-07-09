@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Eye,
-  FileText,
   Search
 } from "lucide-react";
 import Link from "next/link";
@@ -91,14 +90,14 @@ export function RevisionesTableAsesor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <span className="ml-2">Documento</span>
-              </TableHead>
-              <TableHead>Entregable</TableHead>
-              <TableHead>Estudiante</TableHead>
               <TableHead>Curso</TableHead>
+              <TableHead>Estudiante</TableHead>
+              <TableHead>
+                <span className="ml-2">Entregable</span>
+              </TableHead>
+              <TableHead>Documento</TableHead>
               <TableHead>Similitud (%)</TableHead>
-              <TableHead>Gen. IA (%)</TableHead>
+              <TableHead>Punt. Human (%)</TableHead>
               <TableHead>F. de Subida</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -116,22 +115,21 @@ export function RevisionesTableAsesor({
             ) : (
               revisionesFiltradas.map((revision) => (
                 <TableRow key={revision.id}>
-                  <TableCell className="font-medium max-w-xs truncate">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span>{revision.titulo}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium max-w-xs truncate text-center">
-                    <div className="flex items-center gap-2">
-                      <span>{revision.entregable}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-gray-100">
                       {revision.curso}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-xs">{renderEstudiantes(revision.estudiantes)}</TableCell>
+                  <TableCell className="font-medium max-w-xs truncate">
+                    <div className="flex items-center gap-2">
+                      <span title={revision.entregable}>{revision.entregable}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium max-w-xs truncate">
+                    <div className="flex items-center gap-2">
+                      <span title={revision.titulo}>{revision.titulo}</span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {revision.porcentajeSimilitud !== null ? (
@@ -153,9 +151,21 @@ export function RevisionesTableAsesor({
                     )}
                   </TableCell>
                   <TableCell>
-                    {revision.porcentajeSimilitud !== null ? (
+                    {revision.porcentajeGenIA !== null ? (
                       <div className="flex items-center gap-2">
-                        <span>-</span>
+                        <span
+                          className={
+                            revision.porcentajeGenIA >= 90
+                              ? "text-green-600"
+                              : revision.porcentajeGenIA >= 70
+                                ? "text-yellow-500"
+                                : revision.porcentajeGenIA >= 50
+                                  ? "text-orange-500"
+                                  : "text-red-600"
+                          }
+                        >
+                          {revision.porcentajeGenIA}%
+                        </span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>

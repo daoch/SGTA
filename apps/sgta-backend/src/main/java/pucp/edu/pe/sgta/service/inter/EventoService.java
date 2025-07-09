@@ -9,4 +9,8 @@ public interface EventoService {
 	List<EventoDto> listarEventosXTesista(String id);
 	List<EventoDto> listarEventosXAsesor(String id);
 
+	//Creado para pruebas
+	List<EventoDto> listarEventosXTesistaPorId(Integer id);
+	List<EventoDto> listarEventosXAsesorPorId(Integer id);
+
 }

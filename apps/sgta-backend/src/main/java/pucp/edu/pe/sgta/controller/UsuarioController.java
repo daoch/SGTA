@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.controller;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.*;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.model.UsuarioXCarrera;
 import pucp.edu.pe.sgta.service.inter.CarreraService;
 import pucp.edu.pe.sgta.service.inter.JwtService;
@@ -96,9 +98,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/assign-advisor-role")
-    public ResponseEntity<?> assignAdvisorRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> assignAdvisorRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.assignAdvisorRoleToUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.assignAdvisorRoleToUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Asesor asignado exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -117,9 +120,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/remove-advisor-role")
-    public ResponseEntity<?> removeAdvisorRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> removeAdvisorRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.removeAdvisorRoleFromUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.removeAdvisorRoleFromUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Asesor removido exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -138,9 +142,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/assign-jury-role")
-    public ResponseEntity<?> assignJuryRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> assignJuryRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.assignJuryRoleToUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.assignJuryRoleToUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Jurado asignado exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -159,9 +164,10 @@ public class UsuarioController {
      * @return ResponseEntity con mensaje de éxito o error
      */
     @PostMapping("/{userId}/remove-jury-role")
-    public ResponseEntity<?> removeJuryRole(@PathVariable Integer userId) {
+    public ResponseEntity<?> removeJuryRole(@PathVariable Integer userId, HttpServletRequest request) {
         try {
-            usuarioService.removeJuryRoleFromUser(userId);
+            String cognitoId = jwtService.extractSubFromRequest(request);
+            usuarioService.removeJuryRoleFromUser(userId, cognitoId);
             return new ResponseEntity<>("Rol de Jurado removido exitosamente", HttpStatus.OK);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -262,9 +268,20 @@ public class UsuarioController {
     }
 
     @GetMapping("/find_all")
-    public ResponseEntity<List<UsuarioDto>> findAllUsuarios() {
+    public ResponseEntity<List<UserDto>> findAllUsuarios(HttpServletRequest request) {
         try {
-            List<UsuarioDto> usuarios = usuarioService.findAllUsuarios();
+            String usuarioId = jwtService.extractSubFromRequest(request);
+            List<UserDto> usuarios = usuarioService.findAllUsers(usuarioId);
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/find_all_admin")
+    public ResponseEntity<List<UserDto>> findAllAdminUsuarios() {
+        try {
+            List<UserDto> usuarios = usuarioService.findAllUsers();
             return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -368,6 +385,24 @@ public class UsuarioController {
         String coordinadorId = jwtService.extractSubFromRequest(request);
         UsuarioXCarrera usuarioXCarrera = usuarioXCarreraService.getCarreraPrincipalCoordinador(coordinadorId);
         return usuarioService.listarRevisoresPorCarrera(usuarioXCarrera.getCarrera().getId());
+    }
+
+    @GetMapping("/getCarreraCoordinador")
+    public ResponseEntity<CarreraDto> getCarreraCoordinador(HttpServletRequest request) {
+        try {
+            String idCognito = jwtService.extractSubFromRequest(request);
+            Optional<Carrera> carreraOpt = usuarioService.obtenerCarreraCoordinador(idCognito);
+            return carreraOpt
+                    .map(carrera -> {
+                        CarreraDto dto = new CarreraDto();
+                        dto.setId(carrera.getId());
+                        dto.setNombre(carrera.getNombre());
+                        return ResponseEntity.ok(dto);
+                    })
+                    .orElseGet(() -> ResponseEntity.noContent().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
 }

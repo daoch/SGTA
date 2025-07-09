@@ -208,3 +208,30 @@ export const obtenerTendenciasTemas = async (): Promise<TopicTrend[]> => {
   }
 };
 
+// Nuevo tipo para etapas formativas por ciclo del asesor
+export interface EtapaFormativaCicloAsesor {
+  etapaFormativaXCicloId: number;
+  etapaFormativaId: number;
+  etapaFormativaNombre: string;
+  carreraId: number;
+  carreraNombre: string;
+  cicloId: number;
+  cicloNombre: string;
+  cantidadTesistas: number;
+}
+
+export const obtenerEtapasFormativasCicloAsesor = async (): Promise<EtapaFormativaCicloAsesor[]> => {
+  try {
+    const { idToken } = useAuthStore.getState();
+    const response = await axiosInstance.get<EtapaFormativaCicloAsesor[]>("/etapa-formativa-x-ciclo/asesor", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener etapas formativas por ciclo del asesor:", error);
+    throw error;
+  }
+};
+

@@ -1,8 +1,6 @@
 package pucp.edu.pe.sgta.model;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Converter;
-import jakarta.persistence.AttributeConverter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,6 +63,8 @@ public class EtapaFormativa {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carrera_id", nullable = false, foreignKey = @ForeignKey(name = "fk_area_conocimiento_carrera"))
     private Carrera carrera;
+
+
 
     /**
      * Converter para transformar Duration a PostgreSQL interval

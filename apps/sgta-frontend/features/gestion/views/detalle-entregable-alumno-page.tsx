@@ -21,23 +21,48 @@ import { useAuthStore } from "@/features/auth";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { Observacion } from "@/features/temas/types/temas/entidades";
 import TabsObservacionesAlumno from "@/features/revision/components/Tabs_observaciones_alumno";
+import { RevisionCriterioEntregableDto } from "@/features/revision/dtos/RevisionCriterioEntregableDto";
+import { ProfesoresTemaDto } from "@/features/revision/dtos/ProfesoresTemaDto";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useDownloadAnnotated } from "@/features/revision/lib/useDownloadAnnotated";
+import { toast } from "@/components/ui/use-toast";
 
 // Add the correct import for ObservacionesRevisionDTO
 
 
 
 export default function DetalleEntregableAlumnoPage() {
+  const [selectedRevisor, setSelectedRevisor] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const id = params?.DetalleEntregable;
   const searchParams = useSearchParams();
   const temaId = searchParams.get("tema");
+  const [criterios, setCriterios] = useState<RevisionCriterioEntregableDto[]>([]);
   const [observaciones, setObservaciones] = useState<ObservacionAlumnoDTO[]>([]);
   const [detalleEntregable, setDetalleEntregable] = useState<DetalleSimplificadoEntregable | null>(null);
   console.log("Tema ID:", temaId);
+  const [usuarios, setUsuarios] = useState<ProfesoresTemaDto[]>([]);
   const [orden, setOrden] = useState("pagina");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCorregido, setFiltroCorregido] = useState<"todos" | "corregidos" | "sin_corregir">("todos");
+  
+  // Estados para el dialog de detalles del revisor
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reviewerForDetails, setReviewerForDetails] = useState<string | null>(null);
+  
+  // Función para abrir el dialog de detalles del revisor
+  const handleViewDetails = (reviewerName: string) => {
+    setReviewerForDetails(reviewerName);
+    setIsDialogOpen(true);
+  };
+
+  // Función para cerrar el dialog de detalles
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setReviewerForDetails(null);
+  };
   const getTipoObs = (tipo: number) =>
     tipo === 1
       ? "Contenido"
@@ -80,41 +105,98 @@ export default function DetalleEntregableAlumnoPage() {
     fetchObservaciones();
     
   }, [id, temaId]);
+
   useEffect(() => {
-    const fetchDetalleEntregable = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
+  const fetchRevisoresYJurados = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+
+      if (!temaId) {
+        console.error("Falta el parámetro temaId para consultar revisores y jurados");
+        return;
+      }
+
+      const response = await axiosInstance.get(
+        `/revision/usuarios/tema/${temaId}`,   // <-- Endpoint del servicio backend
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
         }
-        if (!id || !temaId) {
-          console.error("Faltan parámetros para la consulta del detalle del entregable");
-          return;
+      );
+
+      setUsuarios(response.data); // Asumiendo que tienes un estado llamado usuarios
+      console.log("Usuarios cargados:", response.data);
+
+    } catch (error) {
+      console.error("Error al cargar los revisores y jurados:", error);
+    }
+  };
+
+  fetchRevisoresYJurados();
+
+}, [temaId]);
+
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
+      }
+      if (!id || !temaId) {
+        console.error("Faltan parámetros para la consulta del detalle del entregable");
+        return;
+      }
+
+      // Primero, traer el detalle del entregable y tema
+      const detalleResponse = await axiosInstance.get(
+        `/entregable/${id}/tema/${temaId}/detalle-simplificado`,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
         }
-        const response = await axiosInstance.get(
-          `/entregable/${id}/tema/${temaId}/detalle-simplificado`,
+      );
+
+      const detalle = detalleResponse.data;
+      setDetalleEntregable(detalle);
+      console.log("Detalle simplificado cargado:", detalle);
+
+      // Segundo, con el entregableXTemaId, traer los criterios de revisión
+      if (detalle.entregableXTemaId) {
+        const criteriosResponse = await axiosInstance.get(
+          `/criterio-entregable/revision/entregable-tema/${detalle.entregableXTemaId}`,
           {
             headers: {
               Authorization: `Bearer ${idToken}`,
-              "Content-Type": "application/json", // Nuevo header
+              "Content-Type": "application/json",
             },
           }
         );
-        setDetalleEntregable(response.data);
-        console.log("Detalle simplificado cargado:", response.data);
-      } catch (error) {
-        console.error("Error al cargar el detalle simplificado:", error);
+        setCriterios(criteriosResponse.data);
+        console.log("Criterios cargados:", criteriosResponse.data);
       }
-    };
-    fetchDetalleEntregable();
-  }, [id, temaId]);
+    } catch (error) {
+      console.error("Error al cargar los datos:", error);
+    }
+  };
+    fetchData();
+}, [id, temaId]);
   const observacionesConRoles = observaciones.map((obs: ObservacionAlumnoDTO) => ({
   ...obs,
   roles: obs.rolesUsuario
     ? obs.rolesUsuario.split(",").map((r) => Number(r.trim()))
     : [],
 }));
+const agrupado: { [nombreCompleto: string]: RevisionCriterioEntregableDto[] } = {};
 const totalObservaciones = observaciones.length;
 const totalResueltas = observaciones.filter((obs) => obs.corregido).length;
 const totalPendientes = totalObservaciones - totalResueltas;
@@ -170,7 +252,84 @@ const observacionesFiltradas = useMemo(() => {
     }
     return arr;
   }, [observacionesConRoles, orden, busqueda, filtroCorregido]);
-  
+  const criteriosAgrupadosPorUsuario = useMemo(() => {
+  const agrupado: { [nombreCompleto: string]: RevisionCriterioEntregableDto[] } = {};
+
+  criterios.forEach((criterio) => {
+    const usuario = usuarios.find((u) => u.usuarioId === criterio.usuarioId);
+    const nombreCompleto = usuario
+      ? `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`
+      : "Desconocido";
+
+    if (!agrupado[nombreCompleto]) {
+      agrupado[nombreCompleto] = [];
+    }
+
+    agrupado[nombreCompleto].push(criterio);
+  });
+
+  return agrupado;
+}, [criterios, usuarios]);
+  const [open, setOpen] = useState(false);
+
+  function onClose(open: boolean): void {
+    setOpen(open);
+  }
+
+  // Función para obtener el revisionDocumentoId del revisor seleccionado
+  const getRevisionIdForSelectedRevisor = useMemo(() => {
+    if (!selectedRevisor || !criteriosAgrupadosPorUsuario[selectedRevisor]) {
+      return null;
+    }
+    
+    const criteriosDelRevisor = criteriosAgrupadosPorUsuario[selectedRevisor];
+    if (criteriosDelRevisor.length > 0) {
+      return criteriosDelRevisor[0].revisionDocumentoId;
+    }
+    
+    return null;
+  }, [selectedRevisor, criteriosAgrupadosPorUsuario]);
+
+  // Hook para descargar PDF anotado (solo se activa si hay un revisor seleccionado)
+  const downloadAnnotatedPdf = useDownloadAnnotated(getRevisionIdForSelectedRevisor || 0);
+
+  // Función para manejar la descarga
+  const handleDownload = async () => {
+    if (!selectedRevisor) {
+      toast({
+        title: "Seleccionar revisor",
+        description: "Por favor selecciona un revisor antes de descargar el PDF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!getRevisionIdForSelectedRevisor) {
+      toast({
+        title: "Error",
+        description: "No se pudo obtener la información de revisión para este revisor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await downloadAnnotatedPdf();
+      toast({
+        title: "Descarga exitosa",
+        description: "El PDF anotado se ha descargado correctamente.",
+      });
+    } catch (error) {
+      console.error("Error al descargar:", error);
+      toast({
+        title: "Error en la descarga",
+        description: "No se pudo descargar el PDF. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  console.log("Criterios agrupados por usuario:", criteriosAgrupadosPorUsuario);
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start p-6">
       <div className="flex-1 space-y-6">
@@ -187,24 +346,7 @@ const observacionesFiltradas = useMemo(() => {
         </div>
 
         <div className="bg-white border rounded-md p-4 space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="flex items-start gap-3">
-            <div>
-              {detalle && (
-                <>
-                  <h2 className="font-bold text-lg text-gray-900">{detalle.entregableDescripcion}</h2>
-                  <p className="text-sm text-muted-foreground">Entrega:</p>
-                  <div className="text-sm text-black">
-                    <strong>{detalle.entregableNombre}</strong>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" /> Descargar
-            </Button>
-          </div>
+        
 
           <hr className="border-gray-200" />
 
@@ -263,12 +405,12 @@ const observacionesFiltradas = useMemo(() => {
                 }
               >
                 {detalle?.entregableEstado
-                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1)
+                  ? detalle.entregableEstado.charAt(0).toUpperCase() + detalle.entregableEstado.slice(1).replace(/_/g, " ")
                   : "Sin estado"}
               </Badge>
             </div>
             <div>
-              <span className="block mb-1">Detección de Plagio</span>
+              <span className="block mb-1">Detección de Similitud</span>
              {/*  <progress value={1} className="h-2" />
               <span className="text-xs text-muted-foreground mt-1 block">Nivel aceptable de plagio</span>
               */}
@@ -296,24 +438,202 @@ const observacionesFiltradas = useMemo(() => {
           </div>
         </div>
 
-        {/*<div className="bg-white border rounded-md p-4">
-          <h3 className="font-semibold mb-2">Historial de Revisión</h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>
-              <strong>Inicio de revisión</strong><br /> 5/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Detección de plagio completada</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Revisión completada</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-            <li>
-              <strong>Entregable aprobado</strong><br /> 6/4/2025 - Dr. Roberto Sánchez
-            </li>
-          </ul>
+    
+
+        {/* Sección con tarjetas de usuarios y suma de notas */}
+      <div className="bg-white border rounded-md p-4">
+        <h3 className="font-semibold mb-2">Historial de Revisión</h3>
+        
+        {/* Selector de revisor para descarga */}
+        {Object.keys(criteriosAgrupadosPorUsuario).length > 0 && (
+          <div className="mb-4 p-3 bg-gray-300-50 border border-gray-200 rounded-lg">
+            <h4 className="font-semibold mb-2 text-sm text-black">Descargar PDF Anotado</h4>
+            <Select value={selectedRevisor || ""} onValueChange={setSelectedRevisor}>
+              <SelectTrigger className="w-full mb-2">
+                <SelectValue placeholder="Selecciona un revisor" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(criteriosAgrupadosPorUsuario).map((nombreRevisor) => {
+                  const usuario = usuarios.find(u => `${u.nombres} ${u.primerApellido} ${u.segundoApellido}` === nombreRevisor);
+                  let rolLabel = "";
+                  if (usuario?.rolId === 2) {
+                    const jurados = usuarios.filter(u => u.rolId === 2);
+                    const juradoIndex = jurados.findIndex(u => u.usuarioId === usuario.usuarioId) + 1;
+                    rolLabel = `Jurado ${juradoIndex}`;
+                  } else if (usuario?.rolId === 1) {
+                    rolLabel = "Asesor";
+                  } else if (usuario?.rolId === 4) {
+                    rolLabel = "Revisor";
+                  }
+                  
+                  return (
+                    <SelectItem key={nombreRevisor} value={nombreRevisor}>
+                      {nombreRevisor} {rolLabel && `(${rolLabel})`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={handleDownload} 
+              disabled={!selectedRevisor || !getRevisionIdForSelectedRevisor}
+              className="w-full"
+              size="sm"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar PDF Revisado
+            </Button>
+          </div>
+        )}
+
+        {/* Revisores y Notas */}
+        <div className="space-y-4">
+          <h4 className="font-semibold mb-2 text-xs">Revisores y Notas</h4>
+          <div className="space-y-2">
+            {Object.entries(criteriosAgrupadosPorUsuario).map(([nombre, lista], idx) => {
+              const sumaNotas = lista.reduce((acc, crit) => acc + (crit.nota || 0), 0);
+              const usuario = usuarios.find(u => `${u.nombres} ${u.primerApellido} ${u.segundoApellido}` === nombre);
+              let rolLabel = "";
+              let nombreLabel = nombre;
+              if (usuario?.rolId === 2) {
+                // Jurado numerado
+                const jurados = usuarios.filter(u => u.rolId === 2);
+                const juradoIndex = jurados.findIndex(u => u.usuarioId === usuario.usuarioId) + 1;
+                rolLabel = `Jurado ${juradoIndex}`;
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              } else if (usuario?.rolId === 1) {
+                rolLabel = "Asesor";
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              } else if (usuario?.rolId === 4) {
+                rolLabel = "Revisor";
+                nombreLabel = `${usuario.nombres} ${usuario.primerApellido} ${usuario.segundoApellido}`;
+              }
+              
+              return (
+                <Card key={nombre} className="shadow-sm border">
+                  <CardHeader className="pb-1">
+                    <CardTitle className="text-xs font-normal">
+                      <span className="font-semibold">Revisado por:</span>{" "}
+                      <span className="font-normal">{nombreLabel}</span>
+                      {rolLabel && (
+                        <span className="font-normal text-muted-foreground"> ({rolLabel})</span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-xs text-muted-foreground flex items-center justify-between w-full">
+                    <span className="font-semibold text-black mt-1">
+                      Nota: {sumaNotas.toFixed(1)}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-2 py-1 px-2"
+                      onClick={() => handleViewDetails(nombre)}
+                    >
+                      Ver Detalles
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Nota final */}
+            <div className="pt-3 text-xs">
+              <h4 className="font-semibold mb-1">Nota Final</h4>
+              <div className="text-muted-foreground text-base font-bold">
+                {Object.keys(criteriosAgrupadosPorUsuario).length > 0
+                ? (
+                    criterios.reduce((acc, crit) => acc + (crit.nota || 0), 0) /
+                    Object.keys(criteriosAgrupadosPorUsuario).length
+                  ).toFixed(2)
+                : "Sin nota"}
+              </div>
+            </div>
+          </div>
         </div>
-         */}
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Rúbrica de Evaluación</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.[0]?.entregableDescripcion
+                  ? `Entregable: ${criteriosAgrupadosPorUsuario[reviewerForDetails][0].entregableDescripcion}`
+                  : ""}
+              </p>
+            </DialogHeader>
+
+            {reviewerForDetails && (
+              <>
+                <div className="flex items-center justify-between mb-4 p-4 bg-muted rounded-lg">
+                  <div>
+                    <h3 className="font-medium text-sm">Puntuación Total</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
+                        .reduce((acc, crit) => acc + (crit.nota || 0), 0)
+                        .toFixed(1)}{" "}
+                      /{" "}
+                      {criteriosAgrupadosPorUsuario[reviewerForDetails]
+                        .reduce((acc, crit) => acc + (crit.notaMaxima || 0), 0)}
+                      {" "}puntos
+                    </p>
+                  </div>
+                </div>
+
+                <Card>
+                  <CardContent className="pt-4">
+                    <Accordion type="multiple">
+                      {reviewerForDetails && criteriosAgrupadosPorUsuario[reviewerForDetails]?.map((item) => (
+                        <AccordionItem
+                          key={item.criterioEntregableId}
+                          value={item.criterioEntregableId?.toString()}
+                        >
+                          <AccordionTrigger>
+                            <div className="flex justify-between w-full">
+                              <div className="flex items-center gap-2 text-left">
+                                <span>{item.nombreCriterio}</span>
+                                {(item.nota ?? 0) > 0 && (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                )}
+                              </div>
+                              <Badge variant="outline">{item.notaMaxima} pts</Badge>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-3 text-sm">
+                              <div>
+                                <h4 className="font-medium">Descripción:</h4>
+                                <p className="whitespace-pre-line">
+                                  {item.descripcionCriterio}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Comentario:</h4>
+                                <p className="whitespace-pre-line">
+                                  {item.observacion || "Sin comentario"}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Nota:</h4>
+                                <p>
+                                  {item.nota} / {item.notaMaxima} pts
+                                </p>
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            <DialogFooter className="pt-4">
+              <Button onClick={handleCloseDialog}>Cerrar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>  
       </div>
     </div>
   );

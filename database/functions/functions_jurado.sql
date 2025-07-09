@@ -103,12 +103,11 @@ DROP PROCEDURE IF EXISTS insertar_revision_criterio_exposicion_por_jurado_id_por
     p_miembro_jurado_id INTEGER
 );
 
-CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id INTEGER)
-RETURNS TABLE (
-    etapa_formativa_id INTEGER,
-    nombre TEXT
-)
-AS $$
+CREATE OR REPLACE FUNCTION obtener_etapas_formativas_por_usuario(p_usuario_id integer)
+ RETURNS TABLE(etapa_formativa_id integer, nombre text)
+ LANGUAGE plpgsql
+ STABLE
+AS $function$
 BEGIN
     RETURN QUERY
     SELECT 
@@ -126,9 +125,12 @@ BEGIN
     INNER JOIN ciclo c2 
         ON c2.ciclo_id = efxc.ciclo_id
         AND c2.activo = true
-    WHERE u.usuario_id = p_usuario_id and ef.etapa_formativa_id is not null;
+    WHERE u.usuario_id = p_usuario_id and ef.etapa_formativa_id is not null
+ and efxc.activo  = true;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$function$
+;
+
 
 CREATE OR REPLACE FUNCTION listar_exposicion_x_ciclo_actual_etapa_formativa(
 	etapa_id integer
@@ -1799,3 +1801,23 @@ BEGIN
     RAISE NOTICE 'Token actualizado correctamente para usuario_id=%, exposicion_id=%', p_id_usuario, p_id_exposicion;
 END;
 $$;
+
+
+
+CREATE OR REPLACE FUNCTION obtener_temas_con_link(p_exposicion_id INTEGER)
+RETURNS TABLE (
+    tema_id INTEGER,
+    link_exposicion TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        e.tema_id,
+        e.link_exposicion
+    FROM 
+        exposicion_x_tema e
+    WHERE 
+        e.exposicion_id = p_exposicion_id
+        AND e.link_exposicion IS NOT NULL;
+END;
+$$ LANGUAGE plpgsql;

@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.transaction.Transactional;
+import pucp.edu.pe.sgta.dto.TemaConLinkDTO;
 import pucp.edu.pe.sgta.model.Tema;
 import pucp.edu.pe.sgta.model.TemaSimilar;
 
@@ -179,6 +180,9 @@ public interface TemaRepository extends JpaRepository<Tema, Integer> {
   List<Tema> findByCarrera_IdInAndActivoTrue(List<Integer> carreraIds);
 
   List<Tema> findByCarrera_IdAndActivoTrue(Integer carreraId);
+
+  @Query(value = "SELECT * FROM obtener_temas_con_link(:p_exposicion_id)",nativeQuery = true)
+  List<TemaConLinkDTO> obtenerTemasConLink(@Param("p_exposicion_id") Integer exposicionId);
 
 
 }

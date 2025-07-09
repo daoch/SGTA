@@ -49,4 +49,22 @@ public class CarreraController {
         return carreraService.getCarreraCoordinadaPorUsuario(usuarioId);
     }
 
+    @PostMapping("/create")
+    public CarreraDto createCarrera(HttpServletRequest request, @RequestBody CarreraDto carreraDto) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return carreraService.createCarrera(idCognito, carreraDto);
+    }
+
+    @PostMapping("/update")
+    public CarreraDto updateCarrera(HttpServletRequest request, @RequestBody CarreraDto carreraDto) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return carreraService.updateCarrera(idCognito, carreraDto);
+    }
+
+    @PostMapping("/delete/{id}")
+    public void deleteCarrera(HttpServletRequest request, @PathVariable Integer id) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        carreraService.deleteCarrera(idCognito, id);
+    }
+
 } 

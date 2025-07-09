@@ -25,32 +25,16 @@ import {
 } from "@/components/ui/pagination";
 
 export function ReviewerReports() {
-  const [etapas, setEtapas] = useState<EtapaFormativaCiclo[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [students, setStudents] = useState<AlumnoReviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
+  const [etapaFilter, setEtapaFilter] = useState<string>("all");
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  const fetchEtapas = async () => {
-    try {
-      const response = await etapaFormativaCicloService.getAllByIdCarrera();
-      if (response) {
-        setEtapas(response);
-      }
-    } catch (error) {
-      console.error("Error al cargar las etapas:", error);
-      toast.error("Error al cargar las etapas");
-    }
-  };
-
-  useEffect(() => {
-      fetchEtapas();
-  }, []);
 
 
   useEffect(() => {
@@ -75,10 +59,23 @@ export function ReviewerReports() {
   const selectedStudentData = students.find((student) => student.usuarioId === selectedStudent);
 
 
-  // Filtrar estudiantes por curso y búsqueda
+  // Obtener etapas formativas únicas para el filtro
+  const etapasFormativas = useMemo(() => {
+    const etapas = [...new Set(students.map(student => student.etapaFormativaNombre).filter(Boolean))];
+    return etapas.sort();
+  }, [students]);
+
+  // Filtrar estudiantes por curso, etapa formativa y búsqueda
   const filteredStudents = useMemo(() => {
     // Hardcode: NO filtrar por curso, solo retornar todos los estudiantes
     let filtered = students;
+
+    // Filtro por etapa formativa
+    if (etapaFilter !== "all") {
+      filtered = filtered.filter(
+        (student) => student.etapaFormativaNombre === etapaFilter
+      );
+    }
 
     // Filtro por búsqueda (esto sí funciona)
     if (searchQuery.trim()) {
@@ -88,7 +85,7 @@ export function ReviewerReports() {
           `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`.toLowerCase().includes(query) ||
           (student.temaTitulo?.toLowerCase() || "").includes(query) ||
           (student.asesor?.toLowerCase() || "").includes(query) ||
-          (student.temaTitulo?.toLowerCase() || "").includes(query)
+          (student.etapaFormativaNombre?.toLowerCase() || "").includes(query)
       );
     }
 
@@ -97,7 +94,7 @@ export function ReviewerReports() {
         `${b.nombres} ${b.primerApellido} ${b.segundoApellido}`
       )
     );
-  }, [students, courseFilter, searchQuery]);
+  }, [students, courseFilter, etapaFilter, searchQuery]);
 
   // Calcular paginación
   const totalPages = Math.ceil(filteredStudents.length / pageSize);
@@ -109,7 +106,7 @@ export function ReviewerReports() {
   // Resetear página si cambia el filtro o búsqueda
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, courseFilter, students]);
+  }, [searchQuery, courseFilter, etapaFilter, students]);
 
   // Utilidades de estado visual
   const getStatusColor = (status: string) => {
@@ -157,50 +154,24 @@ export function ReviewerReports() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
-            {/* Filtro por curso */}
-            {/*
-            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Filtrar por curso:</label>
-              <Select value={courseFilter} onValueChange={setCourseFilter}>
-                <SelectTrigger className="w-full md:w-[400px]">
-                  <SelectValue placeholder="Seleccionar curso" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los cursos</SelectItem>
-                    {etapas.map((etapa) => (
-                      <SelectItem key={etapa.id} value={etapa.id.toString()}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{etapa.nombreEtapaFormativa}</span>
-                          <Badge variant="outline" className="ml-2">
-                            {etapa.cantidadEntregables} entregables
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-
-                  <SelectItem value="all">Todos los cursos</SelectItem>
-                  <SelectItem value="PFC1">
-                    <div className="flex items-center justify-between w-full">
-                      <span>Proyecto de Fin de Carrera 1</span>
-                      <Badge variant="outline" className="ml-2">
-                        4 entregables
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="PFC2">
-                    <div className="flex items-center justify-between w-full">
-                      <span>Proyecto de Fin de Carrera 2</span>
-                      <Badge variant="outline" className="ml-2">
-                        3 entregables
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            */}
+            {/* Filtro por etapa formativa */}
+            {etapasFormativas.length > 1 && (
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Filtrar por etapa:</label>
+                <select
+                  value={etapaFilter}
+                  onChange={(e) => setEtapaFilter(e.target.value)}
+                  className="w-full md:w-[300px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Todas las etapas</option>
+                  {etapasFormativas.map((etapa) => (
+                    <option key={etapa} value={etapa}>
+                      {etapa}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Barra de búsqueda */}
             <div className="relative flex-1">
@@ -226,13 +197,14 @@ export function ReviewerReports() {
             </Button>
 
             {/* Botón limpiar */}
-            {(searchQuery || courseFilter !== "all") && (
+            {(searchQuery || courseFilter !== "all" || etapaFilter !== "all") && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setSearchQuery("");
                   setCourseFilter("all");
+                  setEtapaFilter("all");
                 }}
                 className="whitespace-nowrap"
               >
@@ -246,8 +218,6 @@ export function ReviewerReports() {
             <span>
               {filteredStudents.length} estudiante{filteredStudents.length !== 1 ? "s" : ""} encontrado
               {filteredStudents.length !== 1 ? "s" : ""}
-              {courseFilter !== "all" &&
-                ` en ${etapas.find((e) => e.id.toString() === courseFilter)?.nombreEtapaFormativa ?? ""}`}
             </span>
           </div>
         </CardContent>
@@ -261,16 +231,17 @@ export function ReviewerReports() {
               <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron estudiantes</h3>
               <p className="text-gray-500 mb-4">
-                {searchQuery || courseFilter !== "all"
+                {searchQuery || courseFilter !== "all" || etapaFilter !== "all"
                   ? "Intenta ajustar los filtros o términos de búsqueda"
                   : "No hay estudiantes disponibles en este momento"}
               </p>
-              {(searchQuery || courseFilter !== "all") && (
+              {(searchQuery || courseFilter !== "all" || etapaFilter !== "all") && (
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchQuery("");
                     setCourseFilter("all");
+                    setEtapaFilter("all");
                   }}
                 >
                   Limpiar filtros
@@ -289,11 +260,16 @@ export function ReviewerReports() {
             >
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  {/* Nombre y curso */}
+                  {/* Nombre y etapa formativa */}
                   <div className="md:w-1/4">
                     <h3 className="font-semibold text-gray-900">
                       {student.nombres} {student.primerApellido} {student.segundoApellido}
                     </h3>
+                    {student.etapaFormativaNombre && (
+                      <Badge variant="secondary" className="text-xs mt-1">
+                        {student.etapaFormativaNombre}
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Tema de tesis */}
@@ -428,7 +404,5 @@ export function ReviewerReports() {
     </div>
   );
 }
-function setEtapas(response: EtapaFormativaCiclo[]) {
-  throw new Error("Function not implemented.");
-}
+
 

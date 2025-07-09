@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -64,6 +65,11 @@ export function EntregablesModal({
   >([]);
   const [archivosASubir, setArchivosASubir] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] =
+    useState<null | DocumentoConVersionDto>(null);
+  const [documentoPrincipalNombre, setDocumentoPrincipalNombre] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     setComentario(entregable.entregableComentario ?? "");
@@ -108,6 +114,7 @@ export function EntregablesModal({
         formData.append("curso", entregable.etapaFormativaNombre.toString());
         formData.append("comentario", comentario);
         formData.append("estado", estado);
+        formData.append("documentoPrincipalNombre", documentoPrincipalNombre ?? "");
 
         await axiosInstance.post(
           `/documento/entregable/${entregable.entregableXTemaId}`,
@@ -162,6 +169,9 @@ export function EntregablesModal({
             entregable.entregableMaximoDocumentos - archivosSubidos.length
           }
           maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
+          archivosSubidos={archivosSubidos}
+          documentoPrincipalNombre={documentoPrincipalNombre}
+          setDocumentoPrincipalNombre={setDocumentoPrincipalNombre}
         />
       );
     } else {
@@ -184,6 +194,9 @@ export function EntregablesModal({
         }
         maxFiles={1000}
         maxSizeMB={entregable.entregablePesoMaximoDocumento ?? 1000}
+        archivosSubidos={archivosSubidos}
+        documentoPrincipalNombre={documentoPrincipalNombre}
+        setDocumentoPrincipalNombre={setDocumentoPrincipalNombre}
       />
     );
   }
@@ -203,6 +216,11 @@ export function EntregablesModal({
         {archivosSubidos.map((archivo) => (
           <li key={archivo.documentoId} className="flex items-center gap-2">
             <span className="truncate">{archivo.documentoNombre}</span>
+            {archivo.documentoPrincipal && (
+              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-semibold">
+                Principal
+              </span>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Opciones">
@@ -217,9 +235,7 @@ export function EntregablesModal({
                 >
                   <Download className="w-4 h-4 mr-2" /> Descargar
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleEliminarDocumento(archivo.documentoId)}
-                >
+                <DropdownMenuItem onClick={() => setConfirmDelete(archivo)}>
                   <Trash2 className="w-4 h-4 mr-2 text-red-600" /> Eliminar
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -231,97 +247,138 @@ export function EntregablesModal({
   }
 
   return (
-    <DialogContent style={{ maxWidth: "680px", width: "100%" }}>
-      <DialogHeader>
-        <DialogTitle>
-          {entregable?.entregableNombre ?? "Entregable"}
-        </DialogTitle>
-        <p className="text-sm text-muted-foreground">
-          {entregable?.etapaFormativaNombre}
-        </p>
-      </DialogHeader>
+    <>
+      <DialogContent style={{ maxWidth: "680px", width: "100%" }}>
+        <DialogHeader>
+          <DialogTitle>
+            {entregable?.entregableNombre ?? "Entregable"}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {entregable?.etapaFormativaNombre}
+          </p>
+        </DialogHeader>
 
-      <div className="space-y-5 py-1">
-        <div className="bg-gray-100 rounded-md p-4 space-y-2 text-sm text-gray-800">
-          <div className="flex items-start gap-2">
-            <Calendar className="w-4 h-4 mt-1 text-gray-500" />
-            <p>
-              <strong>Apertura:</strong>{" "}
-              {formatFecha(entregable?.entregableFechaInicio)}
-            </p>
+        <div className="space-y-5 py-1">
+          <div className="bg-gray-100 rounded-md p-4 space-y-2 text-sm text-gray-800">
+            <div className="flex items-start gap-2">
+              <Calendar className="w-4 h-4 mt-1 text-gray-500" />
+              <p>
+                <strong>Apertura:</strong>{" "}
+                {formatFecha(entregable?.entregableFechaInicio)}
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <Clock className="w-4 h-4 mt-1 text-gray-500" />
+              <p>
+                <strong>Fecha límite:</strong>{" "}
+                {formatFecha(entregable?.entregableFechaFin)}
+              </p>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <Clock className="w-4 h-4 mt-1 text-gray-500" />
-            <p>
-              <strong>Fecha límite:</strong>{" "}
-              {formatFecha(entregable?.entregableFechaFin)}
-            </p>
+
+          <div className="space-y-2">
+            <div className="rounded-md border overflow-hidden text-sm">
+              <div className="grid grid-cols-[220px_1fr] border-b">
+                <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
+                  Estado de la entrega
+                </div>
+                <div className="px-4 py-3 text-gray-700">
+                  {estadoLabels[entregable.entregableEstado] ||
+                    entregable.entregableEstado}
+                </div>
+              </div>
+              <div className="grid grid-cols-[220px_1fr] border-b">
+                <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
+                  Estado de la calificación
+                </div>
+                <div className="px-4 py-3 text-gray-700">
+                  {entregable.corregido ? "Revisado" : "Por revisar"}
+                </div>
+              </div>
+              <div className="grid grid-cols-[220px_1fr] border-b">
+                <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
+                  Última modificación
+                </div>
+                <div className="px-4 py-3 text-gray-700">
+                  {formatFecha(entregable.entregableFechaEnvio as string)}
+                </div>
+              </div>
+              <div className="grid grid-cols-[220px_1fr] border-b">
+                <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
+                  Archivos enviados
+                </div>
+                <div className="px-4 py-3 text-gray-700">
+                  {archivosEnviadosContent}
+                </div>
+              </div>
+              <div className="grid grid-cols-[220px_1fr] border-b">
+                <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800 align-top">
+                  Comentarios de la entrega
+                </div>
+                <div className="px-4 py-3">
+                  <Textarea
+                    placeholder="Añade comentarios sobre tu entrega aquí..."
+                    value={comentario}
+                    onChange={(e) => {
+                      setComentario?.(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
+          {dropzoneContent}
         </div>
 
-        <div className="space-y-2">
-          <div className="rounded-md border overflow-hidden text-sm">
-            <div className="grid grid-cols-[220px_1fr] border-b">
-              <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
-                Estado de la entrega
-              </div>
-              <div className="px-4 py-3 text-gray-700">
-                {estadoLabels[entregable.entregableEstado] ||
-                  entregable.entregableEstado}
-              </div>
-            </div>
-            <div className="grid grid-cols-[220px_1fr] border-b">
-              <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
-                Estado de la calificación
-              </div>
-              <div className="px-4 py-3 text-gray-700">Sin calificar</div>
-            </div>
-            <div className="grid grid-cols-[220px_1fr] border-b">
-              <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
-                Última modificación
-              </div>
-              <div className="px-4 py-3 text-gray-700">{formatFecha(entregable.entregableFechaEnvio as string)}</div>
-            </div>
-            <div className="grid grid-cols-[220px_1fr] border-b">
-              <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800">
-                Archivos enviados
-              </div>
-              <div className="px-4 py-3 text-gray-700">
-                {archivosEnviadosContent}
-              </div>
-            </div>
-            <div className="grid grid-cols-[220px_1fr] border-b">
-              <div className="bg-gray-100 px-4 py-3 font-medium text-gray-800 align-top">
-                Comentarios de la entrega
-              </div>
-              <div className="px-4 py-3">
-                <Textarea
-                  placeholder="Añade comentarios sobre tu entrega aquí..."
-                  value={comentario}
-                  onChange={(e) => {
-                    setComentario?.(e.target.value);
-                  }}
-                />
-              </div>
-            </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedEntregable?.(null)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className="bg-[#042354] hover:bg-[#001e44] text-white"
+            onClick={handleGuardar}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Guardando..." : "Guardar cambios"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={(open) => !open && setConfirmDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              ¿Estás seguro de que deseas eliminar el archivo{" "}
+              {confirmDelete?.documentoNombre}?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-sm text-muted-foreground">
+            Esta acción no se puede revertir.
           </div>
-        </div>
-        {dropzoneContent}
-      </div>
-
-      <DialogFooter>
-        <Button variant="outline" onClick={() => setSelectedEntregable?.(null)}>
-          Cancelar
-        </Button>
-        <Button
-          className="bg-[#042354] hover:bg-[#001e44] text-white"
-          onClick={handleGuardar}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Guardando..." : "Guardar cambios"}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={async () => {
+                if (confirmDelete) {
+                  await handleEliminarDocumento(confirmDelete.documentoId);
+                  setConfirmDelete(null);
+                }
+              }}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

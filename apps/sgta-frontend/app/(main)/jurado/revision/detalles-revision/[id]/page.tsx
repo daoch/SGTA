@@ -9,5 +9,5 @@ export default function Page() {
 		throw new Error("Invalid parameter: id must be a string");
 	}
 
-	return <RevisionDetailPage params={{ id }} />;
+	return <RevisionDetailPage params={{ id , rol_id: 2}} />;
 }

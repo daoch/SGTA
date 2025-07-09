@@ -2,6 +2,8 @@ package pucp.edu.pe.sgta.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -17,6 +19,7 @@ import pucp.edu.pe.sgta.dto.BloquesNextPhaseRequest;
 import pucp.edu.pe.sgta.dto.DistribucionRequestDTO;
 import pucp.edu.pe.sgta.dto.ListBloqueHorarioExposicionSimpleDTO;
 import pucp.edu.pe.sgta.service.inter.BloqueHorarioExposicionService;
+import pucp.edu.pe.sgta.service.inter.JwtService;
 import pucp.edu.pe.sgta.util.ResponseMessage;
 
 @RestController
@@ -27,6 +30,9 @@ public class BloqueHorarioExposicionController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/listarBloquesHorarioExposicionByExposicion/{exposicionId}")
     public List<ListBloqueHorarioExposicionSimpleDTO> listarBloquesHorarioExposicionByExposicion(@PathVariable("exposicionId") Integer exposicionId) {
@@ -59,7 +65,8 @@ public class BloqueHorarioExposicionController {
         try {
             List<ListBloqueHorarioExposicionSimpleDTO> bloquesList = request.getBloquesList();
             Integer exposicion = request.getExposicion();
-            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion);
+            Integer origen = request.getOrigen();
+            boolean updateSuccessful = bloqueHorarioExposicionService.updateBlouqesListNextPhase(bloquesList,exposicion,origen);
 
             if (updateSuccessful) {
 
@@ -111,10 +118,10 @@ public class BloqueHorarioExposicionController {
 
 
     @PatchMapping("/finishPlanning/{idExposicion}")
-    public ResponseEntity<ResponseMessage> finishPlanning(@PathVariable("idExposicion")  Integer idExposicion) {
+    public ResponseEntity<ResponseMessage> finishPlanning(HttpServletRequest request, @PathVariable("idExposicion")  Integer idExposicion) {
         try {
-
-            boolean updateSuccessful = bloqueHorarioExposicionService.finishPlanning(idExposicion);
+            String idCognito = jwtService.extractSubFromRequest(request);
+            boolean updateSuccessful = bloqueHorarioExposicionService.finishPlanning(idCognito, idExposicion);
 
 
             if (updateSuccessful) {
@@ -156,5 +163,12 @@ public class BloqueHorarioExposicionController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseMessage(false, "No se pudo bloquear el bloque"));
         }
+    }
+
+    @PostMapping("/crear-eventos-calendar/{idExposicion}")
+    public void crearReunionesZoom(@PathVariable("idExposicion") Integer idExposicion) {
+
+
+        bloqueHorarioExposicionService.crearReunionesZoom(idExposicion);
     }
 }

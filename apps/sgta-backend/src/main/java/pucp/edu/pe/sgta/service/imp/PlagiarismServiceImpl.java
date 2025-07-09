@@ -30,8 +30,9 @@ public class PlagiarismServiceImpl {
 
     private static final String API_URL = "https://api.gowinston.ai/v2/plagiarism";
     private static final String API_URL_IA = "https://api.gowinston.ai/v2/ai-content-detection";
-    private static final String API_TOKEN = "yy6ghgeIg2kMOHnyL6yUbSfaJSVBiBUqPKJPh0CK98d5960c"; // Reemplaza con tu
-                                                                                                // token real
+    
+    @Value("${API_TOKEN_GOWINSTON}")
+    private String API_TOKEN;
 
     private final S3DownloadService s3DownloadService;
 
@@ -173,7 +174,11 @@ public class PlagiarismServiceImpl {
         }
         // Paso 2: Asignar página a cada sentence
         for (JsonNode sentence : sentences) {
-            int start = sentence.get("start_position").asInt();
+            JsonNode startNode = sentence.get("start_position");
+            if (startNode == null || startNode.isNull()) {
+                continue; // o maneja el caso como prefieras
+            }
+            int start = startNode.asInt();
             int page = 1;
             for (int i = 0; i < pageOffsets.size(); i++) {
                 if (i == pageOffsets.size() - 1 || (start >= pageOffsets.get(i) && start < pageOffsets.get(i + 1))) {

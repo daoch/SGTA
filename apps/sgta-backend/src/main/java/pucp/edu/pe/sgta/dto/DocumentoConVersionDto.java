@@ -15,4 +15,5 @@ public class DocumentoConVersionDto {
     private OffsetDateTime documentoFechaSubida;
     private String documentoLinkArchivo;
     private Integer entregableTemaId;
+    private boolean documentoPrincipal;
 }

@@ -28,6 +28,18 @@ export const tableTexts = {
     tabLabel: "Interesante",
     show: true,
   },
+  [EstadoTemaNombre.PAUSADO]: {
+    title: "Temas de interés",
+    description: "Temas de tesis que has marcado como pausado",
+    tabLabel: "Pausado",
+    show: true,
+  },
+  [EstadoTemaNombre.FINALIZADO]: {
+    title: "Temas de interés",
+    description: "Temas de tesis que has marcado como finalizado",
+    tabLabel: "Finalizado",
+    show: true,
+  },
 };
 
 export const initialPagination: PagesList = {
@@ -47,4 +59,3 @@ export const initialPagination: PagesList = {
     totalCounts: 0,
   },
 };
-

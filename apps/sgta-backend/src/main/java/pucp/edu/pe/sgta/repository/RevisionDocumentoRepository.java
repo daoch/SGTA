@@ -2,6 +2,7 @@ package pucp.edu.pe.sgta.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
@@ -137,17 +138,16 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = "SELECT * FROM obtener_documentos_asesor(:asesorId)", nativeQuery = true)
     List<Object[]> listarRevisionDocumentosPorAsesor(@Param("asesorId") Integer asesorId);
 
+    @Query(value = "SELECT * FROM obtener_documentos_revisor(:revisorId)", nativeQuery = true)
+    List<Object[]> listarRevisionDocumentosPorRevisor(@Param("revisorId") Integer revisorId);
+
     @Modifying
     @Transactional
     @Query(value = """
-        UPDATE revision_documento
-        SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
-        WHERE version_documento_id = (
-            SELECT version_documento_id
-            FROM revision_documento
+            UPDATE revision_documento
+            SET estado_revision = CAST(:nuevoEstado AS enum_estado_revision)
             WHERE revision_documento_id = :revisionId
-        )
-        """, nativeQuery = true)
+            """, nativeQuery = true)
     void actualizarEstadoRevisionConCast(@Param("revisionId") Integer revisionId,
             @Param("nuevoEstado") String nuevoEstado);
 
@@ -158,10 +158,53 @@ public interface RevisionDocumentoRepository extends JpaRepository<RevisionDocum
     @Query(value = "SELECT crear_revisiones(:entregableXTemaId)", nativeQuery = true)
     void crearRevisiones(@Param("entregableXTemaId") Integer entregableXTemaId);
 
+    @Transactional
+    @Query(value = "SELECT crear_revisiones_revisores(:entregableXTemaId)", nativeQuery = true)
+    void crearRevisionesRevisores(@Param("entregableXTemaId") Integer entregableXTemaId);
+
+    @Query(value = "SELECT crear_revisiones_jurado(:entregableXTemaId)", nativeQuery = true)
+    void crearRevisionesJurado(@Param("entregableXTemaId") Integer entregableXTemaId);
+
     @Query(value = "SELECT * FROM obtener_alumnos_por_revision(:revision_id)", nativeQuery = true)
     List<Object[]> getStudentsByRevisor(@Param("revision_id") Integer revision_id);
 
-    Optional<RevisionDocumento>
-    findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
+    Optional<RevisionDocumento> findTopByVersionDocumento_IdOrderByFechaCreacionDesc(Integer versionDocumentoId);
 
-}
+    @Query("SELECT rd FROM RevisionDocumento rd WHERE rd.versionDocumento.entregableXTema.tema.id = :temaId AND rd.usuario.id = :asesorId AND rd.activo = true")
+    List<RevisionDocumento> findByTemaIdAndAsesorId(@Param("temaId") Integer temaId,
+            @Param("asesorId") Integer asesorId);
+
+    @Query(value = "SELECT * FROM obtener_documentos_jurado(:juradoId)", nativeQuery = true)
+    List<Object[]> listarRevisionDocumentosPorJurado(@Param("juradoId") Integer juradoId);
+    
+    @Procedure(procedureName = "actualizar_estado_revision_todos")
+    void actualizarEstadoTodosRevisiones(Integer p_revision_id, String p_nuevo_estado);
+    @Query(value = """
+    SELECT
+        u.usuario_id AS usuarioId,
+        u.nombres AS nombres,
+        u.primer_apellido AS primerApellido,
+        u.segundo_apellido AS segundoApellido,
+        ut.rol_id AS rolId,
+        ut.tema_id AS temaId
+    FROM
+        usuario_tema ut
+        JOIN usuario u ON u.usuario_id = ut.usuario_id
+    WHERE
+        ut.tema_id = :temaId
+        AND ut.asignado = true
+        AND ut.rechazado = false
+        AND ut.activo = true
+        AND u.activo = true
+""", nativeQuery = true)
+List<Object[]> listarRevisoresYJuradosPorTemaId(@Param("temaId") Integer temaId);
+
+    @Transactional
+    @Query(value = "SELECT asignar_revision_jurado(:temaId, :usuarioId)", nativeQuery = true)
+    void asignarRevisionJurado(@Param("temaId") Integer temaId, @Param("usuarioId") Integer usuarioId);
+    
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE revision_documento SET activo = false WHERE version_documento_id = :versionId", nativeQuery = true)
+    void borrarRevisionesPorVersionId(@Param("versionId") Integer versionId);
+ }

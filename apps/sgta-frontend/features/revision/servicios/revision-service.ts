@@ -1,4 +1,5 @@
 import { UsuarioDto } from "@/features/coordinador/dtos/UsuarioDto";
+import { DocumentoConVersionDto } from "@/features/gestion/dtos/DocumentoConVersionDto";
 import axiosInstance from "@/lib/axios/axios-instance";
 import { IHighlight } from "react-pdf-highlighter";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
@@ -139,8 +140,23 @@ export interface HighlightDto {
   };
 }
 
-// Mapea el DTO a IHighlight
-function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
+export interface RevisionCriterioEntregableDto {
+  id: number;
+  nombre : string;
+  notaMaxima: number;
+  descripcion : string;
+  nota : number|null;
+  revision_documento_id:number;
+  usuario_revisor_id :number;
+  tema_x_entregable_id: number;
+  entregable_id : number;
+  entregable_descripcion:string;
+  revision_criterio_entrebable_id : number|null;
+  observacion:string|null;
+}
+
+// Mapea el DTO a IHighlight, incluyendo el campo "corregido"
+function highlightDtoToIHighlight(dto: HighlightDto & { corregido?: boolean }): IHighlight & { corregido?: boolean } {
   return {
     id: String(dto.id),
     content: {
@@ -163,6 +179,7 @@ function highlightDtoToIHighlight(dto: HighlightDto): IHighlight {
       pageNumber: dto.position.pageNumber ?? 1,
       usePdfCoordinates: dto.position.usePdfCoordinates ?? false,
     },
+    corregido: dto.corregido,
   };
 }
 export async function obtenerObservacionesRevision(revisionId: number): Promise<IHighlight[]> {
@@ -223,6 +240,14 @@ export interface IAAttackDetected {
   homoglyph_attack: boolean;
 }
 
+export async function listarCriterioEntregablesNotas(revisionId:number) : Promise<RevisionCriterioEntregableDto[]> {
+  const response = await axiosInstance.get(`/criterio-entregable/revision/${revisionId}`);
+  return response.data;
+}
+export async function guardarNota( listaCriterios:RevisionCriterioEntregableDto[]):Promise<void>{
+  //console.log(listaCriterios);
+  await axiosInstance.post("/criterio-entregable/revision_nota/registrar_nota",listaCriterios);
+}
 export interface IAApiResponse {
   status: number;
   length: number;
@@ -239,4 +264,8 @@ export interface IAApiResponse {
 export async function getJsonIA(revisionId: number): Promise<IAApiResponse> {
   const response = await axiosInstance.get(`/s3/archivos/get-IA-json/${revisionId}`);
   return typeof response.data === "string" ? JSON.parse(response.data) as IAApiResponse : response.data;
+}
+export async function getdocumentosSubidos(revisionId: number): Promise<DocumentoConVersionDto[]> {
+  const response = await axiosInstance.get(`/documento/entregable/${revisionId}/revision`);
+  return response.data;
 }

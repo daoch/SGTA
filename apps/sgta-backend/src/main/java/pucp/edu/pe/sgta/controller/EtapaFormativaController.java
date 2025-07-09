@@ -86,8 +86,10 @@ public class EtapaFormativaController {
      */
     @PostMapping("/crear")
     public ResponseEntity<EtapaFormativaDto> crearEtapa(
-            @RequestBody EtapaFormativaDto dto) {
-        EtapaFormativaDto created = etapaFormativaService.create(dto);
+            @RequestBody EtapaFormativaDto dto,
+            HttpServletRequest request) {
+        String usuarioCognito = jwtService.extractSubFromRequest(request);
+        EtapaFormativaDto created = etapaFormativaService.create(usuarioCognito, dto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(created);
@@ -99,18 +101,21 @@ public class EtapaFormativaController {
     @PutMapping("/actualizar/{id}")
     public ResponseEntity<EtapaFormativaDto> actualizarEtapa(
             @PathVariable("id") Integer id,
-            @RequestBody EtapaFormativaDto dto) {
+            @RequestBody EtapaFormativaDto dto,
+            HttpServletRequest request) {
         // Asegura que el DTO traiga el mismo id de la ruta
         dto.setId(id);
-        EtapaFormativaDto updated = etapaFormativaService.update(dto);
+        String usuarioCognito = jwtService.extractSubFromRequest(request);
+        EtapaFormativaDto updated = etapaFormativaService.update(usuarioCognito, dto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(updated);
     }
 
     @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<Void> eliminarEtapa(@PathVariable Integer id) {
-        etapaFormativaService.delete(id);
+    public ResponseEntity<Void> eliminarEtapa(@PathVariable Integer id, HttpServletRequest request) {
+        String usuarioCognito = jwtService.extractSubFromRequest(request);
+        etapaFormativaService.delete(usuarioCognito, id);
         return ResponseEntity.noContent().build();
     }
 

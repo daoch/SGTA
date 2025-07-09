@@ -500,8 +500,9 @@ public class TemaController {
 	}
 
 	@PostMapping("/asociar-tema-curso/curso/{cursoId}/tema/{temaId}")
-	public void asociarTemaACurso(@PathVariable Integer cursoId, @PathVariable Integer temaId){
-		temaService.asociarTemaACurso(cursoId, temaId);
+	public void asociarTemaACurso(@PathVariable Integer cursoId, @PathVariable Integer temaId, HttpServletRequest request) {
+		String cognitoId = jwtService.extractSubFromRequest(request);
+		temaService.asociarTemaACurso(cursoId, temaId, cognitoId);
 	}
 
 	@GetMapping("/porUsuarioTituloAreaCarreraEstadoFecha")

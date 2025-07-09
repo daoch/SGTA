@@ -39,18 +39,22 @@ public class EntregableController {
 
 
     @PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto) {
-        return entregableService.create(etapaFormativaXCicloId, entregableDto);
+    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody EntregableDto entregableDto,
+                          HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        return entregableService.create(etapaFormativaXCicloId, entregableDto, cognitoId);
     }
 
     @PutMapping("/update")
-    public void update(@RequestBody EntregableDto entregableDto) {
-        entregableService.update(entregableDto);
+    public void update(@RequestBody EntregableDto entregableDto, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        entregableService.update(entregableDto, cognitoId);
     }
 
     @PutMapping("/delete")
-    public void delete(@RequestBody Integer entregableId) {
-        entregableService.delete(entregableId);
+    public void delete(@RequestBody Integer entregableId, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        entregableService.delete(entregableId, cognitoId);
     }
 
     @GetMapping("/getAll") // Obtiene la lista de entregables
@@ -73,5 +77,10 @@ public class EntregableController {
         @PathVariable Integer temaId
     ) {
         return entregableService.obtenerDetalleXTema(entregableId, temaId);
+    }
+
+    @PutMapping("/marcar-corregido/{revisionId}")
+    public void marcarComoCorregido(@PathVariable Integer revisionId, HttpServletRequest request) {
+        entregableService.marcarComoCorregido(revisionId);
     }
 }

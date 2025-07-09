@@ -38,18 +38,22 @@ public class ExposicionController {
     }
 
     @PostMapping("/etapa-formativa-x-ciclo/{etapaFormativaXCicloId}")
-    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody ExposicionDto exposicionDto) {
-        return exposicionService.create(etapaFormativaXCicloId, exposicionDto);
+    public Integer create(@PathVariable Integer etapaFormativaXCicloId, @RequestBody ExposicionDto exposicionDto,
+                          HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        return exposicionService.create(etapaFormativaXCicloId, exposicionDto, cognitoId);
     }
 
     @PutMapping("/update")
-    public void update(@RequestBody ExposicionDto exposicionDto) {
-        exposicionService.update(exposicionDto);
+    public void update(@RequestBody ExposicionDto exposicionDto, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        exposicionService.update(exposicionDto, cognitoId);
     }
 
     @PutMapping("/delete")
-    public void delete(@RequestBody Integer exposicionId) {
-        exposicionService.delete(exposicionId);
+    public void delete(@RequestBody Integer exposicionId, HttpServletRequest request) {
+        String cognitoId = jwtService.extractSubFromRequest(request);
+        exposicionService.delete(exposicionId, cognitoId);
     }
 
     @GetMapping("/getAll") // Obtiene la lista de entregables

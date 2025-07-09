@@ -8,7 +8,12 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 export const updateCarreraXParametroConfiguracion = async (
     dto: CarreraXParametroConfiguracionDto
 ): Promise<void> => {
-    await axiosInstance.post("/carreraXParametroConfiguracion/update", dto);
+    const { idToken } = useAuthStore.getState();
+    await axiosInstance.post("/carreraXParametroConfiguracion/update", dto, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
+    });
 };
 
 export const getAllByCarreraId = async (
@@ -25,6 +30,23 @@ export const getAllByCarreraId = async (
     return response.data;
 };
 
+export const getAllByCarreraIdAndEtapaFormativa = async (
+    etapaFormativaId?: number
+): Promise<CarreraXParametroConfiguracionDto[]> => {
+
+    const { idToken } = useAuthStore.getState();
+    const params = etapaFormativaId ? { etapaFormativaId } : {};
+    const response = await axiosInstance.get<CarreraXParametroConfiguracionDto[]>(
+        "/carreraXParametroConfiguracion/parametros-etapa-formativa",
+        {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+            params,
+        }
+    );
+    return response.data;
+};
 
 //Services para Áreas por carrera
 

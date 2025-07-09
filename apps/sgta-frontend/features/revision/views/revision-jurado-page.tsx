@@ -24,9 +24,9 @@ import { useEffect, useState } from "react";
 import "../../../features/revision/types/colors.css";
 import { RevisionesCardsAsesor } from "../components/revisiones-cards-asesor";
 import { RevisionesTableAsesor } from "../components/revisiones-table-asesor";
+import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 import { DocumentoAgrupado } from "../dtos/DocumentoAgrupado";
 import { RevisionDocumentoAsesorDto } from "../dtos/RevisionDocumentoAsesorDto";
-import { RevisionesTableJurado } from "../components/RevisionesTableJurado";
 
 function agruparPorDocumento(data: RevisionDocumentoAsesorDto[]): DocumentoAgrupado[] {
   const mapa = new Map<number, DocumentoAgrupado>();
@@ -69,28 +69,34 @@ const RevisionJuradoPage = () => {
   const [documentos, setDocumentos] = useState<DocumentoAgrupado[]>([]);
 
   useEffect(() => {
-    const fetchDocumentos = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        console.log(idToken);
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        const response = await axiosInstance.get("/revision/asesor", {
-          headers: {
-            Authorization: `Bearer ${idToken}`
-          }
-        });
-
-        const agrupados = agruparPorDocumento(response.data);
-        setDocumentos(agrupados);
-      } catch (error) {
-        console.error("Error al cargar los documentos:", error);
+  const fetchDocumentos = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      console.log(idToken);
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
-    fetchDocumentos();
-  }, []);
+
+      const response = await axiosInstance.get("/revision/jurado", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      console.log("Response data:", response.data);
+      const agrupados = agruparPorDocumento(response.data);
+      setDocumentos(agrupados);
+      console.log("Documentos del jurado cargados:", agrupados);
+    } catch (error) {
+      console.error("Error al cargar los documentos del jurado:", error);
+    }
+  };
+
+  fetchDocumentos();
+}, []);
+const documentosFiltrados = (estado: string) => {
+  return documentos.filter(doc => doc.estado === estado);
+};
 
   const cursosUnicos = Array.from(new Set(documentos.map(doc => doc.curso))).filter(Boolean);
 
@@ -102,7 +108,7 @@ const RevisionJuradoPage = () => {
             Módulo de Revisión
           </h1>
           <p className="text-muted-foreground">
-            Detección de plagio y verificación de normas APA
+            Detección de similitud de contenido y revisión
           </p>
         </div>
       </div>
@@ -177,21 +183,12 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="por_aprobar"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentos}
+                filter={["aprobado"]} // Filtramos por ambos estados
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -204,21 +201,12 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="aprobado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentos}
+                filter={["por_aprobar", "aprobado"]} // Filtramos por ambos estados
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -231,21 +219,11 @@ const RevisionJuradoPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableJurado
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  filter="rechazado"
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentosFiltrados("revisado")}
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -256,19 +234,11 @@ const RevisionJuradoPage = () => {
               <CardDescription>Lista completa de documentos</CardDescription>
             </CardHeader>
             <CardContent>
-              {viewMode === "table" ? (
-                <RevisionesTableAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              ) : (
-                <RevisionesCardsAsesor
-                  data={documentos}
-                  searchQuery={searchQuery}
-                  cursoFilter={cursoFilter}
-                />
-              )}
+              <RevisionesTableJurado
+                data={documentos}
+                searchQuery={searchQuery}
+                cursoFilter={cursoFilter}
+              />
             </CardContent>
           </Card>
         </TabsContent>

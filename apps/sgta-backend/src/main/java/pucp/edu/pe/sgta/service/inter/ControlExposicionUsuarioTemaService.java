@@ -17,7 +17,7 @@ public interface ControlExposicionUsuarioTemaService {
 
     void updateEstadoRespuestaExposicion(Integer exposicionId, Integer temaId);
 
-    void aceptarExposicionDesdeCorreo(String tokenUnico);
-     void rechazarExposicionDesdeCorreo(String tokenUnico);
+    boolean aceptarExposicionDesdeCorreo(String tokenUnico);
+    boolean rechazarExposicionDesdeCorreo(String tokenUnico);
 
 }

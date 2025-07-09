@@ -141,7 +141,7 @@ export function RevisionesCardsAsesor({
                   {revision.porcentajeSimilitud !== null && (
                     <div>
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm">Detección de Plagio:</span>
+                        <span className="text-sm">Detección de Similitud:</span>
                         <span
                           className={
                             revision.porcentajeSimilitud > 20

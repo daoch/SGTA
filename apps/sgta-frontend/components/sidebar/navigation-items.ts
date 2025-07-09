@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  BookOpenText,
   Calendar,
   CalendarIcon,
   CheckSquare,
@@ -16,7 +15,7 @@ import {
   Settings,
   Shuffle,
   Users,
-  UserX2,
+  UserX2
 } from "lucide-react";
 
 export interface NavigationGroup {
@@ -47,12 +46,16 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       href: "/alumno/temas",
       icon: FileText,
       children: [
+        { name: "Temas", 
+          href: "/alumno/temas/temas", 
+          icon: FileText
+        },
         {
           name: "Catálogo de temas libres",
           href: "/alumno/temas/catalogo-de-temas",
           icon: FolderOpen,
         },
-        { name: "Temas", href: "/alumno/temas", icon: FileText },
+        
         {
           name: "Postulaciones de asesores",
           href: "/alumno/temas/postulaciones-de-asesores",
@@ -65,11 +68,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       href: "/alumno/mi-proyecto",
       icon: FileText,
       children: [
-        {
+/*         {
           name: "Información del proyecto",
           href: "/alumno/mi-proyecto/informacion-del-proyecto",
           icon: FileText,
-        },
+        }, */
         {
           name: "Cronograma",
           href: "/alumno/mi-proyecto/cronograma",
@@ -85,11 +88,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/alumno/mi-proyecto/exposiciones",
           icon: MessageSquare,
         },
-        {
+        /* {
           name: "Reuniones",
           href: "/alumno/mi-proyecto/reuniones",
           icon: Users,
-        },
+        }, */
       ],
     },
     {
@@ -110,10 +113,10 @@ export const navigationItems: Record<string, NavigationItem[]> = {
     },
   ],
   jurado: [
-    { name: "Calendario", href: "/jurado/calendario", icon: CalendarIcon },
+    /* { name: "Calendario", href: "/jurado/calendario", icon: CalendarIcon }, */
     { name: "Exposiciones", href: "/jurado/exposiciones", icon: MessageSquare },
     { name: "Revisión", href: "/jurado/revision", icon: Search },
-    { name: "Temas de tesis", href: "/jurado/temas", icon: FileText },
+/*     { name: "Temas de tesis", href: "/jurado/temas", icon: FileText }, */
   ],
   asesor: [
     { name: "Temas", href: "/asesor/temas", icon: FileText },
@@ -137,12 +140,12 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         {
           name: "Directorio de asesores",
           href: "/asesor/asesores/directorio-de-asesores",
-          icon: CalendarIcon,
+          icon: Users,
         },
         {
           name: "Cese de asesoria",
           href: "/asesor/asesores/cese-de-asesoria",
-          icon: CalendarIcon,
+          icon: UserX2,
         },
         {
           name: "Cese de tema",
@@ -162,7 +165,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
   ],
   coordinador: [
     { name: "Temas", href: "/coordinador/temas", icon: FileText },
-    { name: "Propuestas", href: "/coordinador/propuestas", icon: FileText },
+   // { name: "Propuestas", href: "/coordinador/propuestas", icon: FileText },
     {
       name: "Aprobaciones",
       href: "/coordinador/aprobaciones",
@@ -178,7 +181,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
       href: "/coordinador/exposiciones",
       icon: MessageSquare,
     },
-    { name: "Revisión", href: "/coordinador/revision", icon: Search },
+/*     { name: "Revisión", href: "/coordinador/revision", icon: Search }, */
     {
       name: "Asesores",
       href: "/coordinador/asesores",
@@ -187,7 +190,7 @@ export const navigationItems: Record<string, NavigationItem[]> = {
         {
           name: "Directorio de asesores",
           href: "/coordinador/asesores/directorio-de-asesores",
-          icon: CalendarIcon,
+          icon: Users,
         },
         {
           name: "Cese de tema",
@@ -204,11 +207,11 @@ export const navigationItems: Record<string, NavigationItem[]> = {
           href: "/coordinador/asesores/cambio-asesor",
           icon: RefreshCcw,
         },
-        {
-          name: "Areas tematicas",
+       /*  {
+          name: "Areas temáticas",
           href: "/coordinador/asesores/areas-tematicas",
           icon: BookOpenText,
-        },
+        }, */
         {
           name: "Reuniones",
           href: "/coordinador/asesores/reuniones",

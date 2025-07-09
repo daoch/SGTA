@@ -3,16 +3,21 @@ package pucp.edu.pe.sgta.service.imp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityNotFoundException;
 import pucp.edu.pe.sgta.dto.RevisionDocumentoAsesorDto;
+import pucp.edu.pe.sgta.dto.RevisionDocumentoRevisorDto;
 import pucp.edu.pe.sgta.dto.RevisionDto;
+import pucp.edu.pe.sgta.dto.RevisoresTemaDTO;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import pucp.edu.pe.sgta.dto.UsuarioTemaDto;
 import pucp.edu.pe.sgta.model.RevisionDocumento;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.RevisionDocumentoRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.RevisionDocumentoService;
 import pucp.edu.pe.sgta.util.EstadoRevision;
-
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,17 +29,27 @@ import java.util.logging.Logger;
 
 @Service
 public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
+    @Override
+    public RevisionDocumento findById(Integer id) {
+        Optional<RevisionDocumento> revision = revisionDocumentoRepository.findById(id);
+        return revision.orElse(null);
+    }
 
+    private final HistorialAccionServiceImpl historialAccionServiceImpl;
+    @Autowired
+    private HistorialAccionService historialAccionService;
     @Autowired
     private RevisionDocumentoRepository revisionDocumentoRepository;
     private final UsuarioRepository usuarioRepository;
     private static final Logger logger = Logger.getLogger(RevisionDocumentoService.class.getName());
 
     public RevisionDocumentoServiceImpl(RevisionDocumentoRepository revisionDocumentoRepository,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository, HistorialAccionServiceImpl historialAccionServiceImpl) {
         this.revisionDocumentoRepository = revisionDocumentoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.historialAccionServiceImpl = historialAccionServiceImpl;
     }
+
 
     @Override
     public List<RevisionDocumento> findByUsuarioId(Integer usuarioId) {
@@ -327,6 +342,9 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
                     ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
                     : null); // fecha_limite
 
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Number) row[10]).doubleValue() : null);
+            dto.setPorcentajeGenIA(row[11] != null ? ((Number) row[11]).doubleValue() : null);
+
             documentos.add(dto);
         }
         return documentos;
@@ -339,6 +357,13 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
 
         // Ya no buscas ni seteas, solo llamas el update con casteo
         revisionDocumentoRepository.actualizarEstadoRevisionConCast(revisionId, nuevoEstado);
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElseThrow(() -> new EntityNotFoundException("Revision not found with id: " + revisionId));
+
+        historialAccionService.registrarAccion(
+        revision.getUsuario().getId().toString(),
+        "solicitud de cambio de estado de entregable a " + nuevoEstado
+    );
     }
 
     public RevisionDocumentoAsesorDto obtenerRevisionDocumentoPorId(Integer revisionId) {
@@ -388,6 +413,17 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
     }
 
     @Override
+    public void crearRevisionesJurado(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisionesJurado(entregableXTemaId);
+    }
+
+    @Override
+    public void crearRevisionesRevisores(int entregableXTemaId) {
+        revisionDocumentoRepository.crearRevisionesRevisores(entregableXTemaId);
+        logger.warning("Revisiones creadas para los revisores en el entregable con ID: " + entregableXTemaId);
+    }
+
+    @Override
     public List<UsuarioDto> getStudentsByRevisor(Integer revisionId) {
 
         List<Object[]> result = revisionDocumentoRepository.getStudentsByRevisor(revisionId);
@@ -404,5 +440,120 @@ public class RevisionDocumentoServiceImpl implements RevisionDocumentoService {
             usuarios.add(dto);
         }
         return usuarios;
+    }
+
+    @Override
+    public List<RevisionDocumentoRevisorDto> listarRevisionDocumentosPorRevisor(String revisorId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(revisorId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + revisorId);
+        }
+        Usuario user = usuario.get();
+        List<Object[]> result = revisionDocumentoRepository.listarRevisionDocumentosPorRevisor(user.getId());
+        List<RevisionDocumentoRevisorDto> documentos = new ArrayList<>();
+        for (Object[] row : result) {
+            RevisionDocumentoRevisorDto dto = new RevisionDocumentoRevisorDto();
+
+            dto.setId((Integer) row[0]); // revision_id
+            dto.setTitulo((String) row[1]); // tema
+            dto.setEntregable((String) row[2]); // entregable
+            dto.setEstudiante((String) row[3]); // estudiante
+            dto.setCodigo((String) row[4]); // código PUCP
+            dto.setCurso((String) row[5]); // curso
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null);
+
+            dto.setEstado((String) row[7]); // estado_revision
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_limite
+
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Number) row[10]).doubleValue() : null);
+            dto.setPorcentajeGenIA(row[11] != null ? ((Number) row[11]).doubleValue() : null);
+
+            documentos.add(dto);
+        }
+        return documentos;
+    }
+
+    public List<RevisionDocumentoAsesorDto> listarRevisionDocumentosPorJurado(String juradoId) {
+        Optional<Usuario> usuario = usuarioRepository.findByIdCognito(juradoId);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado con ID Cognito: " + juradoId);
+        }
+
+        Usuario user = usuario.get();
+        List<Object[]> result = revisionDocumentoRepository.listarRevisionDocumentosPorJurado(user.getId());
+        List<RevisionDocumentoAsesorDto> documentos = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisionDocumentoAsesorDto dto = new RevisionDocumentoAsesorDto();
+
+            dto.setId((Integer) row[0]); // revision_id
+            dto.setTitulo((String) row[1]); // tema
+            dto.setEntregable((String) row[2]); // entregable
+            dto.setEstudiante((String) row[3]); // estudiante
+            dto.setCodigo((String) row[4]); // código PUCP
+            dto.setCurso((String) row[5]); // curso
+
+            dto.setFechaEntrega(row[6] != null
+                    ? ((Instant) row[6]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_carga
+
+            dto.setEstado((String) row[7]); // estado_revision
+
+            dto.setFechaLimiteRevision(row[9] != null
+                    ? ((Instant) row[9]).atOffset(ZoneOffset.UTC)
+                    : null); // fecha_limite
+            dto.setPorcentajeSimilitud(row[10] != null ? ((Double) row[10]) : null); // porcentaje_similitud
+            dto.setPorcentajeGenIA(row[11] != null ? ((Double) row[11]) : null); // porcentaje_genIA
+            documentos.add(dto);
+        }
+        return documentos;
+    }
+    @Override
+    @Transactional
+    public void actualizarEstadoTodosRevisiones(Integer revisionId, String nuevoEstado) {
+        System.out.println(">>> Actualizando todas las revisiones relacionadas al entregable_x_tema con ID: " + revisionId + " al estado: " + nuevoEstado);
+
+        // Llamas al repositorio con la nueva consulta que actualiza todas las revisiones
+        revisionDocumentoRepository.actualizarEstadoTodosRevisiones(revisionId, nuevoEstado);
+        RevisionDocumento revision = revisionDocumentoRepository.findById(revisionId)
+            .orElseThrow(() -> new EntityNotFoundException("Revision not found with id: " + revisionId));
+
+        historialAccionService.registrarAccion(
+        revision.getUsuario().getId().toString(),
+        "solicitud de cambio de estado de entregable a " + nuevoEstado
+    );
+        
+    }
+    @Override
+    public List<RevisoresTemaDTO> listarRevisoresYJuradosPorTemaId(Integer temaId) {
+        List<Object[]> result = revisionDocumentoRepository.listarRevisoresYJuradosPorTemaId(temaId);
+        List<RevisoresTemaDTO> lista = new ArrayList<>();
+
+        for (Object[] row : result) {
+            RevisoresTemaDTO dto = new RevisoresTemaDTO();
+
+            dto.setUsuarioId(row[0] != null ? ((Number) row[0]).intValue() : null);         // usuario_id
+            dto.setNombres(row[1] != null ? row[1].toString() : null);                     // nombres
+            dto.setPrimerApellido(row[2] != null ? row[2].toString() : null);              // primer_apellido
+            dto.setSegundoApellido(row[3] != null ? row[3].toString() : null);             // segundo_apellido
+            dto.setRolId(row[4] != null ? ((Number) row[4]).intValue() : null);            // rol_id
+            dto.setTemaId(row[5] != null ? ((Number) row[5]).intValue() : null);           // tema_id
+
+            lista.add(dto);
+        }
+
+        return lista;
+    }
+
+
+    @Override
+    public void borrarRevision(Integer versionid) {
+       revisionDocumentoRepository.borrarRevisionesPorVersionId(versionid);
     }
 }

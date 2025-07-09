@@ -28,8 +28,9 @@ public class SubAreaConocimientoController {
     }
 
     @PostMapping("/create")
-    public SubAreaConocimientoDto createSubAreaConocimiento(@RequestBody SubAreaConocimientoDto dto) {
-        return subAreaConocimientoService.create(dto);
+    public SubAreaConocimientoDto createSubAreaConocimiento(HttpServletRequest request, @RequestBody SubAreaConocimientoDto dto) {
+        String idCognito = jwtService.extractSubFromRequest(request);
+        return subAreaConocimientoService.create(idCognito, dto);
     }
 
     @GetMapping("/list")

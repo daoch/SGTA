@@ -12,7 +12,7 @@ public interface SubAreaConocimientoService {
 
 	SubAreaConocimientoDto findById(Integer id);
 
-	SubAreaConocimientoDto create(SubAreaConocimientoDto dto);
+	SubAreaConocimientoDto create(String idCognito, SubAreaConocimientoDto dto);
 
 	List<SubAreaConocimientoDto> listarPorUsuario(Integer usuarioId);
 

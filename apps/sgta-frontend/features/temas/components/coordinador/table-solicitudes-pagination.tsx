@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { joinUsers } from "@/lib/temas/lib";
+import { joinUsers, usuarioCoincideConBusqueda } from "@/lib/temas/lib";
 import { titleCase } from "@/lib/utils";
 import { Eye, SquarePen } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +27,7 @@ import { EstadoTemaNombre } from "../../types/temas/enums";
 
 export interface SolicitudesTableProps {
   readonly solicitudes: readonly SolicitudPendiente[];
+  readonly page: readonly SolicitudPendiente[];
   readonly isLoading: boolean;
   readonly searchQuery: string;
   readonly limit: number;
@@ -34,24 +35,24 @@ export interface SolicitudesTableProps {
 
 export function SolicitudesTable({
   solicitudes,
+  page,
   isLoading,
   searchQuery,
   limit,
 }: SolicitudesTableProps) {
   // Filtrar por búsqueda
-  let filtrados = solicitudes;
+  let filtrados;
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    filtrados = filtrados.filter(
-      (solicitud) =>
-        solicitud?.tema?.titulo?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.nombres?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.primerApellido?.toLowerCase().includes(query) ||
-        solicitud?.solicitante?.segundoApellido
-          ?.toLowerCase()
-          .includes(query) ||
-        solicitud?.titulo?.toLowerCase().includes(query),
+    filtrados = solicitudes.filter(
+      (sol) =>
+        sol?.tema?.titulo?.toLowerCase().includes(query) ||
+        sol?.titulo?.toLowerCase().includes(query) ||
+        usuarioCoincideConBusqueda(sol?.solicitante, query) ||
+        sol?.tema?.tesistas?.some((t) => usuarioCoincideConBusqueda(t, query)),
     );
+  } else {
+    filtrados = page;
   }
 
   let tableBodyContent;

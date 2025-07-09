@@ -12,11 +12,14 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { JornadaExposicionDTO } from "../../dtos/JornadExposicionDTO";
-import { listarEstadoPlanificacionPorExposicion } from "../../services/data";
+import {
+  crearCalendar,
+  listarEstadoPlanificacionPorExposicion,
+} from "../../services/data";
 import {
   finishPlanning,
   reunionesZoom,
-  updateBloquesNextPhase,
+  updateBloquesNextPhase
 } from "../../services/planificacion-service";
 import { usePlanificationStore } from "../../store/use-planificacion-store";
 import {
@@ -120,15 +123,23 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
         ([bloqueKey, temaAsignado]) => {
           if (!temaAsignado?.usuarios || bloqueKey === keyTemaEscogido)
             return false;
+
           const bloqueAsignado = bloques.find((b) => b.key === bloqueKey);
+
+          const rolesIncluidos = ["Asesor", "Jurado"];
+
           return (
             bloqueAsignado &&
             bloqueDestino &&
             getFechaHoraFromKey(bloqueAsignado.key) ===
               getFechaHoraFromKey(bloqueDestino.key) &&
-            temaAsignado.usuarios.some((u) =>
-              usuariosTema.some((ut) => ut.idUsario === u.idUsario),
-            )
+            temaAsignado.usuarios
+              .filter((u) => rolesIncluidos.includes(u.rol.nombre))
+              .some((u) =>
+                usuariosTema
+                  .filter((ut) => rolesIncluidos.includes(ut.rol.nombre))
+                  .some((ut) => ut.idUsario === u.idUsario),
+              )
           );
         },
       );
@@ -278,10 +289,16 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
     });
 
     try {
-      await updateBloquesNextPhase(bloquesListToInsert,exposicionId);
+      if (origen == "terminar") {
+        await updateBloquesNextPhase(bloquesListToInsert, exposicionId, 1);
+      } else {
+        await updateBloquesNextPhase(bloquesListToInsert, exposicionId, 0);
+      }
+
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
         await reunionesZoom(exposicionId);
+        await crearCalendar(exposicionId);
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);

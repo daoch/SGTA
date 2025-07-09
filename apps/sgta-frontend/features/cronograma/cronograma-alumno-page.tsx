@@ -25,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { es } from "date-fns/locale";
-import { useAuth } from "@/features/auth";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import axiosInstance from "@/lib/axios/axios-instance";
 import {
@@ -52,6 +51,7 @@ interface Evento {
   fechaFin: string;
   activo: boolean;
   tesistas: null;
+  url?: string;
 }
 
 // Importa los tipos si usas TypeScript
@@ -104,54 +104,79 @@ const MiCronogramaPage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        const { idToken } = useAuthStore.getState();
-        if (!idToken) {
-          console.error("No authentication token available");
-          return;
-        }
-        const response = await axiosInstance.get("/api/eventos/tesista");
-
-        // Mapear eventos asignando IDs únicos desde el front
-        const eventosMapeados = response.data.map(
-          (evento: Evento, index: number) => {
-            const tipoEvento = normalizarTipoEvento(evento.tipo);
-            const endDate = new Date(evento.fechaFin || evento.fechaInicio);
-            const startDate =
-              tipoEvento === "ENTREGABLE"
-                ? endDate
-                : new Date(evento.fechaInicio);
-
-            return {
-              id: (index + 1).toString(), // ID generado automáticamente desde 1 en adelante
-              title: evento.nombre || "Sin título",
-              description: evento.descripcion || "",
-              start: startDate,
-              end: endDate,
-              tipoEvento,
-            };
-          },
-        );
-
-        setEvents(eventosMapeados);
-      } catch (error) {
-        console.error("Error al obtener eventos:", error);
+  const fetchEventos = async () => {
+    try {
+      const { idToken } = useAuthStore.getState();
+      if (!idToken) {
+        console.error("No authentication token available");
+        return;
       }
-    };
 
+      // Response dinámico
+      const response = await axiosInstance.get("/api/eventos/tesista");
+
+      //Response hardcodeado para pruebas
+      //const response = await axiosInstance.get("/api/eventos/tesista/74"); // donde el numero es el ID del usuario tesista
+
+      const eventosRaw: Evento[] = response.data;
+
+      // Procesar todos los eventos, incluyendo la URL si son reuniones
+      const eventosMapeados = await Promise.all(
+        eventosRaw.map(async (evento: Evento, index: number) => {
+          const tipoEvento = normalizarTipoEvento(evento.tipo);
+          const endDate = new Date(evento.fechaFin || evento.fechaInicio);
+          const startDate =
+            tipoEvento === "ENTREGABLE"
+              ? endDate
+              : new Date(evento.fechaInicio);
+
+          let url = "";
+
+          // Si es una reunión, obtener su URL desde el endpoint adicional
+          if (tipoEvento === "REUNION") {
+            try {
+              const reunionResponse = await axiosInstance.get(
+                `/api/reuniones/${evento.id}`
+              );
+              url = reunionResponse.data.url || "";
+              //console.log(url);
+            } catch (error) {
+              console.warn(`No se pudo obtener la URL de la reunión con ID ${evento.id}`, error);
+            }
+          }
+
+          return {
+            //id: (index + 1).toString(), // ID único generado en frontend
+            id: `${tipoEvento.toLowerCase()}-${evento.id}`,
+            title: evento.nombre || "Sin título",
+            description: evento.descripcion || "",
+            start: startDate,
+            end: endDate,
+            tipoEvento,
+            url, // incluir url si es reunión
+          };
+        })
+      );
+
+      setEvents(eventosMapeados);
+    } catch (error) {
+      console.error("Error al obtener eventos:", error);
+    }
+  };
+
+  //fetchEventos();
+
+  useEffect(() => {
     fetchEventos();
   }, []);
+  
 
   const eventosParaCalendario = events.map((event) => ({
     ...event,
     color: getColorByTipoEvento(event.tipoEvento),
     type: event.tipoEvento,
-    tesista: "X",
+    tesista: "Tesista",
   }));
-
-  //console.log(eventosParaCalendario);
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [modoExportacion, setModoExportacion] = useState<"actual" | "rango">(
@@ -238,7 +263,10 @@ const MiCronogramaPage = () => {
       format(event.start ?? event.end, "HH:mm"),
       format(event.end, "yyyy-MM-dd"),
       format(event.end, "HH:mm"),
-      event.description || "",
+      //event.description || "",
+      //`"${(event.description || "").replace(/"/g, '""')}"`, // ← Asegura el escape correcto de comillas dobles
+      //"\"" + (event.description || "").replace(/"/g, '""') + "\"",
+      "\"" + (event.description || "").replace(/"/g, "\"\"") + "\"",
     ]);
     const csvContent = [
       headers.join(","),
@@ -457,7 +485,11 @@ const MiCronogramaPage = () => {
         <Calendar
           events={eventosParaCalendario}
           numTesistas={1}
-          tipoUsuario="ALUMNO"
+          tesistasUnicos={["Tesista"]}
+          tipoUsuario="Alumno"
+          fetchEventos={() => {
+                fetchEventos(); // 👈 vuelve a cargar los datos del backend
+            }}
         >
           <div className="h-full flex flex-col">
             <div className="flex px-6 items-center gap-2 mb-6 py-4 border-b">

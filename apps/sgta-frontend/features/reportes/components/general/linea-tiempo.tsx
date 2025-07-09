@@ -137,11 +137,6 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
               }
 
               const isLateFlag = item.estadoXTema === "enviado_tarde";
-              const isAtRiskFlag =
-                daysRemaining > 0 &&
-                daysRemaining <= 3 &&
-                statusInterno === "Pendiente" &&
-                !isLateFlag;
 
               const fechaFormateada = format(eventDate, "dd-MM-yyyy");
 
@@ -154,7 +149,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                 status: statusInterno,
                 isLate: isLateFlag,
                 daysRemaining,
-                isAtRisk: isAtRiskFlag,
+                isAtRisk: false,
                 esEvaluable: item.esEvaluable,
                 nota: item.nota,
                 criterios: item.criterios || [],
@@ -262,6 +257,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
           id: entregable.entregableId.toString(),
           name: entregable.entregableNombre,
           date: entregable.fechaEnvio ? format(parseISO(entregable.fechaEnvio), "dd-MM-yyyy") : "Sin fecha",
+          fechaLimite: entregable.fechaFin ? format(parseISO(entregable.fechaFin), "dd-MM-yyyy") : "Sin fecha límite",
           criteria,
           expositionGrade: 0, // No tenemos datos de exposición en la API actual
           finalGrade: entregable.notaGlobal || 0
@@ -537,11 +533,7 @@ export function LineaTiempoReporte({ user, selectedStudentId  }: Props) {
                                   {humanize(event.estadoRevision)}
                                 </span>
                               )}
-                              {event.isAtRisk && (
-                                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-                                  En riesgo ({event.daysRemaining} días)
-                                </span>
-                              )}
+                              
                             </div>
 
                           </div>

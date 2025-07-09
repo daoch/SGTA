@@ -34,6 +34,7 @@ export default function HistorialTemaCard({ idTema }: PropsHistorialTema) {
       obtenerHistorial(idTema);
     }
   }, [idTema]);
+  console.log(historialTema);
   return (
     <Card>
       <CardHeader>
@@ -66,7 +67,7 @@ export default function HistorialTemaCard({ idTema }: PropsHistorialTema) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
-                      {new Date(historial.fechaCreacion).toLocaleDateString()}
+                      {new Date(historial.fechaCreacion).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">

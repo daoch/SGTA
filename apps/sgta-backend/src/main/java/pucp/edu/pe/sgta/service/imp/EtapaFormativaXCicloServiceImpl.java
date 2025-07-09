@@ -1,9 +1,15 @@
 package pucp.edu.pe.sgta.service.imp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloDto;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloXCarreraDto;
+import pucp.edu.pe.sgta.dto.PageResponseDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloPageRequestDto;
 import pucp.edu.pe.sgta.mapper.EtapaFormativaXCicloMapper;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.EtapaFormativa;
@@ -16,6 +22,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.repository.CarreraRepository;
 import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloTesistaDto;
+import pucp.edu.pe.sgta.dto.EtapaFormativaXCicloAsesorDto;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +31,9 @@ import java.util.stream.Collectors;
 
 import pucp.edu.pe.sgta.dto.UpdateEtapaFormativaRequest;
 import pucp.edu.pe.sgta.dto.UsuarioDto;
+import org.springframework.context.ApplicationEventPublisher;
+import pucp.edu.pe.sgta.event.AuditoriaEvent;
+import java.time.OffsetDateTime;
 
 @Service
 public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloService {
@@ -46,6 +56,9 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     @Autowired
     private ExposicionRepository exposicionRepository;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     public List<EtapaFormativaXCicloDto> getAll() {
         return List.of();
@@ -61,11 +74,27 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public EtapaFormativaXCicloDto create(EtapaFormativaXCicloDto dto) {
+    public EtapaFormativaXCicloDto create(String usuarioCognito, EtapaFormativaXCicloDto dto) {
+        // Validar si ya existe una etapa formativa con el mismo etapaFormativaId y cicloId activa
+        if (etapaFormativaXCicloRepository.existsByEtapaFormativa_IdAndCiclo_IdAndActivoTrue(
+                dto.getEtapaFormativaId(), dto.getCicloId())) {
+            throw new RuntimeException("Ya existe una etapa formativa activa para esta etapa y ciclo. " +
+                    "No se puede crear una duplicada.");
+        }
+        
         EtapaFormativaXCiclo etapaFormativaXCiclo = EtapaFormativaXCicloMapper.toEntity(dto);
         etapaFormativaXCiclo.setActivo(true);
         etapaFormativaXCiclo.setEstado("En Curso");
+        
         EtapaFormativaXCiclo savedEtapaFormativaXCiclo = etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+        eventPublisher.publishEvent(
+                new AuditoriaEvent(
+                        this,
+                        usuarioCognito,
+                        OffsetDateTime.now(),
+                        "Creó una nueva etapa formativa por ciclo con ID: " + savedEtapaFormativaXCiclo.getId()
+                )
+        );
         return EtapaFormativaXCicloMapper.toDto(savedEtapaFormativaXCiclo);
     }
 
@@ -75,13 +104,22 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(String usuarioCognito, Integer id) {
         EtapaFormativaXCiclo etapaFormativaXCiclo = etapaFormativaXCicloRepository.findById(id).orElse(null);
         if (etapaFormativaXCiclo != null) {
             etapaFormativaXCiclo.setActivo(false);
             etapaFormativaXCicloRepository.save(etapaFormativaXCiclo);
+            eventPublisher.publishEvent(
+                    new AuditoriaEvent(
+                            this,
+                            usuarioCognito,
+                            OffsetDateTime.now(),
+                            "Eliminó la etapa formativa por ciclo con ID: " + id
+                    )
+            );
         }
     }
+
 
     //get all by carrera id, agregar que sea activo true
     @Override
@@ -134,12 +172,23 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
     }
 
     @Override
-    public EtapaFormativaXCicloDto actualizarEstadoRelacion(Integer relacionId, UpdateEtapaFormativaRequest request) {
+    public EtapaFormativaXCicloDto actualizarEstadoRelacion(String usuarioCognito, Integer relacionId, UpdateEtapaFormativaRequest request) {
         // Buscar la relación por ID
         EtapaFormativaXCiclo relacion = etapaFormativaXCicloRepository.findById(relacionId)
-            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); // <-- Usar RuntimeException
+            .orElseThrow(() -> new RuntimeException("Relación no encontrada")); 
 
         relacion.setEstado(request.getEstado());
+
+        // Publicar evento de auditoría
+        eventPublisher.publishEvent(
+            new AuditoriaEvent(
+                this,
+                usuarioCognito,
+                OffsetDateTime.now(),
+                "Actualizó el estado de la etapa formativa por ciclo con ID: " + relacionId
+            )
+        );
+
         EtapaFormativaXCiclo relacionActualizada = etapaFormativaXCicloRepository.save(relacion);
         return EtapaFormativaXCicloMapper.toDto(relacionActualizada);
     }
@@ -198,6 +247,88 @@ public class EtapaFormativaXCicloServiceImpl implements EtapaFormativaXCicloServ
             etapas.add(etapa);
         }
         return etapas;
+    }
+
+    @Override
+    public PageResponseDto<EtapaFormativaXCicloDto> getAllByCarreraIdPaginated(String idCognito, EtapaFormativaXCicloPageRequestDto request) {
+        UsuarioDto usuario = usuarioService.findByCognitoId(idCognito);
+
+        List<Object[]> results = carreraRepository.obtenerCarreraCoordinador(usuario.getId());
+        if (results != null && !results.isEmpty()) {
+            Object[] result = results.get(0);
+            
+            Carrera carrera = new Carrera();
+            carrera.setId((Integer) result[0]);
+            carrera.setNombre((String) result[1]);
+            Integer carreraId = carrera.getId();
+
+            // Crear Pageable sin ordenamiento (el ordenamiento se maneja en la query nativa)
+            Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+
+            // Obtener datos paginados con filtros
+            Page<EtapaFormativaXCiclo> etapaFormativaXCicloPage = etapaFormativaXCicloRepository
+                .findAllByCarreraIdWithFilters(carreraId, request.getEstado(), request.getSearch(), 
+                    request.getAnio(), request.getSemestre(), pageable);
+
+            // Mapear a DTOs
+            List<EtapaFormativaXCicloDto> dtos = etapaFormativaXCicloPage.getContent().stream()
+                .map(etapaFormativaXCiclo -> {
+                    EtapaFormativaXCicloDto dto = mapToDto(etapaFormativaXCiclo);
+                    // Obtener la información de la etapa formativa
+                    EtapaFormativa etapaFormativa = etapaFormativaRepository.findById(etapaFormativaXCiclo.getEtapaFormativa().getId())
+                        .orElseThrow(() -> new RuntimeException("Etapa Formativa no encontrada"));
+                    dto.setNombreEtapaFormativa(etapaFormativa.getNombre());
+                    dto.setNombreCiclo(etapaFormativaXCiclo.getCiclo().getAnio() + " - " + etapaFormativaXCiclo.getCiclo().getSemestre());
+                    dto.setCreditajePorTema(etapaFormativa.getCreditajePorTema());
+                    dto.setCantidadEntregables(entregableRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    dto.setCantidadExposiciones(exposicionRepository.countByEtapaFormativaXCicloIdAndActivoTrue(etapaFormativaXCiclo.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+            // Construir respuesta paginada
+            return PageResponseDto.<EtapaFormativaXCicloDto>builder()
+                .content(dtos)
+                .page(etapaFormativaXCicloPage.getNumber())
+                .size(etapaFormativaXCicloPage.getSize())
+                .totalElements(etapaFormativaXCicloPage.getTotalElements())
+                .totalPages(etapaFormativaXCicloPage.getTotalPages())
+                .hasNext(etapaFormativaXCicloPage.hasNext())
+                .hasPrevious(etapaFormativaXCicloPage.hasPrevious())
+                .build();
+        } else {
+            throw new RuntimeException("No se encontró la carrera para el usuario con id: " + usuario.getId());
+        }
+    }
+
+    @Override
+    public List<EtapaFormativaXCicloAsesorDto> obtenerEtapasFormativasPorAsesorYCicloActivo(String idCognito) {
+        Integer usuarioId = usuarioService.findByCognitoId(idCognito).getId();
+
+        List<Object[]> result = etapaFormativaXCicloRepository.obtenerEtapasFormativasPorAsesorYCicloActivo(usuarioId);
+        List<EtapaFormativaXCicloAsesorDto> etapas = new ArrayList<>();
+
+        for(Object[] row: result){
+            EtapaFormativaXCicloAsesorDto etapa = EtapaFormativaXCicloAsesorDto.builder()
+                .etapaFormativaXCicloId((Integer) row[0])
+                .etapaFormativaId((Integer) row[1])
+                .etapaFormativaNombre((String) row[2])
+                .carreraId((Integer) row[3])
+                .carreraNombre((String) row[4])
+                .cicloId((Integer) row[5])
+                .cicloNombre((String) row[6])
+                .cantidadTesistas((Integer) row[7])
+                .build();
+            etapas.add(etapa);
+        }
+        return etapas;
+    }
+
+    //@Scheduled(cron = "0 0 0 * * *")
+    // Pasa todos los temas en estado "EN_PROGRESO" a "PAUSADO" cuando termina el ciclo
+    // Desactivado para evitar contratiempos por ahora, se puede activar cuando se necesite
+    public void FinDeCiclo() {
+        etapaFormativaXCicloRepository.tareasFinDeCiclo();
     }
 
 }

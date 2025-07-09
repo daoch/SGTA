@@ -592,6 +592,7 @@ export const getExposicionCalificarJurado = async (
 };
 
 export const actualizarComentarioFinalJurado = async (
+  juradoId: string,
   exposicionId: number,
   observacion_final: string,
 ): Promise<boolean> => {
@@ -604,8 +605,13 @@ export const actualizarComentarioFinalJurado = async (
     const response = await axiosInstance.put("/jurado/observacionfinal", {
       id: exposicionId,
       observacion_final: observacion_final,
-    });
-
+    },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`,
+        },
+      },
+    );
     return response.status === 200;
   } catch (error) {
     console.error("Error al actualizar el estado de la exposición:", error);
@@ -614,6 +620,7 @@ export const actualizarComentarioFinalJurado = async (
 };
 
 export const actualizarCriteriosEvaluacion = async (
+  juradoId: string,
   criterios: {
     id: number;
     calificacion: number;
@@ -621,10 +628,16 @@ export const actualizarCriteriosEvaluacion = async (
   }[],
 ): Promise<boolean> => {
   try {
+    console.log("ID Jurado:", juradoId);
     const response = await axiosInstance.put("/jurado/criterios", {
       criterios: criterios,
-    });
-
+    },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`,
+        },
+      },
+    );
     return response.status === 200;
   } catch (error) {
     console.error("Error al actualizar los criterios de evaluación:", error);
@@ -667,6 +680,7 @@ export const getCalificacionesJuradoByExposicionTemaId = async (
 };
 
 export const actualizarCalificacionFinalJurado = async (
+  juradoId: string,
   exposicionId: number,
   calificacion: number,
 ): Promise<boolean> => {
@@ -676,10 +690,18 @@ export const actualizarCalificacionFinalJurado = async (
       exposicionId,
     );
     console.log("Calificaciones finales:", calificacion);
+    console.log("Jurado ID:", juradoId);
+    
     const response = await axiosInstance.put("/jurado/nota-revision", {
       id: exposicionId,
       nota_revision: calificacion,
-    });
+    },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`,
+        },
+      },
+  );
 
     return response.status === 200;
   } catch (error) {
@@ -719,6 +741,7 @@ export const getEtapaFormativaId = async (
 };
 
 export const actualizarCalificacionFinalExposicionTema = async (
+  juradoId: string,
   exposicionId: number
 ): Promise<boolean> => {
   try {
@@ -727,8 +750,16 @@ export const actualizarCalificacionFinalExposicionTema = async (
       exposicionId,
     );
     console.log("Calificaciones finales:", exposicionId);
-    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion/" + exposicionId);
-
+    console.log("Jurado ID:", juradoId);
+    const response = await axiosInstance.put("/jurado/actualizar-nota-final-exposicion/" , {
+      exposicionId: exposicionId,
+    },
+      {
+        headers: {
+          Authorization: `Bearer ${juradoId}`,
+        },
+      },
+    );
     return response.status === 200;
   } catch (error) {
     console.error("Error al actualizar la nota final de la exposicion tema:", error);

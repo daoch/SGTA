@@ -1,14 +1,11 @@
 package pucp.edu.pe.sgta.service.imp;
 
-import org.apache.coyote.BadRequestException;
-import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pucp.edu.pe.sgta.dto.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import jakarta.persistence.Query;
@@ -28,6 +25,7 @@ import pucp.edu.pe.sgta.service.inter.UsuarioService;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 import pucp.edu.pe.sgta.util.Utils;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService; 
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -68,6 +66,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private TipoDedicacionRepository tipoDedicacionRepository;
     @Autowired
     private EnlaceUsuarioServiceImpl enlaceUsuarioServiceImpl;
+    @Autowired
+    private HistorialAccionService historialAccionService;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
                               UsuarioXSubAreaConocimientoRepository usuarioXSubAreaConocimientoRepository,
@@ -203,6 +203,55 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(UsuarioMapper::toDto)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<UserDto> findAllUsers() {
+        List<Object[]> resultados = usuarioRepository.obtenerTodosLosUsuarios();
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
+            UserDto dto = UserDto.builder()
+                    .id((Integer) fila[0])
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
+                            .build())
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
+                    .build();
+            usuarios.add(dto);
+        }
+        return usuarios;
+    }
+
+    @Override
+    public List<UserDto> findAllUsers(String usuarioId) {
+        //buscar usuarios por id de coordinador
+        List<Object[]> resultados = usuarioRepository.obtenerUsuariosPorCoordinador(usuarioId);
+        List<UserDto> usuarios = new ArrayList<>();
+        for (Object[] fila : resultados) {
+            UserDto dto = UserDto.builder()
+                    .id((Integer) fila[0])
+                    .tipoUsuario(TipoUsuarioDto.builder()
+                            .id((Integer) fila[1])
+                            .nombre((String) fila[2])
+                            .build())
+                    .codigoPucp((String) fila[3])
+                    .nombres((String) fila[4])
+                    .primerApellido((String) fila[5])
+                    .segundoApellido((String) fila[6])
+                    .correoElectronico((String) fila[7])
+                    .roles(fila[8] != null ? Arrays.asList(((String) fila[8]).split(",")) : new ArrayList<>())
+                    .activo((Boolean) fila[9])
+                    .build();
+            usuarios.add(dto);
+        }
+        return usuarios;
     }
 
     @Override
@@ -700,7 +749,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void assignAdvisorRoleToUser(Integer userId) {
+    public void assignAdvisorRoleToUser(Integer userId, String idCognito) {
         // 1. Buscar usuario activo y validar que sea Profesor
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -744,6 +793,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Asignó el rol de Asesor al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Asesor asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Asesor activo. No se realizó ninguna acción.");
@@ -756,7 +812,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void removeAdvisorRoleFromUser(Integer userId) {
+    public void removeAdvisorRoleFromUser(Integer userId, String idCognito) {
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
 
@@ -787,6 +843,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Quitó el rol de Asesor al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Asesor quitado exitosamente al usuario ID: " + userId);
         } else {
             throw new IllegalArgumentException("El usuario no tiene el rol de Asesor asignado");
@@ -799,7 +862,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void assignJuryRoleToUser(Integer userId) {
+    public void assignJuryRoleToUser(Integer userId, String idCognito) {
         // 1. Buscar usuario y validar
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -841,6 +904,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al agregar usuario al grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Asignó el rol de Jurado al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Jurado asignado exitosamente al usuario ID: " + userId);
         } else {
             System.out.println("El usuario ID: " + userId + " ya tiene el rol de Jurado activo. No se realizó ninguna acción.");
@@ -853,7 +923,7 @@ public class UsuarioServiceImpl implements UsuarioService {
      */
     @Override
     @Transactional
-    public void removeJuryRoleFromUser(Integer userId) {
+    public void removeJuryRoleFromUser(Integer userId, String idCognito) {
         // 1. Buscar usuario
         Usuario user = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + userId));
@@ -887,6 +957,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                     throw new RuntimeException("Error al eliminar usuario del grupo de Cognito: " + e.getMessage(), e);
                 }
             }
+
+            String nombreCompleto = user.getNombres() + " " + user.getPrimerApellido();
+            historialAccionService.registrarAccion(
+                idCognito,
+                String.format("Quitó el rol de Jurado al profesor '%s' (ID: %d).", nombreCompleto, userId)
+            );
+
             System.out.println("Rol de Jurado quitado exitosamente al usuario ID: " + userId);
         } else {
             throw new IllegalArgumentException("El usuario no tiene el rol de Jurado asignado");
@@ -896,11 +973,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados.
      * REFACTORIZADO: Ahora filtra los profesores para mostrar solo aquellos
-     * que pertenecen a la misma Unidad Académica que el usuario que realiza la consulta.
-     * 
+     * que pertenecen a la misma CARRERA que el usuario que realiza la consulta.
+     *
      * @param rolNombre       Nombre del rol para filtrar (e.g., "Asesor", "Todos").
      * @param terminoBusqueda Término para buscar en nombre, correo o código.
-     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su unidad académica.
+     * @param idCognito       ID de Cognito del usuario que realiza la petición para determinar su carrera.
      * @return Lista de profesores filtrados.
      */
     @Override
@@ -908,7 +985,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioConRolDto> getProfessorsWithRoles(String rolNombre, String terminoBusqueda, String idCognito) {
         // 1. Validar que idCognito no sea nulo o vacío
         if (idCognito == null || idCognito.trim().isEmpty()) {
-            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por unidad académica.");
+            throw new IllegalArgumentException("El idCognito del solicitante es requerido para filtrar por carrera.");
         }
 
         StringBuilder sql = new StringBuilder();
@@ -921,7 +998,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                 u.correo_electronico,
                 u.codigo_pucp,
                 string_agg(DISTINCT r.nombre, ',') AS roles_names,
-                -- >>> CAMBIO: Conteo separado para roles de Asesor/Co-Asesor y Jurado
                 COUNT(DISTINCT CASE WHEN ut.rol_id IN (1, 5) THEN ut.tema_id END) AS tesis_asesor_count,
                 COUNT(DISTINCT CASE WHEN ut.rol_id = 2 THEN ut.tema_id END) AS tesis_jurado_count,
                 tu.tipo_usuario_id,
@@ -930,9 +1006,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuario u
             JOIN
                 tipo_usuario tu ON u.tipo_usuario_id = tu.tipo_usuario_id
-            -- >>> CAMBIO: JOIN para acceder a la carrera y unidad académica del profesor
             JOIN
                 usuario_carrera uc ON u.usuario_id = uc.usuario_id AND uc.activo = true
+            -- >>> CAMBIO: La tabla 'carrera' se une para el filtro, aunque podría omitirse si no se usa en otro lado.
             JOIN
                 carrera c ON uc.carrera_id = c.carrera_id
             LEFT JOIN
@@ -944,12 +1020,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             WHERE
                 u.activo = true
                 AND LOWER(tu.nombre) = 'profesor'
-                -- >>> CAMBIO: Filtro por unidad académica del solicitante
-                AND c.unidad_academica_id = (
-                    SELECT c_solicitante.unidad_academica_id
+                -- >>> CAMBIO CLAVE: Filtro por CARRERA del solicitante en lugar de Unidad Académica.
+                AND uc.carrera_id = (
+                    SELECT uc_solicitante.carrera_id
                     FROM usuario u_solicitante
                     JOIN usuario_carrera uc_solicitante ON u_solicitante.usuario_id = uc_solicitante.usuario_id
-                    JOIN carrera c_solicitante ON uc_solicitante.carrera_id = c_solicitante.carrera_id
                     WHERE u_solicitante.id_cognito = :idCognito
                     LIMIT 1
                 )
@@ -986,7 +1061,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         sql.append("""
             GROUP BY
-                u.usuario_id, c.unidad_academica_id, u.nombres, u.primer_apellido, u.segundo_apellido,
+                -- >>> CAMBIO: Agrupamos por uc.carrera_id para consistencia con el filtro.
+                u.usuario_id, uc.carrera_id, u.nombres, u.primer_apellido, u.segundo_apellido,
                 u.correo_electronico, u.codigo_pucp, tu.tipo_usuario_id, tu.nombre
             ORDER BY
                 u.primer_apellido, u.segundo_apellido, u.nombres
@@ -1009,7 +1085,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         // 3. Mapear los resultados (el mapeo no cambia)
         return results.stream()
             .map(row -> {
-                // >>> CAMBIO: Los índices se desplazan por la nueva columna en el SELECT
                 TipoUsuarioDto tipoUsuarioDto = TipoUsuarioDto.builder()
                         .id((Integer) row[9])
                         .nombre((String) row[10])
@@ -1027,7 +1102,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                         .activo(true)
                         .build();
 
-                // >>> CAMBIO: Mapear a los nuevos campos del DTO
                 return UsuarioConRolDto.builder()
                         .usuario(usuarioBase)
                         .rolesConcat((String) row[6])
@@ -1587,7 +1661,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         String sql = """
                 SELECT *
-                FROM obtener_alumnos_por_carrera_revisor(:usuarioId, :cadena)
+                FROM obtener_alumnos_por_revisor_etapa_formativa(:usuarioId, :cadena)
                 """;
 
         @SuppressWarnings("unchecked")
@@ -1608,7 +1682,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                     .temaId((Integer) r[6])
                     .asesor((String) r[7])
                     .coasesor((String) r[8])
-                    .activo((Boolean) r[9])
+                    .etapaFormativaNombre((String) r[9])
+                    .activo((Boolean) r[10])
                     .build();
 
             lista.add(alumno);
@@ -1802,7 +1877,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return revisores;
     }
 
-
     public List<UsuarioDto> findAllByIds(Collection<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
@@ -1816,5 +1890,18 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .build()
             )
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Carrera> obtenerCarreraCoordinador(String idCognito) {
+        Integer usuarioId = usuarioRepository.findUsuarioIdByIdCognito(idCognito);
+        if (usuarioId == null) {
+            return Optional.empty();
+        }
+        UsuarioXCarrera principal = usuarioXCarreraRepository.getCarreraPrincipalCoordinador(usuarioId);
+        if (principal == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(principal.getCarrera());
     }
 }

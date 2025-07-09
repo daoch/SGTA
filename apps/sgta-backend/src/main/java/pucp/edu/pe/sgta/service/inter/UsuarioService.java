@@ -4,12 +4,14 @@ import org.springframework.data.domain.Page;
 import pucp.edu.pe.sgta.dto.*;
 import pucp.edu.pe.sgta.dto.asesores.*;
 import org.springframework.web.multipart.MultipartFile;
+import pucp.edu.pe.sgta.model.Carrera;
 import pucp.edu.pe.sgta.util.RolEnum;
 import pucp.edu.pe.sgta.util.TipoUsuarioEnum;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 public interface UsuarioService {
 
@@ -20,6 +22,10 @@ public interface UsuarioService {
     UsuarioDto findUsuarioById(Integer id);
 
     List<UsuarioDto> findAllUsuarios();
+
+    List<UserDto> findAllUsers();
+
+    List<UserDto> findAllUsers(String usuarioId);
 
     void updateUsuario(Integer id, UsuarioRegistroDto usuarioDto);
 
@@ -40,7 +46,7 @@ public interface UsuarioService {
      * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no es profesor
      */
-    void assignAdvisorRoleToUser(Integer userId);
+    void assignAdvisorRoleToUser(Integer userId, String cognitoId);
 
     /**
      * HU02: Quita el rol de Asesor a un usuario
@@ -49,7 +55,7 @@ public interface UsuarioService {
      * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no tiene el rol asignado
      */
-    void removeAdvisorRoleFromUser(Integer userId);
+    void removeAdvisorRoleFromUser(Integer userId, String cognitoId);
 
     /**
      * HU03: Asigna el rol de Jurado a un usuario que debe ser profesor
@@ -58,7 +64,7 @@ public interface UsuarioService {
      * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no es profesor
      */
-    void assignJuryRoleToUser(Integer userId);
+    void assignJuryRoleToUser(Integer userId, String cognitoId);
 
     /**
      * HU04: Quita el rol de Jurado a un usuario
@@ -67,7 +73,7 @@ public interface UsuarioService {
      * @throws NoSuchElementException   Si el usuario o el rol no existen
      * @throws IllegalArgumentException Si el usuario no tiene el rol asignado
      */
-    void removeJuryRoleFromUser(Integer userId);
+    void removeJuryRoleFromUser(Integer userId, String cognitoId);
 
     /**
      * HU05: Obtiene la lista de profesores con sus roles asignados
@@ -117,6 +123,5 @@ public interface UsuarioService {
 
     List<UsuarioDto> findAllByIds(Collection<Integer> ids);
 
-
-
+    Optional<Carrera> obtenerCarreraCoordinador(String idCognito);
 }

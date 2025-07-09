@@ -4,18 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { advisorService, Student } from "@/features/asesores/services/advisor-service";
+
 import { cn } from "@/lib/utils";
-import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
+import { saveAs } from "file-saver";
+import { Activity, BookOpen, ChevronDown, ChevronsUpDown, ChevronUp, Download, ExternalLink, Flag, GraduationCap, LayoutGrid, Send, Table } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
-// Constants
-const PROGRESS_MAPPING = {
-  no_iniciado: 0,
-  en_proceso: 50,
-  terminado: 100,
-} as const;
+import * as XLSX from "xlsx";
+import { AsesorExportModal } from "../components/asesor-export-modal";
+import { EtapaFormativaCicloAsesor, obtenerEtapasFormativasCicloAsesor } from "../services/report-services";
 
 // Types
 type FilterType = "all" | "low" | "medium" | "high";
@@ -28,11 +26,33 @@ type SortField = "name" | "career" | "stage" | "title" | "deliverable" | "dueDat
 type SortDirection = "asc" | "desc" | null;
 
 // Utility functions
-const getStudentProgress = (estado: string): number => 
-  PROGRESS_MAPPING[estado as keyof typeof PROGRESS_MAPPING] || 0;
+const getStudentProgress = (student: Student): number => 
+  Math.round(student.porcentajeEntregablesEnviados);
 
 const getFullName = (student: Student): string =>
   `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`;
+
+const formatEtapaName = (name: string): string => {
+  // Palabras que deben mantenerse en minúsculas (excepto al inicio)
+  const lowercaseWords = ["de", "del", "y", "el", "la", "los", "las", "un", "una", "por", "para", "con", "sin", "en", "a"];
+  
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((word, index) => {
+      // La primera palabra siempre va capitalizada
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      // Si la palabra está en la lista de palabras en minúsculas, mantenerla así
+      if (lowercaseWords.includes(word)) {
+        return word;
+      }
+      // Capitalizar la primera letra del resto de palabras
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+};
 
 const renderStatusTag = (estado: string, type: "activity" | "delivery") => {
   if (type === "activity") {
@@ -160,27 +180,117 @@ export function AdvisorReports() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [etapasFormativasCiclo, setEtapasFormativasCiclo] = useState<EtapaFormativaCicloAsesor[]>([]);
   const progressFilterRef = useRef<HTMLDivElement>(null);
   const activityFilterRef = useRef<HTMLDivElement>(null);
   const deliveryFilterRef = useRef<HTMLDivElement>(null);
   const careerFilterRef = useRef<HTMLDivElement>(null);
   const stageFilterRef = useRef<HTMLDivElement>(null);
 
+  //Logica para exportar reporte
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  //Solo para probar funcionamiento de modal
+  const advisorName = "Lucia Alessandra Del Castillo Monroy";
+  const advisorEmail = "lucia.delcastillom@pucp.edu.pe";
+
+  const handleExport = async () => {
+    if (sortedStudents.length === 0) {
+      alert("No hay tesistas para exportar.");
+      return;
+    }
+    else setIsExporting(true);
+    try {
+      // 1. Obtén los IDs de los estudiantes filtrados/ordenados (solo únicos)
+      const studentIds = [...new Set(sortedStudents.map(s => s.tesistaId))];
+
+      // 2. Obtén los detalles de cada estudiante
+      const studentDetails = await Promise.all(
+        studentIds.map(id => advisorService.getStudentDetails(id))
+      );
+
+      // 3. Crea una hoja por estudiante
+      const studentSheets = studentDetails.map((student) => {
+        // Ajusta los campos según lo que retorna getStudentDetails
+        const info = [
+          ["Información del Tesista"],
+          ["Nombre completo", `${student.nombres} ${student.primerApellido} ${student.segundoApellido}`],
+          ["Código PUCP", student.codigoPucp],
+          ["Correo", student.correoElectronico],
+          ["Nivel de Estudios", student.nivelEstudios],
+          ["Carrera", student.tituloTema],
+          ["Ciclo", student.cicloNombre],
+          ["Etapa", student.etapaFormativaNombre],
+          [],
+          ["Información de la Tesis"],
+          ["Título de Tesis", student.tituloTema],
+          ["Resumen", student.resumenTema],
+          ["Área", student.areaConocimiento],
+          ["Subárea", student.subAreaConocimiento],
+          [],
+          ["Asesoría"],
+          ["Asesor", student.asesorNombre],
+          ["Correo Asesor", student.asesorCorreo],
+          ...(student.coasesorNombre
+            ? [
+                ["Co-asesor", student.coasesorNombre],
+                ["Correo Co-asesor", student.coasesorCorreo],
+              ]
+            : []),
+        ];
+        return {
+          sheet: XLSX.utils.aoa_to_sheet(info),
+          //name: `${student.nombres} ${student.primerApellido}`.substring(0, 31),
+          name: `${student.codigoPucp}`.substring(0, 31),
+        };
+      });
+
+      // 4. Arma el libro y exporta
+      const wb = XLSX.utils.book_new();
+      studentSheets.forEach(({ sheet, name }) => {
+        XLSX.utils.book_append_sheet(wb, sheet, name);
+      });
+
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), "reporte_tesistas.xlsx");
+    } catch (error) {
+      alert("Error al exportar el reporte. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsExporting(false);
+      setIsExportModalOpen(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await advisorService.getAdvisorStudents();
-        setStudents(data);
+        
+        // Obtener datos de tesistas
+        const studentsData = await advisorService.getAdvisorStudents();
+        
+        // Filtrar solo tesistas con IDs únicos
+        const uniqueStudents = studentsData.filter((student, index, self) => 
+          index === self.findIndex(s => s.tesistaId === student.tesistaId)
+        );
+        
+        setStudents(uniqueStudents);
+        
+        // Obtener datos de etapas formativas por ciclo
+        const etapasData = await obtenerEtapasFormativasCicloAsesor();
+        setEtapasFormativasCiclo(etapasData);
+        
       } catch (error) {
-        console.error("Error al cargar los tesistas:", error);
+        console.error("Error al cargar los datos:", error);
         setStudents([]);
+        setEtapasFormativasCiclo([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStudents();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -240,7 +350,7 @@ export function AdvisorReports() {
     const matchesSearch = fullName.includes(searchQuery.toLowerCase()) || 
                          student.tituloTema.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const studentProgress = getStudentProgress(student.entregableActualEstado);
+    const studentProgress = getStudentProgress(student);
     const matchesProgress = progressFilter === "all" ||
       (progressFilter === "low" && studentProgress < 30) ||
       (progressFilter === "medium" && studentProgress >= 30 && studentProgress <= 70) ||
@@ -295,8 +405,8 @@ export function AdvisorReports() {
         bValue = b.entregableEnvioEstado;
         break;
       case "progress":
-        aValue = getStudentProgress(a.entregableActualEstado);
-        bValue = getStudentProgress(b.entregableActualEstado);
+        aValue = getStudentProgress(a);
+        bValue = getStudentProgress(b);
         break;
       default:
         return 0;
@@ -307,12 +417,10 @@ export function AdvisorReports() {
     return 0;
   });
 
-  // Statistics
+  // Statistics using API data
   const stats = {
-    total: students.length,
+    total: etapasFormativasCiclo.reduce((acc, etapa) => acc + etapa.cantidadTesistas, 0),
     delayed: students.filter(s => s.entregableEnvioEstado === "enviado_tarde").length,
-    pfc1: students.filter(s => s.etapaFormativaNombre === "Proyecto de fin de carrera 1").length,
-    pfc2: students.filter(s => s.etapaFormativaNombre === "Proyecto de fin de carrera 2").length,
   };
 
   // Filter options
@@ -367,12 +475,10 @@ export function AdvisorReports() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             {[
               { value: stats.total, label: "Total de tesistas", color: "text-[#002855]" },
               { value: stats.delayed, label: "Con retraso", color: stats.delayed === 0 ? "text-green-600" : "text-red-600" },
-              { value: stats.pfc1, label: "Proyecto de Fin de Carrera 1", color: "text-[#006699]" },
-              { value: stats.pfc2, label: "Proyecto de Fin de Carrera 2", color: "text-[#006699]" },
             ].map((stat, index) => (
               <div key={index} className="bg-[#F5F5F5] p-4 rounded-lg">
                 <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -380,11 +486,67 @@ export function AdvisorReports() {
               </div>
             ))}
           </div>
+                    {(() => {
+            const etapasConTesistas = etapasFormativasCiclo.filter(etapa => etapa.cantidadTesistas > 0);
+            
+            if (etapasConTesistas.length === 0) {
+              return (
+                <div className="bg-[#F5F5F5] p-4 rounded-lg text-center">
+                  <div className="text-sm text-gray-500">No hay etapas formativas con tesistas asignados</div>
+                </div>
+              );
+            }
+            
+            // Determinar las clases de grid basado en la cantidad de elementos
+            let gridClasses = "grid gap-4 ";
+            if (etapasConTesistas.length === 1) {
+              gridClasses += "grid-cols-1";
+            } else if (etapasConTesistas.length === 2) {
+              gridClasses += "grid-cols-2";
+            } else if (etapasConTesistas.length === 3) {
+              gridClasses += "grid-cols-1 md:grid-cols-3";
+            } else {
+              gridClasses += "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+            }
+            
+            return (
+              <div className={gridClasses}>
+                {etapasConTesistas.map((etapa) => (
+                  <div key={etapa.etapaFormativaXCicloId} className="bg-[#F5F5F5] p-4 rounded-lg">
+                    <div className="text-3xl font-bold text-[#006699]">{etapa.cantidadTesistas}</div>
+                    <div className="text-sm text-gray-500">{formatEtapaName(etapa.etapaFormativaNombre)}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
+
+
       <div className="mt-8">
-        <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+        <div className="flex items-center justify-between mb-4 px-1">
+           <h2 className="text-2xl font-bold text-[#002855] mb-4 px-1">Tesistas asignados</h2>
+          <Button 
+            variant="outline" 
+            className="gap-2 text-base"
+            onClick={() => setIsExportModalOpen(true)}
+            disabled={isExporting}
+            > 
+              <Download className="h-4 w-4" />
+              {isExporting ? "Exportando..." : "Exportar Reporte"}
+          </Button>
+        </div>
+
+        <AsesorExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleExport}
+          advisorName={advisorName}
+          advisorEmail={advisorEmail}
+        />
+
 
         <div className="flex items-center space-x-1 mb-4">
           <Input
@@ -495,7 +657,7 @@ export function AdvisorReports() {
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {sortedStudents.map((student) => {
-              const progress = getStudentProgress(student.entregableActualEstado);
+              const progress = getStudentProgress(student);
               return (
                 <Card key={student.tesistaId} className="border overflow-hidden">
                   <CardContent className="p-3">
@@ -580,7 +742,7 @@ export function AdvisorReports() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {sortedStudents.map((student) => {
-                  const progress = getStudentProgress(student.entregableActualEstado);
+                  const progress = getStudentProgress(student);
                   const fullName = getFullName(student);
                   return (
                     <tr 

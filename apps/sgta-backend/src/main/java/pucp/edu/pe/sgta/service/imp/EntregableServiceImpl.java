@@ -12,8 +12,10 @@ import pucp.edu.pe.sgta.model.Entregable;
 import pucp.edu.pe.sgta.model.EtapaFormativaXCiclo;
 import pucp.edu.pe.sgta.model.Usuario;
 import pucp.edu.pe.sgta.repository.EntregableRepository;
+import pucp.edu.pe.sgta.repository.EntregableXTemaRepository;
 import pucp.edu.pe.sgta.repository.UsuarioRepository;
 import pucp.edu.pe.sgta.service.inter.EntregableService;
+import pucp.edu.pe.sgta.service.inter.HistorialAccionService;
 import pucp.edu.pe.sgta.util.EstadoActividad;
 
 import java.time.Instant;
@@ -30,11 +32,18 @@ import pucp.edu.pe.sgta.dto.EntregableXTemaDto;
 public class EntregableServiceImpl implements EntregableService {
 
     private final EntregableRepository entregableRepository;
+    private final EntregableXTemaRepository entregableXTemaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final HistorialAccionService historialAccionService;
 
-    public EntregableServiceImpl(EntregableRepository entregableRepository, UsuarioRepository usuarioRepository) {
+    public EntregableServiceImpl(EntregableRepository entregableRepository, 
+                                EntregableXTemaRepository entregableXTemaRepository,
+                                UsuarioRepository usuarioRepository,
+                                HistorialAccionService historialAccionService) {
         this.entregableRepository = entregableRepository;
+        this.entregableXTemaRepository = entregableXTemaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.historialAccionService = historialAccionService;
     }
 
     @Override
@@ -86,7 +95,7 @@ public class EntregableServiceImpl implements EntregableService {
 
     @Transactional
     @Override
-    public Integer create(Integer etapaFormativaXCicloId, EntregableDto entregableDto) {
+    public Integer create(Integer etapaFormativaXCicloId, EntregableDto entregableDto, String cognitoId) {
         entregableDto.setId(null);
         Entregable entregable = EntregableMapper.toEntity(entregableDto);
         EtapaFormativaXCiclo efc = new EtapaFormativaXCiclo();
@@ -97,13 +106,14 @@ public class EntregableServiceImpl implements EntregableService {
             entregable.setEstado(EstadoActividad.no_iniciado);
         }
         entregableRepository.save(entregable);
+        historialAccionService.registrarAccion(cognitoId,"Se creó el entregable " + entregable.getId());
         entregableRepository.asociarTemasAEntregable(entregable.getId(), etapaFormativaXCicloId);
         return entregable.getId();
     }
 
     @Transactional
     @Override
-    public void update(EntregableDto entregableDto) {
+    public void update(EntregableDto entregableDto, String cognitoId) {
         // Aqui se necesitan todos los atributos del DTO para actualizar el objeto
         Entregable entregableToUpdate = entregableRepository.findById(entregableDto.getId())
                 .orElseThrow(() -> new RuntimeException("Entregable no encontrado con ID: " + entregableDto.getId()));
@@ -118,11 +128,12 @@ public class EntregableServiceImpl implements EntregableService {
         entregableToUpdate.setPesoMaximoDocumento(entregableDto.getPesoMaximoDocumento());
         entregableToUpdate.setFechaModificacion(OffsetDateTime.now());
         entregableRepository.save(entregableToUpdate);
+        historialAccionService.registrarAccion(cognitoId, "Se actualizó el entregable " + entregableDto.getId());
     }
 
     @Transactional
     @Override
-    public void delete(Integer id) {
+    public void delete(Integer id, String cognitoId) {
         // Aqui solo se necesita el id del entregable para eliminar (lógicamente) el
         // objeto
         Entregable entregableToDelete = entregableRepository.findById(id)
@@ -131,6 +142,7 @@ public class EntregableServiceImpl implements EntregableService {
         entregableToDelete.setActivo(false);
         entregableToDelete.setFechaModificacion(OffsetDateTime.now());
         entregableRepository.save(entregableToDelete);
+        historialAccionService.registrarAccion(cognitoId, "Se eliminó el entregable " + id);
     }
 
     @Override
@@ -203,18 +215,27 @@ public class EntregableServiceImpl implements EntregableService {
         EntregableAlumnoDto dto = new EntregableAlumnoDto();
         dto.setEntregableId(entregableId);
         dto.setTemaId(temaId);
-        dto.setEntregableNombre((String) result[1]);           // nombre entregable
-        dto.setEntregableDescripcion((String) result[0]);      // nombre del tema
-        dto.setEntregableEstado((String) result[2]);           // estado (String)
+        dto.setEntregableXTemaId((Integer) result[0]);              // entregable_x_tema_id
+        dto.setEntregableDescripcion((String) result[1]);           // nombre_tema
+        dto.setEntregableNombre((String) result[2]);                // nombre_entregable
+        dto.setEntregableEstado(result[3] != null ? result[3].toString() : null); // estado_revision
+        
         dto.setEntregableFechaEnvio(
-            result[3] != null ? ((Instant) result[3]).atOffset(ZoneOffset.UTC) : null
+            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
         );
         dto.setEntregableFechaFin(
-            result[4] != null ? ((Instant) result[4]).atOffset(ZoneOffset.UTC) : null
+            result[5] != null ? ((Instant) result[5]).atOffset(ZoneOffset.UTC) : null
         );
 
         // Los demás campos quedarán null o valores por defecto.
-        dto.setEntregableEsEvaluable(false); // Puedes ajustar según lo que devuelva la función
+        dto.setEntregableEsEvaluable(false); // Puedes ajustar esto según lo que quieras retornar
+        dto.setCorregido(false); // Puedes ajustar esto si luego quieres traerlo de la BD
         return dto;
+    }
+
+    @Transactional
+    @Override
+    public void marcarComoCorregido(Integer revisionId) {
+        entregableXTemaRepository.actualizarCorregidoPorRevisionId(revisionId, true);
     }
 }
