@@ -563,6 +563,12 @@ export default function RevisionDetailPage({ params }: { params: { id: string; r
           <RubricaEvaluacion
             revisionId={parseInt(params.id.trim())}
             onCancel={() => setShowRubricaDialog(false)}
+            onComplete={() => {
+              toast({
+                title: "Evaluación completada",
+                description: "El entregable ha sido marcado como corregido y las notas han sido guardadas correctamente.",
+              });
+            }}
           />
         </DialogContent>
       </Dialog>

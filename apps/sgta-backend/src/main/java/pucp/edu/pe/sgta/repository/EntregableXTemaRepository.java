@@ -3,6 +3,7 @@ package pucp.edu.pe.sgta.repository;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -59,5 +60,20 @@ public interface EntregableXTemaRepository extends CrudRepository<EntregableXTem
           AND ext.entregable.fechaFin < :ahora
     """)
     List<EntregableXTema> findNoEnviadosVencidos(@Param("ahora") OffsetDateTime ahora);
+
+    /**
+     * Actualiza el campo corregido de EntregableXTema basado en el ID de revisión
+     */
+    @Modifying
+    @Query("""
+        UPDATE EntregableXTema ext 
+        SET ext.corregido = :corregido 
+        WHERE ext.entregableXTemaId = (
+            SELECT rd.versionDocumento.entregableXTema.entregableXTemaId 
+            FROM RevisionDocumento rd 
+            WHERE rd.id = :revisionId
+        )
+    """)
+    void actualizarCorregidoPorRevisionId(@Param("revisionId") Integer revisionId, @Param("corregido") Boolean corregido);
 
 }

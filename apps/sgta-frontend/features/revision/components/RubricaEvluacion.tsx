@@ -24,9 +24,10 @@ interface RubricaEvaluacionProps {
   revisionId: number,
   //onComplete: () => void
   onCancel: () => void
+  onComplete?: () => void  // Callback opcional para cuando se completa la evaluación
 };
 
-export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionProps) {
+export function RubricaEvaluacion({ revisionId, onCancel, onComplete: onCompleteProp }: RubricaEvaluacionProps) {
   const onComplete = () => {
     async function postNotas() {
       try {
@@ -34,7 +35,11 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
         await axiosInstance.put(`/revision/${revisionId}/estado`, {
         estado: "revisado"
       });
-      console.log("Notas guardadas correctamente");
+        
+        // Marcar el entregable como corregido
+        await axiosInstance.put(`/entregable/marcar-corregido/${revisionId}`);
+        
+        console.log("Notas guardadas correctamente");
         //Envio de correo a alumno
         const nombreEntregable = rubricaItems.length > 0 ? rubricaItems[0].entregable_descripcion : "Entregable";
         axiosInstance.post("/notifications/notificar-estado", null, {
@@ -61,6 +66,10 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
       }
     }
     postNotas().then(() => {
+      // Llamar al callback si existe
+      if (onCompleteProp) {
+        onCompleteProp();
+      }
       onCancel();
     });
   };
@@ -121,7 +130,7 @@ export function RubricaEvaluacion({ revisionId, onCancel }: RubricaEvaluacionPro
       }
     }
     fetchCriteriosEntData();
-  }, []);
+  }, [revisionId]);
 
 
   return (

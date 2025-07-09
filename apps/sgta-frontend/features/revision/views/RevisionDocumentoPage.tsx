@@ -183,11 +183,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
   const [isLoading, setIsLoading] = useState(false);
   const [showFinalizarDialog, setShowFinalizarDialog] = useState(false);
-  const [showRubricaDialog, setShowRubricaDialog] = useState(false);
-  const [notificaciones, setNotificaciones] = useState({
-    notificarEstudiante: true,
-    notificarAsesor: true,
-  });
   const [highlights, setHighlights] = useState<IHighlight[]>([]);
   const [activeHighlight, setActiveHighlight] = useState<IHighlight | undefined>(undefined);
   const [revision2, setRevision2] = useState<RevisionDocumentoAsesorDto | null>(null);
@@ -221,12 +216,6 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     DocumentoConVersionDto[]
   >([]);
   // Anexos state and handlers
-  interface Anexo {
-    id: number;
-    nombre: string;
-    url?: string;
-  }
-  const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [comentarioAnexos, setComentarioAnexos] = useState<string>("");
 
   // Dummy descargarAnexo handler
@@ -578,9 +567,8 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // // Cerramos el diálogo de finalizar y mostramos la rúbrica
+      // // Cerramos el diálogo de finalizar
       setShowFinalizarDialog(false);
-      setShowRubricaDialog(true);
       setIsLoading(false);
     } catch (error) {
       console.error("Error al finalizar la revisión:", error);
@@ -588,24 +576,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
     }
   };
 
-  const handleNotificacionChange = (key: string, checked: boolean) => {
-    setNotificaciones({
-      ...notificaciones,
-      [key]: checked,
-    });
-  };
 
-  const handleRubricaComplete = async () => {
-    try {
-      // En una aplicación real, aquí se enviaría la evaluación de la rúbrica al backend
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Redirigimos al usuario a la página de detalles de la revisión
-      router.push(`/revision/${revision.id}`);
-    } catch (error) {
-      console.error("Error al guardar la evaluación de la rúbrica:", error);
-    }
-  };
 
   return (
     <div className="space-y-6">

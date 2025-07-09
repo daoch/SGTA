@@ -17,4 +17,5 @@ public interface EntregableService {
     EntregableDto findById(Integer id);
     List<EntregableAlumnoDto> listarEntregablesPorAlumno(String alumnoId);
     EntregableAlumnoDto obtenerDetalleXTema(Integer entregableId, Integer temaId);
+    void marcarComoCorregido(Integer revisionId); // Marca el entregable como corregido basado en el ID de revisión
 }
