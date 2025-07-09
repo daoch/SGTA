@@ -1040,7 +1040,7 @@ export default function RevisarDocumentoPage({ params }: { readonly params: { re
                   </div>
                 </TabsContent>
                 <TabsContent value="plagio" className="mt-2 relative z-0">
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     {plagioData && plagioData.detalles && plagioData.detalles.length > 0 && (
                       <div className={`p-3 rounded-lg border flex items-center gap-2 justify-center mb-2 ${getPlagioColorClass(plagioData.coincidencias)}`}>
                         <AlertTriangle className={`h-5 w-5 ${getPlagioIconColor(plagioData.coincidencias)}`} />
