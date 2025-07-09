@@ -346,6 +346,22 @@ const observacionesFiltradas = useMemo(() => {
         </div>
 
         <div className="bg-white border rounded-md p-4 space-y-4">
+          <div className="flex justify-between items-start">
+            <div className="flex items-start gap-3">
+              <div>
+                {detalle && (
+                  <>
+                    <h2 className="font-bold text-lg text-gray-900">{detalle.entregableDescripcion}</h2>
+                    <p className="text-sm text-muted-foreground">Entrega:</p>
+                    <div className="text-sm text-black">
+                      <strong>{detalle.entregableNombre}</strong>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
         
 
           <hr className="border-gray-200" />
