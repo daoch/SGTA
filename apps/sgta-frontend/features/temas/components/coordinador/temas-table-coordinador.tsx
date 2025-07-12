@@ -36,6 +36,8 @@ interface PropuestasTableProps {
   readonly showTipo?: boolean;
   readonly showCiclo?: boolean;
   readonly searchQuery?: string;
+  readonly cicloId?: number;
+  readonly subareaIds?: number[];
 }
 
 export function TemasTableCoordinador({
@@ -44,6 +46,8 @@ export function TemasTableCoordinador({
   showEstado = true,
   showTipo = true,
   searchQuery = "",
+  cicloId,
+  subareaIds = [],
 }: PropuestasTableProps) {
   const [temas, setTemas] = useState<Tema[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,10 +84,12 @@ export function TemasTableCoordinador({
       }
     };
     fetchTemas();
-  }, []);
+  }, [cicloId, subareaIds]);
 
-  // Filtrar por búsqueda
+  // Filtrar por búsqueda y ciclo
   let filtrados = temas;
+  
+  // Filtrar por búsqueda
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtrados = filtrados.filter(
@@ -95,6 +101,14 @@ export function TemasTableCoordinador({
         tema.tesistas?.[0]?.primerApellido?.toLowerCase().includes(query) ||
         tema.tesistas?.[0]?.segundoApellido?.toLowerCase().includes(query) ||
         tema.titulo?.toLowerCase().includes(query),
+    );
+  }
+  
+  
+  // Filtrar por subareas del área seleccionada (si se proporciona)
+  if (subareaIds.length > 0) {
+    filtrados = filtrados.filter((tema) => 
+      tema.subareas?.some(subarea => subareaIds.includes(subarea.id))
     );
   }
 
@@ -126,12 +140,12 @@ export function TemasTableCoordinador({
     // salia un error porque buscaba tema.coasesores?.[0].nombres y trataba de acceder nombres vacios
     tableContent = filtrados.map((tema) => (
       <TableRow key={tema.id}>
-        <TableCell className="font-medium max-w-xs truncate">
+        <TableCell className="font-medium min-w-[200px] max-w-[300px] truncate">
           {tema.titulo}
         </TableCell>
-        <TableCell>{tema.subareas?.[0]?.nombre || "-"}</TableCell>
-        <TableCell>{tema.coasesores?.[0]?.nombres || "-"}</TableCell>
-        <TableCell>
+        <TableCell className="min-w-[150px] max-w-[200px] truncate">{tema.subareas?.map(s => s.nombre).join(", ") || "-"}</TableCell>
+        <TableCell className="min-w-[120px] max-w-[180px] truncate">{tema.coasesores?.[0]?.nombres || "-"}</TableCell>
+        <TableCell className="min-w-[150px] max-w-[250px] truncate">
           {tema.tesistas && tema.tesistas.length > 0
             ? joinUsers(tema.tesistas)
             : "Sin asignar"}
@@ -145,7 +159,7 @@ export function TemasTableCoordinador({
               variant="outline"
               className="bg-green-100 text-green-800 hover:bg-green-100"
             >
-              {titleCase(tema.estadoTemaNombre || "Registrado")}
+              {titleCase((tema.estadoTemaNombre || "Registrado").replace(/_/g, " "))}
             </Badge>
           </TableCell>
         )}
@@ -160,7 +174,7 @@ export function TemasTableCoordinador({
           </TableCell>
         )} */}
         {/* <TableCell>{tema.ciclo || "-"}</TableCell> */}
-        <TableCell className="text-right">
+        <TableCell className="text-right min-w-[80px]">
           <div className="flex justify-end gap-2">
             <Dialog>
               <DialogTrigger asChild>
@@ -204,24 +218,26 @@ export function TemasTableCoordinador({
   }
 
   return (
-    <div>
-      <div className="rounded-md border">
-        <Table>
+    <div className="w-full">
+      <div className="rounded-md border overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead>Área</TableHead>
-              <TableHead>Asesor</TableHead>
-              <TableHead>Estudiante(s)</TableHead>
+              <TableHead className="min-w-[200px] max-w-[300px]">Título</TableHead>
+              <TableHead className="min-w-[150px] max-w-[200px]">Área</TableHead>
+              <TableHead className="min-w-[120px] max-w-[180px]">Asesor</TableHead>
+              <TableHead className="min-w-[150px] max-w-[250px]">Estudiante(s)</TableHead>
               {/* {showPostulaciones && <TableHead>Postulaciones</TableHead>} // TODO */}
-              {showEstado && <TableHead>Estado</TableHead>}
+              {showEstado && <TableHead className="min-w-[100px]">Estado</TableHead>}
               {/* {showTipo && <TableHead>Tipo</TableHead>}
               <TableHead>Ciclo</TableHead> */}
-              <TableHead className="text-right">Acción</TableHead>
+              <TableHead className="text-right min-w-[80px]">Acción</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{tableContent}</TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
     </div>
   );
