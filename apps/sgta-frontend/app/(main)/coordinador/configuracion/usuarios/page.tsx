@@ -45,6 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axiosInstance from "@/lib/axios/axios-instance";
 import {
   ArrowLeft,
   Edit,
@@ -57,8 +58,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import axiosInstance from "@/lib/axios/axios-instance";
+import { useEffect, useState } from "react";
 
 // Types for users
 interface User {
@@ -178,13 +178,35 @@ export default function ConfiguracionUsuariosPage() {
 }).filter((user) => {
   // Filtro de búsqueda
   if (!searchQuery) return true;
-  return (
-    user.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.apellidoPaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.apellidoMaterno?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.codigo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (user.email ?? "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  
+  const query = searchQuery.toLowerCase().trim();
+  const queryWords = query.split(/\s+/);
+  
+  // Construir el texto completo del usuario para búsqueda
+  const fullName = `${user.nombre || ""} ${user.apellidoPaterno || ""} ${user.apellidoMaterno || ""}`.toLowerCase().trim();
+  const codigo = (user.codigo || "").toLowerCase();
+  const email = (user.email || "").toLowerCase();
+  
+  // Si es una búsqueda de una sola palabra, buscar en todos los campos
+  if (queryWords.length === 1) {
+    return (
+      fullName.includes(query) ||
+      codigo.includes(query) ||
+      email.includes(query)
+    );
+  }
+  
+  // Si son múltiples palabras, buscar coincidencias más inteligentes
+  // Opción 1: Todas las palabras están en el nombre completo
+  const allWordsInFullName = queryWords.every((word) => fullName.includes(word));
+  
+  // Opción 2: Coincidencia exacta con nombre + apellido(s)
+  const exactNameMatch = fullName.includes(query);
+  
+  // Opción 3: Coincidencia con código o email
+  const codeOrEmailMatch = codigo.includes(query) || email.includes(query);
+  
+  return allWordsInFullName || exactNameMatch || codeOrEmailMatch;
 });
 
   const uploadUsuariosMasivo = async (file: File) => {
@@ -213,39 +235,49 @@ export default function ConfiguracionUsuariosPage() {
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   // Handle select changes
   const handleSelectChange = (name: string, value: string) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   // Open add user dialog
   const handleAddUser = () => {
     setIsEditMode(false);
     setCurrentUser(null);
+    
+    // Determine user type based on active tab
+    let userType: string;
+    switch (activeTab) {
+      case "alumnos":
+        userType = "Alumno";
+        break;
+      case "asesores":
+        userType = "Asesor";
+        break;
+      case "revisores":
+        userType = "Revisor";
+        break;
+      default:
+        userType = "Jurado";
+        break;
+    }
+
     setFormData({
       codigo: "",
       nombre: "",
       apellidoPaterno: "",
       apellidoMaterno: "",
       email: "",
-      tipo:
-        activeTab === "alumnos"
-          ? "Alumno"
-          : activeTab === "asesores"
-            ? "Asesor"
-            : activeTab === "revisores"
-              ? "Revisor"
-              : "Jurado",
-
+      tipo: userType,
       estado: true,
       rolAsesor: false,
       rolJurado: false,
@@ -742,10 +774,7 @@ export default function ConfiguracionUsuariosPage() {
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                onClick={() => setIsAddUserDialogOpen(false)}
-              >
+              <Button type="submit">
                 {isEditMode ? "Guardar Cambios" : "Agregar Usuario"}
               </Button>
             </DialogFooter>
