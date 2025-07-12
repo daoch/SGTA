@@ -298,7 +298,7 @@ const GeneralPlanificationExpo: React.FC<Props> = ({
       if (origen == "terminar") {
         await finishPlanning(exposicionId);
         await reunionesZoom(exposicionId);
-        await crearCalendar(exposicionId);
+        /*await crearCalendar(exposicionId);*/
         const newEstadoPlanificacion =
           await listarEstadoPlanificacionPorExposicion(exposicionId);
         setEstadoPlanificacion(newEstadoPlanificacion);
