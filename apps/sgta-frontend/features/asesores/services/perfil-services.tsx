@@ -43,6 +43,9 @@ export async function getIdByCorreo(
   correoUsuario: string,
 ): Promise<number | null> {
   try {
+    console.log("Attempting to get ID for email:", correoUsuario);
+    console.log("API Base URL:", axiosInstance.defaults.baseURL);
+    
     const response = await axiosInstance.get("/usuario/getIdByCorreo", {
       params: { correoUsuario },
     });
@@ -52,6 +55,15 @@ export async function getIdByCorreo(
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
+      
+      console.error("Axios error details:", {
+        message: error.message,
+        status: status,
+        baseURL: axiosInstance.defaults.baseURL,
+        url: error.config?.url,
+        fullURL: `${axiosInstance.defaults.baseURL}${error.config?.url}`,
+        code: error.code
+      });
 
       if (
         status === 500 &&

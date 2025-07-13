@@ -382,7 +382,7 @@ export const useAuthStore = create<AuthStore>()(
             const redirect = encodeURIComponent(
               process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
             );
-            const scope = encodeURIComponent("openid email profile https://www.googleapis.com/auth/directory.readonly");
+            const scope = encodeURIComponent("openid email profile");
 
             const url =
               `${domain}/oauth2/authorize` +
