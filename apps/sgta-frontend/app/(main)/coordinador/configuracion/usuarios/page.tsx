@@ -79,6 +79,7 @@ interface User {
 const ROL_ASESOR_ID = 1;
 const ROL_JURADO_ID = 2;
 const ROL_REVISOR_ID = 3;
+const ROL_ALUMNO_ID = 6;
 interface UserFromBack {
   roles: string[];
   id: string | number;
@@ -243,10 +244,32 @@ export default function ConfiguracionUsuariosPage() {
 
   // Handle select changes
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        [name]: value,
+      };
+      
+      // Handle role assignment based on user type
+      if (name === "tipo") {
+        if (value === "Alumno") {
+          // Alumno gets role 6 automatically
+          updatedData.rolesIds = [ROL_ALUMNO_ID];
+          // Reset professor roles
+          updatedData.rolAsesor = false;
+          updatedData.rolJurado = false;
+          updatedData.rolRevisor = false;
+        } else if (value === "Profesor") {
+          // Profesor starts with no roles (will be set via checkboxes)
+          updatedData.rolesIds = [];
+          updatedData.rolAsesor = false;
+          updatedData.rolJurado = false;
+          updatedData.rolRevisor = false;
+        }
+      }
+      
+      return updatedData;
+    });
   };
 
   // Open add user dialog
@@ -271,6 +294,13 @@ export default function ConfiguracionUsuariosPage() {
         break;
     }
 
+    // Initialize rolesIds based on user type
+    let initialRolesIds: number[] = [];
+    if (userType === "Alumno") {
+      initialRolesIds = [ROL_ALUMNO_ID];
+    }
+    // Profesor starts with no roles, they are assigned via checkboxes
+
     setFormData({
       codigo: "",
       nombre: "",
@@ -282,6 +312,7 @@ export default function ConfiguracionUsuariosPage() {
       rolAsesor: false,
       rolJurado: false,
       rolRevisor: false,
+      rolesIds: initialRolesIds,
       carreras: carreras.map((c) => ({
         carreraId: c.carreraId, 
         esCoordinador: c.esCoordinador,

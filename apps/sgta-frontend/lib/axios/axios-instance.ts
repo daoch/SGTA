@@ -6,7 +6,7 @@ console.log("Configurando axios con URL base:", process.env.NEXT_PUBLIC_API_URL)
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
-    "Content-Type": "application/json",
+    "Content-Type": "application/json; charset=utf-8",
   },
   timeout: 60000,
 });

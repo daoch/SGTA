@@ -252,6 +252,28 @@ export default function DashboardPage() {
     fetchCarrera();
   }, [rolActivo, user?.id]);
 
+  // Si el usuario no tiene roles, mostrar mensaje apropiado
+  if (rolesDisponibles.length === 0) {
+    return (
+      <div className="p-6 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Bienvenido al SGTA</h1>
+          <p className="text-muted-foreground text-sm">
+            Sistema de Gestión de Tesis Académicas
+          </p>
+        </div>
+        <Card className="p-6">
+          <CardHeader>
+            <CardTitle>Sin roles asignados</CardTitle>
+            <CardDescription>
+              Tu cuenta no tiene roles asignados actualmente. Por favor, contacta al administrador del sistema para obtener los permisos necesarios.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-8">
       <div>
@@ -295,7 +317,7 @@ export default function DashboardPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Módulos del Sistema ({rolActivo})</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modulosPorRol[rolActivo].map(({ title, description, icon: Icon, href }) => (
+          {(modulosPorRol[rolActivo] || []).map(({ title, description, icon: Icon, href }) => (
             <Link key={href} href={href} className="group">
               <Card key={title} className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardHeader className="flex flex-row items-start gap-4">

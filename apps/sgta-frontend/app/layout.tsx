@@ -35,6 +35,9 @@ export default function RootLayout({
       dir="ltr"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className={"tsqd-parent-container"}>
         <QueryClientProvider>
           <AuthProvider>{children}</AuthProvider>
