@@ -235,7 +235,7 @@ export default function OverviewSection({
             <div className="relative">
               <Avatar className="w-32 h-32 rounded-lg mb-2">
                 <AvatarImage
-                  src={asesor?.foto || undefined}
+                  src={avatar || undefined}
                   alt={asesor?.nombre || "Usuario"}
                 />
                 <AvatarFallback className="rounded-lg">
