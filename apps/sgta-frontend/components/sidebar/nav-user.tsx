@@ -43,7 +43,7 @@ export function NavUser({ user }: { user: User }) {
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight gap-1">
-                <span className="truncate font-semibold">
+                <span className="truncate font-semibold" style={{ unicodeBidi: "normal" }}>
                   {user.firstName && user.lastName
                     ? `${user.firstName} ${user.lastName}`
                     : user.email}
@@ -76,7 +76,7 @@ export function NavUser({ user }: { user: User }) {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
+                  <span className="truncate font-semibold" style={{ unicodeBidi: "normal" }}>
                     {user.firstName && user.lastName
                       ? `${user.firstName} ${user.lastName}`
                       : user.email}

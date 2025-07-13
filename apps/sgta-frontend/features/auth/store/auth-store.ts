@@ -102,7 +102,7 @@ export const useAuthStore = create<AuthStore>()(
                 firstName,
                 lastName,
                 email: payload.email!,
-                avatar: "",
+                avatar: payload.picture || "",
                 roles,
               };
               set({
@@ -244,7 +244,7 @@ export const useAuthStore = create<AuthStore>()(
                 firstName,
                 lastName,
                 email: payload.email,
-                avatar: "",
+                avatar: payload.picture || "",
                 roles,
               };
 
@@ -343,7 +343,7 @@ export const useAuthStore = create<AuthStore>()(
                 firstName,
                 lastName,
                 email: payload.email!,
-                avatar: "",
+                avatar: payload.picture || "",
                 roles,
               };
 
@@ -382,7 +382,7 @@ export const useAuthStore = create<AuthStore>()(
             const redirect = encodeURIComponent(
               process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
             );
-            const scope = encodeURIComponent("openid email profile");
+            const scope = encodeURIComponent("openid email profile https://www.googleapis.com/auth/directory.readonly");
 
             const url =
               `${domain}/oauth2/authorize` +

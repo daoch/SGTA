@@ -3,6 +3,7 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/features/auth";
 
 import EditarPerfilActions from "../components/perfil/acciones-editar-perfil";
 import SaveConfirmationDialog from "../components/perfil/confirmation-dialog";
@@ -40,6 +41,7 @@ interface Props {
 
 export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
   const router = useRouter();
+  const { user: authUser } = useAuth();
 
   const [asesor, setAsesor] = useState<AsesorPerfil | null>(null);
   const [areasDisponibles, setAreasDisponibles] = useState<AreaTematica[]>([]);
@@ -75,6 +77,9 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
 
   // Estado para la pestaña activa
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Check if this is the authenticated user's own profile
+  const isOwnProfile = authUser?.email === asesor?.email;
 
   useEffect(() => {
     getPerfilAsesorEnlaces(userId).then(setAsesor).catch(console.error);
@@ -404,7 +409,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
               editedData={editedData}
               isEditing={isEditing}
               setEditedData={setEditedData}
-              avatar={foto}
+              avatar={isOwnProfile && authUser?.avatar ? authUser.avatar : foto}
               tesis={tesis}
               proyectos={proyectos}
               areasFiltered={areasFiltered}
@@ -441,7 +446,7 @@ export default function PerfilAsesor({ userId, editable }: Readonly<Props>) {
           editedData={editedData}
           isEditing={isEditing}
           setEditedData={setEditedData}
-          avatar={foto}
+          avatar={authUser?.avatar || foto}
           tesis={tesis}
           proyectos={proyectos}
           areasFiltered={areasFiltered}
